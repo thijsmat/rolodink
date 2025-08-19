@@ -50,6 +50,7 @@ model User {
   mfa_factors                 mfa_factors[]
   one_time_tokens             one_time_tokens[]
   sessions                    sessions[]
+  connections                 Connection[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -364,4 +365,32 @@ enum one_time_token_type {
   phone_change_token
 
   @@schema("auth")
+}
+
+// Custom models for LinkedIn CRM
+model Connection {
+  id           String   @id @default(cuid())
+  name         String
+  linkedInUrl  String
+  ownerId      String   @db.Uuid
+  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  notes        Note[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([ownerId])
+  @@schema("public")
+}
+
+model Note {
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  content      String
+  meetingPlace String?
+  userCompany  String?
+  connectionId String
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@schema("public")
 }
