@@ -379,6 +379,7 @@ model CrmConnection {
   updatedAt    DateTime @updatedAt
 
   @@index([ownerId])
+  @@unique([ownerId, linkedInUrl])
   @@schema("public")
   @@map("Connection")
 }
