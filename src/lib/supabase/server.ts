@@ -10,7 +10,7 @@ export function createSupabaseServerClient() {
 export async function getUserFromRequest(request: Request) {
 	const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
 	if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-		return { user: null, error: 'Missing or invalid Authorization header' as const };
+		return { user: null, error: 'Missing or invalid Authorization header' };
 	}
 
 	const accessToken = authHeader.split(' ')[1];
@@ -18,10 +18,10 @@ export async function getUserFromRequest(request: Request) {
 
 	const { data, error } = await supabase.auth.getUser(accessToken);
 	if (error || !data?.user) {
-		return { user: null, error: error?.message ?? 'Invalid token' as const };
+		return { user: null, error: error?.message ?? 'Invalid token' };
 	}
 
-	return { user: data.user, error: null as const };
+	return { user: data.user, error: null };
 }
 
 
