@@ -50,7 +50,7 @@ model User {
   mfa_factors                 mfa_factors[]
   one_time_tokens             one_time_tokens[]
   sessions                    sessions[]
-  connections                 Connection[]
+  connections                 CrmConnection[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -368,7 +368,7 @@ enum one_time_token_type {
 }
 
 // Custom models for LinkedIn CRM
-model Connection {
+model CrmConnection {
   id           String   @id @default(cuid())
   name         String
   linkedInUrl  String
@@ -380,6 +380,7 @@ model Connection {
 
   @@index([ownerId])
   @@schema("public")
+  @@map("Connection")
 }
 
 model Note {
@@ -389,7 +390,7 @@ model Note {
   meetingPlace String?
   userCompany  String?
   connectionId String
-  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connection   CrmConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
 
   @@index([connectionId])
   @@schema("public")

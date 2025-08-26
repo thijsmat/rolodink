@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
     }
 
-    const newConnection = await prisma.connection.create({
+    const newConnection = await prisma.crmConnection.create({
       data: {
         name: data.name,
         linkedInUrl: data.linkedInUrl,
