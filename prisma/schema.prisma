@@ -374,7 +374,13 @@ model CrmConnection {
   linkedInUrl  String
   ownerId      String   @db.Uuid
   owner        User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  notes        Note[]
+  // New optional metadata fields for quick notes and context
+  meetingPlace         String?
+  userCompanyAtTheTime String?
+  notes                String?
+
+  // Existing related note entries (renamed to avoid collision with notes String?)
+  noteEntries   Note[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
