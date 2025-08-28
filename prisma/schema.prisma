@@ -377,7 +377,7 @@ model CrmConnection {
   // New optional metadata fields for quick notes and context
   meetingPlace         String?
   userCompanyAtTheTime String?
-  notes                String?
+  quickNote            String?
 
   // Existing related note entries (renamed to avoid collision with notes String?)
   noteEntries   Note[]

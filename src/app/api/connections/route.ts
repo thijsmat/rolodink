@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         ownerId: user.id,
         meetingPlace: data.meetingPlace ?? null,
         userCompanyAtTheTime: data.userCompanyAtTheTime ?? null,
-        notes: data.notes ?? null,
+        quickNote: data.quickNote ?? null,
       },
     });
     return NextResponse.json(newConnection, { status: 201 });
