@@ -30,13 +30,14 @@ export async function GET() {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Als een van de checks mislukt, stuur een foutbericht.
     console.error("Health check failed:", error);
+    const message = error instanceof Error ? error.message : 'An unknown error occurred during the health check.';
     return NextResponse.json({
       status: 'error',
       error: 'Database connection or query failed.',
-      message: error.message,
+      message,
     }, { status: 500 });
   } finally {
     await prisma.$disconnect();
