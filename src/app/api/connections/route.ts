@@ -30,8 +30,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing url query parameter' }, { status: 400 });
     }
 
-    // AANGEPAST: Gebruik de juiste modelnaam 'connection'
-    const connection = await prisma.connection.findFirst({
+    // CORRECTIE: Gebruik de juiste modelnaam 'crmConnection' zoals de compiler aangeeft
+    const connection = await prisma.crmConnection.findFirst({
       where: { ownerId: user.id, linkedInUrl: url },
     });
 
@@ -58,8 +58,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400 });
     }
 
-    // AANGEPAST: Gebruik de juiste modelnaam 'connection'
-    const newConnection = await prisma.connection.create({
+    // CORRECTIE: Gebruik de juiste modelnaam 'crmConnection' zoals de compiler aangeeft
+    const newConnection = await prisma.crmConnection.create({
       data: {
         name: data.name,
         linkedInUrl: data.linkedInUrl,
