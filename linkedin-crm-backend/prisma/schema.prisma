@@ -393,9 +393,6 @@ enum oauth_registration_type {
 
   @@schema("auth")
 }
-
-// Voeg dit toe aan het EINDE van je schema.prisma bestand
-
 model Connection {
   id                   String   @id @default(cuid())
   name                 String
@@ -407,7 +404,7 @@ model Connection {
   userCompanyAtTheTime String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
-  Note                 Note[]
+  noteEntries          Note[] // Hernoemd om conflict te voorkomen
 
   @@unique([ownerId, linkedInUrl])
   @@index([ownerId])
@@ -415,7 +412,6 @@ model Connection {
 }
 
 model Note {
-  // Dit model kun je later verder uitwerken, maar we voegen het nu toe voor de structuur.
   id           String     @id @default(cuid())
   content      String
   connectionId String
