@@ -50,7 +50,7 @@ model User {
   mfa_factors                 mfa_factors[]
   one_time_tokens             one_time_tokens[]
   sessions                    sessions[]
-  connections                 CrmConnection[]
+  connections                 Connection[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -326,6 +326,26 @@ model sso_providers {
   @@schema("auth")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oauth_clients {
+  id                 String                  @id @db.Uuid
+  client_id          String                  @unique
+  client_secret_hash String
+  registration_type  oauth_registration_type
+  redirect_uris      String
+  grant_types        String
+  client_name        String?
+  client_uri         String?
+  logo_uri           String?
+  created_at         DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                @default(now()) @db.Timestamptz(6)
+  deleted_at         DateTime?               @db.Timestamptz(6)
+
+  @@index([client_id])
+  @@index([deleted_at])
+  @@schema("auth")
+}
+
 enum aal_level {
   aal1
   aal2
@@ -367,37 +387,39 @@ enum one_time_token_type {
   @@schema("auth")
 }
 
-// Custom models for LinkedIn CRM
-model CrmConnection {
-  id           String   @id @default(cuid())
-  name         String
-  linkedInUrl  String
-  ownerId      String   @db.Uuid
-  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  // New optional metadata fields for quick notes and context
+enum oauth_registration_type {
+  dynamic
+  manual
+
+  @@schema("auth")
+}
+
+// Voeg dit toe aan het EINDE van je schema.prisma bestand
+
+model Connection {
+  id                   String   @id @default(cuid())
+  name                 String
+  linkedInUrl          String
+  ownerId              String   @db.Uuid
+  owner                User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  notes                String?
   meetingPlace         String?
   userCompanyAtTheTime String?
-  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  // Existing related note entries (renamed to avoid collision with notes String?)
-  noteEntries   Note[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([ownerId])
   @@unique([ownerId, linkedInUrl])
+  @@index([ownerId])
   @@schema("public")
-  @@map("Connection")
 }
 
 model Note {
+  // Dit model kun je later verder uitwerken, maar we voegen het nu toe voor de structuur.
   id           String     @id @default(cuid())
-  createdAt    DateTime   @default(now())
   content      String
-  meetingPlace String?
-  userCompany  String?
   connectionId String
-  connection   CrmConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 
   @@index([connectionId])
   @@schema("public")
