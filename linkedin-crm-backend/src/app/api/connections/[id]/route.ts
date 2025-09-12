@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } } // <-- DEZE REGEL IS AANGEPAST
 ) {
   try {
     const { user } = await getUserFromRequest(request);
@@ -15,7 +15,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const connectionId = params.id;
+    const connectionId = context.params.id; // <-- DEZE REGEL IS AANGEPAST
     const data = await request.json();
 
     const updatedConnection = await prisma.connection.update({
@@ -32,7 +32,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedConnection, { status: 200 });
 
-  } catch (err) { // De 'any' type is hier verwijderd
+  } catch (err) {
     console.error('Fout bij het updaten van de connectie:', err);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500 });
   }
