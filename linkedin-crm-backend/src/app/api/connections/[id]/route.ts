@@ -1,13 +1,13 @@
 // src/app/api/connections/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'; // <-- AANGEPAST
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
 
 export async function PATCH(
-  request: Request,
-  context: { params: { id: string } } // <-- DEZE REGEL IS AANGEPAST
+  request: NextRequest, // <-- AANGEPAST
+  context: { params: { id: string } }
 ) {
   try {
     const { user } = await getUserFromRequest(request);
@@ -15,13 +15,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const connectionId = context.params.id; // <-- DEZE REGEL IS AANGEPAST
+    const connectionId = context.params.id;
     const data = await request.json();
 
     const updatedConnection = await prisma.connection.update({
       where: {
         id: connectionId,
-        ownerId: user.id, // Veiligheidscheck: gebruiker mag alleen eigen data aanpassen
+        ownerId: user.id, // Veiligheidscheck
       },
       data: {
         meetingPlace: data.meetingPlace,
