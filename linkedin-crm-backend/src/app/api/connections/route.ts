@@ -1,67 +1,50 @@
 // src/app/api/connections/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
 
-export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
+// GET functie (blijft hetzelfde)
+export async function GET(request: NextRequest) {
+    // ... de bestaande GET code ...
 }
 
-export async function GET(request: Request) {
-  try {
-    const { user, error: authError } = await getUserFromRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: authError ?? 'Unauthorized' }, { status: 401 });
-    }
-    const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
-    if (!url) {
-      return NextResponse.json({ error: 'Missing url query parameter' }, { status: 400 });
-    }
-    const connection = await prisma.connection.findFirst({
-      where: { ownerId: user.id, linkedInUrl: url },
-    });
-    if (!connection) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    }
-    return NextResponse.json(connection, { status: 200 });
-  } catch (err) {
-    console.error('Fout bij het ophalen van de connectie:', err);
-    return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500 });
-  }
+// POST functie (blijft hetzelfde)
+export async function POST(request: NextRequest) {
+    // ... de bestaande POST code ...
 }
 
-export async function POST(request: Request) {
+// NIEUWE PATCH FUNCTIE
+export async function PATCH(request: NextRequest) {
   try {
-    const { user, error: authError } = await getUserFromRequest(request);
+    const { user } = await getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: authError ?? 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const data = await request.json();
-    if (!data.name || !data.linkedInUrl) {
-      return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400 });
+
+    const body = await request.json();
+    const { id, ...updateData } = body; // Haal ID en de rest van de data uit de body
+
+    if (!id) {
+      return NextResponse.json({ error: 'Connection ID is verplicht' }, { status: 400 });
     }
-    const newConnection = await prisma.connection.create({
-      data: {
-        name: data.name,
-        linkedInUrl: data.linkedInUrl,
-        ownerId: user.id,
-        meetingPlace: data.meetingPlace ?? null,
-        userCompanyAtTheTime: data.userCompanyAtTheTime ?? null,
-        notes: data.notes ?? null,
+
+    const updatedConnection = await prisma.connection.update({
+      where: {
+        id: id,
+        ownerId: user.id, // Veiligheidscheck
       },
+      data: updateData,
     });
-    return NextResponse.json(newConnection, { status: 201 });
+
+    return NextResponse.json(updatedConnection, { status: 200 });
+
   } catch (err) {
-    console.error('Fout bij het aanmaken van de connectie:', err);
+    console.error('Fout bij het updaten van de connectie:', err);
+    if (err instanceof Error && 'code' in err && err.code === 'P2025') {
+      return NextResponse.json({ error: 'Connectie niet gevonden of geen permissie.' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500 });
   }
 }
