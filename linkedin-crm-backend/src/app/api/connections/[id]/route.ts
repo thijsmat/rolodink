@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
@@ -48,10 +48,12 @@ export async function PATCH(
 
     // 4. Stuur de geüpdatete data terug
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });
-  } catch (error: any) {
-    // Prisma's P2025 error code betekent "Record to update not found."
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Connectie niet gevonden of geen permissie om te updaten.' }, { status: 404, headers: corsHeaders });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Prisma's P2025 error code betekent "Record to update not found."
+      if (error.code === 'P2025') {
+        return NextResponse.json({ error: 'Connectie niet gevonden of geen permissie om te updaten.' }, { status: 404, headers: corsHeaders });
+      }
     }
     console.error('Fout bij het updaten van de connectie:', error);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
