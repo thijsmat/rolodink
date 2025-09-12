@@ -9,11 +9,13 @@ const patchBodySchema = z.object({
   name: z.string().min(1, 'Name cannot be empty.').optional(),
   title: z.string().optional(),
   notes: z.string().optional(),
+  meetingPlace: z.string().optional(),
+  userCompanyAtTheTime: z.string().optional(),
 }).partial(); // .partial() maakt alle velden optioneel
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     // 1. Authenticeer de gebruiker
@@ -22,7 +24,7 @@ export async function PATCH(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { id } = context.params;
+    const { id } = params;
     const body = await request.json();
 
     // 2. Valideer de input
