@@ -56,8 +56,17 @@ export async function DELETE(
       );
     }
 
+    // Handle other Prisma errors
+    if (err instanceof Error && 'code' in err) {
+      console.error('Prisma error code:', err.code);
+      return NextResponse.json(
+        { error: `Database error: ${err.message}` },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${err instanceof Error ? err.message : 'Unknown error'}` },
       { status: 500, headers: corsHeaders }
     );
   }
