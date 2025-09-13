@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
 
-    let whereClause: any = { ownerId: user.id };
+    const whereClause: { ownerId: string; linkedInUrl?: string } = { ownerId: user.id };
     
     // Als er een URL parameter is, filter op die URL
     if (url) {
-      whereClause.url = url;
+      whereClause.linkedInUrl = url;
     }
 
     const connections = await prisma.connection.findMany({
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const newConnection = await prisma.connection.create({
       data: {
         name,
-        url,
+        linkedInUrl: url,
         meetingPlace,
         notes,
         ownerId: user.id,
