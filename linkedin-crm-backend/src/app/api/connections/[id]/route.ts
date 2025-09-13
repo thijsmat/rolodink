@@ -18,7 +18,7 @@ export async function OPTIONS() {
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user } = await getUserFromRequest(request);
@@ -26,7 +26,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
-    const connectionId = context.params.id;
+    const { id: connectionId } = await params;
 
     if (!connectionId) {
       return NextResponse.json({ error: 'Connection ID is required' }, { status: 400, headers: corsHeaders });
