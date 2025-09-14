@@ -31,6 +31,11 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
       const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
+      // Validate that we have a connection ID
+      if (!connection.id) {
+        throw new Error('Connection ID is missing');
+      }
+
       // Ensure all fields are properly formatted for the API
       const updatePayload = {
         id: connection.id,
@@ -38,6 +43,9 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
         userCompanyAtTheTime: formData.userCompanyAtTheTime || null,
         notes: formData.notes || null
       };
+
+      // Debug logging
+      console.log('Updating connection with payload:', updatePayload);
 
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
         method: 'PATCH',
@@ -50,6 +58,7 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Update failed with response:', response.status, errorData);
         throw new Error(errorData.error || `HTTP ${response.status}: Update mislukt`);
       }
       
