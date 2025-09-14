@@ -37,6 +37,8 @@ waitForElement(stableButtonSelector, (foundButton) => {
         crmButton.style.alignItems = "center";
 
         crmButton.onclick = async () => {
+            console.log('CRM Button clicked - starting profile extraction...');
+            
             // More robust profile name extraction with multiple fallback selectors
             let profileName = '';
             const selectors = [
@@ -48,10 +50,14 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 '[data-test-id="profile-name"]'
             ];
             
+            console.log('Trying selectors:', selectors);
+            
             for (const selector of selectors) {
                 const element = document.querySelector(selector);
+                console.log(`Selector "${selector}":`, element);
                 if (element && element.innerText && element.innerText.trim()) {
                     profileName = element.innerText.trim();
+                    console.log('Found profile name:', profileName);
                     break;
                 }
             }
@@ -59,29 +65,37 @@ waitForElement(stableButtonSelector, (foundButton) => {
             // If still no name found, try to get it from the page title
             if (!profileName) {
                 const title = document.title;
+                console.log('Page title:', title);
                 if (title && title.includes('|')) {
                     profileName = title.split('|')[0].trim();
                 } else if (title) {
                     profileName = title.replace(' | LinkedIn', '').trim();
                 }
+                console.log('Profile name from title:', profileName);
             }
             
             // Final fallback - show error if no name found
             if (!profileName) {
+                console.error('No profile name found');
                 alert('Kon de profielnaam niet vinden. Probeer de pagina te verversen.');
                 return;
             }
             
             const profileUrl = window.location.href;
+            console.log('Profile URL:', profileUrl);
 
             // Haal het authenticatietoken op uit de storage van de extensie.
             const { supabaseAccessToken: authToken } = await chrome.storage.local.get('supabaseAccessToken');
+            console.log('Auth token exists:', !!authToken);
 
             if (!authToken) {
                 alert('Je bent niet ingelogd. Log in via de extensie-popup om deze functie te gebruiken.');
                 // We stoppen hier als de gebruiker niet is ingelogd.
                 return;
             }
+
+            const requestBody = { name: profileName, linkedInUrl: profileUrl };
+            console.log('Request body:', requestBody);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -90,8 +104,11 @@ waitForElement(stableButtonSelector, (foundButton) => {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}` 
                     },
-                    body: JSON.stringify({ name: profileName, linkedInUrl: profileUrl }),
+                    body: JSON.stringify(requestBody),
                 });
+
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
 
                 if (response.ok) {
                     alert(`${profileName} is succesvol toegevoegd!`);
@@ -99,6 +116,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
                     crmButton.disabled = true;
                 } else {
                     const errorData = await response.json();
+                    console.error('Error response:', errorData);
                     if (response.status === 401) {
                         alert('Sessie verlopen. Log opnieuw in via de extensie.');
                         // TODO: Open de login-pagina van de extensie.
