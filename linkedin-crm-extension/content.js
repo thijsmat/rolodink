@@ -37,7 +37,41 @@ waitForElement(stableButtonSelector, (foundButton) => {
         crmButton.style.alignItems = "center";
 
         crmButton.onclick = async () => {
-            const profileName = document.querySelector('h1').innerText;
+            // More robust profile name extraction with multiple fallback selectors
+            let profileName = '';
+            const selectors = [
+                'h1.text-heading-xlarge',
+                'h1[data-test-id="profile-name"]',
+                'h1.break-words',
+                'h1',
+                '.text-heading-xlarge',
+                '[data-test-id="profile-name"]'
+            ];
+            
+            for (const selector of selectors) {
+                const element = document.querySelector(selector);
+                if (element && element.innerText && element.innerText.trim()) {
+                    profileName = element.innerText.trim();
+                    break;
+                }
+            }
+            
+            // If still no name found, try to get it from the page title
+            if (!profileName) {
+                const title = document.title;
+                if (title && title.includes('|')) {
+                    profileName = title.split('|')[0].trim();
+                } else if (title) {
+                    profileName = title.replace(' | LinkedIn', '').trim();
+                }
+            }
+            
+            // Final fallback - show error if no name found
+            if (!profileName) {
+                alert('Kon de profielnaam niet vinden. Probeer de pagina te verversen.');
+                return;
+            }
+            
             const profileUrl = window.location.href;
 
             // Haal het authenticatietoken op uit de storage van de extensie.
@@ -69,7 +103,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
                         alert('Sessie verlopen. Log opnieuw in via de extensie.');
                         // TODO: Open de login-pagina van de extensie.
                     } else {
-                        alert('Er ging iets mis.');
+                        alert(`Er ging iets mis: ${errorData.error || 'Onbekende fout'}`);
                     }
                 }
             } catch (error) {

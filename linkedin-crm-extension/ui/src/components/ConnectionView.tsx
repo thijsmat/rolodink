@@ -36,6 +36,10 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
         throw new Error('Connection ID is missing');
       }
 
+      // Validate connection object structure
+      console.log('Connection object:', connection);
+      console.log('Form data:', formData);
+
       // Ensure all fields are properly formatted for the API
       const updatePayload = {
         id: connection.id,
@@ -46,6 +50,7 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
 
       // Debug logging
       console.log('Updating connection with payload:', updatePayload);
+      console.log('Payload JSON:', JSON.stringify(updatePayload));
 
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
         method: 'PATCH',
@@ -63,6 +68,7 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
       }
       
       const updatedConnection = await response.json();
+      console.log('Update successful, received:', updatedConnection);
       onConnectionUpdate(updatedConnection);
       setIsEditing(false);
 
