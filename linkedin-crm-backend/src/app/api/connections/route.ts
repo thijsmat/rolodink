@@ -6,10 +6,10 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 const prisma = new PrismaClient();
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'chrome-extension://hidgijlndiamdghcfjloaihnakmllimd',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Credentials': 'false',
 };
 
 export async function OPTIONS() {
