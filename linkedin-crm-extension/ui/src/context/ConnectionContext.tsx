@@ -26,6 +26,7 @@ type ConnectionContextState = {
   allConnections: Connection[];
   isListView: boolean;
   toastMessage: string;
+  isInitialized: boolean;
   setToastMessage: (msg: string) => void;
   fetchData: () => Promise<void>;
   fetchAllConnections: () => Promise<void>;
@@ -61,6 +62,43 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
   const [isListView, setIsListView] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+  // Cache management functions
+  const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
+    try {
+      const result = await chrome.storage.local.get('cachedConnections');
+      return result.cachedConnections || [];
+    } catch (error) {
+      console.error('Failed to load cached connections:', error);
+      return [];
+    }
+  }, []);
+
+  const saveConnectionsToCache = useCallback(async (connections: Connection[]) => {
+    try {
+      await chrome.storage.local.set({ 
+        cachedConnections: connections,
+        connectionsCacheTimestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('Failed to save connections to cache:', error);
+    }
+  }, []);
+
+  const initializeFromCache = useCallback(async () => {
+    try {
+      const cachedConnections = await loadCachedConnections();
+      if (cachedConnections.length > 0) {
+        setAllConnections(cachedConnections);
+        console.log('Loaded cached connections:', cachedConnections.length);
+      }
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Failed to initialize from cache:', error);
+      setIsInitialized(true);
+    }
+  }, [loadCachedConnections]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -105,9 +143,14 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, []);
 
+  // Initialize from cache first, then fetch data
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const initialize = async () => {
+      await initializeFromCache();
+      await fetchData();
+    };
+    initialize();
+  }, [initializeFromCache, fetchData]);
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
@@ -116,7 +159,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const handleLogout = async () => {
-    await chrome.storage.local.remove('supabaseAccessToken');
+    await chrome.storage.local.remove(['supabaseAccessToken', 'cachedConnections', 'connectionsCacheTimestamp']);
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
@@ -125,9 +168,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setToastMessage('Uitgelogd.');
   };
 
-  const fetchAllConnections = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchAllConnections = useCallback(async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+      setError(null);
+    }
     try {
       const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
@@ -140,19 +185,43 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const connections = await response.json();
       setAllConnections(connections);
+      
+      // Save to cache
+      await saveConnectionsToCache(connections);
+      
+      if (silent) {
+        console.log('Background refresh completed:', connections.length, 'connections');
+      }
     } catch (e) {
       console.error('Fout bij ophalen van alle connecties:', e);
-      setError('Kon de connecties niet ophalen.');
-      setToastMessage('Kon de connecties niet ophalen.');
+      if (!silent) {
+        setError('Kon de connecties niet ophalen.');
+        setToastMessage('Kon de connecties niet ophalen.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [saveConnectionsToCache]);
 
-  const showListView = async () => {
+  const showListView = useCallback(async () => {
     setIsListView(true);
-    await fetchAllConnections();
-  };
+    
+    // If we already have connections loaded, show them immediately
+    if (allConnections.length > 0) {
+      // Trigger background refresh
+      fetchAllConnections(true);
+    } else {
+      // Load from cache first, then fetch from server
+      const cachedConnections = await loadCachedConnections();
+      if (cachedConnections.length > 0) {
+        setAllConnections(cachedConnections);
+      }
+      // Then fetch fresh data
+      await fetchAllConnections();
+    }
+  }, [allConnections.length, loadCachedConnections, fetchAllConnections]);
 
   const hideListView = () => {
     setIsListView(false);
@@ -186,6 +255,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!response.ok) throw new Error('Opslaan mislukt');
       const newConnection = await response.json();
       setConnection(newConnection);
+      
+      // Update cache with new connection
+      const updatedConnections = [...allConnections, newConnection];
+      setAllConnections(updatedConnections);
+      await saveConnectionsToCache(updatedConnections);
+      
       setToastMessage('Connectie opgeslagen.');
     } catch (e) {
       console.error('Fout bij opslaan:', e);
@@ -257,6 +332,14 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const updated = await response.json();
       setConnection(updated);
+      
+      // Update cache with updated connection
+      const updatedConnections = allConnections.map(conn => 
+        conn.id === updated.id ? updated : conn
+      );
+      setAllConnections(updatedConnections);
+      await saveConnectionsToCache(updatedConnections);
+      
       setToastMessage('Connectie bijgewerkt.');
     } catch (e: any) {
       console.error('Fout bij bijwerken:', e);
@@ -295,7 +378,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
       if (!response.ok) throw new Error('Verwijderen mislukt');
       setConnection(null);
-      setAllConnections([]);
+      
+      // Update cache by removing deleted connection
+      const updatedConnections = allConnections.filter(conn => conn.id !== idToUse);
+      setAllConnections(updatedConnections);
+      await saveConnectionsToCache(updatedConnections);
+      
       setToastMessage('Connectie verwijderd.');
     } catch (e: any) {
       console.error('Fout bij verwijderen:', e);
@@ -314,6 +402,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     allConnections,
     isListView,
     toastMessage,
+    isInitialized,
     setToastMessage,
     fetchData,
     fetchAllConnections,
@@ -333,6 +422,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     allConnections,
     isListView,
     toastMessage,
+    isInitialized,
   ]);
 
   return (
