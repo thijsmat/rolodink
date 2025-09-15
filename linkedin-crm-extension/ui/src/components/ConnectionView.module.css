@@ -137,6 +137,12 @@
   align-items: center;
   gap: var(--space-1);
   transition: all var(--transition-normal);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .linkedinLink:hover {

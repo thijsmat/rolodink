@@ -156,16 +156,20 @@ export function AllConnectionsView() {
                     <span className={styles.badge}>✓</span>
                   </h3>
                   {conn.linkedInUrl && (
-                    <a
-                      href={conn.linkedInUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
                       title="Open LinkedIn-profiel"
                       className={styles.linkedinLink}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await chrome.tabs.update({ url: conn.linkedInUrl });
+                        } catch (error) {
+                          console.error('Failed to navigate to LinkedIn profile:', error);
+                        }
+                      }}
                     >
                       🔗 in
-                    </a>
+                    </button>
                   )}
                 </div>
 

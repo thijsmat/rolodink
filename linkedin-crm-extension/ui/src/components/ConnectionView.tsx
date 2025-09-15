@@ -100,15 +100,19 @@ export function ConnectionView() {
                 {connection.name}
                 <span className={styles.badge}>✓</span>
               </h2>
-              <a
-                href={connection.linkedInUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
                 className={styles.linkedinLink}
                 title="Open LinkedIn-profiel"
+                onClick={async () => {
+                  try {
+                    await chrome.tabs.update({ url: connection.linkedInUrl });
+                  } catch (error) {
+                    console.error('Failed to navigate to LinkedIn profile:', error);
+                  }
+                }}
               >
                 🔗 Bekijk op LinkedIn
-              </a>
+              </button>
             </div>
           </div>
 
