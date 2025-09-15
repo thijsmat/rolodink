@@ -140,6 +140,12 @@ waitForElement(stableButtonSelector, (foundButton) => {
                     if (response.status === 401) {
                         alert('Sessie verlopen. Log opnieuw in via de extensie.');
                         // TODO: Open de login-pagina van de extensie.
+                    } else if (response.status === 409) {
+                        // Bestaat al: markeer als toegevoegd zonder foutmelding
+                        crmButton.innerText = "Al toegevoegd ✔️";
+                        crmButton.disabled = true;
+                        // Eventueel een zachte notificatie
+                        console.log('Connectie bestaat al, knop uitgeschakeld.');
                     } else {
                         alert(`Er ging iets mis: ${errorData.error || 'Onbekende fout'}`);
                     }
