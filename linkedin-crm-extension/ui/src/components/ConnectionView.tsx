@@ -1,8 +1,8 @@
 // src/components/ConnectionView.tsx
 import { useState } from 'react';
-import { ConnectionForm, ConnectionFormData } from './ConnectionForm';
+import { ConnectionForm } from './ConnectionForm';
 import styles from '../App.module.css';
-import { useConnection } from '../context/ConnectionContext';
+import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();
@@ -39,11 +39,17 @@ export function ConnectionView() {
   };
 
   if (isEditing) {
+    const initialData: ConnectionFormData = {
+      meetingPlace: connection.meetingPlace || undefined,
+      userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
+      notes: connection.notes || undefined
+    };
+
     return (
       <div>
         <h2>Connectie Bewerken</h2>
         <ConnectionForm
-          initialData={connection}
+          initialData={initialData}
           onSubmit={onSubmit}
           onCancel={() => setIsEditing(false)}
           isSubmitting={isSubmitting}
