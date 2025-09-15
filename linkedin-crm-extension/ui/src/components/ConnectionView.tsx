@@ -31,8 +31,40 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
       const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
-      // Validate that we have a connection ID
-      if (!connection.id) {
+      // Zorg dat we een ID hebben; zo niet, probeer het op te halen via de URL
+      let effectiveId = connection.id;
+      if (!effectiveId) {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const currentUrl = tabs[0]?.url;
+          if (currentUrl) {
+            const normalizeLinkedInUrl = (raw: string) => {
+              try {
+                const u = new URL(raw);
+                u.search = '';
+                u.hash = '';
+                if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+                return u.toString();
+              } catch {
+                return raw;
+              }
+            };
+            const normalizedUrl = normalizeLinkedInUrl(currentUrl);
+            const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
+              headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+              if (picked && picked.id) {
+                effectiveId = picked.id as string;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (!effectiveId) {
         setError('Connection ID ontbreekt. Ververs en probeer opnieuw.');
         setIsSubmitting(false);
         return;
@@ -44,7 +76,7 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
 
       // Ensure all fields are properly formatted for the API
       const updatePayload = {
-        id: connection.id,
+        id: effectiveId,
         meetingPlace: formData.meetingPlace || null,
         userCompanyAtTheTime: formData.userCompanyAtTheTime || null,
         notes: formData.notes || null
