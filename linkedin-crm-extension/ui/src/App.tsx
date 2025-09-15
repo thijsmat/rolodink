@@ -47,7 +47,9 @@ function App() {
       });
 
       if (response.ok) {
-        setConnection(await response.json());
+        const data = await response.json();
+        const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+        setConnection(picked);
       } else if (response.status === 404) {
         setConnection(null);
       } else {
