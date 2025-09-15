@@ -36,6 +36,50 @@ waitForElement(stableButtonSelector, (foundButton) => {
         crmButton.style.display = "flex";
         crmButton.style.alignItems = "center";
 
+        // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
+        (async () => {
+            try {
+                if (!chrome || !chrome.storage || !chrome.storage.local) {
+                    return;
+                }
+
+                const profileUrl = window.location.href;
+                const normalizeLinkedInUrl = (inputUrl) => {
+                    let normalized = inputUrl.split('?')[0].split('#')[0];
+                    if (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+                    return normalized;
+                };
+                const normalizedUrl = normalizeLinkedInUrl(profileUrl);
+
+                let authToken;
+                try {
+                    const result = await chrome.storage.local.get('supabaseAccessToken');
+                    authToken = result.supabaseAccessToken;
+                } catch (_) {
+                    return;
+                }
+                if (!authToken) return; // niet ingelogd → laat knop actief
+
+                const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!resp.ok) return; // bij 404/401 etc. niets doen
+
+                const data = await resp.json().catch(() => null);
+                const exists = Array.isArray(data) ? data.length > 0 : (data && (data.id || data.linkedInUrl));
+                if (exists) {
+                    crmButton.innerText = "Al toegevoegd ✔️";
+                    crmButton.disabled = true;
+                    console.log('Profiel reeds aanwezig, knop uitgeschakeld.');
+                }
+            } catch (e) {
+                // Stil falen om UX niet te verstoren
+                console.log('Kon bestaande connectie niet controleren:', e);
+            }
+        })();
+
         crmButton.onclick = async () => {
             try {
             console.log('CRM Button clicked - starting profile extraction...');
