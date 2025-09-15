@@ -1,6 +1,6 @@
 // src/components/LoginView.tsx
 import { useState } from 'react';
-import styles from '../App.module.css';
+import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 
 const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
@@ -11,6 +11,7 @@ export function LoginView() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const callAuth = async (endpoint: string, payload: any) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
@@ -29,6 +30,8 @@ export function LoginView() {
       setMessage('Vul e-mail en wachtwoord in.');
       return;
     }
+    
+    setIsLoading(true);
     setMessage(type === 'signin' ? 'Bezig met inloggen...' : 'Bezig met aanmelden...');
     setIsError(false);
 
@@ -44,24 +47,95 @@ export function LoginView() {
     } catch (e: any) {
       setIsError(true);
       setMessage(e.message || `${type} mislukt.`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <div className={styles.formGroup}>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.logo}>in</div>
+        <h1 className={styles.title}>LinkedIn CRM</h1>
+        <p className={styles.subtitle}>
+          Beheer je LinkedIn connecties op één plek
+        </p>
       </div>
-      <div className={styles.formGroup}>
-        <label htmlFor="password">Password</label>
-        <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+
+      <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+        <div className={styles.formGroup}>
+          <label htmlFor="email" className={styles.label}>
+            E-mailadres
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={styles.input}
+            placeholder="je@email.com"
+            disabled={isLoading}
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="password" className={styles.label}>
+            Wachtwoord
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={styles.input}
+            placeholder="••••••••"
+            disabled={isLoading}
+            required
+          />
+        </div>
+
+        <div className={styles.buttonGroup}>
+          <button
+            onClick={() => handleAuth('signin')}
+            className={`${styles.button} ${styles.buttonPrimary}`}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Bezig...' : 'Inloggen'}
+          </button>
+          <button
+            onClick={() => handleAuth('signup')}
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            disabled={isLoading}
+          >
+            Aanmelden
+          </button>
+        </div>
+      </form>
+
+      {message && (
+        <div className={`${styles.message} ${isError ? styles.messageError : styles.messageSuccess}`}>
+          {message}
+        </div>
+      )}
+
+      <div className={styles.features}>
+        <h3 className={styles.featuresTitle}>Wat kun je doen?</h3>
+        <div className={styles.featuresList}>
+          <div className={styles.feature}>
+            <span className={styles.featureIcon}>✓</span>
+            <span>Voeg LinkedIn profielen toe aan je CRM</span>
+          </div>
+          <div className={styles.feature}>
+            <span className={styles.featureIcon}>✓</span>
+            <span>Bewaar notities en ontmoetingsdetails</span>
+          </div>
+          <div className={styles.feature}>
+            <span className={styles.featureIcon}>✓</span>
+            <span>Bekijk al je connecties overzichtelijk</span>
+          </div>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
-        <button onClick={() => handleAuth('signin')} className={styles.button}>Sign in</button>
-        <button onClick={() => handleAuth('signup')} className={styles.button} style={{backgroundColor: '#6c757d'}}>Sign up</button>
-      </div>
-      {message && <p style={{ color: isError ? 'red' : 'green', marginTop: '10px' }}>{message}</p>}
     </div>
   );
 }

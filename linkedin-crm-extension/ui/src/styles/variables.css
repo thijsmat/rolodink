@@ -1,41 +1,94 @@
 :root {
-  /* Colors */
+  /* LinkedIn Brand Colors */
   --linkedin-blue: #0a66c2;
   --linkedin-blue-hover: #004182;
   --linkedin-blue-subtle: #eaf3ff;
+  --linkedin-blue-light: #70b5f9;
+  --linkedin-blue-dark: #004182;
+  
+  /* Text Colors */
   --text-primary: #191919;
   --text-secondary: #666666;
+  --text-tertiary: #8e8e8e;
+  --text-inverse: #ffffff;
+  
+  /* Background Colors */
   --bg-surface: #ffffff;
   --bg-muted: #f3f2ef;
+  --bg-subtle: #f8f9fa;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+  
+  /* Border Colors */
   --border-color: #e0e0e0;
+  --border-subtle: #f0f0f0;
+  --border-strong: #d0d0d0;
+  
+  /* Status Colors */
   --success: #0b8f6a;
+  --success-subtle: #e6f7f2;
   --danger: #b24020;
+  --danger-hover: #9a361c;
+  --danger-subtle: #fdf2f0;
   --warning: #b37f00;
+  --warning-subtle: #fef7e0;
+  --info: #0a66c2;
+  --info-subtle: #eaf3ff;
 
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-  --font-size-xs: 12px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-size-xs: 11px;
   --font-size-sm: 14px;
   --font-size-md: 16px;
   --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
   --font-weight-regular: 400;
-  --font-weight-medium: 600;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
 
-  /* Radius */
+  /* Border Radius */
+  --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 
-  /* Spacing */
+  /* Spacing Scale */
+  --space-0: 0px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 2px 6px rgba(0,0,0,0.12);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
 }

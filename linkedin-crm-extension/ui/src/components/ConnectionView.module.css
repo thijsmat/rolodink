@@ -1,0 +1,293 @@
+/* ConnectionView.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.button {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.buttonPrimary {
+  background: var(--linkedin-blue);
+  color: white;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--linkedin-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.buttonSecondary {
+  background: transparent;
+  color: var(--linkedin-blue);
+  border: 1px solid var(--linkedin-blue);
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background: var(--linkedin-blue-subtle);
+  transform: translateY(-1px);
+}
+
+.buttonDanger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.buttonDanger:hover:not(:disabled) {
+  background: var(--danger-subtle);
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.content {
+  flex: 1;
+  padding: var(--space-6);
+  overflow-y: auto;
+}
+
+.profileCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.profileCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  gap: var(--space-4);
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--line-height-tight);
+}
+
+.linkedinLink {
+  color: var(--linkedin-blue);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  transition: all var(--transition-normal);
+}
+
+.linkedinLink:hover {
+  color: var(--linkedin-blue-hover);
+  transform: translateY(-1px);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.detailLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailValue {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: var(--line-height-normal);
+  word-break: break-word;
+}
+
+.detailValueEmpty {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.notes {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  border-left: 3px solid var(--linkedin-blue);
+}
+
+.notesLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--linkedin-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-2);
+}
+
+.notesContent {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.actionButton {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.actionButtonPrimary {
+  background: var(--linkedin-blue);
+  color: white;
+}
+
+.actionButtonPrimary:hover:not(:disabled) {
+  background: var(--linkedin-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.actionButtonDanger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.actionButtonDanger:hover:not(:disabled) {
+  background: var(--danger-subtle);
+  transform: translateY(-1px);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--danger);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  background: var(--success-subtle);
+  color: var(--success);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  margin-left: var(--space-2);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--space-4) 0;
+}

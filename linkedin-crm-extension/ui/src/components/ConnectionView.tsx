@@ -1,7 +1,7 @@
 // src/components/ConnectionView.tsx
 import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
-import styles from '../App.module.css';
+import styles from './ConnectionView.module.css';
 import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
 
 export function ConnectionView() {
@@ -46,60 +46,105 @@ export function ConnectionView() {
     };
 
     return (
-      <div>
-        <h2>Connectie Bewerken</h2>
-        <ConnectionForm
-          initialData={initialData}
-          onSubmit={onSubmit}
-          onCancel={() => setIsEditing(false)}
-          isSubmitting={isSubmitting}
-          submitText="Wijzigingen Opslaan"
-        />
-        {error && <p style={{color: 'red'}}>{error}</p>}
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Connectie Bewerken</h1>
+        </div>
+        <div className={styles.content}>
+          <ConnectionForm
+            initialData={initialData}
+            onSubmit={onSubmit}
+            onCancel={() => setIsEditing(false)}
+            isSubmitting={isSubmitting}
+            submitText="Wijzigingen Opslaan"
+          />
+          {error && (
+            <div className={styles.error}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className={styles.headerWithButton}>
-        <h2>Connectie Gevonden</h2>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => setIsEditing(true)} className={styles.button}>
-            Bewerken
-          </button>
-          <button 
-            onClick={onDelete}
-            className={`${styles.button} ${styles.buttonSecondary}`}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Verwijderen...' : 'Verwijderen'}
-          </button>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Connectie Gevonden</h1>
+          <div className={styles.buttonGroup}>
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className={`${styles.button} ${styles.buttonPrimary}`}
+            >
+              ✏️ Bewerken
+            </button>
+            <button 
+              onClick={onDelete}
+              className={`${styles.button} ${styles.buttonDanger}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '⏳' : '🗑️'} {isSubmitting ? 'Verwijderen...' : 'Verwijderen'}
+            </button>
+          </div>
         </div>
       </div>
-      <p><strong>Naam:</strong> {connection.name}</p>
-      <p><strong>Ontmoet op:</strong> {connection.meetingPlace || 'N.v.t.'}</p>
-      <p><strong>Mijn bedrijf destijds:</strong> {connection.userCompanyAtTheTime || 'N.v.t.'}</p>
-      <p><strong>Notities:</strong> {connection.notes || 'Geen notities.'}</p>
-      
-      <div style={{ marginTop: '16px' }}>
-        <a
-          href={connection.linkedInUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Open LinkedIn-profiel"
-          style={{ 
-            color: 'var(--linkedin-blue)', 
-            textDecoration: 'none', 
-            fontSize: '14px',
-            fontWeight: 'bold'
-          }}
-        >
-          in
-        </a>
+
+      <div className={styles.content}>
+        <div className={styles.profileCard}>
+          <div className={styles.profileHeader}>
+            <div className={styles.profileInfo}>
+              <h2 className={styles.profileName}>
+                {connection.name}
+                <span className={styles.badge}>✓</span>
+              </h2>
+              <a
+                href={connection.linkedInUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.linkedinLink}
+                title="Open LinkedIn-profiel"
+              >
+                🔗 Bekijk op LinkedIn
+              </a>
+            </div>
+          </div>
+
+          <div className={styles.details}>
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Ontmoet op</span>
+              <span className={connection.meetingPlace ? styles.detailValue : styles.detailValueEmpty}>
+                {connection.meetingPlace || 'Niet opgegeven'}
+              </span>
+            </div>
+
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Mijn bedrijf destijds</span>
+              <span className={connection.userCompanyAtTheTime ? styles.detailValue : styles.detailValueEmpty}>
+                {connection.userCompanyAtTheTime || 'Niet opgegeven'}
+              </span>
+            </div>
+
+            {connection.notes && (
+              <div className={styles.notes}>
+                <span className={styles.notesLabel}>Notities</span>
+                <div className={styles.notesContent}>
+                  {connection.notes}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className={styles.error}>
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
       </div>
-      
-      {error && <p style={{color: 'red', marginTop: '10px'}}>{error}</p>}
     </div>
   );
 }
