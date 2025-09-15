@@ -10,7 +10,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   isSubmitting?: boolean;
   submitText?: string;
 }) {
-  const { handleCreateConnection } = useConnection();
+  const { handleCreateConnection, showListView } = useConnection();
   const [meetingPlace, setMeetingPlace] = useState('');
   const [userCompany, setUserCompany] = useState('');
   const [notes, setNotes] = useState('');
@@ -35,6 +35,9 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
 
   return (
     <form onSubmit={handleSubmit}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+        <button type="button" onClick={showListView} className={styles.button}>Toon alle connecties</button>
+      </div>
       <div className={styles.formGroup}>
         <label htmlFor="meetingPlace">Waar ontmoet?</label>
         <input id="meetingPlace" type="text" value={meetingPlace} onChange={(e) => setMeetingPlace(e.target.value)} />

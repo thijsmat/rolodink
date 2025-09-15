@@ -7,27 +7,23 @@ import { ConnectionForm } from './components/ConnectionForm';
 import { Toast } from './components/Toast';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, allConnections, fetchAllConnections, handleLogout, toastMessage, setToastMessage } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, allConnections, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
     if (!isLoggedIn) return <LoginView />;
     if (error) return <p className={styles.error}>{error}</p>;
 
-    if (connection) {
-      return <ConnectionView />;
-    }
-
-    if (allConnections.length > 0) {
+    if (isListView) {
       return (
         <div>
           <h2 className={styles.title}>Alle Connecties ({allConnections.length})</h2>
           <div style={{ marginBottom: '16px' }}>
             <button 
-              onClick={() => window.location.reload()} 
+              onClick={hideListView}
               className={`${styles.button} ${styles.buttonSecondary}`}
             >
-              Terug naar nieuwe connectie
+              Terug naar context
             </button>
           </div>
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -49,18 +45,18 @@ function Content() {
       );
     }
 
+    // Contextual view: either a specific connection or new connection form
     return (
       <div>
-        <h2 className={styles.title}>Nieuwe Connectie</h2>
-        <div style={{ marginBottom: '16px' }}>
-          <button 
-            onClick={fetchAllConnections} 
-            className={styles.button}
-          >
-            Toon alle connecties
-          </button>
+        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
         </div>
-        <ConnectionForm />
+        {connection ? <ConnectionView /> : (
+          <>
+            <h2 className={styles.title}>Nieuwe Connectie</h2>
+            <ConnectionForm />
+          </>
+        )}
       </div>
     );
   };

@@ -24,10 +24,13 @@ type ConnectionContextState = {
   isLoggedIn: boolean;
   connection: Connection | null;
   allConnections: Connection[];
+  isListView: boolean;
   toastMessage: string;
   setToastMessage: (msg: string) => void;
   fetchData: () => Promise<void>;
   fetchAllConnections: () => Promise<void>;
+  showListView: () => Promise<void>;
+  hideListView: () => void;
   handleCreateConnection: (formData: ConnectionFormData) => Promise<void>;
   handleUpdate: (formData: ConnectionFormData) => Promise<void>;
   handleDelete: () => Promise<void>;
@@ -55,6 +58,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [connection, setConnection] = useState<Connection | null>(null);
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
+  const [isListView, setIsListView] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
 
   const fetchData = useCallback(async () => {
@@ -115,6 +119,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
+    setIsListView(false);
+    setAllConnections([]);
     setToastMessage('Uitgelogd.');
   };
 
@@ -140,6 +146,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showListView = async () => {
+    setIsListView(true);
+    await fetchAllConnections();
+  };
+
+  const hideListView = () => {
+    setIsListView(false);
   };
 
   const handleCreateConnection = async (formData: ConnectionFormData) => {
@@ -291,10 +306,13 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isLoggedIn,
     connection,
     allConnections,
+    isListView,
     toastMessage,
     setToastMessage,
     fetchData,
     fetchAllConnections,
+    showListView,
+    hideListView,
     handleCreateConnection,
     handleUpdate,
     handleDelete,
@@ -306,6 +324,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isLoggedIn,
     connection,
     allConnections,
+    isListView,
     toastMessage,
   ]);
 
