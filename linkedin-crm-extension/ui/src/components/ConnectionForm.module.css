@@ -28,6 +28,7 @@
 
 .content {
   flex: 1;
+  max-height: 450px;
   padding: var(--space-6);
   overflow-y: auto;
 }
