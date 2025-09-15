@@ -1,5 +1,5 @@
 // src/components/ConnectionView.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ConnectionForm, ConnectionFormData } from './ConnectionForm';
 import styles from '../App.module.css';
 
@@ -11,6 +11,7 @@ interface Connection {
   meetingPlace?: string;
   userCompanyAtTheTime?: string;
   notes?: string;
+  linkedInUrl?: string;
 }
 
 type Props = {
@@ -23,6 +24,44 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(connection.id || null);
+
+  useEffect(() => {
+    // Pre-resolve ID on mount using linkedInUrl if necessary
+    (async () => {
+      try {
+        if (resolvedId) return;
+        const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+        if (!supabaseAccessToken) return;
+        const urlToUse = connection.linkedInUrl;
+        if (!urlToUse) return;
+        const normalizeLinkedInUrl = (raw: string) => {
+          try {
+            const u = new URL(raw);
+            u.search = '';
+            u.hash = '';
+            if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+            return u.toString();
+          } catch {
+            return raw;
+          }
+        };
+        const normalizedUrl = normalizeLinkedInUrl(urlToUse);
+        const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
+          headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+        if (picked && picked.id) {
+          setResolvedId(picked.id as string);
+        }
+      } catch (e) {
+        console.log('Kon ID niet pre-resolven:', e);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleUpdate = async (formData: ConnectionFormData) => {
     setIsSubmitting(true);
@@ -32,12 +71,12 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
       // Zorg dat we een ID hebben; zo niet, probeer het op te halen via de URL
-      let effectiveId = connection.id;
+      let effectiveId = connection.id || resolvedId || null;
       if (!effectiveId) {
         try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const currentUrl = tabs[0]?.url;
-          if (currentUrl) {
+          // Probeer eerst via connection.linkedInUrl om afhankelijkheid van tabs te vermijden
+          const fallbackUrl = connection.linkedInUrl;
+          if (fallbackUrl) {
             const normalizeLinkedInUrl = (raw: string) => {
               try {
                 const u = new URL(raw);
@@ -49,7 +88,7 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
                 return raw;
               }
             };
-            const normalizedUrl = normalizeLinkedInUrl(currentUrl);
+            const normalizedUrl = normalizeLinkedInUrl(fallbackUrl);
             const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
               headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
             });
@@ -58,6 +97,36 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
               const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
               if (picked && picked.id) {
                 effectiveId = picked.id as string;
+                setResolvedId(effectiveId);
+              }
+            }
+          } else {
+            // Laatste redmiddel: tabs API
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            const currentUrl = tabs[0]?.url;
+            if (currentUrl) {
+              const normalizeLinkedInUrl = (raw: string) => {
+                try {
+                  const u = new URL(raw);
+                  u.search = '';
+                  u.hash = '';
+                  if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+                  return u.toString();
+                } catch {
+                  return raw;
+                }
+              };
+              const normalizedUrl = normalizeLinkedInUrl(currentUrl);
+              const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
+                headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
+              });
+              if (resp.ok) {
+                const data = await resp.json();
+                const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+                if (picked && picked.id) {
+                  effectiveId = picked.id as string;
+                  setResolvedId(effectiveId);
+                }
               }
             }
           }
