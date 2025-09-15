@@ -31,6 +31,7 @@ type ConnectionContextState = {
   fetchAllConnections: () => Promise<void>;
   showListView: () => Promise<void>;
   hideListView: () => void;
+  selectConnection: (conn: Connection) => void;
   handleCreateConnection: (formData: ConnectionFormData) => Promise<void>;
   handleUpdate: (formData: ConnectionFormData) => Promise<void>;
   handleDelete: () => Promise<void>;
@@ -154,6 +155,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const hideListView = () => {
+    setIsListView(false);
+  };
+
+  const selectConnection = (conn: Connection) => {
+    setConnection(conn);
     setIsListView(false);
   };
 
@@ -313,6 +319,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     fetchAllConnections,
     showListView,
     hideListView,
+    selectConnection,
     handleCreateConnection,
     handleUpdate,
     handleDelete,

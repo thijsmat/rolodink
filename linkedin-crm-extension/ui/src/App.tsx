@@ -5,9 +5,10 @@ import { LoginView } from './components/LoginView';
 import { ConnectionView } from './components/ConnectionView';
 import { ConnectionForm } from './components/ConnectionForm';
 import { Toast } from './components/Toast';
+import { AllConnectionsView } from './components/AllConnectionsView';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, allConnections, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
@@ -17,7 +18,7 @@ function Content() {
     if (isListView) {
       return (
         <div>
-          <h2 className={styles.title}>Alle Connecties ({allConnections.length})</h2>
+          <h2 className={styles.title}>Alle Connecties</h2>
           <div style={{ marginBottom: '16px' }}>
             <button 
               onClick={hideListView}
@@ -26,21 +27,7 @@ function Content() {
               Terug naar context
             </button>
           </div>
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {allConnections.map((conn) => (
-              <div key={conn.id || conn.linkedInUrl} style={{ 
-                padding: '12px', 
-                border: '1px solid var(--border-color)', 
-                borderRadius: 'var(--radius-md)', 
-                marginBottom: '8px',
-                backgroundColor: 'var(--bg-surface)'
-              }}>
-                <strong>{conn.name}</strong>
-                {conn.meetingPlace && <div>Ontmoet op: {conn.meetingPlace}</div>}
-                {conn.notes && <div>Notities: {conn.notes}</div>}
-              </div>
-            ))}
-          </div>
+          <AllConnectionsView />
         </div>
       );
     }
