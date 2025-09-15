@@ -37,6 +37,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
         crmButton.style.alignItems = "center";
 
         crmButton.onclick = async () => {
+            try {
             console.log('CRM Button clicked - starting profile extraction...');
             
             // More robust profile name extraction with multiple fallback selectors
@@ -83,6 +84,12 @@ waitForElement(stableButtonSelector, (foundButton) => {
             
             const profileUrl = window.location.href;
             console.log('Profile URL:', profileUrl);
+
+            // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
+            if (!chrome || !chrome.storage || !chrome.storage.local) {
+                alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                return;
+            }
 
             // Haal het authenticatietoken op uit de storage van de extensie.
             let authToken;
@@ -140,6 +147,15 @@ waitForElement(stableButtonSelector, (foundButton) => {
             } catch (error) {
                 console.error('API Fout:', error);
                 alert('Kan de CRM-server niet bereiken.');
+            }
+            } catch (err) {
+                console.error('Onherstelbare fout in click handler:', err);
+                const message = err instanceof Error ? err.message : String(err);
+                if (message && message.toLowerCase().includes('invalidated')) {
+                    alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                } else {
+                    alert('Er is iets misgegaan. Ververs de pagina en probeer opnieuw.');
+                }
             }
         };
         
