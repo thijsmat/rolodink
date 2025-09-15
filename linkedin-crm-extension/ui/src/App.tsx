@@ -125,7 +125,7 @@ function App() {
           },
           body: JSON.stringify({
               name: profileName,
-              linkedInUrl: profileUrl,
+              url: profileUrl,
               ...formData
           }),
       });

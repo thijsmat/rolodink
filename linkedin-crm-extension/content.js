@@ -94,7 +94,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 return;
             }
 
-            const requestBody = { name: profileName, linkedInUrl: profileUrl };
+            const requestBody = { name: profileName, url: profileUrl };
             console.log('Request body:', requestBody);
 
             try {
