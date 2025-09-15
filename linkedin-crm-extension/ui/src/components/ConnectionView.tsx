@@ -83,14 +83,19 @@ export function ConnectionView() {
       <p><strong>Notities:</strong> {connection.notes || 'Geen notities.'}</p>
       
       <div style={{ marginTop: '16px' }}>
-        <a 
-          href={connection.linkedInUrl} 
-          target="_blank" 
+        <a
+          href={connection.linkedInUrl}
+          target="_blank"
           rel="noopener noreferrer"
-          className={styles.button}
-          style={{ textDecoration: 'none', display: 'inline-block' }}
+          title="Open LinkedIn-profiel"
+          style={{ 
+            color: 'var(--linkedin-blue)', 
+            textDecoration: 'none', 
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
         >
-          Bekijk op LinkedIn
+          in
         </a>
       </div>
       
