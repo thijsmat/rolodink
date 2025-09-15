@@ -19,14 +19,6 @@ function Content() {
       return (
         <div>
           <h2 className={styles.title}>Alle Connecties</h2>
-          <div style={{ marginBottom: '16px' }}>
-            <button 
-              onClick={hideListView}
-              className={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              Terug naar context
-            </button>
-          </div>
           <AllConnectionsView />
         </div>
       );
@@ -35,9 +27,6 @@ function Content() {
     // Contextual view: either a specific connection or new connection form
     return (
       <div>
-        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
-        </div>
         {connection ? <ConnectionView /> : (
           <>
             <h2 className={styles.title}>Nieuwe Connectie</h2>
@@ -52,11 +41,19 @@ function Content() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>LinkedIn CRM</h1>
-        {isLoggedIn && (
-          <button onClick={handleLogout} className={`${styles.button} ${styles.buttonSecondary}`}>
-            Logout
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {isLoggedIn && !isListView && (
+            <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
+          )}
+          {isLoggedIn && isListView && (
+            <button onClick={hideListView} className={`${styles.button} ${styles.buttonSecondary}`}>Terug naar context</button>
+          )}
+          {isLoggedIn && (
+            <button onClick={handleLogout} className={`${styles.button} ${styles.buttonSecondary}`}>
+              Logout
+            </button>
+          )}
+        </div>
       </div>
       {renderContent()}
       <Toast message={toastMessage} onClose={() => setToastMessage('')} />

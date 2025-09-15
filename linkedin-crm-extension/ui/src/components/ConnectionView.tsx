@@ -5,7 +5,7 @@ import styles from '../App.module.css';
 import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
 
 export function ConnectionView() {
-  const { connection, handleUpdate, handleDelete, showListView } = useConnection();
+  const { connection, handleUpdate, handleDelete } = useConnection();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +47,6 @@ export function ConnectionView() {
 
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-          <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
-        </div>
         <h2>Connectie Bewerken</h2>
         <ConnectionForm
           initialData={initialData}
@@ -65,9 +62,6 @@ export function ConnectionView() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-        <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
-      </div>
       <div className={styles.headerWithButton}>
         <h2>Connectie Gevonden</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
