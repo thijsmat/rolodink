@@ -33,7 +33,9 @@ export function ConnectionView({ connection, onConnectionUpdate, onConnectionDel
 
       // Validate that we have a connection ID
       if (!connection.id) {
-        throw new Error('Connection ID is missing');
+        setError('Connection ID ontbreekt. Ververs en probeer opnieuw.');
+        setIsSubmitting(false);
+        return;
       }
 
       // Validate connection object structure

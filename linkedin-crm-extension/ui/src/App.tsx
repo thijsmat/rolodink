@@ -42,7 +42,21 @@ function App() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(currentUrl)}`, {
+      // Normalize URL like backend to avoid trailing slash/query/hash mismatches
+      const normalizeLinkedInUrl = (raw: string) => {
+        try {
+          const u = new URL(raw);
+          u.search = '';
+          u.hash = '';
+          if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+          return u.toString();
+        } catch {
+          return raw;
+        }
+      };
+      const normalizedUrl = normalizeLinkedInUrl(currentUrl);
+
+      const response = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
         headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
       });
 
@@ -50,6 +64,7 @@ function App() {
         const data = await response.json();
         const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
         setConnection(picked);
+        if (!picked) setAllConnections([]);
       } else if (response.status === 404) {
         setConnection(null);
       } else {
