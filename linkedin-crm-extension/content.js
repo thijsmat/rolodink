@@ -85,8 +85,21 @@ waitForElement(stableButtonSelector, (foundButton) => {
             console.log('Profile URL:', profileUrl);
 
             // Haal het authenticatietoken op uit de storage van de extensie.
-            const { supabaseAccessToken: authToken } = await chrome.storage.local.get('supabaseAccessToken');
-            console.log('Auth token exists:', !!authToken);
+            let authToken;
+            try {
+                const result = await chrome.storage.local.get('supabaseAccessToken');
+                authToken = result.supabaseAccessToken;
+                console.log('Auth token exists:', !!authToken);
+            } catch (err) {
+                console.error('Kon token niet ophalen uit storage:', err);
+                const message = err instanceof Error ? err.message : String(err);
+                if (message && message.toLowerCase().includes('invalidated')) {
+                    alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                    return;
+                }
+                alert('Kon authenticatie-informatie niet ophalen. Probeer het opnieuw.');
+                return;
+            }
 
             if (!authToken) {
                 alert('Je bent niet ingelogd. Log in via de extensie-popup om deze functie te gebruiken.');
