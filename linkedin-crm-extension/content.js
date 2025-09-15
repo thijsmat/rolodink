@@ -116,6 +116,12 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 } else if (title) {
                     profileName = title.replace(' | LinkedIn', '').trim();
                 }
+                
+                // Clean up notification count from profile name (e.g., "(1) John Doe" -> "John Doe")
+                if (profileName) {
+                    profileName = profileName.replace(/^\(\d+\)\s*/, '').trim();
+                }
+                
                 console.log('Profile name from title:', profileName);
             }
             
