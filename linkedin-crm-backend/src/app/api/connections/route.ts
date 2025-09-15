@@ -48,6 +48,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
+function normalizeLinkedInUrl(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl);
+    // Force hostname to canonical LinkedIn host
+    // Only allow linkedin.com hosts
+    if (!/\.linkedin\.com$/.test(url.hostname) && url.hostname !== 'linkedin.com') {
+      return rawUrl;
+    }
+    // Remove query and hash
+    url.search = '';
+    url.hash = '';
+    // Ensure we only keep the path to the profile and trim trailing slash
+    let pathname = url.pathname.trim();
+    if (pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+    url.pathname = pathname;
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
   try {
@@ -63,10 +84,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
     }
 
+    const normalizedUrl = normalizeLinkedInUrl(url);
+
     const newConnection = await prisma.connection.create({
       data: {
         name,
-        linkedInUrl: url,
+        linkedInUrl: normalizedUrl,
         meetingPlace,
         notes,
         ownerId: user.id,
@@ -75,8 +98,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newConnection, { status: 201, headers: corsHeaders });
 
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Fout bij het aanmaken van connectie:', err);
+    // Prisma unieke constraint (bijv. bestaande connectie voor dezelfde URL/owner)
+    if (err && typeof err === 'object' && 'code' in err) {
+      const prismaError = err as { code?: string };
+      if (prismaError.code === 'P2002') {
+        return NextResponse.json({ error: 'Connectie bestaat al voor deze URL.' }, { status: 409, headers: corsHeaders });
+      }
+      if (prismaError.code === 'P2003') {
+        return NextResponse.json({ error: 'Ongeldige referentie of gegevens.' }, { status: 400, headers: corsHeaders });
+      }
+    }
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
   }
 }
