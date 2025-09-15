@@ -81,6 +81,19 @@ export function ConnectionView() {
       <p><strong>Ontmoet op:</strong> {connection.meetingPlace || 'N.v.t.'}</p>
       <p><strong>Mijn bedrijf destijds:</strong> {connection.userCompanyAtTheTime || 'N.v.t.'}</p>
       <p><strong>Notities:</strong> {connection.notes || 'Geen notities.'}</p>
+      
+      <div style={{ marginTop: '16px' }}>
+        <a 
+          href={connection.linkedInUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={styles.button}
+          style={{ textDecoration: 'none', display: 'inline-block' }}
+        >
+          Bekijk op LinkedIn
+        </a>
+      </div>
+      
       {error && <p style={{color: 'red', marginTop: '10px'}}>{error}</p>}
     </div>
   );
