@@ -201,7 +201,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!idToUse) {
         idToUse = await resolveConnectionId(connection) || undefined;
       }
-      if (!idToUse) {
+      if (!idToUse || idToUse === 'undefined' || idToUse === 'null') {
         throw new Error('Connection ID ontbreekt. Ververs en probeer opnieuw.');
       }
 
@@ -250,19 +250,24 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!idToUse) {
         idToUse = await resolveConnectionId(connection) || undefined;
       }
-      if (!idToUse) throw new Error('Connection ID ontbreekt. Ververs en probeer opnieuw.');
+      if (!idToUse || idToUse === 'undefined' || idToUse === 'null') {
+        throw new Error('Connection ID ontbreekt. Ververs en probeer opnieuw.');
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/connections/${idToUse}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
       });
 
+      if (response.status === 401) {
+        throw new Error('Niet ingelogd of sessie verlopen. Log opnieuw in.');
+      }
       if (!response.ok) throw new Error('Verwijderen mislukt');
       setConnection(null);
       setAllConnections([]);
     } catch (e) {
       console.error('Fout bij verwijderen:', e);
-      setError('Kon de connectie niet verwijderen.');
+      setError(e instanceof Error ? e.message : 'Kon de connectie niet verwijderen.');
     } finally {
       setIsLoading(false);
     }
