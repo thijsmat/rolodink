@@ -46,26 +46,13 @@ export function ConnectionView() {
     };
 
     return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Connectie Bewerken</h1>
-        </div>
-        <div className={styles.content}>
-          <ConnectionForm
-            initialData={initialData}
-            onSubmit={onSubmit}
-            onCancel={() => setIsEditing(false)}
-            isSubmitting={isSubmitting}
-            submitText="Wijzigingen Opslaan"
-          />
-          {error && (
-            <div className={styles.error}>
-              <span>⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      <ConnectionForm
+        initialData={initialData}
+        onSubmit={onSubmit}
+        onCancel={() => setIsEditing(false)}
+        isSubmitting={isSubmitting}
+        submitText="Wijzigingen Opslaan"
+      />
     );
   }
 
