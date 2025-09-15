@@ -1,14 +1,12 @@
 // src/components/LoginView.tsx
 import { useState } from 'react';
 import styles from '../App.module.css';
+import { useConnection } from '../context/ConnectionContext';
 
 const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
 
-type LoginViewProps = {
-  onLoginSuccess: () => void;
-};
-
-export function LoginView({ onLoginSuccess }: LoginViewProps) {
+export function LoginView() {
+  const { handleLoginSuccess } = useConnection();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -38,7 +36,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
         await chrome.storage.local.set({ supabaseAccessToken: data.session.access_token });
-        onLoginSuccess();
+        handleLoginSuccess();
       } else {
         setIsError(false);
         setMessage('Account aangemaakt! Check je e-mail voor bevestiging.');

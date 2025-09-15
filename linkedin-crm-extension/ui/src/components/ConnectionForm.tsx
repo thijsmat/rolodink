@@ -1,22 +1,16 @@
 // src/components/ConnectionForm.tsx
 import { useState, useEffect } from 'react';
 import styles from '../App.module.css';
+import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
 
-export type ConnectionFormData = {
-  meetingPlace?: string;
-  userCompanyAtTheTime?: string;
-  notes?: string;
-};
-
-type Props = {
+export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {
   initialData?: ConnectionFormData;
-  onSubmit: (formData: ConnectionFormData) => void;
+  onSubmit?: (data: ConnectionFormData) => void;
   onCancel?: () => void;
-  isSubmitting: boolean;
-  submitText: string;
-};
-
-export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: Props) {
+  isSubmitting?: boolean;
+  submitText?: string;
+}) {
+  const { handleCreateConnection } = useConnection();
   const [meetingPlace, setMeetingPlace] = useState('');
   const [userCompany, setUserCompany] = useState('');
   const [notes, setNotes] = useState('');
@@ -29,9 +23,14 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
     }
   }, [initialData]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit({ meetingPlace, userCompanyAtTheTime: userCompany, notes });
+    const payload: ConnectionFormData = { meetingPlace, userCompanyAtTheTime: userCompany, notes };
+    if (onSubmit) {
+      onSubmit(payload);
+    } else {
+      await handleCreateConnection(payload);
+    }
   };
 
   return (
@@ -49,8 +48,8 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <div className={styles.buttonGroup}>
-        <button type="submit" disabled={isSubmitting} className={styles.button}>
-          {isSubmitting ? 'Bezig...' : submitText}
+        <button type="submit" disabled={!!isSubmitting} className={styles.button}>
+          {isSubmitting ? 'Bezig...' : (submitText || 'Connectie Opslaan')}
         </button>
         {onCancel && (
           <button type="button" onClick={onCancel} className={`${styles.button} ${styles.buttonSecondary}`}>

@@ -1,177 +1,20 @@
 // src/App.tsx
-import { useState, useEffect, useCallback } from 'react';
 import styles from './App.module.css';
+import { ConnectionProvider, useConnection } from './context/ConnectionContext';
 import { LoginView } from './components/LoginView';
 import { ConnectionView } from './components/ConnectionView';
-import { ConnectionForm, ConnectionFormData } from './components/ConnectionForm';
+import { ConnectionForm } from './components/ConnectionForm';
 
-const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
-
-interface Connection {
-  id: string;
-  name: string;
-  meetingPlace?: string;
-  userCompanyAtTheTime?: string;
-  notes?: string;
-}
-
-function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [connection, setConnection] = useState<Connection | null>(null);
-  const [allConnections, setAllConnections] = useState<Connection[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    // Deze functie wordt nu de enige bron voor het ophalen van data
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
-        setIsLoggedIn(false);
-        return;
-      }
-      setIsLoggedIn(true);
-
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      const currentUrl = tabs[0]?.url;
-
-      if (!currentUrl || !currentUrl.includes('linkedin.com/in/')) {
-        setError('Dit is geen geldige LinkedIn profielpagina.');
-        return;
-      }
-
-      // Normalize URL like backend to avoid trailing slash/query/hash mismatches
-      const normalizeLinkedInUrl = (raw: string) => {
-        try {
-          const u = new URL(raw);
-          u.search = '';
-          u.hash = '';
-          if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
-          return u.toString();
-        } catch {
-          return raw;
-        }
-      };
-      const normalizedUrl = normalizeLinkedInUrl(currentUrl);
-
-      const response = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
-        headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
-        setConnection(picked);
-        if (!picked) setAllConnections([]);
-      } else if (response.status === 404) {
-        setConnection(null);
-      } else {
-        throw new Error(`Serverfout: ${response.statusText}`);
-      }
-    } catch (e) {
-      console.error("Fout bij ophalen van connectie:", e);
-      setError('Kon de connectie-data niet ophalen.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    fetchData();
-  };
-
-  const handleLogout = async () => {
-    await chrome.storage.local.remove('supabaseAccessToken');
-    setIsLoggedIn(false);
-    setConnection(null);
-    setError(null);
-  };
-
-  const handleConnectionDeleted = () => {
-    setConnection(null);
-    setError(null);
-  };
-
-  const fetchAllConnections = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
-
-      const response = await fetch(`${API_BASE_URL}/api/connections`, {
-        headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
-      });
-
-      if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
-      
-      const connections = await response.json();
-      setAllConnections(connections);
-
-    } catch (e) {
-      console.error("Fout bij ophalen van alle connecties:", e);
-      setError('Kon de connecties niet ophalen.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateConnection = async (formData: ConnectionFormData) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
-
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      const profileUrl = tabs[0]?.url;
-      const profileName = tabs[0]?.title?.split(' | ')[0] || "Onbekende Naam";
-
-      const response = await fetch(`${API_BASE_URL}/api/connections`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseAccessToken}`
-          },
-          body: JSON.stringify({
-              name: profileName,
-              url: profileUrl,
-              ...formData
-          }),
-      });
-
-      if (!response.ok) throw new Error('Opslaan mislukt');
-      
-      const newConnection = await response.json();
-      setConnection(newConnection);
-    } catch (e) {
-      console.error("Fout bij opslaan:", e);
-      setError("Kon de connectie niet opslaan.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+function Content() {
+  const { isLoading, isLoggedIn, error, connection, allConnections, fetchAllConnections, handleLogout } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
-    if (!isLoggedIn) return <LoginView onLoginSuccess={handleLoginSuccess} />;
+    if (!isLoggedIn) return <LoginView />;
     if (error) return <p className={styles.error}>{error}</p>;
 
     if (connection) {
-      return (
-        <ConnectionView 
-          connection={connection} 
-          onConnectionUpdate={setConnection}
-          onConnectionDeleted={handleConnectionDeleted}
-        />
-      );
+      return <ConnectionView />;
     }
 
     if (allConnections.length > 0) {
@@ -180,7 +23,7 @@ function App() {
           <h2 className={styles.title}>Alle Connecties ({allConnections.length})</h2>
           <div style={{ marginBottom: '16px' }}>
             <button 
-              onClick={() => setAllConnections([])} 
+              onClick={() => window.location.reload()} 
               className={`${styles.button} ${styles.buttonSecondary}`}
             >
               Terug naar nieuwe connectie
@@ -188,7 +31,7 @@ function App() {
           </div>
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
             {allConnections.map((conn) => (
-              <div key={conn.id} style={{ 
+              <div key={conn.id || conn.linkedInUrl} style={{ 
                 padding: '12px', 
                 border: '1px solid #ddd', 
                 borderRadius: '4px', 
@@ -212,16 +55,11 @@ function App() {
           <button 
             onClick={fetchAllConnections} 
             className={styles.button}
-            disabled={isLoading}
           >
-            {isLoading ? 'Laden...' : 'Toon alle connecties'}
+            Toon alle connecties
           </button>
         </div>
-        <ConnectionForm
-          onSubmit={handleCreateConnection}
-          isSubmitting={isLoading}
-          submitText="Connectie Opslaan"
-        />
+        <ConnectionForm />
       </div>
     );
   };
@@ -238,6 +76,14 @@ function App() {
       </div>
       {renderContent()}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ConnectionProvider>
+      <Content />
+    </ConnectionProvider>
   );
 }
 
