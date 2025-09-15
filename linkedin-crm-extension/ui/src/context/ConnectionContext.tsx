@@ -24,6 +24,8 @@ type ConnectionContextState = {
   isLoggedIn: boolean;
   connection: Connection | null;
   allConnections: Connection[];
+  toastMessage: string;
+  setToastMessage: (msg: string) => void;
   fetchData: () => Promise<void>;
   fetchAllConnections: () => Promise<void>;
   handleCreateConnection: (formData: ConnectionFormData) => Promise<void>;
@@ -53,6 +55,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [connection, setConnection] = useState<Connection | null>(null);
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
+  const [toastMessage, setToastMessage] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -103,6 +106,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
+    setToastMessage('Succesvol ingelogd.');
     fetchData();
   };
 
@@ -111,6 +115,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
+    setToastMessage('Uitgelogd.');
   };
 
   const fetchAllConnections = async () => {
@@ -131,6 +136,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch (e) {
       console.error('Fout bij ophalen van alle connecties:', e);
       setError('Kon de connecties niet ophalen.');
+      setToastMessage('Kon de connecties niet ophalen.');
     } finally {
       setIsLoading(false);
     }
@@ -159,9 +165,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!response.ok) throw new Error('Opslaan mislukt');
       const newConnection = await response.json();
       setConnection(newConnection);
+      setToastMessage('Connectie opgeslagen.');
     } catch (e) {
       console.error('Fout bij opslaan:', e);
       setError('Kon de connectie niet opslaan.');
+      setToastMessage('Kon de connectie niet opslaan.');
     } finally {
       setIsLoading(false);
     }
@@ -228,9 +236,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const updated = await response.json();
       setConnection(updated);
+      setToastMessage('Connectie bijgewerkt.');
     } catch (e: any) {
       console.error('Fout bij bijwerken:', e);
       setError(`Kon de connectie niet bijwerken: ${e?.message || 'Onbekende fout'}`);
+      setToastMessage(e?.message || 'Bijwerken mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -265,9 +275,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!response.ok) throw new Error('Verwijderen mislukt');
       setConnection(null);
       setAllConnections([]);
-    } catch (e) {
+      setToastMessage('Connectie verwijderd.');
+    } catch (e: any) {
       console.error('Fout bij verwijderen:', e);
-      setError(e instanceof Error ? e.message : 'Kon de connectie niet verwijderen.');
+      setError('Kon de connectie niet verwijderen.');
+      setToastMessage(e?.message || 'Verwijderen mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -279,6 +291,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isLoggedIn,
     connection,
     allConnections,
+    toastMessage,
+    setToastMessage,
     fetchData,
     fetchAllConnections,
     handleCreateConnection,
@@ -292,7 +306,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isLoggedIn,
     connection,
     allConnections,
-    fetchData,
+    toastMessage,
   ]);
 
   return (

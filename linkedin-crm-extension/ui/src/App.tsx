@@ -4,9 +4,10 @@ import { ConnectionProvider, useConnection } from './context/ConnectionContext';
 import { LoginView } from './components/LoginView';
 import { ConnectionView } from './components/ConnectionView';
 import { ConnectionForm } from './components/ConnectionForm';
+import { Toast } from './components/Toast';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, allConnections, fetchAllConnections, handleLogout } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, allConnections, fetchAllConnections, handleLogout, toastMessage, setToastMessage } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
@@ -33,10 +34,10 @@ function Content() {
             {allConnections.map((conn) => (
               <div key={conn.id || conn.linkedInUrl} style={{ 
                 padding: '12px', 
-                border: '1px solid #ddd', 
-                borderRadius: '4px', 
+                border: '1px solid var(--border-color)', 
+                borderRadius: 'var(--radius-md)', 
                 marginBottom: '8px',
-                backgroundColor: '#f9f9f9'
+                backgroundColor: 'var(--bg-surface)'
               }}>
                 <strong>{conn.name}</strong>
                 {conn.meetingPlace && <div>Ontmoet op: {conn.meetingPlace}</div>}
@@ -75,6 +76,7 @@ function Content() {
         )}
       </div>
       {renderContent()}
+      <Toast message={toastMessage} onClose={() => setToastMessage('')} />
     </div>
   );
 }
