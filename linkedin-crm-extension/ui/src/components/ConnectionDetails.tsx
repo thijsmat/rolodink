@@ -1,8 +1,7 @@
 import { useState } from 'react';
 // We gaan ervan uit dat NewConnectionForm deze props accepteert en deze types exporteert.
 import { NewConnectionForm, ConnectionFormData } from './NewConnectionForm';
-
-const API_BASE_URL = 'https://linkedin-crm-backend-byy6s0fsd-matthijs-goes-projects.vercel.app';
+import { API_BASE_URL } from '../config';
 
 // Het type voor een connectie-object
 export type Connection = {

@@ -18,9 +18,7 @@ PROD_URL="https://linkedin-crm-backend-matthijs-goes-projects.vercel.app"
 FILES=(
   "$EXT_DIR/content.js"
   "$EXT_DIR/manifest.json"
-  "$UI_DIR/src/context/ConnectionContext.tsx"
-  "$UI_DIR/src/components/LoginView.tsx"
-  "$UI_DIR/src/components/ConnectionDetails.tsx"
+  "$UI_DIR/src/config.ts"
 )
 
 restore_changes() {

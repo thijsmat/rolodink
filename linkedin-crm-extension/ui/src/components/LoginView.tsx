@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
-
-const API_BASE_URL = 'https://linkedin-crm-backend-byy6s0fsd-matthijs-goes-projects.vercel.app';
+import { API_BASE_URL } from '../config';
 
 export function LoginView() {
   const { handleLoginSuccess } = useConnection();
