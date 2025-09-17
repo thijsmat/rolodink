@@ -11,7 +11,7 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-    "https://linkedin-crm-backend-matthijs-goes-projects.vercel.app/*"
+    "https://linkedin-crm-backend-byy6s0fsd-matthijs-goes-projects.vercel.app/*"
   ],
   "action": {
     "default_popup": "ui/dist/index.html",

@@ -41,7 +41,7 @@ function Content() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>LinkedIn CRM</h1>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className={styles.headerActions}>
           {isLoggedIn && !isListView && (
             <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
           )}
@@ -55,7 +55,9 @@ function Content() {
           )}
         </div>
       </div>
-      {renderContent()}
+      <div className={styles.contentArea}>
+        {renderContent()}
+      </div>
       <Toast message={toastMessage} onClose={() => setToastMessage('')} />
     </div>
   );

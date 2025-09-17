@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
+const API_BASE_URL = 'https://linkedin-crm-backend-byy6s0fsd-matthijs-goes-projects.vercel.app';
 
 // Functie om te wachten tot een element op de pagina is geladen
 function waitForElement(selector, callback) {
