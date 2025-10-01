@@ -1,0 +1,30 @@
+# .cursor-rules.yml
+
+# Vertel de AI over de basistechnologie van het project
+language: typescript
+linter: eslint
+
+# Links naar belangrijke documentatie waar de AI naar kan verwijzen
+docs:
+  - title: Next.js App Router
+    url: https://nextjs.org/docs/app
+  - title: Supabase JS Client
+    url: https://supabase.com/docs/reference/javascript/introduction
+  - title: Prisma Client
+    url: https://www.prisma.io/docs/orm/prisma-client
+  - title: Chrome Extension Manifest V3
+    url: https://developer.chrome.com/docs/extensions/mv3/manifest/
+
+# Hoge-niveau instructies voor de AI
+rules:
+  - rule: "All styling for the React UI must use CSS Modules (*.module.css). Do not suggest or use Tailwind CSS, as the build environment does not support it."
+  - rule: "Avoid using the 'any' type. Always provide a specific type. If a type is unknown, use 'unknown' and perform a type check."
+  - rule: "Backend API routes are created in the `linkedin-crm-backend/src/app/api/` directory using the Next.js App Router conventions."
+  - rule: "React components for the extension UI belong in the `linkedin-crm-extension/ui/src/components/` directory."
+
+# Vertel de AI welke mappen genegeerd moeten worden
+ignore:
+  - "**/node_modules"
+  - "**/dist"
+  - "**/.next"
+  - "**/.vercel"

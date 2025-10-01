@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Personal CRM",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Een persoonlijke notitielaag voor LinkedIn.",
   "permissions": [
     "activeTab",
@@ -11,7 +11,7 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-    "https://linkedin-crm-backend-matthijs-goes-projects.vercel.app/*"
+    "https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app/*"
   ],
   "action": {
     "default_popup": "ui/dist/index.html",

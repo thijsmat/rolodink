@@ -1,7 +1,6 @@
 // src/context/ConnectionContext.tsx
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
+import { API_BASE_URL } from '../config';
 
 export type Connection = {
   id?: string;
