@@ -31,7 +31,7 @@ export function LoginView() {
     }
     
     setIsLoading(true);
-    setMessage(type === 'signin' ? 'Bezig met inloggen...' : 'Bezig met aanmelden...');
+    setMessage(type === 'signin' ? 'Bezig met inloggen...' : 'Bezig met registreren...');
     setIsError(false);
 
     try {
@@ -107,7 +107,7 @@ export function LoginView() {
             className={`${styles.button} ${styles.buttonSecondary}`}
             disabled={isLoading}
           >
-            Aanmelden
+            Registreren
           </button>
         </div>
       </form>
