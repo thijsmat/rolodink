@@ -4,85 +4,81 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Credentials': 'false',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { headers: corsHeaders });
+}
+
 // Function to clean notification counts from profile names
 function cleanProfileName(name: string): string {
   if (!name) return name;
-  
-  // Remove various notification patterns
-  const cleaned = name
-    // Remove leading notification counts: (1), [1], {1}
-    .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
-    // Remove leading numbers with spaces: "1 John Doe"
-    .replace(/^\d+\s+/, '')
-    // Remove notification counts anywhere in the name: "John (1) Doe"
-    .replace(/\s*[\[{\(]\d+[\]}\)]\s*/g, ' ')
-    // Clean up multiple spaces
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  return cleaned;
+
+  // Normalize whitespace (including non-breaking spaces)
+  let cleaned = name.replace(/\u00A0/g, ' ');
+
+  const patterns: RegExp[] = [
+    // Leading counters: (1) [2] {3}
+    /^[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*/,
+    // Leading numbers like: 1 John, 12· John, 3. John
+    /^[\s\u00A0]*\d+[\s\u00A0]*[\.|·•:\-]*[\s\u00A0]*/,
+    // Trailing counters at end: John Doe (1)
+    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*$/,
+    // Inline counters: John (1) Doe
+    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}][\s\u00A0]*/g,
+  ];
+
+  for (const pattern of patterns) {
+    cleaned = cleaned.replace(pattern, ' ');
+  }
+
+  return cleaned.replace(/\s+/g, ' ').trim();
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { user } = await getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
-    console.log('Starting bulk profile name cleaning...');
-    
     // Get all connections for the user
     const connections = await prisma.connection.findMany({
       where: { ownerId: user.id },
-      select: {
-        id: true,
-        name: true,
-      }
+      select: { id: true, name: true },
     });
-    
-    console.log(`Found ${connections.length} connections to check`);
-    
+
     let updatedCount = 0;
     const updates: Array<{ id: string; originalName: string; cleanedName: string }> = [];
-    
+
     for (const connection of connections) {
       const originalName = connection.name;
       const cleanedName = cleanProfileName(originalName);
-      
-      // Only update if the name actually changed
+
       if (originalName !== cleanedName) {
-        console.log(`Updating connection ${connection.id}: "${originalName}" → "${cleanedName}"`);
-        
-        await prisma.connection.update({
-          where: { id: connection.id },
-          data: { name: cleanedName }
-        });
-        
+        await prisma.connection.update({ where: { id: connection.id }, data: { name: cleanedName } });
         updatedCount++;
-        updates.push({
-          id: connection.id,
-          originalName,
-          cleanedName
-        });
+        updates.push({ id: connection.id, originalName, cleanedName });
       }
     }
-    
-    console.log(`Profile name cleaning completed! Updated ${updatedCount} out of ${connections.length} connections`);
-    
-    return NextResponse.json({
-      success: true,
-      message: `Updated ${updatedCount} out of ${connections.length} connections`,
-      totalConnections: connections.length,
-      updatedCount,
-      updates
-    });
-    
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Updated ${updatedCount} out of ${connections.length} connections`,
+        totalConnections: connections.length,
+        updatedCount,
+        updates,
+      },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (error) {
     console.error('Error cleaning profile names:', error);
-    return NextResponse.json(
-      { error: 'Failed to clean profile names' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to clean profile names' }, { status: 500, headers: corsHeaders });
   }
 }

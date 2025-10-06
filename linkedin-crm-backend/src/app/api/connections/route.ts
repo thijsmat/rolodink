@@ -8,20 +8,26 @@ const prisma = new PrismaClient();
 // Function to clean notification counts from profile names
 function cleanProfileName(name: string): string {
   if (!name) return name;
-  
-  // Remove various notification patterns
-  const cleaned = name
-    // Remove leading notification counts: (1), [1], {1}
-    .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
-    // Remove leading numbers with spaces: "1 John Doe"
-    .replace(/^\d+\s+/, '')
-    // Remove notification counts anywhere in the name: "John (1) Doe"
-    .replace(/\s*[\[{\(]\d+[\]}\)]\s*/g, ' ')
-    // Clean up multiple spaces
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  return cleaned;
+
+  // Normalize whitespace (including non-breaking spaces)
+  let cleaned = name.replace(/\u00A0/g, ' ');
+
+  const patterns: RegExp[] = [
+    // Leading counters: (1) [2] {3}
+    /^[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*/,
+    // Leading numbers like: 1 John, 12· John, 3. John
+    /^[\s\u00A0]*\d+[\s\u00A0]*[\.|·•:\-]*[\s\u00A0]*/,
+    // Trailing counters at end: John Doe (1)
+    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*$/,
+    // Inline counters: John (1) Doe
+    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}][\s\u00A0]*/g,
+  ];
+
+  for (const pattern of patterns) {
+    cleaned = cleaned.replace(pattern, ' ');
+  }
+
+  return cleaned.replace(/\s+/g, ' ').trim();
 }
 
 const corsHeaders = {

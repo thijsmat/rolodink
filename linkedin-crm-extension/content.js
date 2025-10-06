@@ -3,21 +3,31 @@ const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
     if (!name) return name;
-    
+
     console.log('Cleaning profile name:', name);
-    
-    // Remove various notification patterns
-    let cleaned = name
-        // Remove leading notification counts: (1), [1], {1}
-        .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
-        // Remove leading numbers with spaces: "1 John Doe"
-        .replace(/^\d+\s+/, '')
-        // Remove notification counts anywhere in the name: "John (1) Doe"
-        .replace(/\s*[\[{\(]\d+[\]}\)]\s*/g, ' ')
-        // Clean up multiple spaces
-        .replace(/\s+/g, ' ')
-        .trim();
-    
+
+    // Normalize whitespace (including Unicode NBSP) first
+    let cleaned = name.replace(/\u00A0/g, ' ');
+
+    // Patterns to remove notification-like counters and ornaments
+    const patterns = [
+        // Leading counters: (1) [2] {3}
+        /^[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*/,
+        // Leading numbers like: 1 John, 12· John, 3. John
+        /^[\s\u00A0]*\d+[\s\u00A0]*[\.|·•:\-]*[\s\u00A0]*/,
+        // Trailing counters at end: John Doe (1)
+        /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*$/,
+        // Inline counters: John (1) Doe
+        /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}][\s\u00A0]*/g,
+    ];
+
+    for (const pattern of patterns) {
+        cleaned = cleaned.replace(pattern, ' ');
+    }
+
+    // Collapse spaces again and trim
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
     console.log('Cleaned profile name:', cleaned);
     return cleaned;
 }

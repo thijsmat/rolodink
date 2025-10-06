@@ -162,6 +162,14 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (!picked) setAllConnections([]);
       } else if (response.status === 404) {
         setConnection(null);
+      } else if (response.status === 401) {
+        // Token invalid/expired → force logout and friendly message
+        setIsLoggedIn(false);
+        setConnection(null);
+        setError('Je sessie is verlopen. Log opnieuw in.');
+        setToastMessage('Je sessie is verlopen. Log opnieuw in.');
+        await chrome.storage.local.remove(['supabaseAccessToken']);
+        return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
       }
@@ -225,6 +233,16 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
       });
 
+      if (response.status === 401) {
+        setIsLoggedIn(false);
+        setConnection(null);
+        if (!silent) {
+          setError('Je sessie is verlopen. Log opnieuw in.');
+          setToastMessage('Je sessie is verlopen. Log opnieuw in.');
+        }
+        await chrome.storage.local.remove(['supabaseAccessToken']);
+        return;
+      }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
 
       const connections = await response.json();
