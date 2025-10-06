@@ -10,7 +10,7 @@ function cleanProfileName(name: string): string {
   if (!name) return name;
   
   // Remove various notification patterns
-  let cleaned = name
+  const cleaned = name
     // Remove leading notification counts: (1), [1], {1}
     .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
     // Remove leading numbers with spaces: "1 John Doe"
