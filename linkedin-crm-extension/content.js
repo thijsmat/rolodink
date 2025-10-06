@@ -1,5 +1,27 @@
 const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
 
+// Function to clean notification counts from profile names
+function cleanProfileName(name) {
+    if (!name) return name;
+    
+    console.log('Cleaning profile name:', name);
+    
+    // Remove various notification patterns
+    let cleaned = name
+        // Remove leading notification counts: (1), [1], {1}
+        .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
+        // Remove leading numbers with spaces: "1 John Doe"
+        .replace(/^\d+\s+/, '')
+        // Remove notification counts anywhere in the name: "John (1) Doe"
+        .replace(/\s*[\[{\(]\d+[\]}\)]\s*/g, ' ')
+        // Clean up multiple spaces
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    console.log('Cleaned profile name:', cleaned);
+    return cleaned;
+}
+
 // Functie om te wachten tot een element op de pagina is geladen
 function waitForElement(selector, callback) {
     const interval = setInterval(() => {
@@ -102,19 +124,10 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 console.log(`Selector "${selector}":`, element);
                 if (element && element.innerText && element.innerText.trim()) {
                     profileName = element.innerText.trim();
-                    console.log('Found profile name:', profileName);
+                    console.log('Found profile name from DOM:', profileName);
+                    console.log('Element HTML:', element.innerHTML);
                     break;
                 }
-            }
-            
-            // Clean up notification count from profile name (applies to both DOM and title extraction)
-            if (profileName) {
-                // Remove notification counts at the beginning: (1), (2), etc.
-                profileName = profileName.replace(/^\(\d+\)\s*/, '').trim();
-                // Also remove any other notification patterns like [1], {1}, etc.
-                profileName = profileName.replace(/^[\[{]\d+[\]}]\s*/, '').trim();
-                // Remove any leading numbers with spaces: "1 John Doe" -> "John Doe"
-                profileName = profileName.replace(/^\d+\s+/, '').trim();
             }
             
             // If still no name found, try to get it from the page title
@@ -126,10 +139,12 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 } else if (title) {
                     profileName = title.replace(' | LinkedIn', '').trim();
                 }
-                
-                // Note: notification count cleaning is already applied above
-                
                 console.log('Profile name from title:', profileName);
+            }
+            
+            // Clean up notification count from profile name (applies to ALL extraction methods)
+            if (profileName) {
+                profileName = cleanProfileName(profileName);
             }
             
             // Final fallback - show error if no name found
