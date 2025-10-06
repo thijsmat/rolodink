@@ -6,9 +6,12 @@
 }
 
 .header {
-  padding: var(--space-6);
+  padding: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-surface);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
 }
 
 .headerContent {
@@ -19,20 +22,23 @@
 }
 
 .title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
+  flex: 1;
+  min-width: 0;
 }
 
-.buttonGroup {
+.headerActions {
   display: flex;
   gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .button {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
@@ -45,28 +51,23 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.buttonIcon {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
 }
 
 .buttonPrimary {
   background: var(--linkedin-blue);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .buttonPrimary:hover:not(:disabled) {
   background: var(--linkedin-blue-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
-}
-
-.buttonSecondary {
-  background: transparent;
-  color: var(--linkedin-blue);
-  border: 1px solid var(--linkedin-blue);
-}
-
-.buttonSecondary:hover:not(:disabled) {
-  background: var(--linkedin-blue-subtle);
-  transform: translateY(-1px);
 }
 
 .buttonDanger {
@@ -88,7 +89,7 @@
 
 .content {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--space-4);
   overflow-y: auto;
 }
 
@@ -96,8 +97,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  margin-bottom: var(--space-6);
+  padding: var(--space-5);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
 }
@@ -108,31 +108,53 @@
 }
 
 .profileHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: var(--space-5);
-  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .profileInfo {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.nameSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .profileName {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin: 0 0 var(--space-2) 0;
+  margin: 0;
   line-height: var(--line-height-tight);
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--success-subtle);
+  color: var(--success);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  width: fit-content;
+}
+
+.badgeIcon {
+  font-size: var(--font-size-xs);
 }
 
 .linkedinLink {
   color: var(--linkedin-blue);
   text-decoration: none;
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -141,25 +163,57 @@
   background: transparent;
   cursor: pointer;
   font-family: inherit;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--linkedin-blue);
+  width: fit-content;
 }
 
 .linkedinLink:hover {
   color: var(--linkedin-blue-hover);
+  background: var(--linkedin-blue-subtle);
   transform: translateY(-1px);
 }
 
-.details {
+.linkIcon {
+  font-size: var(--font-size-sm);
+}
+
+.connectionDetails {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-.detailItem {
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.detailRow:hover {
+  background: var(--bg-muted);
+}
+
+.detailIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: var(--font-size-md);
+}
+
+.detailContent {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
 }
 
 .detailLabel {
@@ -175,27 +229,39 @@
   color: var(--text-primary);
   line-height: var(--line-height-normal);
   word-break: break-word;
+  font-weight: var(--font-weight-medium);
 }
 
 .detailValueEmpty {
   color: var(--text-tertiary);
   font-style: italic;
+  font-weight: var(--font-weight-regular);
 }
 
-.notes {
+.notesSection {
   background: var(--bg-subtle);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   border-left: 3px solid var(--linkedin-blue);
+  margin-top: var(--space-2);
+}
+
+.notesHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.notesIcon {
+  font-size: var(--font-size-sm);
+  color: var(--linkedin-blue);
 }
 
 .notesLabel {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--linkedin-blue);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--space-2);
 }
 
 .notesContent {
@@ -203,59 +269,10 @@
   color: var(--text-primary);
   line-height: var(--line-height-relaxed);
   white-space: pre-wrap;
-}
-
-.actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-}
-
-.actionButton {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-}
-
-.actionButtonPrimary {
-  background: var(--linkedin-blue);
-  color: white;
-}
-
-.actionButtonPrimary:hover:not(:disabled) {
-  background: var(--linkedin-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.actionButtonDanger {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-}
-
-.actionButtonDanger:hover:not(:disabled) {
-  background: var(--danger-subtle);
-  transform: translateY(-1px);
-}
-
-.actionButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  background: var(--bg-surface);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
 }
 
 .error {
@@ -271,29 +288,11 @@
   border: 1px solid var(--danger);
 }
 
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  color: var(--text-secondary);
+.errorIcon {
+  flex-shrink: 0;
   font-size: var(--font-size-sm);
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-2);
-  background: var(--success-subtle);
-  color: var(--success);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  margin-left: var(--space-2);
-}
-
-.divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: var(--space-4) 0;
+.errorMessage {
+  flex: 1;
 }

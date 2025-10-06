@@ -2,14 +2,12 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
-import { API_BASE_URL } from '../config';
 
 export function AllConnectionsView() {
-  const { allConnections, selectConnection, fetchAllConnections, setToastMessage, isLoading } = useConnection();
+  const { allConnections, selectConnection, isLoading } = useConnection();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'withNotes' | 'recent'>('all');
-  const [isCleaning, setIsCleaning] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search query for better performance
@@ -105,33 +103,6 @@ export function AllConnectionsView() {
 
   const stats = getConnectionStats();
 
-  const handleCleanNames = useCallback(async () => {
-    try {
-      setIsCleaning(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
-        setToastMessage('Niet ingelogd. Log in om op te schonen.');
-        return;
-      }
-      const resp = await fetch(`${API_BASE_URL}/api/connections/clean-names`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${supabaseAccessToken}` },
-      });
-      if (!resp.ok) {
-        setToastMessage('Opschonen mislukt. Probeer later opnieuw.');
-        return;
-      }
-      const data = await resp.json().catch(() => null);
-      const updated = data?.updatedCount ?? 0;
-      setToastMessage(`Namen opgeschoond: ${updated} bijgewerkt.`);
-      // Refresh list silently
-      await fetchAllConnections(true);
-    } catch (e) {
-      setToastMessage('Kon niet opschonen. Controleer je internetverbinding.');
-    } finally {
-      setIsCleaning(false);
-    }
-  }, [fetchAllConnections, setToastMessage]);
 
   if (!allConnections || allConnections.length === 0) {
     return (
@@ -168,11 +139,6 @@ export function AllConnectionsView() {
               Voeg je eerste LinkedIn connectie toe door op de "Voeg toe aan CRM" knop te klikken op een LinkedIn profiel.
             </p>
           </div>
-        </div>
-        <div className={styles.footerActions}>
-          <button className={styles.cleanNamesButton} onClick={handleCleanNames} disabled={isCleaning}>
-            {isCleaning ? 'Bezig met opschonen…' : '🧹 Opschonen'}
-          </button>
         </div>
       </div>
     );
@@ -317,11 +283,6 @@ export function AllConnectionsView() {
         )}
       </div>
 
-      <div className={styles.footerActions}>
-        <button className={styles.cleanNamesButton} onClick={handleCleanNames} disabled={isCleaning}>
-          {isCleaning ? 'Bezig met opschonen…' : '🧹 Opschonen'}
-        </button>
-      </div>
     </div>
   );
 }

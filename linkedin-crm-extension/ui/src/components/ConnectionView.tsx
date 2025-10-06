@@ -60,20 +60,25 @@ export function ConnectionView() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Connectie Gevonden</h1>
-          <div className={styles.buttonGroup}>
+          <h1 className={styles.title}>Connectie Details</h1>
+          <div className={styles.headerActions}>
             <button 
               onClick={() => setIsEditing(true)} 
               className={`${styles.button} ${styles.buttonPrimary}`}
+              disabled={isSubmitting}
             >
-              ✏️ Bewerken
+              <span className={styles.buttonIcon}>✏️</span>
+              Bewerken
             </button>
             <button 
               onClick={onDelete}
               className={`${styles.button} ${styles.buttonDanger}`}
               disabled={isSubmitting}
             >
-              {isSubmitting ? '⏳' : '🗑️'} {isSubmitting ? 'Verwijderen...' : 'Verwijderen'}
+              <span className={styles.buttonIcon}>
+                {isSubmitting ? '⏳' : '🗑️'}
+              </span>
+              {isSubmitting ? 'Verwijderen...' : 'Verwijderen'}
             </button>
           </div>
         </div>
@@ -83,10 +88,15 @@ export function ConnectionView() {
         <div className={styles.profileCard}>
           <div className={styles.profileHeader}>
             <div className={styles.profileInfo}>
-              <h2 className={styles.profileName}>
-                {connection.name}
-                <span className={styles.badge}>✓</span>
-              </h2>
+              <div className={styles.nameSection}>
+                <h2 className={styles.profileName}>
+                  {connection.name}
+                </h2>
+                <span className={styles.verifiedBadge}>
+                  <span className={styles.badgeIcon}>✓</span>
+                  Verified
+                </span>
+              </div>
               <button
                 className={styles.linkedinLink}
                 title="Open LinkedIn-profiel"
@@ -98,29 +108,39 @@ export function ConnectionView() {
                   }
                 }}
               >
-                🔗 Bekijk op LinkedIn
+                <span className={styles.linkIcon}>🔗</span>
+                Bekijk op LinkedIn
               </button>
             </div>
           </div>
 
-          <div className={styles.details}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Ontmoet op</span>
-              <span className={connection.meetingPlace ? styles.detailValue : styles.detailValueEmpty}>
-                {connection.meetingPlace || 'Niet opgegeven'}
-              </span>
+          <div className={styles.connectionDetails}>
+            <div className={styles.detailRow}>
+              <span className={styles.detailIcon}>📍</span>
+              <div className={styles.detailContent}>
+                <span className={styles.detailLabel}>Ontmoet op</span>
+                <span className={connection.meetingPlace ? styles.detailValue : styles.detailValueEmpty}>
+                  {connection.meetingPlace || 'Niet opgegeven'}
+                </span>
+              </div>
             </div>
 
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Mijn bedrijf destijds</span>
-              <span className={connection.userCompanyAtTheTime ? styles.detailValue : styles.detailValueEmpty}>
-                {connection.userCompanyAtTheTime || 'Niet opgegeven'}
-              </span>
+            <div className={styles.detailRow}>
+              <span className={styles.detailIcon}>🏢</span>
+              <div className={styles.detailContent}>
+                <span className={styles.detailLabel}>Mijn bedrijf destijds</span>
+                <span className={connection.userCompanyAtTheTime ? styles.detailValue : styles.detailValueEmpty}>
+                  {connection.userCompanyAtTheTime || 'Niet opgegeven'}
+                </span>
+              </div>
             </div>
 
             {connection.notes && (
-              <div className={styles.notes}>
-                <span className={styles.notesLabel}>Notities</span>
+              <div className={styles.notesSection}>
+                <div className={styles.notesHeader}>
+                  <span className={styles.notesIcon}>📝</span>
+                  <span className={styles.notesLabel}>Notities</span>
+                </div>
                 <div className={styles.notesContent}>
                   {connection.notes}
                 </div>
@@ -131,8 +151,8 @@ export function ConnectionView() {
 
         {error && (
           <div className={styles.error}>
-            <span>⚠️</span>
-            <span>{error}</span>
+            <span className={styles.errorIcon}>⚠️</span>
+            <span className={styles.errorMessage}>{error}</span>
           </div>
         )}
       </div>

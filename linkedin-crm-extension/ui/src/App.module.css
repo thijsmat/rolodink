@@ -12,23 +12,33 @@
 
 .header {
   background-color: var(--bg-muted);
-  padding: var(--space-4);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mainTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
 }
 
 .headerActions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
+  margin: 0;
 }
 
 .contentArea {
@@ -87,6 +97,23 @@
   box-shadow: var(--shadow-sm);
 }
 
+.compactButton {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--linkedin-blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
 .button:hover {
   background-color: var(--linkedin-blue-hover);
 }
@@ -94,6 +121,18 @@
 .button:disabled {
   background-color: #a6c7e6;
   cursor: not-allowed;
+}
+
+.compactButton:hover {
+  background-color: var(--linkedin-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.compactButton:disabled {
+  background-color: #a6c7e6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .buttonSecondary {

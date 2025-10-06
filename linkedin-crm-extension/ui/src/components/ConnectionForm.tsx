@@ -91,115 +91,133 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         {isSubmitting ? (
           <SkeletonForm />
         ) : (
-          <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
-          <fieldset className={styles.fieldset}>
-            <legend className={styles.legend}>Ontmoetingsdetails</legend>
-            
-            <div className={styles.formGroup}>
-              <label htmlFor="meetingPlace" className={styles.label}>
-                Waar hebben jullie elkaar ontmoet?
-              </label>
-              <input
-                id="meetingPlace"
-                type="text"
-                value={meetingPlace}
-                onChange={(e) => setMeetingPlace(e.target.value)}
-                className={styles.input}
-                placeholder="Bijv. LinkedIn event, conferentie, via-via..."
-              />
-              <div className={styles.helpText}>
-                Dit helpt je later te herinneren waar je deze persoon hebt leren kennen
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="userCompany" className={styles.label}>
-                Mijn bedrijf destijds
-              </label>
-              <input
-                id="userCompany"
-                type="text"
-                value={userCompany}
-                onChange={(e) => setUserCompany(e.target.value)}
-                className={styles.input}
-                placeholder="Bijv. Acme Corp, Freelancer, Student..."
-              />
-              <div className={styles.helpText}>
-                Waar werkte je toen je deze persoon ontmoette?
-              </div>
-            </div>
-          </fieldset>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="notes" className={styles.label}>
-              Notities
-            </label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className={`${styles.input} ${styles.textarea}`}
-              placeholder="Voeg hier extra notities toe over deze persoon, jullie gesprek, of andere relevante informatie..."
-              maxLength={maxNotesLength}
-            />
-            <div className={`${styles.characterCount} ${
-              notesLength > maxNotesLength * 0.9 ? styles.characterCountWarning : ''
-            } ${
-              notesLength >= maxNotesLength ? styles.characterCountError : ''
-            }`}>
-              {notesLength}/{maxNotesLength} karakters
-            </div>
-          </div>
-
-          <div className={styles.tips}>
-            <div className={styles.tipsTitle}>💡 Tips voor goede notities</div>
-            <div className={styles.tipsList}>
-              <div className={styles.tip}>
-                <span className={styles.tipIcon}>•</span>
-                <span>Noteer wat jullie bespraken of waar jullie over spraken</span>
-              </div>
-              <div className={styles.tip}>
-                <span className={styles.tipIcon}>•</span>
-                <span>Voeg contactgegevens toe die je later nodig hebt</span>
-              </div>
-              <div className={styles.tip}>
-                <span className={styles.tipIcon}>•</span>
-                <span>Noteer follow-up acties of beloftes</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.buttonGroup}>
-            <button
-              type="submit"
-              disabled={!!isSubmitting}
-              className={`${styles.button} ${styles.buttonPrimary}`}
-            >
-              {isSubmitting ? (
-                <div className={styles.loading}>
-                  <span>⏳</span>
-                  <span>Bezig...</span>
+          <div className={styles.formCard}>
+            <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <span className={styles.sectionIcon}>📍</span>
+                  <h2 className={styles.sectionTitle}>Ontmoetingsdetails</h2>
                 </div>
-              ) : (
-                <>
-                  <span>💾</span>
-                  <span>{submitText || (isEditMode ? 'Wijzigingen Opslaan' : 'Connectie Opslaan')}</span>
-                </>
-              )}
-            </button>
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className={`${styles.button} ${styles.buttonSecondary}`}
-                disabled={isSubmitting}
-              >
-                <span>❌</span>
-                <span>Annuleren</span>
-              </button>
-            )}
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="meetingPlace" className={styles.label}>
+                    <span className={styles.labelIcon}>📍</span>
+                    Waar hebben jullie elkaar ontmoet?
+                  </label>
+                  <input
+                    id="meetingPlace"
+                    type="text"
+                    value={meetingPlace}
+                    onChange={(e) => setMeetingPlace(e.target.value)}
+                    className={styles.input}
+                    placeholder="Bijv. LinkedIn event, conferentie, via-via..."
+                  />
+                  <div className={styles.helpText}>
+                    Dit helpt je later te herinneren waar je deze persoon hebt leren kennen
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="userCompany" className={styles.label}>
+                    <span className={styles.labelIcon}>🏢</span>
+                    Mijn bedrijf destijds
+                  </label>
+                  <input
+                    id="userCompany"
+                    type="text"
+                    value={userCompany}
+                    onChange={(e) => setUserCompany(e.target.value)}
+                    className={styles.input}
+                    placeholder="Bijv. Acme Corp, Freelancer, Student..."
+                  />
+                  <div className={styles.helpText}>
+                    Waar werkte je toen je deze persoon ontmoette?
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <span className={styles.sectionIcon}>📝</span>
+                  <h2 className={styles.sectionTitle}>Notities</h2>
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="notes" className={styles.label}>
+                    <span className={styles.labelIcon}>💭</span>
+                    Extra informatie
+                  </label>
+                  <textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className={`${styles.input} ${styles.textarea}`}
+                    placeholder="Voeg hier extra notities toe over deze persoon, jullie gesprek, of andere relevante informatie..."
+                    maxLength={maxNotesLength}
+                  />
+                  <div className={`${styles.characterCount} ${
+                    notesLength > maxNotesLength * 0.9 ? styles.characterCountWarning : ''
+                  } ${
+                    notesLength >= maxNotesLength ? styles.characterCountError : ''
+                  }`}>
+                    {notesLength}/{maxNotesLength} karakters
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.tips}>
+                <div className={styles.tipsHeader}>
+                  <span className={styles.tipsIcon}>💡</span>
+                  <span className={styles.tipsTitle}>Tips voor goede notities</span>
+                </div>
+                <div className={styles.tipsList}>
+                  <div className={styles.tip}>
+                    <span className={styles.tipIcon}>•</span>
+                    <span>Noteer wat jullie bespraken of waar jullie over spraken</span>
+                  </div>
+                  <div className={styles.tip}>
+                    <span className={styles.tipIcon}>•</span>
+                    <span>Voeg contactgegevens toe die je later nodig hebt</span>
+                  </div>
+                  <div className={styles.tip}>
+                    <span className={styles.tipIcon}>•</span>
+                    <span>Noteer follow-up acties of beloftes</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.buttonGroup}>
+                <button
+                  type="submit"
+                  disabled={!!isSubmitting}
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className={styles.buttonIcon}>⏳</span>
+                      <span>Bezig...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={styles.buttonIcon}>💾</span>
+                      <span>{submitText || (isEditMode ? 'Wijzigingen Opslaan' : 'Connectie Opslaan')}</span>
+                    </>
+                  )}
+                </button>
+                {onCancel && (
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className={`${styles.button} ${styles.buttonSecondary}`}
+                    disabled={isSubmitting}
+                  >
+                    <span className={styles.buttonIcon}>❌</span>
+                    <span>Annuleren</span>
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
-        </form>
         )}
       </div>
     </div>

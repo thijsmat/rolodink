@@ -6,11 +6,12 @@ import { ConnectionView } from './components/ConnectionView';
 import { ConnectionForm } from './components/ConnectionForm';
 import { Toast } from './components/Toast';
 import { AllConnectionsView } from './components/AllConnectionsView';
+import { SettingsView } from './components/SettingsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, showListView, hideListView, showSettingsView, hideSettingsView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
@@ -41,6 +42,10 @@ function Content() {
       );
     }
 
+    if (isSettingsView) {
+      return <SettingsView />;
+    }
+
     // Contextual view: either a specific connection or new connection form
     return (
       <div>
@@ -57,16 +62,22 @@ function Content() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>LinkedIn CRM</h1>
+        <h1 className={styles.mainTitle}>LinkedIn CRM</h1>
         <div className={styles.headerActions}>
-          {isLoggedIn && !isListView && (
-            <button onClick={showListView} className={styles.button}>Toon alle connecties</button>
+          {isLoggedIn && !isListView && !isSettingsView && (
+            <button onClick={showListView} className={styles.compactButton}>Toon alle connecties</button>
+          )}
+          {isLoggedIn && !isListView && !isSettingsView && (
+            <button onClick={showSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>⚙️ Instellingen</button>
           )}
           {isLoggedIn && isListView && (
-            <button onClick={hideListView} className={`${styles.button} ${styles.buttonSecondary}`}>Terug naar context</button>
+            <button onClick={hideListView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+          )}
+          {isLoggedIn && isSettingsView && (
+            <button onClick={hideSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
           )}
           {isLoggedIn && (
-            <button onClick={handleLogout} className={`${styles.button} ${styles.buttonSecondary}`}>
+            <button onClick={handleLogout} className={`${styles.compactButton} ${styles.buttonSecondary}`}>
               Logout
             </button>
           )}
