@@ -6,14 +6,31 @@ import { ConnectionView } from './components/ConnectionView';
 import { ConnectionForm } from './components/ConnectionForm';
 import { Toast } from './components/Toast';
 import { AllConnectionsView } from './components/AllConnectionsView';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
     if (!isLoggedIn) return <LoginView />;
-    if (error) return <p className={styles.error}>{error}</p>;
+    if (error) {
+      return (
+        <div className={styles.errorContainer}>
+          {isOffline ? (
+            <OfflineError onRetry={fetchData} onDismiss={() => setToastMessage('')} />
+          ) : (
+            <ErrorMessage 
+              error={error} 
+              onRetry={fetchData} 
+              onDismiss={() => setToastMessage('')}
+              showRetry={true}
+            />
+          )}
+        </div>
+      );
+    }
 
     if (isListView) {
       return (
@@ -65,9 +82,11 @@ function Content() {
 
 function App() {
   return (
-    <ConnectionProvider>
-      <Content />
-    </ConnectionProvider>
+    <ErrorBoundary>
+      <ConnectionProvider>
+        <Content />
+      </ConnectionProvider>
+    </ErrorBoundary>
   );
 }
 

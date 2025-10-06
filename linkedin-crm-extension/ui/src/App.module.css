@@ -171,3 +171,7 @@
   justify-content: space-between;
   margin-bottom: var(--space-3);
 }
+
+.errorContainer {
+  padding: var(--space-4);
+}

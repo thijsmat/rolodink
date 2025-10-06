@@ -26,6 +26,7 @@ type ConnectionContextState = {
   isListView: boolean;
   toastMessage: string;
   isInitialized: boolean;
+  isOffline: boolean;
   setToastMessage: (msg: string) => void;
   fetchData: () => Promise<void>;
   fetchAllConnections: () => Promise<void>;
@@ -62,6 +63,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isListView, setIsListView] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
 
   // Cache management functions
   const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
@@ -99,6 +101,34 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [loadCachedConnections]);
 
+  // Offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      setToastMessage('Internetverbinding hersteld!');
+      // Optionally refetch data when coming back online
+      if (isLoggedIn && allConnections.length > 0) {
+        // Use a timeout to avoid dependency issues
+        setTimeout(() => {
+          fetchAllConnections(true).catch(console.error);
+        }, 1000);
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOffline(true);
+      setToastMessage('Geen internetverbinding. Je werkt nu offline.');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [isLoggedIn, allConnections.length]);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -134,9 +164,23 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Fout bij ophalen van connectie:', e);
-      setError('Kon de connectie-data niet ophalen.');
+      
+      // Check if it's a network error
+      if (e.name === 'TypeError' && e.message.includes('fetch')) {
+        setError('Geen internetverbinding. Controleer je wifi of mobiele data.');
+      } else if (e.message.includes('401')) {
+        setError('Je sessie is verlopen. Log opnieuw in.');
+        setIsLoggedIn(false);
+        setConnection(null);
+      } else if (e.message.includes('403')) {
+        setError('Je hebt geen toegang tot deze functie.');
+      } else if (e.message.includes('500')) {
+        setError('Er is een serverprobleem. Probeer het later opnieuw.');
+      } else {
+        setError(e.message || 'Kon de connectie-data niet ophalen.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -402,6 +446,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isListView,
     toastMessage,
     isInitialized,
+    isOffline,
     setToastMessage,
     fetchData,
     fetchAllConnections,
