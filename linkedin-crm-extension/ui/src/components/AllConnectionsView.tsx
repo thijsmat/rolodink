@@ -1,5 +1,5 @@
 // src/components/AllConnectionsView.tsx
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 
@@ -8,6 +8,7 @@ export function AllConnectionsView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'withNotes' | 'recent'>('all');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search query for better performance
   useEffect(() => {
@@ -16,6 +17,27 @@ export function AllConnectionsView() {
     }, 300);
 
     return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Keyboard shortcuts for search
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+F or Cmd+F to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // Escape to clear search
+      if (event.key === 'Escape' && searchQuery) {
+        event.preventDefault();
+        setSearchQuery('');
+        searchInputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchQuery]);
 
   // Helper function to highlight search terms
@@ -114,8 +136,9 @@ export function AllConnectionsView() {
         <div className={styles.searchContainer}>
           <div className={styles.searchInputWrapper}>
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Zoek in connecties..."
+              placeholder="Zoek in connecties... (Ctrl+F)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}

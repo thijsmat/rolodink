@@ -1,4 +1,5 @@
 // src/App.tsx
+import { useEffect } from 'react';
 import styles from './App.module.css';
 import { ConnectionProvider, useConnection } from './context/ConnectionContext';
 import { LoginView } from './components/LoginView';
@@ -9,6 +10,37 @@ import { AllConnectionsView } from './components/AllConnectionsView';
 
 function Content() {
   const { isLoading, isLoggedIn, error, connection, isListView, showListView, hideListView, handleLogout, toastMessage, setToastMessage } = useConnection();
+
+  // Global keyboard shortcuts for navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when logged in and not in form inputs
+      if (!isLoggedIn) return;
+      
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      // Escape key for navigation
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (isListView) {
+          hideListView();
+        } else if (connection) {
+          // Go back to list view from connection details
+          showListView();
+        }
+      }
+
+      // Alt+L for logout (when not in list view)
+      if (event.altKey && event.key === 'l' && !isListView) {
+        event.preventDefault();
+        handleLogout();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isLoggedIn, isListView, connection, showListView, hideListView, handleLogout]);
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
