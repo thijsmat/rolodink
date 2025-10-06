@@ -2,12 +2,14 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
+import { API_BASE_URL } from '../config';
 
 export function AllConnectionsView() {
-  const { allConnections, selectConnection } = useConnection();
+  const { allConnections, selectConnection, fetchAllConnections, setToastMessage } = useConnection();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'withNotes' | 'recent'>('all');
+  const [isCleaning, setIsCleaning] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search query for better performance
@@ -103,12 +105,60 @@ export function AllConnectionsView() {
 
   const stats = getConnectionStats();
 
+  const handleCleanNames = useCallback(async () => {
+    try {
+      setIsCleaning(true);
+      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      if (!supabaseAccessToken) {
+        setToastMessage('Niet ingelogd. Log in om op te schonen.');
+        return;
+      }
+      const resp = await fetch(`${API_BASE_URL}/api/connections/clean-names`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${supabaseAccessToken}` },
+      });
+      if (!resp.ok) {
+        setToastMessage('Opschonen mislukt. Probeer later opnieuw.');
+        return;
+      }
+      const data = await resp.json().catch(() => null);
+      const updated = data?.updatedCount ?? 0;
+      setToastMessage(`Namen opgeschoond: ${updated} bijgewerkt.`);
+      // Refresh list silently
+      await fetchAllConnections(true);
+    } catch (e) {
+      setToastMessage('Kon niet opschonen. Controleer je internetverbinding.');
+    } finally {
+      setIsCleaning(false);
+    }
+  }, [fetchAllConnections, setToastMessage]);
+
   if (!allConnections || allConnections.length === 0) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Alle Connecties</h1>
-          <p className={styles.subtitle}>Bekijk en beheer al je LinkedIn connecties</p>
+          {/* Title removed to avoid duplication; handled by parent */}
+          <div className={styles.searchContainer}>
+            <div className={styles.searchInputWrapper}>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Zoek in connecties... (Ctrl+F)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={styles.searchInput}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className={styles.clearSearchButton}
+                  title="Zoekopdracht wissen"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
         </div>
         <div className={styles.content}>
           <div className={styles.empty}>
@@ -119,6 +169,11 @@ export function AllConnectionsView() {
             </p>
           </div>
         </div>
+        <div className={styles.footerActions}>
+          <button className={styles.cleanNamesButton} onClick={handleCleanNames} disabled={isCleaning}>
+            {isCleaning ? 'Bezig met opschonen…' : '🧹 Opschonen'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -126,13 +181,6 @@ export function AllConnectionsView() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <div>
-            <h1 className={styles.title}>Alle Connecties</h1>
-            <p className={styles.subtitle}>Bekijk en beheer al je LinkedIn connecties</p>
-          </div>
-        </div>
-
         <div className={styles.searchContainer}>
           <div className={styles.searchInputWrapper}>
             <input
@@ -263,6 +311,12 @@ export function AllConnectionsView() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className={styles.footerActions}>
+        <button className={styles.cleanNamesButton} onClick={handleCleanNames} disabled={isCleaning}>
+          {isCleaning ? 'Bezig met opschonen…' : '🧹 Opschonen'}
+        </button>
       </div>
     </div>
   );
