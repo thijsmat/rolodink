@@ -38,6 +38,7 @@ type ConnectionContextState = {
   handleDelete: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;
+  cleanAllNames: () => Promise<void>;
 };
 
 const ConnectionContext = createContext<ConnectionContextState | undefined>(undefined);
@@ -437,6 +438,43 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  const cleanAllNames = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      if (!supabaseAccessToken) {
+        setError('Je bent niet ingelogd.');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/connections/clean-names`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Serverfout: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Clean names result:', result);
+      
+      if (result.success) {
+        setToastMessage(`✅ ${result.updatedCount} namen opgeschoond van ${result.totalConnections} contacten`);
+        // Refresh the connections list to show updated names
+        await fetchAllConnections();
+      } else {
+        setToastMessage('Er is iets misgegaan bij het opschonen van de namen.');
+      }
+    } catch (e: any) {
+      console.error('Fout bij opschonen namen:', e);
+      setError('Kon de namen niet opschonen.');
+      setToastMessage('Fout bij opschonen van namen.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchAllConnections]);
+
   const value: ConnectionContextState = useMemo(() => ({
     isLoading,
     error,
@@ -458,6 +496,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleDelete,
     handleLogout,
     handleLoginSuccess,
+    cleanAllNames,
   }), [
     isLoading,
     error,
@@ -467,6 +506,19 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isListView,
     toastMessage,
     isInitialized,
+    isOffline,
+    setToastMessage,
+    fetchData,
+    fetchAllConnections,
+    showListView,
+    hideListView,
+    selectConnection,
+    handleCreateConnection,
+    handleUpdate,
+    handleDelete,
+    handleLogout,
+    handleLoginSuccess,
+    cleanAllNames,
   ]);
 
   return (

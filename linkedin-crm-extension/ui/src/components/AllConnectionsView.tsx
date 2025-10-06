@@ -5,7 +5,7 @@ import { useConnection } from '../context/ConnectionContext';
 import { SkeletonConnectionItem } from './Skeleton';
 
 export function AllConnectionsView() {
-  const { allConnections, selectConnection, isLoading } = useConnection();
+  const { allConnections, selectConnection, isLoading, cleanAllNames } = useConnection();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'withNotes' | 'recent'>('all');
@@ -159,6 +159,16 @@ export function AllConnectionsView() {
               {filteredConnections.length} resultaat{filteredConnections.length !== 1 ? 'en' : ''} voor "{debouncedSearchQuery}"
             </div>
           )}
+        </div>
+
+        <div className={styles.headerActions}>
+          <button
+            onClick={cleanAllNames}
+            className={styles.cleanNamesButton}
+            title="Verwijder notification counts uit alle namen"
+          >
+            🧹 Opschonen
+          </button>
         </div>
 
         <div className={styles.stats}>
