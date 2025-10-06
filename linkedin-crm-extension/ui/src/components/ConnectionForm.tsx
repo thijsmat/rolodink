@@ -1,7 +1,8 @@
 // src/components/ConnectionForm.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './ConnectionForm.module.css';
 import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
+import { SkeletonForm } from './Skeleton';
 
 export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {
   initialData?: ConnectionFormData;
@@ -14,6 +15,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   const [meetingPlace, setMeetingPlace] = useState('');
   const [userCompany, setUserCompany] = useState('');
   const [notes, setNotes] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -22,6 +24,40 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
       setNotes(initialData.notes || '');
     }
   }, [initialData]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent shortcuts when typing in inputs/textarea
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        // Allow Enter to submit when in form fields (except textarea)
+        if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
+          event.preventDefault();
+          if (formRef.current && !isSubmitting) {
+            formRef.current.requestSubmit();
+          }
+        }
+        return;
+      }
+
+      // Global shortcuts
+      if (event.key === 'Escape' && onCancel) {
+        event.preventDefault();
+        onCancel();
+      }
+      
+      if (event.key === 'Enter' && !isSubmitting) {
+        event.preventDefault();
+        if (formRef.current) {
+          formRef.current.requestSubmit();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel, isSubmitting]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -52,7 +88,10 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
       </div>
 
       <div className={styles.content}>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        {isSubmitting ? (
+          <SkeletonForm />
+        ) : (
+          <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
           <fieldset className={styles.fieldset}>
             <legend className={styles.legend}>Ontmoetingsdetails</legend>
             
@@ -161,6 +200,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
             )}
           </div>
         </form>
+        )}
       </div>
     </div>
   );
