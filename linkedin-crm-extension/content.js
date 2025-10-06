@@ -107,6 +107,16 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 }
             }
             
+            // Clean up notification count from profile name (applies to both DOM and title extraction)
+            if (profileName) {
+                // Remove notification counts at the beginning: (1), (2), etc.
+                profileName = profileName.replace(/^\(\d+\)\s*/, '').trim();
+                // Also remove any other notification patterns like [1], {1}, etc.
+                profileName = profileName.replace(/^[\[{]\d+[\]}]\s*/, '').trim();
+                // Remove any leading numbers with spaces: "1 John Doe" -> "John Doe"
+                profileName = profileName.replace(/^\d+\s+/, '').trim();
+            }
+            
             // If still no name found, try to get it from the page title
             if (!profileName) {
                 const title = document.title;
@@ -117,10 +127,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
                     profileName = title.replace(' | LinkedIn', '').trim();
                 }
                 
-                // Clean up notification count from profile name (e.g., "(1) John Doe" -> "John Doe")
-                if (profileName) {
-                    profileName = profileName.replace(/^\(\d+\)\s*/, '').trim();
-                }
+                // Note: notification count cleaning is already applied above
                 
                 console.log('Profile name from title:', profileName);
             }
