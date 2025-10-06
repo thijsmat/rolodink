@@ -5,6 +5,25 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
 
+// Function to clean notification counts from profile names
+function cleanProfileName(name: string): string {
+  if (!name) return name;
+  
+  // Remove various notification patterns
+  let cleaned = name
+    // Remove leading notification counts: (1), [1], {1}
+    .replace(/^[\[{\(]\d+[\]}\)]\s*/, '')
+    // Remove leading numbers with spaces: "1 John Doe"
+    .replace(/^\d+\s+/, '')
+    // Remove notification counts anywhere in the name: "John (1) Doe"
+    .replace(/\s*[\[{\(]\d+[\]}\)]\s*/g, ' ')
+    // Clean up multiple spaces
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  return cleaned;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
@@ -85,10 +104,11 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedUrl = normalizeLinkedInUrl(url);
+    const cleanedName = cleanProfileName(name);
 
     const newConnection = await prisma.connection.create({
       data: {
-        name,
+        name: cleanedName,
         linkedInUrl: normalizedUrl,
         meetingPlace,
         notes,
@@ -127,6 +147,11 @@ export async function PATCH(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ error: 'Connection ID is verplicht' }, { status: 400, headers: corsHeaders });
+    }
+
+    // Clean the name if it's being updated
+    if (updateData.name) {
+      updateData.name = cleanProfileName(updateData.name);
     }
 
     const updatedConnection = await prisma.connection.update({
