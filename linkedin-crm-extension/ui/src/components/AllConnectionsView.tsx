@@ -208,36 +208,38 @@ export function AllConnectionsView() {
           )}
         </div>
 
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <span>📊</span>
-            <span>Totaal: <span className={styles.statValue}>{stats.total}</span></span>
+        <div className={styles.controlsRow}>
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <span>📊</span>
+              <span>{stats.total}</span>
+            </div>
+            <div className={styles.stat}>
+              <span>📝</span>
+              <span>{stats.withNotes}</span>
+            </div>
           </div>
-          <div className={styles.stat}>
-            <span>📝</span>
-            <span>Met notities: <span className={styles.statValue}>{stats.withNotes}</span></span>
-          </div>
-        </div>
 
-        <div className={styles.filterTabs}>
-          <button
-            className={`${styles.filterTab} ${filter === 'all' ? styles.filterTabActive : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            Alle
-          </button>
-          <button
-            className={`${styles.filterTab} ${filter === 'withNotes' ? styles.filterTabActive : ''}`}
-            onClick={() => setFilter('withNotes')}
-          >
-            Met notities
-          </button>
-          <button
-            className={`${styles.filterTab} ${filter === 'recent' ? styles.filterTabActive : ''}`}
-            onClick={() => setFilter('recent')}
-          >
-            Recent
-          </button>
+          <div className={styles.filterTabs}>
+            <button
+              className={`${styles.filterTab} ${filter === 'all' ? styles.filterTabActive : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              Alle
+            </button>
+            <button
+              className={`${styles.filterTab} ${filter === 'withNotes' ? styles.filterTabActive : ''}`}
+              onClick={() => setFilter('withNotes')}
+            >
+              Met notities
+            </button>
+            <button
+              className={`${styles.filterTab} ${filter === 'recent' ? styles.filterTabActive : ''}`}
+              onClick={() => setFilter('recent')}
+            >
+              Recent
+            </button>
+          </div>
         </div>
       </div>
 

@@ -6,7 +6,7 @@
 }
 
 .header {
-  padding: var(--space-4);
+  padding: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   position: sticky;
@@ -37,7 +37,14 @@
 }
 
 .searchContainer {
-  margin-top: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .headerActions {
@@ -138,9 +145,8 @@
 .content {
   flex: 1;
   min-height: 0;
-  /* Outer container handles scrolling */
   overflow: visible;
-  padding: var(--space-3);
+  padding: var(--space-2);
 }
 
 .connectionsList {
@@ -306,12 +312,11 @@
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   background: var(--bg-subtle);
-  border-radius: var(--radius-md);
-  margin-top: var(--space-3);
-  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .stat {
@@ -319,6 +324,7 @@
   align-items: center;
   gap: var(--space-1);
   color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .statValue {
@@ -329,19 +335,18 @@
 .filterTabs {
   display: flex;
   gap: var(--space-1);
-  margin-top: var(--space-3);
   padding: var(--space-1);
   background: var(--bg-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .filterTab {
   flex: 1;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-2);
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -378,7 +383,7 @@
 }
 
 .footerActions {
-  padding: var(--space-3);
+  padding: var(--space-2);
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   position: sticky;
@@ -387,13 +392,20 @@
 
 .cleanNamesButton {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   background: var(--linkedin-blue);
   color: var(--bg-surface);
   border: none;
   border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.cleanNamesButton:hover:not(:disabled) {
+  background: var(--linkedin-blue-hover);
+  transform: translateY(-1px);
 }
 
 .cleanNamesButton:disabled {
