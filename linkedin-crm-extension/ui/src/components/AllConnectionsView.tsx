@@ -1,21 +1,45 @@
 // src/components/AllConnectionsView.tsx
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 
 export function AllConnectionsView() {
   const { allConnections, selectConnection } = useConnection();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'withNotes' | 'recent'>('all');
+
+  // Debounce search query for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Helper function to highlight search terms
+  const highlightText = useCallback((text: string, query: string) => {
+    if (!query.trim()) return text;
+    
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className={styles.searchHighlight}>{part}</mark>
+      ) : part
+    );
+  }, []);
 
   const filteredConnections = useMemo(() => {
     if (!allConnections) return [];
 
     let filtered = allConnections;
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    // Apply search filter with debounced query
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(conn => 
         conn.name.toLowerCase().includes(query) ||
         (conn.meetingPlace && conn.meetingPlace.toLowerCase().includes(query)) ||
@@ -44,7 +68,7 @@ export function AllConnectionsView() {
     }
 
     return filtered;
-  }, [allConnections, searchQuery, filter]);
+  }, [allConnections, debouncedSearchQuery, filter]);
 
   const getConnectionStats = () => {
     if (!allConnections) return { total: 0, withNotes: 0 };
@@ -88,13 +112,29 @@ export function AllConnectionsView() {
         </div>
 
         <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Zoek in connecties..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
-          />
+          <div className={styles.searchInputWrapper}>
+            <input
+              type="text"
+              placeholder="Zoek in connecties..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className={styles.clearSearchButton}
+                title="Zoekopdracht wissen"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {debouncedSearchQuery && (
+            <div className={styles.searchInfo}>
+              {filteredConnections.length} resultaat{filteredConnections.length !== 1 ? 'en' : ''} voor "{debouncedSearchQuery}"
+            </div>
+          )}
         </div>
 
         <div className={styles.stats}>
@@ -152,7 +192,7 @@ export function AllConnectionsView() {
               >
                 <div className={styles.connectionHeader}>
                   <h3 className={styles.connectionName}>
-                    {conn.name}
+                    {highlightText(conn.name, debouncedSearchQuery)}
                     <span className={styles.badge}>✓</span>
                   </h3>
                   {conn.linkedInUrl && (
@@ -178,7 +218,7 @@ export function AllConnectionsView() {
                     <div className={styles.detailRow}>
                       <span className={styles.detailIcon}>📍</span>
                       <span className={styles.detailLabel}>Ontmoet op:</span>
-                      <span className={styles.detailValue}>{conn.meetingPlace}</span>
+                      <span className={styles.detailValue}>{highlightText(conn.meetingPlace, debouncedSearchQuery)}</span>
                     </div>
                   )}
 
@@ -186,13 +226,13 @@ export function AllConnectionsView() {
                     <div className={styles.detailRow}>
                       <span className={styles.detailIcon}>🏢</span>
                       <span className={styles.detailLabel}>Mijn bedrijf:</span>
-                      <span className={styles.detailValue}>{conn.userCompanyAtTheTime}</span>
+                      <span className={styles.detailValue}>{highlightText(conn.userCompanyAtTheTime, debouncedSearchQuery)}</span>
                     </div>
                   )}
 
                   {conn.notes && (
                     <div className={styles.notesPreview}>
-                      {conn.notes}
+                      {highlightText(conn.notes, debouncedSearchQuery)}
                     </div>
                   )}
                 </div>
