@@ -332,6 +332,12 @@
   color: var(--linkedin-blue);
 }
 
+.controlsRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .filterTabs {
   display: flex;
   gap: var(--space-1);
@@ -362,6 +368,29 @@
 .filterTab:hover:not(.filterTabActive) {
   color: var(--text-primary);
   background: var(--bg-surface);
+}
+
+.settingsButton {
+  padding: var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  width: 32px;
+  height: 32px;
+}
+
+.settingsButton:hover {
+  color: var(--linkedin-blue);
+  background: var(--linkedin-blue-subtle);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .badge {
