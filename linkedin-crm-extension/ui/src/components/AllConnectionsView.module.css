@@ -6,7 +6,7 @@
 }
 
 .header {
-  padding: var(--space-6);
+  padding: var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   position: sticky;
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .title {
@@ -37,7 +37,7 @@
 }
 
 .searchContainer {
-  margin-top: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .headerActions {
@@ -70,7 +70,8 @@
 
 .searchInput {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  padding-right: 36px; /* Space for clear button */
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
@@ -90,30 +91,75 @@
   color: var(--text-tertiary);
 }
 
+.clearSearchButton {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: var(--text-tertiary);
+  color: var(--bg-surface);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  transition: all var(--transition-normal);
+}
+
+.clearSearchButton:hover {
+  background: var(--text-secondary);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.searchInfo {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: var(--space-1) var(--space-2);
+  background: var(--linkedin-blue-subtle);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--linkedin-blue-subtle);
+}
+
+.searchHighlight {
+  background: var(--warning-subtle);
+  color: var(--warning-dark);
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: var(--font-weight-semibold);
+}
+
 .content {
   flex: 1;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: var(--space-4);
+  min-height: 0;
+  /* Outer container handles scrolling */
+  overflow: visible;
+  padding: var(--space-3);
 }
 
 .connectionsList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .connectionItem {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  padding: var(--space-3);
   transition: all var(--transition-normal);
   cursor: pointer;
 }
 
 .connectionItem:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
   border-color: var(--linkedin-blue);
 }
@@ -122,8 +168,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .connectionName {
@@ -222,7 +268,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-12);
+  padding: var(--space-10);
   text-align: center;
   color: var(--text-secondary);
 }
@@ -260,11 +306,11 @@
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: var(--bg-subtle);
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
+  margin-top: var(--space-3);
   font-size: var(--font-size-sm);
 }
 
@@ -283,7 +329,7 @@
 .filterTabs {
   display: flex;
   gap: var(--space-1);
-  margin-bottom: var(--space-4);
+  margin-top: var(--space-3);
   padding: var(--space-1);
   background: var(--bg-subtle);
   border-radius: var(--radius-md);
@@ -329,4 +375,28 @@
   height: 1px;
   background: var(--border-subtle);
   margin: var(--space-4) 0;
+}
+
+.footerActions {
+  padding: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  position: sticky;
+  bottom: 0;
+}
+
+.cleanNamesButton {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--linkedin-blue);
+  color: var(--bg-surface);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.cleanNamesButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
