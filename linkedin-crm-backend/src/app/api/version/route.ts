@@ -68,13 +68,14 @@ export async function GET(request: NextRequest) {
         );
       }
       
+      // Semantic versioning hierarchy: major > minor > patch
       if (latestParts[0] > currentParts[0]) {
         versionInfo.updateType = 'major';
         versionInfo.releaseNotes = `Nieuwe hoofdversie ${latestVersion} beschikbaar!`;
-      } else if (latestParts[1] > currentParts[1]) {
+      } else if (latestParts[0] === currentParts[0] && latestParts[1] > currentParts[1]) {
         versionInfo.updateType = 'minor';
         versionInfo.releaseNotes = `Nieuwe functies toegevoegd in versie ${latestVersion}`;
-      } else if (latestParts[2] > currentParts[2]) {
+      } else if (latestParts[0] === currentParts[0] && latestParts[1] === currentParts[1] && latestParts[2] > currentParts[2]) {
         versionInfo.updateType = 'patch';
         versionInfo.releaseNotes = `Bugfixes en verbeteringen in versie ${latestVersion}`;
       }
