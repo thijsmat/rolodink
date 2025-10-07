@@ -21,10 +21,10 @@ export async function DELETE(request: NextRequest) {
     const origin = request.headers.get('origin');
     
     // Authenticate user
-    const user = await getUserFromRequest(request);
-    if (!user) {
+    const { user, error: authError } = await getUserFromRequest(request);
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: authError || 'Unauthorized' },
         { 
           status: 401,
           headers: {
@@ -64,7 +64,7 @@ export async function DELETE(request: NextRequest) {
       // Delete all connections first (due to foreign key constraints)
       await tx.connection.deleteMany({
         where: {
-          userId: dbUser.id,
+          ownerId: dbUser.id,
         },
       });
 
