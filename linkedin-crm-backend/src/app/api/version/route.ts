@@ -26,12 +26,12 @@ export async function GET(request: NextRequest) {
       latest: latestVersion,
       current: currentVersion,
       updateAvailable: false,
-      updateType: null,
+      updateType: null as 'major' | 'minor' | 'patch' | null,
       releaseNotes: '',
       downloadUrl: '',
-      features: [],
-      bugFixes: [],
-      breakingChanges: [],
+      features: [] as string[],
+      bugFixes: [] as string[],
+      breakingChanges: [] as string[],
     };
 
     // Check if update is available
