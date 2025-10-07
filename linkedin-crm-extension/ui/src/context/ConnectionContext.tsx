@@ -448,8 +448,10 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError(null);
     try {
       const confirmed = window.confirm('Weet je zeker dat je deze connectie wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
-      if (!confirmed) return;
-
+      if (!confirmed) {
+        setIsLoading(false);
+        return;
+      }
       const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
@@ -594,5 +596,3 @@ export function useConnection(): ConnectionContextState {
   if (!ctx) throw new Error('useConnection must be used within a ConnectionProvider');
   return ctx;
 }
-
-
