@@ -47,10 +47,8 @@ export async function GET(request: NextRequest) {
       breakingChanges: [] as string[],
     };
 
-    // Check if update is available
+    // Check if update is available (only if latest version is actually newer)
     if (currentVersion && currentVersion !== latestVersion) {
-      versionInfo.updateAvailable = true;
-      
       // Determine update type based on version comparison
       const currentParts = currentVersion.split('.').map(Number);
       const latestParts = latestVersion.split('.').map(Number);
@@ -68,16 +66,33 @@ export async function GET(request: NextRequest) {
         );
       }
       
-      // Semantic versioning hierarchy: major > minor > patch
-      if (latestParts[0] > currentParts[0]) {
-        versionInfo.updateType = 'major';
-        versionInfo.releaseNotes = `Nieuwe hoofdversie ${latestVersion} beschikbaar!`;
-      } else if (latestParts[0] === currentParts[0] && latestParts[1] > currentParts[1]) {
-        versionInfo.updateType = 'minor';
-        versionInfo.releaseNotes = `Nieuwe functies toegevoegd in versie ${latestVersion}`;
-      } else if (latestParts[0] === currentParts[0] && latestParts[1] === currentParts[1] && latestParts[2] > currentParts[2]) {
-        versionInfo.updateType = 'patch';
-        versionInfo.releaseNotes = `Bugfixes en verbeteringen in versie ${latestVersion}`;
+      // Check if latest version is actually newer than current version
+      const isLatestNewer = (
+        latestParts[0] > currentParts[0] ||
+        (latestParts[0] === currentParts[0] && latestParts[1] > currentParts[1]) ||
+        (latestParts[0] === currentParts[0] && latestParts[1] === currentParts[1] && latestParts[2] > currentParts[2])
+      );
+      
+      if (isLatestNewer) {
+        versionInfo.updateAvailable = true;
+        
+        // Semantic versioning hierarchy: major > minor > patch
+        if (latestParts[0] > currentParts[0]) {
+          versionInfo.updateType = 'major';
+          versionInfo.releaseNotes = `Nieuwe hoofdversie ${latestVersion} beschikbaar!`;
+        } else if (latestParts[0] === currentParts[0] && latestParts[1] > currentParts[1]) {
+          versionInfo.updateType = 'minor';
+          versionInfo.releaseNotes = `Nieuwe functies toegevoegd in versie ${latestVersion}`;
+        } else if (latestParts[0] === currentParts[0] && latestParts[1] === currentParts[1] && latestParts[2] > currentParts[2]) {
+          versionInfo.updateType = 'patch';
+          versionInfo.releaseNotes = `Bugfixes en verbeteringen in versie ${latestVersion}`;
+        }
+      } else {
+        // Current version is newer than or equal to latest version
+        versionInfo.updateAvailable = false;
+        versionInfo.updateType = null;
+        versionInfo.releaseNotes = 'Je gebruikt al de nieuwste versie!';
+        console.log(`Current version ${currentVersion} is newer than or equal to latest version ${latestVersion}`);
       }
       
       // Add version-specific features and fixes
