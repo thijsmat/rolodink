@@ -115,15 +115,19 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         if (result.updateInfo) {
           setVersionInfo(result.updateInfo);
           
-          // Check if this update was previously dismissed
+          // Check if this specific update was previously dismissed
           if (result.dismissedVersion === result.updateInfo.latest) {
             setUpdateDismissed(true);
             console.log('Update notification dismissed for version:', result.updateInfo.latest);
-            return; // Don't check for new updates if current one is dismissed
+          } else {
+            // If cached update is different from dismissed version, it's a newer update
+            setUpdateDismissed(false);
+            console.log('New update available (different from dismissed):', result.updateInfo.latest);
           }
         }
         
-        // Check if we need to check for updates
+        // Always check for updates if enough time has passed, regardless of dismissal state
+        // This ensures users get notified of newer versions even after dismissing older ones
         const lastCheck = result.lastUpdateCheck || 0;
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -134,6 +138,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
           setTimeout(() => {
             checkForUpdates();
           }, 3000);
+        } else {
+          console.log('Using cached update info, next check in', Math.round((oneDay - (now - lastCheck)) / (60 * 60 * 1000)), 'hours');
         }
         
       } catch (error) {
