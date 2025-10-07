@@ -99,29 +99,59 @@ export async function GET(request: NextRequest) {
         ];
       }
       
-      // Set download URL with validation
+      // Set download URL with comprehensive validation
       const configuredUrl = process.env.EXTENSION_DOWNLOAD_URL;
       const defaultUrl = 'https://github.com/thijsmat/linkedin-crm-backend/releases/latest';
       
-      // Validate URL if configured
-      if (configuredUrl) {
+      // Validate and sanitize download URL
+      const validateDownloadUrl = (url: string): string => {
         try {
-          const url = new URL(configuredUrl);
-          // Only allow HTTPS URLs for security
-          if (url.protocol === 'https:') {
-            versionInfo.downloadUrl = configuredUrl;
-            console.log('Using configured download URL:', configuredUrl);
-          } else {
-            console.warn('EXTENSION_DOWNLOAD_URL must use HTTPS protocol, falling back to default');
-            versionInfo.downloadUrl = defaultUrl;
+          const parsedUrl = new URL(url);
+          
+          // Security checks
+          if (parsedUrl.protocol !== 'https:') {
+            throw new Error('Only HTTPS URLs are allowed');
           }
+          
+          // Allow only trusted domains
+          const allowedDomains = [
+            'github.com',
+            'githubusercontent.com',
+            'vercel.app',
+            'linkedin.com'
+          ];
+          
+          const hostname = parsedUrl.hostname.toLowerCase();
+          const isAllowed = allowedDomains.some(domain => 
+            hostname === domain || hostname.endsWith('.' + domain)
+          );
+          
+          if (!isAllowed) {
+            throw new Error(`Domain ${hostname} is not in allowed list`);
+          }
+          
+          return url;
         } catch (error) {
-          console.warn('Invalid EXTENSION_DOWNLOAD_URL format, falling back to default:', error);
-          versionInfo.downloadUrl = defaultUrl;
+          console.warn('URL validation failed:', error.message, 'URL:', url);
+          return defaultUrl;
+        }
+      };
+      
+      // Validate default URL first
+      const validatedDefaultUrl = validateDownloadUrl(defaultUrl);
+      
+      if (configuredUrl) {
+        const validatedUrl = validateDownloadUrl(configuredUrl);
+        versionInfo.downloadUrl = validatedUrl;
+        
+        if (validatedUrl === configuredUrl) {
+          console.log('Using configured download URL:', configuredUrl);
+        } else {
+          console.warn('Configured URL failed validation, using default');
         }
       } else {
-        versionInfo.downloadUrl = defaultUrl;
-        console.log('Using default download URL:', defaultUrl);
+        versionInfo.downloadUrl = validatedDefaultUrl;
+        console.log('Using default download URL:', validatedDefaultUrl);
       }
     }
 

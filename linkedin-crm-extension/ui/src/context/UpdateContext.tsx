@@ -92,14 +92,23 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   }, [getCurrentVersion]);
 
   const dismissUpdate = useCallback(async () => {
-    setUpdateDismissed(true);
-    
-    // Store dismissal in chrome storage
-    if (versionInfo?.latest) {
+    if (!versionInfo?.latest) {
+      console.warn('Cannot dismiss update: no version info available');
+      return;
+    }
+
+    // Store dismissal in chrome storage first to ensure consistency
+    try {
       await chrome.storage.local.set({
         dismissedVersion: versionInfo.latest,
-        updateDismissed: true,
       });
+      
+      // Only update local state after successful storage
+      setUpdateDismissed(true);
+      console.log('Update dismissed for version:', versionInfo.latest);
+    } catch (error) {
+      console.error('Failed to store dismissal state:', error);
+      // Don't update local state if storage fails
     }
   }, [versionInfo]);
 
