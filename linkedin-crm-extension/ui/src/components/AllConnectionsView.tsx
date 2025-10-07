@@ -42,13 +42,18 @@ export function AllConnectionsView() {
 
   // Helper function to highlight search terms
   const highlightText = useCallback((text: string, query: string) => {
-    if (!query.trim()) return text;
+    if (!query.trim() || !text) return text;
     
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    // Escape special regex characters
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
     const parts = text.split(regex);
     
+    // Check if any part matches the query (case-insensitive)
+    const isMatch = (part: string) => part.toLowerCase() === query.toLowerCase();
+    
     return parts.map((part, index) => 
-      regex.test(part) ? (
+      isMatch(part) ? (
         <mark key={index} className={styles.searchHighlight}>{part}</mark>
       ) : part
     );

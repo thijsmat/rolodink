@@ -40,6 +40,12 @@
   margin-bottom: var(--space-2);
 }
 
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .controlsRow {
   display: flex;
   align-items: center;

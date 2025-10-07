@@ -75,9 +75,28 @@ export function SettingsView() {
         return;
       }
 
-      // Use Supabase client-side password update
+      // Validate current password by making a test API call
+      const testResponse = await fetch(`${API_BASE_URL}/api/user/export`, {
+        headers: {
+          'Authorization': `Bearer ${supabaseAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!testResponse.ok) {
+        setToastMessage('Huidig wachtwoord is onjuist of sessie is verlopen.');
+        return;
+      }
+
+      // Use Supabase client-side password update with proper authentication
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
+      // Set the session token
+      await supabase.auth.setSession({
+        access_token: supabaseAccessToken,
+        refresh_token: '', // We don't store refresh tokens
+      });
 
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword

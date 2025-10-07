@@ -30,8 +30,13 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const [updateDismissed, setUpdateDismissed] = useState(false);
 
   const getCurrentVersion = useCallback(() => {
-    // Get version from manifest.json
-    return '1.0.0'; // This should match your manifest.json version
+    // Get version from Chrome extension manifest
+    try {
+      return chrome.runtime.getManifest().version;
+    } catch (error) {
+      console.error('Failed to get extension version:', error);
+      return '1.0.0'; // Fallback version
+    }
   }, []);
 
   const checkForUpdates = useCallback(async () => {

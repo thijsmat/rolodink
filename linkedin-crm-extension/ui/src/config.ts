@@ -7,7 +7,8 @@ export const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects
 // export const API_BASE_URL = 'https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app';
 
 // Supabase configuration
-export const SUPABASE_URL = 'https://matthijs-goes-projects.supabase.co';
-export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdHRoaWpzLWdvZXMtcHJvamVjdHMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNDk2NzU2MSwiZXhwIjoyMDUwNTQzNTYxfQ.9YlGzHx8z8z8z8z8z8z8z8z8z8z8z8z8z8z8z8z8';
+// Note: These should be set as environment variables in production
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://matthijs-goes-projects.supabase.co';
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'PLACEHOLDER_KEY_NEEDS_REPLACEMENT';
 
 

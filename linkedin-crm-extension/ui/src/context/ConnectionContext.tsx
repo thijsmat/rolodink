@@ -116,8 +116,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsOffline(false);
       setToastMessage('Internetverbinding hersteld!');
       // Optionally refetch data when coming back online
-      if (isLoggedIn && allConnections.length > 0) {
-        // Use a timeout to avoid dependency issues
+      if (isLoggedIn) {
+        // Use a timeout to avoid dependency issues and race conditions
         setTimeout(() => {
           fetchAllConnections(true).catch(console.error);
         }, 1000);
@@ -136,7 +136,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isLoggedIn, allConnections.length]);
+  }, [isLoggedIn]); // Removed allConnections.length to prevent infinite loop
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
