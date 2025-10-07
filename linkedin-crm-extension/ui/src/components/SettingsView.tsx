@@ -2,10 +2,12 @@
 import { useState, useCallback } from 'react';
 import styles from './SettingsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
+import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
+  const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -375,6 +377,65 @@ export function SettingsView() {
               📄 Binnenkort beschikbaar
             </button>
           </div>
+        </div>
+
+        {/* Update Information Section */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Updates</h3>
+          
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>Huidige versie</h4>
+              <p className={styles.settingDescription}>
+                Je gebruikt versie {getCurrentVersion()} van de LinkedIn CRM extensie.
+              </p>
+            </div>
+            <div className={styles.versionInfo}>
+              <span className={styles.currentVersion}>{getCurrentVersion()}</span>
+              {versionInfo?.updateAvailable && (
+                <span className={styles.updateAvailable}>
+                  → {versionInfo.latest} beschikbaar
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>Controleer op updates</h4>
+              <p className={styles.settingDescription}>
+                Controleer handmatig of er een nieuwe versie beschikbaar is.
+              </p>
+            </div>
+            <button 
+              className={styles.actionButton}
+              onClick={checkForUpdates}
+              disabled={isCheckingForUpdates}
+            >
+              {isCheckingForUpdates ? '⏳ Controleren...' : '🔄 Controleer updates'}
+            </button>
+          </div>
+
+          {versionInfo?.updateAvailable && (
+            <div className={styles.updateInfo}>
+              <div className={styles.updateType}>
+                {versionInfo.updateType === 'major' && '🚀 Nieuwe hoofdversie'}
+                {versionInfo.updateType === 'minor' && '✨ Nieuwe functies'}
+                {versionInfo.updateType === 'patch' && '🔧 Verbeteringen'}
+              </div>
+              <p className={styles.updateDescription}>{versionInfo.releaseNotes}</p>
+              {versionInfo.features.length > 0 && (
+                <div className={styles.updateFeatures}>
+                  <strong>Nieuwe functies:</strong>
+                  <ul>
+                    {versionInfo.features.slice(0, 3).map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

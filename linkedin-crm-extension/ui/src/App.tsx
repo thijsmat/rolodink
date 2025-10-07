@@ -1,6 +1,7 @@
 // src/App.tsx
 import styles from './App.module.css';
 import { ConnectionProvider, useConnection } from './context/ConnectionContext';
+import { UpdateProvider } from './context/UpdateContext';
 import { LoginView } from './components/LoginView';
 import { ConnectionView } from './components/ConnectionView';
 import { ConnectionForm } from './components/ConnectionForm';
@@ -8,6 +9,7 @@ import { Toast } from './components/Toast';
 import { AllConnectionsView } from './components/AllConnectionsView';
 import { SettingsView } from './components/SettingsView';
 import { HelpView } from './components/HelpView';
+import { UpdateNotification } from './components/UpdateNotification';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 
@@ -66,6 +68,9 @@ function Content() {
 
   return (
     <div className={styles.container}>
+      {/* Update Notification */}
+      <UpdateNotification />
+      
       <div className={styles.header}>
         <h1 className={styles.mainTitle}>LinkedIn CRM</h1>
         <div className={styles.headerActions}>
@@ -105,9 +110,11 @@ function Content() {
 function App() {
   return (
     <ErrorBoundary>
-      <ConnectionProvider>
-        <Content />
-      </ConnectionProvider>
+      <UpdateProvider>
+        <ConnectionProvider>
+          <Content />
+        </ConnectionProvider>
+      </UpdateProvider>
     </ErrorBoundary>
   );
 }
