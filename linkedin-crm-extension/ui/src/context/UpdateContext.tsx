@@ -60,6 +60,17 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json();
+      
+      // Check if this is a new update (different from previously dismissed)
+      const result = await chrome.storage.local.get(['dismissedVersion']);
+      const isNewUpdate = data.updateAvailable && data.latest !== result.dismissedVersion;
+      
+      // Reset dismissal state if this is a new update
+      if (isNewUpdate) {
+        setUpdateDismissed(false);
+        console.log('New update available:', data.latest);
+      }
+      
       setVersionInfo(data);
 
       // Store update info in chrome storage for persistence
@@ -92,44 +103,60 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     }
   }, [versionInfo]);
 
-  // Load previously dismissed update info
+  // Initialize update system (load cached data and check for updates)
   useEffect(() => {
-    const loadDismissedUpdate = async () => {
+    const initializeUpdateSystem = async () => {
       try {
-        const result = await chrome.storage.local.get(['dismissedVersion', 'updateInfo']);
+        const result = await chrome.storage.local.get(['dismissedVersion', 'updateInfo', 'lastUpdateCheck']);
         const currentVersion = getCurrentVersion();
-        console.log('Checking for updates, current version:', currentVersion);
+        console.log('Initializing update system, current version:', currentVersion);
         
-        // If user dismissed this specific version, don't show update notification
-        if (result.dismissedVersion === result.updateInfo?.latest) {
-          setUpdateDismissed(true);
-        }
-        
-        // Load cached update info
+        // Load cached update info if available
         if (result.updateInfo) {
           setVersionInfo(result.updateInfo);
+          
+          // Check if this update was previously dismissed
+          if (result.dismissedVersion === result.updateInfo.latest) {
+            setUpdateDismissed(true);
+            console.log('Update notification dismissed for version:', result.updateInfo.latest);
+            return; // Don't check for new updates if current one is dismissed
+          }
         }
+        
+        // Check if we need to check for updates
+        const lastCheck = result.lastUpdateCheck || 0;
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const shouldCheck = !result.updateInfo || (now - lastCheck > oneDay);
+        
+        if (shouldCheck) {
+          // Delay initial check to not interfere with login
+          setTimeout(() => {
+            checkForUpdates();
+          }, 3000);
+        }
+        
       } catch (error) {
-        console.warn('Error loading dismissed update info:', error);
+        console.warn('Error initializing update system:', error);
+        // Fallback: check for updates after delay
+        setTimeout(() => {
+          checkForUpdates();
+        }, 3000);
       }
     };
 
-    loadDismissedUpdate();
-  }, [getCurrentVersion]);
+    initializeUpdateSystem();
+  }, [getCurrentVersion, checkForUpdates]);
 
-  // Check for updates on app start (with delay to not interfere with login)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      checkForUpdates();
-    }, 3000); // Wait 3 seconds after app start
-
-    return () => clearTimeout(timer);
-  }, [checkForUpdates]);
-
-  // Periodically check for updates (every 24 hours)
+  // Periodic update check (every hour, but only if no update is currently available)
   useEffect(() => {
     const checkPeriodically = async () => {
       try {
+        // Only check periodically if no update is currently available
+        if (versionInfo?.updateAvailable) {
+          return;
+        }
+        
         const result = await chrome.storage.local.get(['lastUpdateCheck']);
         const lastCheck = result.lastUpdateCheck || 0;
         const now = Date.now();
@@ -143,14 +170,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Check immediately
-    checkPeriodically();
-
-    // Set up interval for periodic checks
-    const interval = setInterval(checkPeriodically, 60 * 60 * 1000); // Check every hour
+    // Set up interval for periodic checks (every hour)
+    const interval = setInterval(checkPeriodically, 60 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [checkForUpdates]);
+  }, [versionInfo, checkForUpdates]);
 
   const value: UpdateContextState = {
     versionInfo,
