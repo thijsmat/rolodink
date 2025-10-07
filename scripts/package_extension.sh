@@ -11,7 +11,7 @@ UI_DIR="$EXT_DIR/ui"
 ZIP_PATH="$REPO_ROOT/linkedin-crm-extension.zip"
 
 # Domains
-STAGING_URL="https://linkedin-crm-backend-byy6s0fsd-matthijs-goes-projects.vercel.app"
+STAGING_URL="https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app"
 PROD_URL="https://linkedin-crm-backend-matthijs-goes-projects.vercel.app"
 
 # Files to update

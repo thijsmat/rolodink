@@ -30,19 +30,25 @@ function cleanProfileName(name: string): string {
   return cleaned.replace(/\s+/g, ' ').trim();
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Credentials': 'false',
-};
+function buildCorsHeaders(request: NextRequest): Record<string, string> {
+  const origin = request.headers.get('origin') || request.headers.get('Origin') || '*';
+  // Echo back the requesting origin to avoid mismatches across multiple chrome-extension origins
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'false',
+    'Vary': 'Origin',
+  };
+}
 
-export async function OPTIONS() {
-  return new Response(null, { headers: corsHeaders });
+export async function OPTIONS(request: NextRequest) {
+  return new Response(null, { headers: buildCorsHeaders(request) });
 }
 
 // GET functie - Haal alle connecties op voor de ingelogde gebruiker
 export async function GET(request: NextRequest) {
+  const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
     if (!user) {
@@ -96,6 +102,7 @@ function normalizeLinkedInUrl(rawUrl: string): string {
 
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
+  const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
     if (!user) {
@@ -131,6 +138,7 @@ export async function POST(request: NextRequest) {
       const prismaError = err as { code?: string };
       if (prismaError.code === 'P2002') {
         return NextResponse.json({ error: 'Connectie bestaat al voor deze URL.' }, { status: 409, headers: corsHeaders });
+        
       }
       if (prismaError.code === 'P2003') {
         return NextResponse.json({ error: 'Ongeldige referentie of gegevens.' }, { status: 400, headers: corsHeaders });
@@ -142,6 +150,7 @@ export async function POST(request: NextRequest) {
 
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
+  const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
     if (!user) {
