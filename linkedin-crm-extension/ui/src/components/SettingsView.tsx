@@ -5,9 +5,11 @@ import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
 
 export function SettingsView() {
-  const { setToastMessage, fetchAllConnections } = useConnection();
+  const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -97,6 +99,110 @@ export function SettingsView() {
   const handleInputChange = (field: keyof typeof passwordData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordData(prev => ({ ...prev, [field]: e.target.value }));
   };
+
+  const handleExportData = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      if (!supabaseAccessToken) {
+        setToastMessage('Niet ingelogd. Log in om data te exporteren.');
+        return;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/api/user/export`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${supabaseAccessToken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        setToastMessage('Export mislukt. Probeer later opnieuw.');
+        return;
+      }
+      
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'linkedin-crm-export.json';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      setToastMessage('Data succesvol geëxporteerd!');
+    } catch (e) {
+      setToastMessage('Kon data niet exporteren. Controleer je internetverbinding.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [setToastMessage]);
+
+  const handleDeleteAccount = useCallback(async () => {
+    const confirmed = window.confirm(
+      'WAARSCHUWING: Dit zal je account en alle gegevens permanent verwijderen!\n\n' +
+      'Dit omvat:\n' +
+      '• Alle connecties en notities\n' +
+      '• Je account informatie\n' +
+      '• Alle gerelateerde data\n\n' +
+      'Deze actie kan NIET ongedaan worden gemaakt!\n\n' +
+      'Typ "VERWIJDER" om te bevestigen:'
+    );
+    
+    if (!confirmed) return;
+    
+    const verification = prompt('Typ "VERWIJDER" om je account permanent te verwijderen:');
+    if (verification !== 'VERWIJDER') {
+      setToastMessage('Account verwijdering geannuleerd.');
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      if (!supabaseAccessToken) {
+        setToastMessage('Niet ingelogd. Log in om account te verwijderen.');
+        return;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/api/user/delete`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${supabaseAccessToken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        setToastMessage('Account verwijdering mislukt. Probeer later opnieuw.');
+        return;
+      }
+      
+      const data = await response.json();
+      setToastMessage(`Account succesvol verwijderd. ${data.deletedConnections} connecties verwijderd.`);
+      
+      // Log user out after successful deletion
+      setTimeout(() => {
+        handleLogout();
+      }, 2000);
+      
+    } catch (e) {
+      setToastMessage('Kon account niet verwijderen. Controleer je internetverbinding.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [setToastMessage, handleLogout]);
 
   return (
     <div className={styles.container}>
@@ -218,30 +324,55 @@ export function SettingsView() {
           )}
         </div>
 
-        {/* Future Features Placeholder */}
+        {/* GDPR Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Toekomstige functies</h3>
+          <h3 className={styles.sectionTitle}>Privacy & GDPR</h3>
+          
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Data exporteren</h4>
+              <h4 className={styles.settingName}>Exporteer mijn data</h4>
               <p className={styles.settingDescription}>
-                Exporteer je connecties naar CSV of Excel bestand.
+                Download een volledig overzicht van al je connecties en notities als JSON bestand.
               </p>
             </div>
-            <button className={styles.disabledButton} disabled>
-              📊 Binnenkort beschikbaar
+            <button 
+              className={styles.actionButton}
+              onClick={handleExportData}
+              disabled={isExporting}
+            >
+              {isExporting ? '⏳ Exporteren...' : '📊 Exporteer data'}
             </button>
           </div>
           
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Donkere modus</h4>
+              <h4 className={styles.settingName}>Verwijder mijn account</h4>
               <p className={styles.settingDescription}>
-                Schakel tussen lichte en donkere interface.
+                Permanent verwijderen van je account en alle gerelateerde gegevens. Deze actie kan niet ongedaan worden gemaakt.
               </p>
             </div>
-            <button className={styles.disabledButton} disabled>
-              🌙 Binnenkort beschikbaar
+            <button 
+              className={`${styles.actionButton} ${styles.dangerButton}`}
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+            >
+              {isDeleting ? '⏳ Verwijderen...' : '🗑️ Verwijder account'}
+            </button>
+          </div>
+          
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>Privacybeleid</h4>
+              <p className={styles.settingDescription}>
+                Lees ons privacybeleid om te begrijpen hoe we je gegevens beschermen en gebruiken.
+              </p>
+            </div>
+            <button 
+              className={styles.disabledButton} 
+              disabled
+              title="Binnenkort beschikbaar"
+            >
+              📄 Binnenkort beschikbaar
             </button>
           </div>
         </div>

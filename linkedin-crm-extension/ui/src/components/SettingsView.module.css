@@ -112,6 +112,19 @@
   box-shadow: none;
 }
 
+.dangerButton {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
 .disabledButton {
   display: inline-flex;
   align-items: center;
