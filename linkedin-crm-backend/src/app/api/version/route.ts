@@ -132,7 +132,8 @@ export async function GET(request: NextRequest) {
           
           return url;
         } catch (error) {
-          console.warn('URL validation failed:', error.message, 'URL:', url);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.warn('URL validation failed:', errorMessage, 'URL:', url);
           return defaultUrl;
         }
       };
