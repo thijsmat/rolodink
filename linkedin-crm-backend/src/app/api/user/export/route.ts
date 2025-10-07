@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
       user: {
         id: userData.id,
         email: userData.email,
-        createdAt: userData.createdAt,
-        updatedAt: userData.updatedAt,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
       },
       connections: userData.connections.map(connection => ({
         id: connection.id,
