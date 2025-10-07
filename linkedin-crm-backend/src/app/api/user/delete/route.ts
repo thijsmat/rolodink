@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getUserFromRequest } from '@/lib/supabase/server';
+import { createSupabaseServerClient, getUserFromRequest } from '@/lib/supabase/server';
 
 const prisma = new PrismaClient();
 
@@ -79,6 +79,24 @@ export async function DELETE(request: NextRequest) {
 
         console.log(`GDPR Account Deletion Completed: ${deletedConnections.count} connections deleted for user ${dbUser.id}`);
       });
+
+      // Delete user from Supabase Auth (requires admin privileges)
+      try {
+        const supabase = createSupabaseServerClient();
+        const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+        
+        if (authError) {
+          console.error(`Failed to delete user from Supabase Auth: ${authError.message}`);
+          // Don't fail the entire operation if Auth deletion fails
+          // The database deletion was successful
+        } else {
+          console.log(`User ${dbUser.id} successfully deleted from Supabase Auth`);
+        }
+      } catch (authDeleteError) {
+        console.error(`Supabase Auth deletion error: ${authDeleteError}`);
+        // Continue - database deletion was successful
+      }
+
     } catch (transactionError) {
       console.error(`GDPR Account Deletion Failed: User ${dbUser.id}`, transactionError);
       throw transactionError; // Re-throw to be caught by outer try-catch
