@@ -1,5 +1,5 @@
 // src/context/ConnectionContext.tsx
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL } from '../config';
 
 export type Connection = {
@@ -31,7 +31,7 @@ type ConnectionContextState = {
   isOffline: boolean;
   setToastMessage: (msg: string) => void;
   fetchData: () => Promise<void>;
-  fetchAllConnections: () => Promise<void>;
+  fetchAllConnections: (silent?: boolean) => Promise<void>;
   showListView: () => Promise<void>;
   hideListView: () => void;
   showSettingsView: () => void;
@@ -73,6 +73,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
+
+  // Keep latest reference to fetchAllConnections to avoid stale closure in effects
+  const fetchAllConnectionsRef = useRef<((silent?: boolean) => Promise<void>) | null>(null);
 
   // Cache management functions
   const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
@@ -119,7 +122,10 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (isLoggedIn) {
         // Use a timeout to avoid dependency issues and race conditions
         setTimeout(() => {
-          fetchAllConnections(true).catch(console.error);
+          const callFetch = fetchAllConnectionsRef.current;
+          if (callFetch) {
+            callFetch(true).catch(console.error);
+          }
         }, 1000);
       }
     };
@@ -274,6 +280,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
   }, [saveConnectionsToCache]);
+
+  // Sync ref with the latest fetchAllConnections function
+  useEffect(() => {
+    fetchAllConnectionsRef.current = fetchAllConnections;
+  }, [fetchAllConnections]);
 
   const showListView = useCallback(async () => {
     setIsListView(true);
