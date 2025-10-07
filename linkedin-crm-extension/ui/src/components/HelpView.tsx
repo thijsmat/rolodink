@@ -5,21 +5,21 @@ export function HelpView() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>LinkedIn CRM Help</h1>
-        <p className={styles.subtitle}>Alles wat je moet weten over de LinkedIn CRM extensie</p>
+        <h1 className={styles.title}>Rolodink Help</h1>
+        <p className={styles.subtitle}>Alles wat je moet weten over de Rolodink extensie</p>
       </div>
 
       <div className={styles.content}>
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>🎯 Wat is LinkedIn CRM?</h2>
+          <h2 className={styles.sectionTitle}>🎯 Wat is Rolodink?</h2>
           <div className={styles.textContent}>
             <p>
-              LinkedIn CRM is een Chrome extensie die je helpt om je LinkedIn connecties beter te beheren. 
+              Rolodink is een Chrome extensie die je helpt om je LinkedIn connecties beter te beheren. 
               In plaats van verloren te gaan in een lange lijst van connecties, kun je nu gemakkelijk 
               notities toevoegen, contactmomenten bijhouden en je netwerk effectief onderhouden.
             </p>
             <p>
-              <strong>Waarom LinkedIn CRM?</strong> LinkedIn heeft geweldige tools voor netwerken, maar geen 
+              <strong>Waarom Rolodink?</strong> LinkedIn heeft geweldige tools voor netwerken, maar geen 
               ingebouwde CRM-functionaliteit. Deze extensie vult die leemte op door je te helpen om 
               waardevolle informatie over je connecties op te slaan en te beheren.
             </p>
@@ -128,7 +128,7 @@ export function HelpView() {
           <div className={styles.faqList}>
             <div className={styles.faq}>
               <h3>De "Voeg toe aan CRM" knop verschijnt niet</h3>
-              <p>Zorg ervoor dat je ingelogd bent in de extensie en dat je op een LinkedIn profielpagina bent. Ververs de pagina als de knop niet verschijnt.</p>
+            <p>Zorg ervoor dat je ingelogd bent in de extensie en dat je op een LinkedIn profielpagina bent. Ververs de pagina als de knop niet verschijnt.</p>
             </div>
             <div className={styles.faq}>
               <h3>Kan ik mijn data exporteren?</h3>
@@ -149,7 +149,7 @@ export function HelpView() {
           <h2 className={styles.sectionTitle}>📞 Contact & Support</h2>
           <div className={styles.contactInfo}>
             <p>
-              Heb je vragen of problemen met de LinkedIn CRM extensie? We helpen je graag!
+              Heb je vragen of problemen met de Rolodink extensie? We helpen je graag!
             </p>
             <div className={styles.contactMethods}>
               <div className={styles.contactMethod}>

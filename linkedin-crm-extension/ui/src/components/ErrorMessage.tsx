@@ -40,7 +40,7 @@ export function ErrorMessage({
       'Not Found': 'De gevraagde informatie kon niet worden gevonden.',
       'Internal Server Error': 'Er is een serverprobleem. Probeer het later opnieuw.',
       'Connection ID is missing': 'Er is een probleem met deze connectie. Probeer de pagina te vernieuwen.',
-      'Connectie bestaat al voor deze URL': 'Deze LinkedIn connectie is al toegevoegd aan je CRM.',
+      'Connectie bestaat al voor deze URL': 'Deze LinkedIn connectie is al toegevoegd aan Rolodink.',
     };
 
     // Check for exact matches first

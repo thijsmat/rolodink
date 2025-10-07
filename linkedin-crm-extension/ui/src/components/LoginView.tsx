@@ -55,9 +55,9 @@ export function LoginView() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.logo}>in</div>
-        <h1 className={styles.title}>LinkedIn CRM</h1>
+        <h1 className={styles.title}>Rolodink</h1>
         <p className={styles.subtitle}>
-          Beheer je LinkedIn connecties op één plek
+          Beheer je LinkedIn connecties op één plek met Rolodink
         </p>
       </div>
 
@@ -123,7 +123,7 @@ export function LoginView() {
         <div className={styles.featuresList}>
           <div className={styles.feature}>
             <span className={styles.featureIcon}>✓</span>
-            <span>Voeg LinkedIn profielen toe aan je CRM</span>
+            <span>Voeg LinkedIn profielen toe aan Rolodink</span>
           </div>
           <div className={styles.feature}>
             <span className={styles.featureIcon}>✓</span>

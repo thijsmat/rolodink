@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LinkedIn Personal CRM",
+  "name": "Rolodink",
   "version": "1.0.0",
-  "description": "Een persoonlijke notitielaag voor LinkedIn.",
+  "description": "Rolodink: je notitielaag bovenop LinkedIn, als je moderne rolodex.",
   "permissions": [
     "activeTab",
     "scripting",

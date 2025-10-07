@@ -104,7 +104,7 @@ function Content() {
       <UpdateNotification />
       
       <div className={styles.header}>
-        <h1 className={styles.mainTitle}>LinkedIn CRM</h1>
+        <h1 className={styles.mainTitle}>Rolodink</h1>
         <div className={styles.headerActions}>
           {isLoggedIn && !isListView && !isSettingsView && (
             <button onClick={showListView} className={styles.compactButton}>Toon alle connecties</button>

@@ -406,7 +406,7 @@ export function SettingsView() {
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Huidige versie</h4>
               <p className={styles.settingDescription}>
-                Je gebruikt versie {getCurrentVersion()} van de LinkedIn CRM extensie.
+                Je gebruikt versie {getCurrentVersion()} van de Rolodink extensie.
               </p>
             </div>
             <div className={styles.versionInfo}>
