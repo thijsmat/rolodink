@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
-import prisma from '@/lib/prisma';
+
+const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
