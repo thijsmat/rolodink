@@ -25,6 +25,7 @@ type ConnectionContextState = {
   allConnections: Connection[];
   isListView: boolean;
   isSettingsView: boolean;
+  isHelpView: boolean;
   toastMessage: string;
   isInitialized: boolean;
   isOffline: boolean;
@@ -35,6 +36,8 @@ type ConnectionContextState = {
   hideListView: () => void;
   showSettingsView: () => void;
   hideSettingsView: () => void;
+  showHelpView: () => void;
+  hideHelpView: () => void;
   selectConnection: (conn: Connection) => void;
   handleCreateConnection: (formData: ConnectionFormData) => Promise<void>;
   handleUpdate: (formData: ConnectionFormData) => Promise<void>;
@@ -66,6 +69,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
   const [isListView, setIsListView] = useState<boolean>(false);
   const [isSettingsView, setIsSettingsView] = useState<boolean>(false);
+  const [isHelpView, setIsHelpView] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
@@ -303,10 +307,22 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsSettingsView(false);
   };
 
+  const showHelpView = () => {
+    setIsHelpView(true);
+    setIsListView(false);
+    setIsSettingsView(false);
+    setConnection(null);
+  };
+
+  const hideHelpView = () => {
+    setIsHelpView(false);
+  };
+
   const selectConnection = (conn: Connection) => {
     setConnection(conn);
     setIsListView(false);
     setIsSettingsView(false);
+    setIsHelpView(false);
   };
 
   const handleCreateConnection = async (formData: ConnectionFormData) => {
@@ -516,6 +532,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     allConnections,
     isListView,
     isSettingsView,
+    isHelpView,
     toastMessage,
     isInitialized,
     isOffline,
@@ -526,6 +543,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     hideListView,
     showSettingsView,
     hideSettingsView,
+    showHelpView,
+    hideHelpView,
     selectConnection,
     handleCreateConnection,
     handleUpdate,
@@ -541,6 +560,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     allConnections,
     isListView,
     isSettingsView,
+    isHelpView,
     toastMessage,
     isInitialized,
     isOffline,
@@ -551,6 +571,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     hideListView,
     showSettingsView,
     hideSettingsView,
+    showHelpView,
+    hideHelpView,
     selectConnection,
     handleCreateConnection,
     handleUpdate,

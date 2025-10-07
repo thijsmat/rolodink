@@ -7,11 +7,12 @@ import { ConnectionForm } from './components/ConnectionForm';
 import { Toast } from './components/Toast';
 import { AllConnectionsView } from './components/AllConnectionsView';
 import { SettingsView } from './components/SettingsView';
+import { HelpView } from './components/HelpView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, showListView, hideListView, showSettingsView, hideSettingsView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, isHelpView, showListView, hideListView, showSettingsView, hideSettingsView, showHelpView, hideHelpView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
 
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
@@ -46,6 +47,10 @@ function Content() {
       return <SettingsView />;
     }
 
+    if (isHelpView) {
+      return <HelpView />;
+    }
+
     // Contextual view: either a specific connection or new connection form
     return (
       <div>
@@ -75,6 +80,12 @@ function Content() {
           )}
           {isLoggedIn && isSettingsView && (
             <button onClick={hideSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+          )}
+          {isLoggedIn && isHelpView && (
+            <button onClick={hideHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+          )}
+          {isLoggedIn && !isHelpView && (
+            <button onClick={showHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>❓ Help</button>
           )}
           {isLoggedIn && (
             <button onClick={handleLogout} className={`${styles.compactButton} ${styles.buttonSecondary}`}>
