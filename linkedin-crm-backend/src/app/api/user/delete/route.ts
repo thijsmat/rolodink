@@ -37,7 +37,7 @@ export async function DELETE(request: NextRequest) {
     // Find user in database
     const dbUser = await prisma.user.findUnique({
       where: {
-        supabaseId: user.id,
+        id: user.id,
       },
       include: {
         connections: true,

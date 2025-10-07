@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Fetch all user data
     const userData = await prisma.user.findUnique({
       where: {
-        supabaseId: user.id,
+        id: user.id,
       },
       include: {
         connections: {
