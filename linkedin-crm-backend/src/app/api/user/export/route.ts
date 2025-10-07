@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -60,23 +58,42 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Prepare export data
+    // Check data size limits (prevent excessive exports)
+    const MAX_CONNECTIONS = 10000;
+    if (userData.connections.length > MAX_CONNECTIONS) {
+      return NextResponse.json(
+        { error: `Export limit exceeded. Maximum ${MAX_CONNECTIONS} connections allowed.` },
+        { 
+          status: 413,
+          headers: {
+            'Access-Control-Allow-Origin': origin || '*',
+          },
+        }
+      );
+    }
+
+    // Sanitize and prepare export data
+    const sanitizeString = (str: string | null): string => {
+      if (!str) return '';
+      return str.replace(/[\x00-\x1F\x7F]/g, '').trim(); // Remove control characters
+    };
+
     const exportData = {
       user: {
         id: userData.id,
-        email: userData.email,
-        createdAt: userData.created_at,
-        updatedAt: userData.updated_at,
+        email: sanitizeString(userData.email),
+        createdAt: userData.created_at?.toISOString(),
+        updatedAt: userData.updated_at?.toISOString(),
       },
       connections: userData.connections.map(connection => ({
         id: connection.id,
-        name: connection.name,
-        linkedInUrl: connection.linkedInUrl,
-        meetingPlace: connection.meetingPlace,
-        userCompanyAtTheTime: connection.userCompanyAtTheTime,
-        notes: connection.notes,
-        createdAt: connection.createdAt,
-        updatedAt: connection.updatedAt,
+        name: sanitizeString(connection.name),
+        linkedInUrl: sanitizeString(connection.linkedInUrl),
+        meetingPlace: sanitizeString(connection.meetingPlace),
+        userCompanyAtTheTime: sanitizeString(connection.userCompanyAtTheTime),
+        notes: sanitizeString(connection.notes),
+        createdAt: connection.createdAt.toISOString(),
+        updatedAt: connection.updatedAt.toISOString(),
       })),
       exportInfo: {
         exportedAt: new Date().toISOString(),

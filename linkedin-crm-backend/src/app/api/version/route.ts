@@ -16,9 +16,22 @@ export async function GET(request: NextRequest) {
   try {
     const origin = request.headers.get('origin');
     
-    // Get current version from query parameter
+    // Get current version from query parameter with validation
     const { searchParams } = new URL(request.url);
     const currentVersion = searchParams.get('version');
+    
+    // Validate version format if provided
+    if (currentVersion && !/^\d+\.\d+\.\d+$/.test(currentVersion)) {
+      return NextResponse.json(
+        { error: 'Invalid version format. Expected format: x.y.z' },
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': origin || '*',
+          },
+        }
+      );
+    }
     
     // Define latest version info
     const latestVersion = '1.0.0';
@@ -41,6 +54,19 @@ export async function GET(request: NextRequest) {
       // Determine update type based on version comparison
       const currentParts = currentVersion.split('.').map(Number);
       const latestParts = latestVersion.split('.').map(Number);
+      
+      // Validate that we have exactly 3 version parts
+      if (currentParts.length !== 3 || latestParts.length !== 3) {
+        return NextResponse.json(
+          { error: 'Invalid version format' },
+          { 
+            status: 400,
+            headers: {
+              'Access-Control-Allow-Origin': origin || '*',
+            },
+          }
+        );
+      }
       
       if (latestParts[0] > currentParts[0]) {
         versionInfo.updateType = 'major';
@@ -72,8 +98,8 @@ export async function GET(request: NextRequest) {
         ];
       }
       
-      // Set download URL (this would be your GitHub releases or distribution URL)
-      versionInfo.downloadUrl = 'https://github.com/thijsmat/linkedin-crm-backend/releases/latest';
+      // Set download URL from environment variable or default
+      versionInfo.downloadUrl = process.env.EXTENSION_DOWNLOAD_URL || 'https://github.com/thijsmat/linkedin-crm-backend/releases/latest';
     }
 
     return NextResponse.json(versionInfo, {

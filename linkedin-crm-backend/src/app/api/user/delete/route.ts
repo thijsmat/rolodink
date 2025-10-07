@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -56,25 +54,33 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Log deletion for audit purposes
-    console.log(`GDPR Account Deletion Request: User ${dbUser.id} (${dbUser.email}) - ${dbUser.connections.length} connections`);
+    // Log deletion for audit purposes (sanitize email for logging)
+    const sanitizedEmail = dbUser.email ? dbUser.email.replace(/(.{2}).*(@.*)/, '$1***$2') : 'unknown';
+    console.log(`GDPR Account Deletion Request: User ${dbUser.id} (${sanitizedEmail}) - ${dbUser.connections.length} connections`);
 
-    // Delete all user data in transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete all connections first (due to foreign key constraints)
-      await tx.connection.deleteMany({
-        where: {
-          ownerId: dbUser.id,
-        },
-      });
+    // Delete all user data in transaction with error handling
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Delete all connections first (due to foreign key constraints)
+        const deletedConnections = await tx.connection.deleteMany({
+          where: {
+            ownerId: dbUser.id,
+          },
+        });
 
-      // Delete the user
-      await tx.user.delete({
-        where: {
-          id: dbUser.id,
-        },
+        // Delete the user
+        await tx.user.delete({
+          where: {
+            id: dbUser.id,
+          },
+        });
+
+        console.log(`GDPR Account Deletion Completed: ${deletedConnections.count} connections deleted for user ${dbUser.id}`);
       });
-    });
+    } catch (transactionError) {
+      console.error(`GDPR Account Deletion Failed: User ${dbUser.id}`, transactionError);
+      throw transactionError; // Re-throw to be caught by outer try-catch
+    }
 
     // Return success response
     return NextResponse.json(
