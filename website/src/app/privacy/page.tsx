@@ -31,67 +31,68 @@ export default function PrivacyPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <p className="text-muted-foreground">
-                    Rolodink is een browserextensie die je helpt persoonlijke notities te maken bij LinkedIn-profielen. 
-                    Wij geloven dat jouw data van jou is en dat jij altijd volledige controle moet hebben over je informatie.
+                    Rolodink is een browserextensie waarmee je persoonlijke notities bij LinkedIn-profielen kunt opslaan. Wij geloven dat jouw data van jou is en dat jij altijd volledige controle moet hebben over je informatie.
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Welke data verzamelen wij?</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Geen persoonlijke data:</strong> we verzamelen geen informatie over jou, je LinkedIn-profiel of je notities.</li>
-                    <li><strong>Lokale opslag:</strong> alle notities worden uitsluitend lokaal in jouw browser opgeslagen; er wordt geen data naar externe servers gestuurd.</li>
-                    <li><strong>Geen tracking:</strong> we gebruiken geen tracking, analytics of cookies voor gebruikersmonitoring.</li>
+                    <li><strong>Account en notities (extensie):</strong> notities en – indien je registreert/inlogt – minimale accountgegevens worden veilig opgeslagen in een Supabase-database. De API wordt gehost op Vercel.</li>
+                    <li><strong>Synchronisatie:</strong> door deze cloudopslag kun je notities terugvinden op meerdere apparaten en na herinstallatie.</li>
+                    <li><strong>Technische/gebruiksdata:</strong> geen tracking, profiling of commercieel gebruik van je data; we verzamelen geen gedragsanalyses binnen de extensie.</li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Toestemmingen en toegang</h3>
+                  <h3 className="text-xl font-semibold">Toestemmingen en toegang (extensie)</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>ActiveTab:</strong> nodig om de knop “Voeg notitie toe” te tonen; alleen na gebruikersinteractie en tijdelijk.</li>
-                    <li><strong>Hostrechten:</strong> alleen toegang tot linkedin.com-pagina’s tijdens gebruik van de extensie.</li>
-                    <li><strong>Scripting:</strong> scripts worden alleen geïnjecteerd in LinkedIn-pagina’s na actie van de gebruiker.</li>
-                    <li><strong>Storage:</strong> browseropslag om notities en instellingen lokaal te bewaren.</li>
-                    <li><strong>Tabs:</strong> leest tabinformatie om functies uit te voeren bij gebruikersacties; er wordt geen data verzameld.</li>
-                    <li><strong>Externe code:</strong> gebruik van open source libraries die veilig worden geladen en geen gebruikersgegevens delen.</li>
+                    <li><strong>activeTab:</strong> tijdelijke toegang na gebruikersinteractie om de notitieknop te tonen.</li>
+                    <li><strong>Hostrechten:</strong> alleen linkedin.com tijdens gebruik.</li>
+                    <li><strong>Scripting:</strong> alleen op LinkedIn-profielen na actie van de gebruiker.</li>
+                    <li><strong>Storage:</strong> notities worden centraal opgeslagen in Supabase; lokale opslag kan gebruikt worden voor instellingen/sessies.</li>
+                    <li><strong>Tabs:</strong> gebruikt om de extensie correct te activeren, niet om data te verzamelen.</li>
+                    <li><strong>Externe code:</strong> uitsluitend open‑source libraries; geen delen van gebruikersdata.</li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Beveiliging van jouw data</h3>
-                  <p className="text-muted-foreground">
-                    We maken gebruik van de beveiligingsvoorzieningen van moderne browsers, zoals sandboxing en encryptie van lokale opslag, om je notities veilig en privé te houden.
-                  </p>
+                  <h3 className="text-xl font-semibold">Beveiliging</h3>
+                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li>Dataopslag in Supabase met moderne beveiligingsmaatregelen en toegangscontrole.</li>
+                    <li>De backend/API draait op Vercel; verbindingen zijn versleuteld.</li>
+                    <li>We streven naar naleving van relevante EU‑privacywetgeving.</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Website vs. extensie</h3>
+                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><strong>Website (rolodink.app):</strong> we gebruiken privacy‑vriendelijke webanalytics (Plausible en Vercel Web Analytics) om geaggregeerde bezoekstatistieken te meten. Er wordt geen PII geprofileerd of verkocht.</li>
+                    <li><strong>Extensie:</strong> geen tracking/analytics binnen de extensie zelf.</li>
+                  </ul>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Jouw rechten</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Je kunt de extensie verwijderen om alle opgeslagen data te wissen.</li>
-                    <li>Je kunt jouw data exporteren via de browserinstellingen.</li>
-                    <li>Je kunt je data inzien via ontwikkelaarstools in je browser.</li>
+                    <li>Je kunt jouw data exporteren of verwijderen. Neem contact op met ons ondersteuningsteam om dit te regelen totdat een self‑serviceportal beschikbaar is.</li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Derde partijen</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink deelt geen gegevens met derden. Voor extensie-updates worden alleen de officiële Chrome Web Store-servers gebruikt.
-                  </p>
+                  <p className="text-muted-foreground">We delen geen gegevens met adverteerders of andere externe partijen. Infrastructuur: Supabase (database) en Vercel (hosting/deploy).</p>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Wijzigingen in het privacybeleid</h3>
-                  <p className="text-muted-foreground">
-                    Wijzigingen in dit beleid communiceren we via update-notificaties in de extensie. We raden aan om het beleid regelmatig te controleren.
-                  </p>
+                  <h3 className="text-xl font-semibold">Wijzigingen</h3>
+                  <p className="text-muted-foreground">Wijzigingen in dit beleid communiceren we via update‑notificaties in de extensie en via deze pagina.</p>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Contact</h3>
-                  <p className="text-muted-foreground">
-                    Heb je vragen of opmerkingen over privacy? Neem contact op via: <Link href="mailto:hello@rolodink.app" className="text-primary hover:underline">hello@rolodink.app</Link>
-                  </p>
+                  <p className="text-muted-foreground">E‑mail: <Link href="mailto:hello@rolodink.app" className="text-primary hover:underline">hello@rolodink.app</Link></p>
                 </div>
               </CardContent>
             </Card>
