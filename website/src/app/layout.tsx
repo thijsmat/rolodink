@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: "Rolodink – Je notitielaag bovenop LinkedIn",
   description: "Rolodink is je moderne rolodex: bewaar notities en volg slimmer op, direct vanuit LinkedIn. Organiseer je netwerk met gemak.",
   metadataBase: new URL('https://rolodink.app'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'nl': '/',
+      'en': '/en',
+    },
+  },
   openGraph: {
     type: "website",
     url: "https://rolodink.app",
