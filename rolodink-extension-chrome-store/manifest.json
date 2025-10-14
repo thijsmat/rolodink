@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rolodink",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Rolodink: je notitielaag bovenop LinkedIn, als je moderne rolodex.",
   "permissions": [
     "activeTab",
@@ -11,7 +11,7 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-      "https://linkedin-crm-backend-matthijs-goes-projects.vercel.app/*"
+      "https://api.rolodink.app/*"
   ],
   "action": {
     "default_popup": "ui/dist/index.html",

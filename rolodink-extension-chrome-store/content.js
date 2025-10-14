@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
+const API_BASE_URL = 'https://api.rolodink.app';
 
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
