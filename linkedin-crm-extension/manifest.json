@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Rolodink",
   "version": "1.0.2",
-  "description": "Rolodink: je notitielaag bovenop LinkedIn, als je moderne rolodex.",
+  "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
   "permissions": [
     "activeTab",
     "scripting",
