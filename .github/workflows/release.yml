@@ -119,6 +119,10 @@ jobs:
           echo "ZIPs:" && ls -1 Rolodink-*.zip || true
           echo "Signed XPI:" && ls -1 Rolodink-Firefox-signed.xpi || true
 
+      - name: Generate release notes with version
+        run: |
+          sed "s/\\${VERSION}/${{ steps.version.outputs.version }}/g" .github/RELEASE_TEMPLATE.md > .github/RELEASE_NOTES.md
+
       - name: Upload artifact (zip)
         uses: actions/upload-artifact@v4
         with:
@@ -133,7 +137,7 @@ jobs:
           name: Rolodink v${{ steps.version.outputs.version }}
           tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
-          body_path: .github/RELEASE_TEMPLATE.md
+          body_path: .github/RELEASE_NOTES.md
           files: |
             Rolodink-*.zip
             Rolodink-Firefox-signed.xpi
