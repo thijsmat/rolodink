@@ -82,7 +82,6 @@ jobs:
           npm install -g web-ext@7
 
       - name: Sign Firefox XPI with AMO (unlisted)
-        if: ${{ secrets.AMO_JWT_ISSUER && secrets.AMO_JWT_SECRET }}
         continue-on-error: true
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
