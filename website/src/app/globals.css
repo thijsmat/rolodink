@@ -58,3 +58,88 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* Vintage Business Card Utilities */
+@layer components {
+  .paper-texture {
+    background: linear-gradient(to bottom, #f7f5f0 0%, #f5f5f4 100%);
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.02) 2px, rgba(0,0,0,.02) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.01) 2px, rgba(0,0,0,.01) 4px);
+  }
+  
+  .business-card {
+    @apply rounded-lg shadow-lg border border-navy/10 bg-cream p-6;
+    background: linear-gradient(135deg, #f7f5f0 0%, #f5f5f4 100%);
+    box-shadow: 0 4px 6px -1px rgba(27, 41, 81, 0.1), 0 2px 4px -1px rgba(27, 41, 81, 0.06);
+  }
+  
+  .business-card-elevated {
+    @apply business-card;
+    box-shadow: 0 10px 15px -3px rgba(27, 41, 81, 0.1), 0 4px 6px -2px rgba(27, 41, 81, 0.05);
+  }
+  
+  .vintage-button {
+    @apply bg-gold text-navy font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200;
+    background: linear-gradient(135deg, #B8860B 0%, #DAA520 100%);
+    border: 1px solid rgba(184, 134, 11, 0.3);
+  }
+  
+  .vintage-button:hover {
+    background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+    transform: translateY(-1px);
+  }
+  
+  .card-flip {
+    perspective: 1000px;
+  }
+  
+  .card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  
+  .card-flip:hover .card-flip-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .card-flip-front, .card-flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+  }
+  
+  .card-flip-back {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Vintage Animations */
+@layer utilities {
+  .animate-card-shuffle {
+    animation: cardShuffle 0.6s ease-in-out;
+  }
+  
+  .animate-paper-rustle {
+    animation: paperRustle 0.4s ease-out;
+  }
+}
+
+@keyframes cardShuffle {
+  0% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-5px) rotate(-2deg); }
+  50% { transform: translateX(5px) rotate(2deg); }
+  75% { transform: translateX(-2px) rotate(-1deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes paperRustle {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}

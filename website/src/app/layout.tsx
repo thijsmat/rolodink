@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
   title: "Rolodink – Je notitielaag bovenop LinkedIn",
@@ -62,7 +63,7 @@ export default function RootLayout({
           src="https://plausible.io/js/script.js"
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${playfair.variable} font-inter`}>
         {children}
         <Analytics />
       </body>

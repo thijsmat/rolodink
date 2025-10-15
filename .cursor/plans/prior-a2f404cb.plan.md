@@ -1,92 +1,103 @@
 <!-- a2f404cb-1cd1-48e0-a5ad-f7c1ba62aa20 115ec461-ccc3-478c-9e1e-3c581137b9f1 -->
-# GitHub Releases for Rolodink Extension (with Context7)
+# Rolodink Website Messaging Refresh
 
-## What I’ll add
+## Scope
 
-- `.github/workflows/release.yml`: Build, validate, package, and auto-release on tags `v*.*.*`.
-- `scripts/build-extension.sh`: Clean, validate, and produce a production ZIP.
-- `scripts/validate-extension.mjs`: Validate `manifest.json` and bundle layout.
-- `.github/RELEASE_TEMPLATE.md`: Standardized release notes template.
-- `INSTALL.md`: User guide for sideloading with warnings, verification, updates, uninstall.
-- README updates: Quick start for manual install + link to releases + troubleshooting.
-- Context7-assisted research step to ensure MV3 packaging, Actions, and documentation follow latest guidance.
+Apply new messaging to NL + EN. Add testimonial and FAQ sections. Update hero, a new "Waarom Rolodink?" section, features copy, footer disclaimer, and add a legal page at `/disclaimer`.
 
-## Workflow details (release.yml)
+## Files to Update/Add
 
-- on: tag push (pattern `v*.*.*`)
-- jobs:
-- checkout with full history
-- setup Node LTS (for validation script) and system zip
-- optional: build `ui/dist/` if missing (documented inputs); otherwise fail with message
-- run `scripts/build-extension.sh` (produces `Rolodink-v${VERSION}.zip`)
-- run `scripts/validate-extension.mjs` (schema checks; required keys; icon presence; Context7-backed ruleset)
-- auto-generate release notes from conventional commits using `softprops/action-gh-release`
-- attach ZIP; use `.github/RELEASE_TEMPLATE.md` as fallback body if commits parsing yields empty notes
-- guardrails: only run on tags; fail if validation fails
+- Update NL homepage: `website/src/app/page.tsx`
+- Add/Update EN homepage: `website/src/app/en/page.tsx` (create if missing)
+- Update NL features: `website/src/app/features/page.tsx`
+- Update EN features: `website/src/app/en/features/page.tsx`
+- Footer disclaimer/link: `website/src/components/site-footer.tsx`
+- Add legal pages: `website/src/app/disclaimer/page.tsx`, `website/src/app/en/disclaimer/page.tsx`
+- Optional SEO tweaks: `website/src/lib/seo.ts`
 
-## Build script details
+## Content Changes
 
-- Inputs: extension root `linkedin-crm-extension/`
-- Steps:
-- ensure `ui/dist/` is built; fail with helpful message if missing
-- copy minimal runtime files to `dist-tmp/`:
-  - `content.js`, `manifest.json`, `icons/**`, `ui/dist/**`, `icon.png`
-- strip dev-only files: `ui/src`, `node_modules`, `.map`, `.DS_Store`, `.git*`, `README*`, `*.ts`, config files
-- confirm `manifest_version: 3`; required `action.default_popup` exists if popup is used
-- zip to `Rolodink-v${VERSION}.zip` in repo root; also expose as artifact
+1) Homepage hero (both locales)
 
-## Validation script
+- Headline: "Van de achterkant van een visitekaartje naar de toekomst van netwerken"
+- Subheadline: "Vroeger schreef je op de achterkant ... Rolodink brengt die persoonlijke touch terug ..."
+- Keep existing CTA component
 
-- Node (ESM) using fs + JSON parse (no external deps):
-- Read `manifest.json`; check: `name`, `version`, `manifest_version=3`, `action.default_popup` (or `service_worker`), `icons`
-- Verify referenced files exist (icon paths, popup `ui/dist/index.html`, `content.js`/`service_worker`)
-- Verify `host_permissions` and `permissions` align with declared files
-- Enforce Chrome MV3 constraints pulled via Context7 (e.g., background `service_worker` only, no remote code)
-- Ensure no forbidden files included (scan final ZIP entries)
+2) New section after hero (both locales)
 
-## README updates
+- Title: "Herinner je je nog visitekaartjes?"
+- Paragraph: "Voorheen schreef je op de achterkant: 'Ontmoet op Networking Event Amsterdam ...'"
+- Subtitle: "Moderne netwerken, klassieke wijsheid"
+- Bullets:
+  - "Bewaar die cruciale details: ..."
+  - "Onthoud de context: ..."
+  - "Maak opvolging persoonlijk: ..."
 
-- Add section: "Install via GitHub Releases"
-- Download ZIP from Releases
-- Unzip → open `chrome://extensions` → Enable Developer Mode → Load Unpacked → select folder
-- Troubleshooting (checked against latest Chrome docs via Context7)
-- "Manifest v3 not supported" → update Chrome
-- "Manifest is invalid" → re-download/unzip cleanly
-- Button not visible → refresh LinkedIn; disable blockers
-- Update procedure
-- Remove folder → Load Unpacked of new version (or use "Update" if same folder)
-- Compare Chrome Web Store vs GitHub
-- Web Store: auto-updates, reviews; GitHub: immediate access, manual updates
+3) Features pages (both locales)
 
-## Release template
+- Rename and rewrite three features to emotional benefits:
+  - "Netwerkbeheer" → "Onthoud wat telt" with new copy
+  - "Gespreksnotities" → "De details die het verschil maken" with new copy
+  - "Opvolging" → "Natuurlijke follow-up" with new copy
+- Keep other three features (Gestructureerde data, Privacy-first, Snelle integratie) but make copy more conversational.
 
-- Title: `Rolodink v{{version}}`
-- Sections: Highlights, Changes (bulleted from commits), Install from GitHub, Chrome Web Store link (placeholder), Known Issues
+4) Testimonials (both locales)
 
-## INSTALL.md
+- New section on homepages with three quotes:
+  - "Precies wat ik miste ..." — Marie, HR Director
+  - "Ik vergat altijd ..." — David, Sales Manager
+  - "Eindelijk kan ik weer ..." — Lisa, Consultant
 
-- Step-by-step with screenshots placeholders and detailed flows:
-- Enable Developer Mode
-- Load Unpacked flow
-- Security warnings explanation
-- Verification checklist (button visible, version in popup)
-- Uninstall and manual update instructions
+5) FAQ (both locales)
 
-## Context7-assisted research and validation
+- Add one item to homepages (or features page bottom):
+  - Q: "Waarom Rolodink? Er zijn toch genoeg CRM-systemen?"
+  - A: "CRM-systemen zijn voor verkoop ... in LinkedIn."
 
-- Fetch latest guidance and examples:
-- Chrome Extension MV3 packaging/validation rules
-- Example GitHub Actions for extension build/release
-- Sideloading instructions and security warning language
-- Use these sources to confirm validation checks and tighten README/INSTALL guidance.
+6) Legal disclaimers
 
-## Assumptions / Notes
+- Footer: add line and link to `/disclaimer`.
+- New pages at `/disclaimer` and `/en/disclaimer` with provided legal text.
 
-- Tag names follow semver `vX.Y.Z`
-- `ui/dist` exists before build (or we can build it if requested)
-- GitHub token permissions default are sufficient for releases
+## Implementation Notes
 
-Once approved, I’ll add the files and wire everything up.
+- Reuse existing layout components: `SiteHeader`, `SiteFooter`, `Card`.
+- Keep styling with existing tailwind utility classes; match spacing to adjacent sections.
+- For EN pages, provide faithful English translations of the same copy.
+- Update `pageSEO` titles/descriptions minimally to reflect the new positioning.
+
+## Minimal Snippets (illustrative only)
+
+- In home page after hero, append:
+```23:41:website/src/app/page.tsx
+<section className="container py-8 md:py-12">
+  <div className="mx-auto max-w-3xl space-y-4">
+    <h2 className="text-2xl md:text-4xl font-semibold">Herinner je je nog visitekaartjes?</h2>
+    <p className="text-muted-foreground">Voorheen schreef je op de achterkant: ...</p>
+    <h3 className="text-xl font-semibold">Moderne netwerken, klassieke wijsheid</h3>
+    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+      <li>Bewaar die cruciale details: ...</li>
+      <li>Onthoud de context: ...</li>
+      <li>Maak opvolging persoonlijk: ...</li>
+    </ul>
+  </div>
+</section>
+```
+
+- Footer disclaimer link addition:
+```45:63:website/src/components/site-footer.tsx
+<p className="text-xs text-muted-foreground">
+  Rolodink is onafhankelijk en niet gelieerd aan LinkedIn of Rolodex.
+  <Link href="/disclaimer" className="ml-2 underline hover:no-underline">Lees meer</Link>
+</p>
+```
+
+
+## Rollout
+
+- Implement NL first, mirror to EN.
+- Verify mobile responsiveness and spacing.
+- Sanity-check internal links and SEO metadata.
 
 ### To-dos
 

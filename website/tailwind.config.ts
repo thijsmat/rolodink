@@ -10,6 +10,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Vintage business card palette
+        navy: '#1B2951',
+        cream: '#F7F5F0',
+        gold: '#B8860B',
+        linkedin: '#0066CC',
+        charcoal: '#2D3748',
+        'warm-gray': '#F5F5F4',
+        // Keep existing shadcn colors
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -43,6 +51,10 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+      },
+      fontFamily: {
+        playfair: ['var(--font-playfair)', 'serif'],
+        inter: ['var(--font-inter)', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',
