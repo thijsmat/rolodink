@@ -105,6 +105,12 @@ jobs:
           # Produced .xpi in current directory; keep the newest as our artifact
           ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi
 
+      - name: List artifacts before release
+        run: |
+          echo "Workspace files:" && ls -la
+          echo "ZIPs:" && ls -1 Rolodink-*.zip || true
+          echo "Signed XPI:" && ls -1 Rolodink-Firefox-signed.xpi || true
+
       - name: Upload artifact (zip)
         uses: actions/upload-artifact@v4
         with:
@@ -121,9 +127,7 @@ jobs:
           generate_release_notes: true
           body_path: .github/RELEASE_TEMPLATE.md
           files: |
-            Rolodink-${{ steps.version.outputs.version }}.zip
-            Rolodink-Edge-${{ steps.version.outputs.version }}.zip
-            Rolodink-Firefox-${{ steps.version.outputs.version }}.zip
+            Rolodink-*.zip
             Rolodink-Firefox-signed.xpi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
