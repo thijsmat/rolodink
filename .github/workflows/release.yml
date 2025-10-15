@@ -87,7 +87,7 @@ jobs:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
         run: |
-          VERSION=${{ steps.version.outputs.version || '' }}
+          VERSION=${{ steps.version.outputs.version }}
           # Ensure we have a source folder for signing
           rm -rf .firefox-src && mkdir -p .firefox-src
           unzip -oq "Rolodink-Firefox-*.zip" -d .firefox-src
@@ -96,14 +96,22 @@ jobs:
             echo "AMO credentials missing; set repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET" >&2
             exit 1
           fi
-          web-ext sign \
+          set -x
+          web-ext sign --verbose \
             --source-dir .firefox-src \
             --channel unlisted \
             --artifacts-dir . \
             --api-key "$AMO_JWT_ISSUER" \
             --api-secret "$AMO_JWT_SECRET"
           # Produced .xpi in current directory; keep the newest as our artifact
-          ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi
+          ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi || true
+
+      - name: Upload signed XPI (if present)
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-signed-xpi
+          path: Rolodink-Firefox-signed.xpi
+          if-no-files-found: ignore
 
       - name: List artifacts before release
         run: |
