@@ -15,7 +15,7 @@ export default function DisclaimerPage() {
               Rolodink is an independent product and is not affiliated with, endorsed by, or in any way associated with LinkedIn Corporation or Rolodex Corporation. LinkedIn is a trademark of LinkedIn Corporation. Rolodex is a trademark of Newell Brands. Rolodink is a portmanteau of 'Rolodex' and 'LinkedIn' describing our functionality, and does not imply any official relationship with these brands.
             </p>
             <p className="text-muted-foreground">
-              Also see our{' '}<Link href="/en/privacy" className="text-primary hover:underline">Privacy Policy</Link>{' '}and{' '}<Link href="/en/terms" className="text-primary hover:underline">Terms</Link>.
+              Also see our{' '}<Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>{' '}and{' '}<Link href="/terms" className="text-primary hover:underline">Terms</Link>.
             </p>
           </div>
         </section>
