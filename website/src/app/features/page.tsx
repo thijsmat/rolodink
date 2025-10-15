@@ -23,8 +23,8 @@ export const metadata = {
 const features = [
   {
     icon: Users,
-    title: "Netwerkbeheer",
-    description: "Bewaar notities bij elke LinkedIn connectie. Onthoud waar je elkaar ontmoette en wat jullie bespraken.",
+    title: "Onthoud wat telt",
+    description: "Dat moment waarop jullie connecteerden, het project waar ze mee bezig waren, hun passie voor zeilboot restauratie.",
     benefits: [
       "Automatische profielherkenning",
       "Persoonlijke notities per contact",
@@ -33,8 +33,8 @@ const features = [
   },
   {
     icon: MessageSquare,
-    title: "Gespreksnotities",
-    description: "Leg vast wat je besprak, waarom het belangrijk was, en wat de volgende stappen zijn.",
+    title: "De details die het verschil maken",
+    description: "Hun hond heet Max, ze verhuizen naar Berlijn, hun startup zoekt nog een CTO.",
     benefits: [
       "Contextuele notities",
       "Gespreksgeschiedenis",
@@ -43,8 +43,8 @@ const features = [
   },
   {
     icon: Calendar,
-    title: "Opvolging",
-    description: "Vergeet nooit meer een afspraak of belofte. Rolodink helpt je consistent te blijven.",
+    title: "Natuurlijke follow-up",
+    description: "'Hoi Tom, hoe bevalt het nieuwe kantoor in Amsterdam? En heb je die lead developer al gevonden?'",
     benefits: [
       "Automatische herinneringen",
       "Follow-up templates",
@@ -54,7 +54,7 @@ const features = [
   {
     icon: FileText,
     title: "Gestructureerde data",
-    description: "Organiseer je netwerk met tags, bedrijven, en gespreksonderwerpen voor maximale overzicht.",
+    description: "Orden je netwerk met tags, bedrijven en topics — gewoon zodat jij het snel terugvindt.",
     benefits: [
       "Categoriseren van contacten",
       "Bedrijfsinformatie opslaan",
@@ -64,19 +64,19 @@ const features = [
   {
     icon: Shield,
     title: "Privacy-first",
-    description: "Je data blijft van jou. Geen verkoop aan derden, geen tracking, volledig lokaal opgeslagen.",
+    description: "Jouw data blijft van jou. Geen advertenties, geen doorverkoop — gewoon veilig en transparant.",
     benefits: [
-      "Lokale opslag",
-      "Geen tracking",
+      "Beveiligde opslag",
+      "Geen tracking in de extensie",
       "Volledige controle"
     ]
   },
   {
     icon: Zap,
     title: "Snelle integratie",
-    description: "Werkt direct binnen LinkedIn. Geen extra apps, geen complexe workflows. Gewoon werken.",
+    description: "Werkt direct in LinkedIn. Geen extra apps, geen gedoe — je kunt meteen aan de slag.",
     benefits: [
-      "One-click installatie",
+      "One‑click installatie",
       "Direct beschikbaar",
       "Geen training nodig"
     ]

@@ -31,6 +31,12 @@ export function SiteFooter() {
           >
             Voorwaarden
           </Link>
+          <Link
+            href="/disclaimer"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Disclaimer
+          </Link>
         </div>
       </div>
     </footer>

@@ -1,46 +1,98 @@
-<!-- a2f404cb-1cd1-48e0-a5ad-f7c1ba62aa20 8c412b4b-4305-4825-85ec-530598bc5743 -->
-# Rollout plan: English first, then multi-browser
+<!-- a2f404cb-1cd1-48e0-a5ad-f7c1ba62aa20 115ec461-ccc3-478c-9e1e-3c581137b9f1 -->
+# GitHub Releases for Rolodink Extension (with Context7)
 
-## Recommendation
+## What I’ll add
 
-- Prioritize an English website + extension (i18n) to unlock global reach and store approval assets. Then ship Edge (quick win) and Firefox (minor MV3 nuances) builds.
+- `.github/workflows/release.yml`: Build, validate, package, and auto-release on tags `v*.*.*`.
+- `scripts/build-extension.sh`: Clean, validate, and produce a production ZIP.
+- `scripts/validate-extension.mjs`: Validate `manifest.json` and bundle layout.
+- `.github/RELEASE_TEMPLATE.md`: Standardized release notes template.
+- `INSTALL.md`: User guide for sideloading with warnings, verification, updates, uninstall.
+- README updates: Quick start for manual install + link to releases + troubleshooting.
+- Context7-assisted research step to ensure MV3 packaging, Actions, and documentation follow latest guidance.
 
-## Why this order
+## Workflow details (release.yml)
 
-- English boosts landing conversions and Chrome Web Store reach immediately.
-- Edge (Chromium) is near-zero code delta; bundle/sign quickly after Chrome.
-- Firefox needs specific manifest and API checks; better after site copy/assets are ready.
+- on: tag push (pattern `v*.*.*`)
+- jobs:
+- checkout with full history
+- setup Node LTS (for validation script) and system zip
+- optional: build `ui/dist/` if missing (documented inputs); otherwise fail with message
+- run `scripts/build-extension.sh` (produces `Rolodink-v${VERSION}.zip`)
+- run `scripts/validate-extension.mjs` (schema checks; required keys; icon presence; Context7-backed ruleset)
+- auto-generate release notes from conventional commits using `softprops/action-gh-release`
+- attach ZIP; use `.github/RELEASE_TEMPLATE.md` as fallback body if commits parsing yields empty notes
+- guardrails: only run on tags; fail if validation fails
 
-## Scope
+## Build script details
 
-- Website: add EN locale, language switch, canonical/SEO, update privacy & help in EN.
-- Extension: EN strings (content.js/UI), store listing in EN, keep NL as secondary.
-- Stores: Chrome (EN first), Edge Add-ons (package reuse), Firefox AMO (MV3 adjustments).
+- Inputs: extension root `linkedin-crm-extension/`
+- Steps:
+- ensure `ui/dist/` is built; fail with helpful message if missing
+- copy minimal runtime files to `dist-tmp/`:
+  - `content.js`, `manifest.json`, `icons/**`, `ui/dist/**`, `icon.png`
+- strip dev-only files: `ui/src`, `node_modules`, `.map`, `.DS_Store`, `.git*`, `README*`, `*.ts`, config files
+- confirm `manifest_version: 3`; required `action.default_popup` exists if popup is used
+- zip to `Rolodink-v${VERSION}.zip` in repo root; also expose as artifact
 
-## Key files
+## Validation script
 
-- Website: `website/src/app` pages; introduce i18n wrapper (simple `en` routes or next-intl).
-- Extension: `linkedin-crm-extension/ui/src/**/*`, `linkedin-crm-extension/content.js`, `manifest.json` locales.
+- Node (ESM) using fs + JSON parse (no external deps):
+- Read `manifest.json`; check: `name`, `version`, `manifest_version=3`, `action.default_popup` (or `service_worker`), `icons`
+- Verify referenced files exist (icon paths, popup `ui/dist/index.html`, `content.js`/`service_worker`)
+- Verify `host_permissions` and `permissions` align with declared files
+- Enforce Chrome MV3 constraints pulled via Context7 (e.g., background `service_worker` only, no remote code)
+- Ensure no forbidden files included (scan final ZIP entries)
 
-## Deliverables
+## README updates
 
-- English website at `rolodink.app/en` (or automatic detection), updated OG/meta.
-- Chrome Web Store listing in EN; screenshots EN.
-- Edge package signed & submitted.
-- Firefox package built & submitted.
+- Add section: "Install via GitHub Releases"
+- Download ZIP from Releases
+- Unzip → open `chrome://extensions` → Enable Developer Mode → Load Unpacked → select folder
+- Troubleshooting (checked against latest Chrome docs via Context7)
+- "Manifest v3 not supported" → update Chrome
+- "Manifest is invalid" → re-download/unzip cleanly
+- Button not visible → refresh LinkedIn; disable blockers
+- Update procedure
+- Remove folder → Load Unpacked of new version (or use "Update" if same folder)
+- Compare Chrome Web Store vs GitHub
+- Web Store: auto-updates, reviews; GitHub: immediate access, manual updates
 
-## Risks / Notes
+## Release template
 
-- Firefox: `host_permissions`, `scripting`, MV3 support; verify `chrome.*` vs `browser.*` (use `webextension-polyfill`).
-- CORS for api.rolodink.app: include `moz-extension://*` origins if needed.
-- Analytics remain website-only; ensure cookie banners comply per locale if required.
+- Title: `Rolodink v{{version}}`
+- Sections: Highlights, Changes (bulleted from commits), Install from GitHub, Chrome Web Store link (placeholder), Known Issues
+
+## INSTALL.md
+
+- Step-by-step with screenshots placeholders and detailed flows:
+- Enable Developer Mode
+- Load Unpacked flow
+- Security warnings explanation
+- Verification checklist (button visible, version in popup)
+- Uninstall and manual update instructions
+
+## Context7-assisted research and validation
+
+- Fetch latest guidance and examples:
+- Chrome Extension MV3 packaging/validation rules
+- Example GitHub Actions for extension build/release
+- Sideloading instructions and security warning language
+- Use these sources to confirm validation checks and tighten README/INSTALL guidance.
+
+## Assumptions / Notes
+
+- Tag names follow semver `vX.Y.Z`
+- `ui/dist` exists before build (or we can build it if requested)
+- GitHub token permissions default are sufficient for releases
+
+Once approved, I’ll add the files and wire everything up.
 
 ### To-dos
 
-- [ ] Add English locale and EN versions of pages
-- [ ] Localize extension UI/strings to EN
-- [ ] Prepare EN store listing (text, screenshots)
-- [ ] Package and submit Edge build (Chromium)
-- [ ] Adapt manifest/APIs and submit Firefox build
-- [ ] Add hreflang/canonical for EN/NL and sitemap update
-- [ ] Translate and publish EN privacy & help
+- [ ] Add GitHub Actions release workflow on tags v*.*.*
+- [ ] Add build script to package production ZIP
+- [ ] Add Node script to validate manifest and bundle
+- [ ] Update README with sideloading and troubleshooting
+- [ ] Add .github/RELEASE_TEMPLATE.md
+- [ ] Add INSTALL.md with detailed flow and warnings

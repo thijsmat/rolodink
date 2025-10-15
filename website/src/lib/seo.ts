@@ -1,15 +1,15 @@
 import { NextSeoProps } from "next-seo"
 
 export const defaultSEO: NextSeoProps = {
-  title: "Rolodink – Je notitielaag bovenop LinkedIn",
+  title: "Rolodink – Van visitekaartje naar de toekomst van netwerken",
   titleTemplate: "%s | Rolodink",
-  description: "Rolodink is je moderne rolodex: bewaar notities en volg slimmer op, direct vanuit LinkedIn. Organiseer je netwerk met gemak.",
+  description: "Rolodink brengt de persoonlijke touch van het visitekaartje terug naar je LinkedIn connecties: onthoud details en volg natuurlijk op.",
   canonical: "https://rolodink.app",
   openGraph: {
     type: "website",
     url: "https://rolodink.app",
-    title: "Rolodink – Je notitielaag bovenop LinkedIn",
-    description: "Je moderne rolodex: notities en opvolging rechtstreeks op LinkedIn.",
+    title: "Rolodink – Van visitekaartje naar de toekomst van netwerken",
+    description: "Brengt de persoonlijke noot van visitekaartjes terug op LinkedIn.",
     siteName: "Rolodink",
     images: [
       {

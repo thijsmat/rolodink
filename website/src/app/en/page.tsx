@@ -21,11 +21,11 @@ export default function HomePage() {
               🚀 Now available
             </Badge>
             <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-              Rolodink: your note layer on top of LinkedIn
+              From the back of a business card to the future of networking
             </h1>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Remember who you spoke with, about what, and follow up smarter.
-              Right inside LinkedIn, without friction.
+              You used to jot down where you met someone and what you talked about on the back of a business card. 
+              Now that cards are gone, your network feels fuzzy. Rolodink brings that personal touch back to your LinkedIn connections.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg">
@@ -39,6 +39,23 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
+          </div>
+        </section>
+
+        {/* Why Rolodink? (Nostalgic Section) */}
+        <section className="container py-8 md:py-12 lg:py-24">
+          <div className="mx-auto max-w-3xl space-y-4">
+            <h2 className="text-2xl md:text-4xl font-semibold">Remember business cards?</h2>
+            <p className="text-muted-foreground">
+              You’d write on the back: ‘Met at Networking Event Amsterdam — interested in AI for recruiting — send article about ChatGPT’. 
+              That tiny note made the difference between a forgotten name and a valuable connection.
+            </p>
+            <h3 className="text-xl font-semibold">Modern networking, classic wisdom</h3>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>Keep crucial details: Where did you meet? What did you discuss?</li>
+              <li>Remember context: Family, interests, ongoing projects</li>
+              <li>Make follow‑ups personal: ‘Hi Sarah, how did the interview at that AI startup go?’</li>
+            </ul>
           </div>
         </section>
 
@@ -99,6 +116,19 @@ export default function HomePage() {
                   <span className="text-sm">{t}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
+          <div className="mx-auto flex max-w-[58rem] flex-col space-y-4">
+            <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-5xl text-center">FAQ</h2>
+            <div className="rounded-lg border p-6 bg-background">
+              <p className="font-semibold">Why Rolodink? Aren’t there enough CRMs?</p>
+              <p className="mt-2 text-muted-foreground">
+                CRMs are for sales. Rolodink is for human connections. It’s the digital version of what you used to write on the back of a business card — simple, personal, and right where you need it: inside LinkedIn.
+              </p>
             </div>
           </div>
         </section>

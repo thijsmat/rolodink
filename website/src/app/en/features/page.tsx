@@ -8,12 +8,12 @@ import { Users, MessageSquare, Calendar, FileText, Shield, Zap, Target, BarChart
 export const metadata = { title: 'Features', description: 'Discover all capabilities of Rolodink.' }
 
 const features = [
-  { icon: Users, title: 'Network management', description: 'Save notes for every LinkedIn connection.', benefits: ['Automatic profile detection','Per‑contact notes','Search your network'] },
-  { icon: MessageSquare, title: 'Conversation notes', description: 'Capture context and next steps.', benefits: ['Contextual notes','History','Follow‑up reminders'] },
-  { icon: Calendar, title: 'Follow‑ups', description: 'Stay consistent and never miss a promise.', benefits: ['Smart reminders','Templates','Priorities'] },
-  { icon: FileText, title: 'Structured data', description: 'Tags, companies, topics for overview.', benefits: ['Categorize contacts','Store company info','Search & filter'] },
-  { icon: Shield, title: 'Privacy‑first', description: 'Your data remains yours.', benefits: ['No tracking in extension','Secure storage','Full control'] },
-  { icon: Zap, title: 'Fast integration', description: 'Works directly inside LinkedIn.', benefits: ['One‑click install','Instantly available','No training needed'] },
+  { icon: Users, title: 'Remember what matters', description: 'That moment you connected, the project they were on, their passion for restoring sailboats.', benefits: ['Automatic profile detection','Per‑contact notes','Search your network'] },
+  { icon: MessageSquare, title: 'The details that make the difference', description: 'Their dog is Max, they’re moving to Berlin, their startup still needs a CTO.', benefits: ['Contextual notes','History','Follow‑up reminders'] },
+  { icon: Calendar, title: 'Natural follow‑ups', description: "‘Hey Tom, how’s the new office in Amsterdam? And did you find that lead developer?’", benefits: ['Smart reminders','Templates','Priorities'] },
+  { icon: FileText, title: 'Structured data', description: 'Organize with tags, companies and topics — so you can find it fast.', benefits: ['Categorize contacts','Store company info','Search & filter'] },
+  { icon: Shield, title: 'Privacy‑first', description: 'Your data stays yours. No ads, no selling — just secure and transparent.', benefits: ['No tracking in the extension','Secure storage','Full control'] },
+  { icon: Zap, title: 'Fast integration', description: 'Works right inside LinkedIn. No extra apps, no fuss — start immediately.', benefits: ['One‑click install','Instantly available','No training needed'] },
 ]
 
 export default function FeaturesPage() {

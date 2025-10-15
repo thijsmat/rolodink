@@ -21,11 +21,11 @@ export default function HomePage() {
               🚀 Nu beschikbaar
             </Badge>
             <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-              Rolodink: je notitielaag bovenop LinkedIn
+              Van de achterkant van een visitekaartje naar de toekomst van netwerken
             </h1>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Onthoud wie je sprak, waarover, en volg slimmer op. 
-              Direct vanuit LinkedIn, zonder gedoe.
+              Vroeger schreef je op de achterkant van een visitekaartje waar je iemand ontmoette en waarover je sprak. 
+              Nu die tijd voorbij is, blijft je netwerk een raadsel. Rolodink brengt die persoonlijke touch terug naar je LinkedIn connecties.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg">
@@ -39,6 +39,23 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
+          </div>
+        </section>
+
+        {/* Waarom Rolodink? (Nostalgic Section) */}
+        <section className="container py-8 md:py-12 lg:py-24">
+          <div className="mx-auto max-w-3xl space-y-4">
+            <h2 className="text-2xl md:text-4xl font-semibold">Herinner je je nog visitekaartjes?</h2>
+            <p className="text-muted-foreground">
+              Voorheen schreef je op de achterkant: 'Ontmoet op Networking Event Amsterdam - geïnteresseerd in AI voor recruitment - stuur artikel over ChatGPT'. 
+              Dat kleine notitie maakte het verschil tussen een vergeten contact en een waardevolle verbinding.
+            </p>
+            <h3 className="text-xl font-semibold">Moderne netwerken, klassieke wijsheid</h3>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>Bewaar die cruciale details: Waar ontmoette je elkaar? Waarover spraken jullie?</li>
+              <li>Onthoud de context: Familiesituatie, interesses, lopende projecten</li>
+              <li>Maak opvolging persoonlijk: 'Hoi Sarah, hoe ging dat sollicitatiegesprek bij die AI startup?'</li>
+            </ul>
           </div>
         </section>
 
@@ -117,6 +134,19 @@ export default function HomePage() {
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className="text-sm">Entrepreneurs</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
+          <div className="mx-auto flex max-w-[58rem] flex-col space-y-4">
+            <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-5xl text-center">FAQ</h2>
+            <div className="rounded-lg border p-6 bg-background">
+              <p className="font-semibold">Waarom Rolodink? Er zijn toch genoeg CRM-systemen?</p>
+              <p className="mt-2 text-muted-foreground">
+                CRM-systemen zijn voor verkoop. Rolodink is voor menselijke connecties. Het is de digitale versie van wat je vroeger op de achterkant van een visitekaartje schreef — simpel, persoonlijk, en direct beschikbaar waar je het nodig hebt: in LinkedIn.
+              </p>
             </div>
           </div>
         </section>

@@ -22,7 +22,11 @@ export default function TermsPage() {
                 Algemene Voorwaarden
               </h1>
               <p className="text-muted-foreground">
-                Laatste update: {new Date().toLocaleDateString('nl-NL')}
+                Laatst bijgewerkt: {new Date().toLocaleDateString('nl-NL', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
               </p>
             </div>
 
@@ -42,8 +46,15 @@ export default function TermsPage() {
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">2. Beschrijving van de service</h3>
                   <p className="text-muted-foreground">
-                    Rolodink is een browser extensie die je helpt notities te maken bij LinkedIn profielen. 
-                    De service is gratis en werkt lokaal in je browser.
+                    Rolodink is een browserextensie om notities bij LinkedIn‑profielen op te slaan. 
+                    Notities en, indien je registreert/inlogt, minimale accountgegevens worden veilig 
+                    opgeslagen in een externe database (Supabase). De API wordt gehost op Vercel. 
+                    Synchronisatie maakt je notities beschikbaar op meerdere apparaten. 
+                    Zie ons{' '}
+                    <Link href="/privacy" className="text-primary hover:underline">
+                      Privacybeleid
+                    </Link>{' '}
+                    voor details over dataverwerking en opslag.
                   </p>
                 </div>
 
@@ -64,20 +75,28 @@ export default function TermsPage() {
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">4. Privacy en data</h3>
                   <p className="text-muted-foreground">
-                    Rolodink respecteert je privacy. Alle notities worden lokaal opgeslagen in je browser. 
-                    We verzamelen geen persoonlijke informatie. Zie ons{' '}
+                    Rolodink respecteert je privacy. We verwerken minimale accountgegevens en notities 
+                    om de synchronisatieservice te bieden. Zie het{' '}
                     <Link href="/privacy" className="text-primary hover:underline">
-                      privacybeleid
+                      Privacybeleid
                     </Link>{' '}
-                    voor meer details.
+                    voor welke data wij verwerken, opslaglocaties, analytics en jouw rechten.
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">5. Intellectueel eigendom</h3>
                   <p className="text-muted-foreground">
-                    Rolodink is open source software. De code is beschikbaar onder een open source licentie. 
-                    Je eigen notities blijven jouw eigendom.
+                    Rolodink is open source software onder de MIT-licentie. De code is beschikbaar op{' '}
+                    <Link 
+                      href="https://github.com/thijsmat/rolodink" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      GitHub
+                    </Link>
+                    . Je eigen notities blijven jouw eigendom.
                   </p>
                 </div>
 
@@ -105,7 +124,26 @@ export default function TermsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">8. Wijzigingen aan voorwaarden</h3>
+                  <h3 className="text-xl font-semibold">8. Jouw rechten</h3>
+                  <p className="text-muted-foreground">
+                    Je hebt het recht om jouw data te exporteren of te verwijderen. 
+                    Neem contact op met ons ondersteuningsteam via{' '}
+                    <Link 
+                      href="mailto:hello@rolodink.app" 
+                      className="text-primary hover:underline"
+                    >
+                      hello@rolodink.app
+                    </Link>{' '}
+                    om dit te regelen. Zie het{' '}
+                    <Link href="/privacy" className="text-primary hover:underline">
+                      Privacybeleid
+                    </Link>{' '}
+                    voor meer details over jouw rechten.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">9. Wijzigingen aan voorwaarden</h3>
                   <p className="text-muted-foreground">
                     We kunnen deze voorwaarden op elk moment wijzigen. Belangrijke wijzigingen 
                     worden gecommuniceerd via de extensie of onze website.
@@ -113,7 +151,7 @@ export default function TermsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">9. Beëindiging</h3>
+                  <h3 className="text-xl font-semibold">10. Beëindiging</h3>
                   <p className="text-muted-foreground">
                     Je kunt Rolodink op elk moment verwijderen uit je browser. 
                     We kunnen de service ook beëindigen zonder voorafgaande kennisgeving.
@@ -121,7 +159,7 @@ export default function TermsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">10. Toepasselijk recht</h3>
+                  <h3 className="text-xl font-semibold">11. Toepasselijk recht</h3>
                   <p className="text-muted-foreground">
                     Deze voorwaarden worden beheerst door Nederlands recht. 
                     Geschillen worden voorgelegd aan de bevoegde Nederlandse rechtbank.
@@ -129,7 +167,7 @@ export default function TermsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">11. Contact</h3>
+                  <h3 className="text-xl font-semibold">12. Contact</h3>
                   <p className="text-muted-foreground">
                     Vragen over deze voorwaarden? Neem contact op via{' '}
                     <Link 
@@ -151,9 +189,9 @@ export default function TermsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">12. Open source licentie</h3>
+                  <h3 className="text-xl font-semibold">13. Open source licentie</h3>
                   <p className="text-muted-foreground">
-                    Rolodink is open source software. De volledige licentie is beschikbaar op{' '}
+                    Rolodink is open source software onder de MIT-licentie. De volledige licentie is beschikbaar op{' '}
                     <Link 
                       href="https://github.com/thijsmat/rolodink" 
                       target="_blank" 
