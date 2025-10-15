@@ -193,7 +193,7 @@ export default function DownloadPage() {
           </div>
         </section>
 
-        {/* Alternative Installation */}
+        {/* GitHub Releases (Alternative Installation) */}
         <section className="container space-y-6 py-8 md:py-12 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
@@ -206,34 +206,40 @@ export default function DownloadPage() {
           
           <Card className="mx-auto max-w-lg">
             <CardHeader className="text-center">
-              <CardTitle>Handmatige installatie</CardTitle>
+              <CardTitle>Installeren via GitHub Releases</CardTitle>
               <CardDescription>
-                Voor ontwikkelaars of als de Chrome Web Store niet beschikbaar is
+                Voor als de Chrome Web Store (nog) niet beschikbaar is
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <p className="text-sm font-medium">1. Download de broncode</p>
+                <p className="text-sm font-medium">1. Download de release</p>
                 <p className="text-xs text-muted-foreground">
-                  Download Rolodink van GitHub
+                  Ga naar de GitHub Releases pagina en download de nieuwste ZIP/XPI
                 </p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium">2. Open Chrome Extensions</p>
+                <p className="text-sm font-medium">2. Chrome/Edge: open Extensions</p>
                 <p className="text-xs text-muted-foreground">
-                  Ga naar chrome://extensions/ en schakel "Developer mode" in
+                  Chrome: chrome://extensions — Edge: edge://extensions — schakel "Developer mode" in
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">3. Laad onverpakt</p>
                 <p className="text-xs text-muted-foreground">
-                  Klik "Laad onverpakt" en selecteer de map met de extensie
+                  Klik "Load unpacked" en selecteer de uitgepakte map (met manifest.json)
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Firefox (optioneel)</p>
+                <p className="text-xs text-muted-foreground">
+                  Tijdelijk laden: about:debugging#/runtime/this-firefox → Load Temporary Add-on. Of installeer de signed .xpi.
                 </p>
               </div>
               <Button asChild variant="outline" className="w-full">
-                <a href="https://github.com/matthijsgoes/rolodink" target="_blank" rel="noreferrer">
+                <a href="https://github.com/thijsmat/rolodink/releases/latest" target="_blank" rel="noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Download van GitHub
+                  Ga naar Releases
                 </a>
               </Button>
             </CardContent>

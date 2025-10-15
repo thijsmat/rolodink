@@ -32,6 +32,20 @@ Rolodink is pending Chrome Web Store approval. You can install it manually from 
 - Find Rolodink and click "Remove".
 
 ## Troubleshooting
+- "Edge: kan niet laden": open `edge://extensions`, zet "Developer mode" aan, kies "Load unpacked" en selecteer de map met `manifest.json`.
+- Firefox (tijdelijk laden): ga naar `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on" → kies `manifest.json`.
+
+## Install (Edge)
+1. Pak de ZIP uit.
+2. Open `edge://extensions`.
+3. Zet "Developer mode" aan.
+4. Klik "Load unpacked" en kies de uitgepakte map (`manifest.json` zichtbaar).
+
+## Install (Firefox - handmatig / tijdelijk)
+1. Pak de ZIP uit of gebruik de signed `.xpi` uit de release.
+2. Tijdelijk laden (dev/testing): `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on" → selecteer `manifest.json`.
+3. Of installeer de signed `.xpi`: open de `.xpi` in Firefox en volg de prompts.
+
 - "Manifest version not supported": update Chrome to the latest stable.
 - "Manifest is invalid": re-download and re-extract the ZIP.
 - Popup not opening on LinkedIn: refresh the page, disable script blockers, ensure permissions include linkedin.com.

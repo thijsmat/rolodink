@@ -4,7 +4,18 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const extDir = path.join(repoRoot, 'linkedin-crm-extension');
-const manifestPath = path.join(extDir, 'manifest.json');
+
+// Target selection
+let target = 'chrome';
+for (const arg of process.argv.slice(2)) {
+  if (arg.startsWith('--target=')) target = arg.split('=')[1];
+}
+
+// Use per-target manifest path
+let manifestPath = path.join(extDir, 'manifest.json');
+if (target === 'firefox') {
+  manifestPath = path.join(extDir, 'manifest-firefox.json');
+}
 
 function fail(message) {
   console.error(`Validation failed: ${message}`);

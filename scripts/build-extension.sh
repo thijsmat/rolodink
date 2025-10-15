@@ -6,9 +6,30 @@ EXT_DIR="$REPO_ROOT/linkedin-crm-extension"
 UI_DIR="$EXT_DIR/ui"
 TMP_DIR="$REPO_ROOT/.dist-tmp"
 
-# Read version from manifest.json
-MANIFEST_VERSION=$(jq -r '.version' "$EXT_DIR/manifest.json")
-ZIP_NAME="Rolodink-${MANIFEST_VERSION}.zip"
+TARGET="chrome"
+if [[ ${1:-} == --target=* ]]; then
+  TARGET="${1#--target=}"
+fi
+
+# Determine manifest and content script per target
+MANIFEST_SRC="$EXT_DIR/manifest.json"
+CONTENT_SRC="$EXT_DIR/content.js"
+ZIP_PREFIX="Rolodink"
+case "$TARGET" in
+  chrome)
+    ZIP_PREFIX="Rolodink";;
+  edge)
+    ZIP_PREFIX="Rolodink-Edge";;
+  firefox)
+    MANIFEST_SRC="$EXT_DIR/manifest-firefox.json"
+    CONTENT_SRC="$EXT_DIR/content-firefox.js"
+    ZIP_PREFIX="Rolodink-Firefox";;
+  *) echo "Unknown target: $TARGET" >&2; exit 1;;
+esac
+
+# Read version from source manifest
+MANIFEST_VERSION=$(jq -r '.version' "$MANIFEST_SRC")
+ZIP_NAME="${ZIP_PREFIX}-${MANIFEST_VERSION}.zip"
 ZIP_PATH="$REPO_ROOT/$ZIP_NAME"
 
 echo "==> Building UI (vite)"
@@ -33,6 +54,10 @@ rsync -a --delete \
   --exclude 'ui/src' \
   --exclude '.DS_Store' \
   "$EXT_DIR/" "$TMP_DIR/"
+
+# Overwrite manifest and content script for target
+cp "$MANIFEST_SRC" "$TMP_DIR/manifest.json"
+cp "$CONTENT_SRC" "$TMP_DIR/content.js"
 
 # Remove development-only and redundant items
 rm -rf "$TMP_DIR/ui/src" || true

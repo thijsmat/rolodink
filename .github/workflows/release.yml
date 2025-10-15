@@ -40,20 +40,60 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
-      - name: Build extension package
+      - name: Build Chrome package
         run: |
           chmod +x scripts/build-extension.sh || true
-          scripts/build-extension.sh
+          scripts/build-extension.sh --target=chrome
 
-      - name: Validate extension package
+      - name: Validate Chrome package
         run: |
-          node scripts/validate-extension.mjs
+          node scripts/validate-extension.mjs --target=chrome
+
+      - name: Build Edge package
+        run: |
+          scripts/build-extension.sh --target=edge
+
+      - name: Validate Edge package
+        run: |
+          node scripts/validate-extension.mjs --target=edge
+
+      - name: Build Firefox package (unsigned)
+        run: |
+          scripts/build-extension.sh --target=firefox
+
+      - name: Validate Firefox package
+        run: |
+          node scripts/validate-extension.mjs --target=firefox
+
+      - name: Install web-ext for signing
+        run: |
+          npm install -g web-ext@7
+
+      - name: Sign Firefox XPI with AMO (unlisted)
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          VERSION=${{ steps.version.outputs.version || '' }}
+          # Ensure we have a source folder for signing
+          rm -rf .firefox-src && mkdir -p .firefox-src
+          unzip -q "Rolodink-Firefox-*.zip" -d .firefox-src
+          web-ext sign \
+            --source-dir .firefox-src \
+            --channel unlisted \
+            --artifacts-dir . \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET"
+          # Produced .xpi in current directory; keep the newest as our artifact
+          ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi
 
       - name: Upload artifact (zip)
         uses: actions/upload-artifact@v4
         with:
-          name: rolodink-extension-zip
-          path: Rolodink-*.zip
+          name: rolodink-extension-artifacts
+          path: |
+            Rolodink-*.zip
+            Rolodink-Firefox-signed.xpi
 
       - name: Derive version from tag
         id: version
@@ -71,6 +111,9 @@ jobs:
           body_path: .github/RELEASE_TEMPLATE.md
           files: |
             Rolodink-${{ steps.version.outputs.version }}.zip
+            Rolodink-Edge-${{ steps.version.outputs.version }}.zip
+            Rolodink-Firefox-${{ steps.version.outputs.version }}.zip
+            Rolodink-Firefox-signed.xpi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
