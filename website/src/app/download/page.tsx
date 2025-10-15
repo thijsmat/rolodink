@@ -26,7 +26,7 @@ const features = [
   "Geen account nodig",
   "Lokaal opgeslagen data",
   "Privacy-first design",
-  "Gratis voor altijd"
+  
 ]
 
 const steps = [
@@ -102,6 +102,24 @@ export default function DownloadPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Badges for alternative downloads */}
+            <div className="grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+              <Button asChild variant="outline" className="w-full justify-center">
+                <a href="https://github.com/thijsmat/rolodink/releases/latest" target="_blank" rel="noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  GitHub Releases (Chrome/Edge/Firefox)
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-center">
+                <a href="https://github.com/thijsmat/rolodink/releases/latest" target="_blank" rel="noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  Firefox (ZIP/XPI) via GitHub
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </div>
 
             {/* Features */}
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 w-full max-w-2xl">
@@ -244,6 +262,26 @@ export default function DownloadPage() {
               </Button>
             </CardContent>
           </Card>
+        </section>
+
+        {/* Changelog */}
+        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
+          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+            <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+              Changelog
+            </h2>
+            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+              Bekijk wat er nieuw is in elke release van Rolodink.
+            </p>
+          </div>
+          <div className="mx-auto max-w-lg text-center">
+            <Button asChild className="w-full justify-center">
+              <a href="https://github.com/thijsmat/rolodink/releases" target="_blank" rel="noreferrer">
+                Ga naar alle releases
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </section>
       </main>
       

@@ -35,7 +35,7 @@ export default function DownloadPage() {
                   <a href={EXTENSION_URL} target="_blank" rel="noreferrer"><Download className="mr-2 h-4 w-4" />Add to Chrome - Free<ExternalLink className="ml-2 h-4 w-4" /></a>
                 </Button>
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 w-full max-w-2xl mx-auto">
-                  {['Works inside LinkedIn','No account required','Privacy‑first','Local settings','Free forever'].map((f)=> (
+                  {['Works inside LinkedIn','No account required','Privacy‑first','Local settings'].map((f)=> (
                     <div key={f} className="flex items-center space-x-2"><CheckCircle className="h-5 w-5 text-green-500" /><span className="text-sm">{f}</span></div>
                   ))}
                 </div>
