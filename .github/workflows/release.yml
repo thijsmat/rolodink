@@ -84,7 +84,12 @@ jobs:
           VERSION=${{ steps.version.outputs.version || '' }}
           # Ensure we have a source folder for signing
           rm -rf .firefox-src && mkdir -p .firefox-src
-          unzip -q "Rolodink-Firefox-*.zip" -d .firefox-src
+          unzip -oq "Rolodink-Firefox-*.zip" -d .firefox-src
+          # Validate AMO secrets present
+          if [ -z "${AMO_JWT_ISSUER}" ] || [ -z "${AMO_JWT_SECRET}" ]; then
+            echo "AMO credentials missing; set repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET" >&2
+            exit 1
+          fi
           web-ext sign \
             --source-dir .firefox-src \
             --channel unlisted \
