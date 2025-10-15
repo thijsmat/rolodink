@@ -155,7 +155,7 @@ export default function TermsPage() {
                   <p className="text-muted-foreground">
                     Rolodink is open source software. De volledige licentie is beschikbaar op{' '}
                     <Link 
-                      href="https://github.com/matthijsgoes/rolodink" 
+                      href="https://github.com/thijsmat/rolodink" 
                       target="_blank" 
                       rel="noreferrer"
                       className="text-primary hover:underline"
