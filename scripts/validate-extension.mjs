@@ -34,18 +34,32 @@ console.log('==> Validating manifest.json');
 if (!fs.existsSync(manifestPath)) fail('manifest.json missing');
 const manifest = readJson(manifestPath);
 
-if (manifest.manifest_version !== 3) fail('manifest_version must be 3');
+if (target === 'firefox') {
+  if (manifest.manifest_version !== 2 && manifest.manifest_version !== 3) {
+    fail('firefox: manifest_version must be 2 or 3');
+  }
+} else {
+  if (manifest.manifest_version !== 3) fail('manifest_version must be 3');
+}
 ['name', 'version', 'icons'].forEach((k) => {
   if (!manifest[k]) fail(`Missing required manifest field: ${k}`);
 });
 
-// Action popup or service worker
-if (!manifest.action && !manifest.background) {
-  fail('Expected action (popup) or background (service_worker)');
-}
-
-if (manifest.action?.default_popup) {
-  const popup = path.join(extDir, manifest.action.default_popup);
+// Action/popup checks differ per schema
+if (manifest.manifest_version === 3) {
+  if (!manifest.action && !manifest.background) {
+    fail('Expected action (popup) or background (service_worker)');
+  }
+  if (manifest.action?.default_popup) {
+    const popup = path.join(extDir, manifest.action.default_popup);
+    if (!fs.existsSync(popup)) fail(`default_popup missing: ${popup}`);
+  }
+} else if (manifest.manifest_version === 2) {
+  const browserAction = manifest.browser_action;
+  if (!browserAction || !browserAction.default_popup) {
+    fail('MV2: browser_action.default_popup is required');
+  }
+  const popup = path.join(extDir, browserAction.default_popup);
   if (!fs.existsSync(popup)) fail(`default_popup missing: ${popup}`);
 }
 
@@ -69,7 +83,9 @@ if (manifest.content_scripts) {
 }
 
 // Host permissions and permissions sanity
-if (!Array.isArray(manifest.host_permissions)) fail('host_permissions must be an array');
+if (manifest.manifest_version === 3) {
+  if (!Array.isArray(manifest.host_permissions)) fail('host_permissions must be an array');
+}
 if (!Array.isArray(manifest.permissions)) fail('permissions must be an array');
 
 // Context7-backed MV3 constraints (lightweight): no remote code via http in scripts
