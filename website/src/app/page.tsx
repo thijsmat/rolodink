@@ -4,6 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
+import { PageSection } from '@/components/layout/page-section'
+import { PageContainer } from '@/components/layout/page-container'
+import { PageHeader } from '@/components/layout/page-header'
+import { PageContent } from '@/components/layout/page-content'
+import { CtaSection } from '@/components/layout/cta-section'
+import { ProfessionGrid } from '@/components/layout/profession-grid'
 import { CheckCircle, Users, MessageSquare, Calendar } from 'lucide-react'
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/..."
@@ -15,24 +21,26 @@ export default function HomePage() {
       
       <main className="flex-1">
         {/* Hero Section - Vintage Business Card Style */}
-        <section className="paper-texture min-h-screen flex items-center">
-          <div className="container mx-auto px-6 py-20">
+        <PageSection background="paper" className="min-h-screen flex items-center">
+          <PageContainer className="max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left Side - Headline */}
               <div className="space-y-8">
-                <div className="space-y-4">
+                <PageHeader alignment="left">
                   <Badge className="bg-gold text-navy border-gold/20 px-4 py-2 text-sm font-medium">
                     🚀 Nu beschikbaar
                   </Badge>
                   <h1 className="font-playfair text-4xl md:text-6xl lg:text-7xl text-navy leading-tight">
                     Van de achterkant van een visitekaartje naar de toekomst van netwerken
                   </h1>
-                  <p className="font-inter text-lg text-charcoal leading-relaxed max-w-lg">
-                    Vroeger schreef je op de achterkant van een visitekaartje waar je iemand ontmoette en waarover je sprak. 
-                    Nu die tijd voorbij is, blijft je netwerk een raadsel. Rolodink brengt die persoonlijke touch terug naar je LinkedIn connecties.
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                  <PageContent maxWidth="lg">
+                    <p className="font-inter text-lg text-charcoal leading-relaxed">
+                      Vroeger schreef je op de achterkant van een visitekaartje waar je iemand ontmoette en waarover je sprak. 
+                      Nu die tijd voorbij is, blijft je netwerk een raadsel. Rolodink brengt die persoonlijke touch terug naar je LinkedIn connecties.
+                    </p>
+                  </PageContent>
+                </PageHeader>
+                <CtaSection>
                   <Button asChild size="lg" className="vintage-button">
                     <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
                       Add to Chrome - Gratis
@@ -43,7 +51,7 @@ export default function HomePage() {
                       Hoe werkt het?
                     </Link>
                   </Button>
-                </div>
+                </CtaSection>
               </div>
               
               {/* Right Side - Business Card Visual Metaphor */}
@@ -96,20 +104,21 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </PageContainer>
+        </PageSection>
 
         {/* Waarom Rolodink? - Vintage Business Cards */}
-        <section className="bg-warm-gray py-20">
-          <div className="container mx-auto px-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="font-playfair text-4xl md:text-5xl text-navy mb-6">Herinner je je nog visitekaartjes?</h2>
-                <p className="font-inter text-lg text-charcoal max-w-3xl mx-auto leading-relaxed">
+        <PageSection background="gray">
+          <PageContainer className="max-w-6xl">
+            <PageHeader>
+              <h2 className="font-playfair text-4xl md:text-5xl text-navy">Herinner je je nog visitekaartjes?</h2>
+              <PageContent maxWidth="xl">
+                <p className="font-inter text-lg text-charcoal leading-relaxed">
                   Voorheen schreef je op de achterkant: 'Ontmoet op Networking Event Amsterdam - geïnteresseerd in AI voor recruitment - stuur artikel over ChatGPT'. 
                   Dat kleine notitie maakte het verschil tussen een vergeten contact en een waardevolle verbinding.
                 </p>
-              </div>
+              </PageContent>
+            </PageHeader>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Card 1 */}
@@ -156,22 +165,22 @@ export default function HomePage() {
               <div className="text-center mt-12">
                 <h3 className="font-playfair text-2xl text-navy">Moderne netwerken, klassieke wijsheid</h3>
               </div>
-            </div>
-          </div>
-        </section>
+          </PageContainer>
+        </PageSection>
 
         {/* Features Preview - Vintage Business Cards */}
-        <section className="paper-texture py-20">
-          <div className="container mx-auto px-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="font-playfair text-4xl md:text-5xl text-navy mb-6">
-                  Waarom Rolodink?
-                </h2>
-                <p className="font-inter text-lg text-charcoal max-w-3xl mx-auto leading-relaxed">
+        <PageSection background="paper">
+          <PageContainer className="max-w-6xl">
+            <PageHeader>
+              <h2 className="font-playfair text-4xl md:text-5xl text-navy">
+                Waarom Rolodink?
+              </h2>
+              <PageContent maxWidth="xl">
+                <p className="font-inter text-lg text-charcoal leading-relaxed">
                   Stop met vergeten wie je sprak. Organiseer je netwerk zoals het hoort.
                 </p>
-              </div>
+              </PageContent>
+            </PageHeader>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Feature Card 1 */}
@@ -270,17 +279,18 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+          </PageContainer>
+        </PageSection>
 
         {/* Social Proof */}
-        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-            <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-              Perfect voor professionals
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <PageSection background="white">
+          <PageContainer>
+            <PageHeader>
+              <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+                Perfect voor professionals
+              </h2>
+            </PageHeader>
+            <ProfessionGrid>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className="text-sm">Recruiters</span>
@@ -305,85 +315,85 @@ export default function HomePage() {
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className="text-sm">Entrepreneurs</span>
               </div>
-            </div>
-          </div>
-        </section>
+            </ProfessionGrid>
+          </PageContainer>
+        </PageSection>
 
         {/* FAQ - Vintage Accordion Cards */}
-        <section className="bg-warm-gray py-20">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="font-playfair text-4xl md:text-5xl text-navy text-center mb-16">FAQ</h2>
-              
-              <div className="space-y-6">
-                <div className="business-card-elevated border-gold/30">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-playfair text-xl text-navy font-semibold">
-                        Waarom Rolodink? Er zijn toch genoeg CRM-systemen?
-                      </h3>
-                      <div className="w-6 h-6 bg-gold rounded-full flex items-center justify-center ml-4 flex-shrink-0">
-                        <svg className="w-3 h-3 text-navy" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-                        </svg>
-                      </div>
+        <PageSection background="gray">
+          <PageContainer>
+            <PageHeader>
+              <h2 className="font-playfair text-4xl md:text-5xl text-navy">FAQ</h2>
+            </PageHeader>
+            
+            <div className="space-y-6">
+              <div className="business-card-elevated border-gold/30">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-playfair text-xl text-navy font-semibold">
+                      Waarom Rolodink? Er zijn toch genoeg CRM-systemen?
+                    </h3>
+                    <div className="w-6 h-6 bg-gold rounded-full flex items-center justify-center ml-4 flex-shrink-0">
+                      <svg className="w-3 h-3 text-navy" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+                      </svg>
                     </div>
-                    <div className="border-t border-navy/20 pt-4">
+                  </div>
+                  <div className="border-t border-navy/20 pt-4">
+                    <PageContent>
                       <p className="font-inter text-charcoal leading-relaxed">
                         CRM-systemen zijn voor verkoop. Rolodink is voor menselijke connecties. Het is de digitale versie van wat je vroeger op de achterkant van een visitekaartje schreef — simpel, persoonlijk, en direct beschikbaar waar je het nodig hebt: in LinkedIn.
                       </p>
-                    </div>
+                    </PageContent>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </PageContainer>
+        </PageSection>
 
         {/* CTA Section - Premium Business Card */}
-        <section className="paper-texture py-20">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="business-card-elevated border-2 border-gold/50 bg-gradient-to-br from-cream to-warm-gray">
-                <div className="text-center space-y-8">
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 bg-gold rounded-full flex items-center justify-center mx-auto">
-                      <svg className="w-8 h-8 text-navy" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
-                    </div>
-                    <h2 className="font-playfair text-4xl md:text-5xl text-navy">
-                      Begin vandaag nog
-                    </h2>
-                    <p className="font-inter text-lg text-charcoal max-w-2xl mx-auto leading-relaxed">
-                      Installeer Rolodink en transformeer hoe je je LinkedIn netwerk beheert. 
-                      Breng de persoonlijke touch van visitekaartjes terug naar je digitale netwerk.
-                    </p>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="vintage-button text-lg px-8 py-4">
-                      <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-                        Add to Chrome - Gratis
-                      </a>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="border-navy text-navy hover:bg-navy hover:text-cream text-lg px-8 py-4">
-                      <Link href="/how-it-works">
-                        Bekijk demo
-                      </Link>
-                    </Button>
-                  </div>
-                  
-                  <div className="pt-8 border-t border-navy/20">
-                    <p className="font-inter text-sm text-charcoal/70">
-                      Geen creditcard vereist • 30 seconden installatie • Werkt direct in LinkedIn
-                    </p>
-                  </div>
+        <PageSection background="paper">
+          <PageContainer>
+            <div className="business-card-elevated border-2 border-gold/50 bg-gradient-to-br from-cream to-warm-gray">
+              <PageHeader>
+                <div className="w-16 h-16 bg-gold rounded-full flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-navy" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
                 </div>
+                <h2 className="font-playfair text-4xl md:text-5xl text-navy">
+                  Begin vandaag nog
+                </h2>
+                <PageContent maxWidth="xl">
+                  <p className="font-inter text-lg text-charcoal leading-relaxed">
+                    Installeer Rolodink en transformeer hoe je je LinkedIn netwerk beheert. 
+                    Breng de persoonlijke touch van visitekaartjes terug naar je digitale netwerk.
+                  </p>
+                </PageContent>
+              </PageHeader>
+              
+              <CtaSection className="mb-8">
+                <Button asChild size="lg" className="vintage-button text-lg px-8 py-4">
+                  <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
+                    Add to Chrome - Gratis
+                  </a>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="border-navy text-navy hover:bg-navy hover:text-cream text-lg px-8 py-4">
+                  <Link href="/how-it-works">
+                    Bekijk demo
+                  </Link>
+                </Button>
+              </CtaSection>
+              
+              <div className="pt-8 border-t border-navy/20 text-center">
+                <p className="font-inter text-sm text-charcoal/70">
+                  Geen creditcard vereist • 30 seconden installatie • Werkt direct in LinkedIn
+                </p>
               </div>
             </div>
-          </div>
-        </section>
+          </PageContainer>
+        </PageSection>
       </main>
       
       <SiteFooter />

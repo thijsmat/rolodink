@@ -17,6 +17,11 @@ const config: Config = {
         linkedin: '#0066CC',
         charcoal: '#2D3748',
         'warm-gray': '#F5F5F4',
+        // Enhanced vintage colors
+        'vintage-dark': '#0f172a',
+        'vintage-cream': '#faf8f3',
+        'vintage-gold': '#d4af37',
+        'linkedin-blue': '#0077b5',
         // Keep existing shadcn colors
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
