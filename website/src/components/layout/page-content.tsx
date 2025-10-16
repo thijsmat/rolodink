@@ -4,23 +4,38 @@ import { cn } from '@/lib/utils'
 interface PageContentProps {
   children: ReactNode
   className?: string
-  maxWidth?: 'prose' | 'lg' | 'xl' | 'full'
+  maxWidth?: 'sm' | 'prose' | 'lg' | 'xl' | '2xl' | 'full'
+  alignment?: 'left' | 'center' | 'right'
 }
 
 export function PageContent({ 
   children, 
   className, 
-  maxWidth = 'prose' 
+  maxWidth = 'prose',
+  alignment = 'left'
 }: PageContentProps) {
   const maxWidthClasses = {
-    prose: 'max-w-prose mx-auto text-left',
-    lg: 'max-w-lg mx-auto text-left',
-    xl: 'max-w-xl mx-auto text-left',
-    full: 'text-left'
+    sm: 'max-w-sm',
+    prose: 'max-w-prose',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl', 
+    '2xl': 'max-w-2xl',
+    full: 'max-w-full'
+  }
+
+  const alignmentClasses = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
   }
 
   return (
-    <div className={cn(maxWidthClasses[maxWidth], className)}>
+    <div className={cn(
+      maxWidthClasses[maxWidth],
+      alignmentClasses[alignment],
+      maxWidth !== 'full' && 'mx-auto',
+      className
+    )}>
       {children}
     </div>
   )

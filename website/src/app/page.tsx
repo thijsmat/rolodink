@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card-enhanced'
 import { Badge } from '@/components/ui/badge'
+import { Text } from '@/components/ui/text'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PageSection } from '@/components/layout/page-section'
@@ -9,7 +10,7 @@ import { PageContainer } from '@/components/layout/page-container'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageContent } from '@/components/layout/page-content'
 import { CtaSection } from '@/components/layout/cta-section'
-import { ProfessionGrid } from '@/components/layout/profession-grid'
+import { Grid } from '@/components/layout/grid'
 import { CheckCircle, Users, MessageSquare, Calendar } from 'lucide-react'
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/..."
@@ -21,32 +22,37 @@ export default function HomePage() {
       
       <main className="flex-1">
         {/* Hero Section - Vintage Business Card Style */}
-        <PageSection background="paper" className="min-h-screen flex items-center">
-          <PageContainer className="max-w-6xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <PageSection background="paper" fullHeight>
+          <PageContainer size="xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               {/* Left Side - Headline */}
-              <div className="space-y-8">
-                <PageHeader alignment="left">
-                  <Badge className="bg-gold text-navy border-gold/20 px-4 py-2 text-sm font-medium">
+              <div className="space-y-8 animate-fade-in">
+                <PageHeader alignment="left" spacing="lg">
+                  <Badge className="bg-gold text-navy border-gold/20 px-4 py-2 text-sm font-medium shadow-sm">
                     🚀 Nu beschikbaar
                   </Badge>
-                  <h1 className="font-playfair text-4xl md:text-6xl lg:text-7xl text-navy leading-tight">
+                  <Text 
+                    variant="heading" 
+                    size="6xl" 
+                    weight="bold"
+                    className="text-navy leading-tight tracking-tight"
+                  >
                     Van de achterkant van een visitekaartje naar de toekomst van netwerken
-                  </h1>
-                  <PageContent maxWidth="lg">
-                    <p className="font-inter text-lg text-charcoal leading-relaxed">
+                  </Text>
+                  <PageContent maxWidth="xl" alignment="left">
+                    <Text variant="lead" className="text-charcoal leading-relaxed">
                       Vroeger schreef je op de achterkant van een visitekaartje waar je iemand ontmoette en waarover je sprak. 
                       Nu die tijd voorbij is, blijft je netwerk een raadsel. Rolodink brengt die persoonlijke touch terug naar je LinkedIn connecties.
-                    </p>
+                    </Text>
                   </PageContent>
                 </PageHeader>
-                <CtaSection>
-                  <Button asChild size="lg" className="vintage-button">
+                <CtaSection spacing="lg">
+                  <Button asChild size="xl" variant="vintage">
                     <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
                       Add to Chrome - Gratis
                     </a>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="border-navy text-navy hover:bg-navy hover:text-cream">
+                  <Button asChild variant="outline" size="xl" className="border-navy text-navy hover:bg-navy hover:text-cream">
                     <Link href="/how-it-works">
                       Hoe werkt het?
                     </Link>
@@ -169,229 +175,222 @@ export default function HomePage() {
         </PageSection>
 
         {/* Features Preview - Vintage Business Cards */}
-        <PageSection background="paper">
-          <PageContainer className="max-w-6xl">
-            <PageHeader>
-              <h2 className="font-playfair text-4xl md:text-5xl text-navy">
+        <PageSection background="gradient" padding="lg">
+          <PageContainer size="lg">
+            <PageHeader spacing="lg">
+              <Text variant="heading" size="5xl" weight="bold" className="text-navy">
                 Waarom Rolodink?
-              </h2>
-              <PageContent maxWidth="xl">
-                <p className="font-inter text-lg text-charcoal leading-relaxed">
+              </Text>
+              <PageContent maxWidth="2xl">
+                <Text variant="lead" className="text-charcoal leading-relaxed">
                   Stop met vergeten wie je sprak. Organiseer je netwerk zoals het hoort.
-                </p>
+                </Text>
               </PageContent>
             </PageHeader>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Feature Card 1 */}
-                <div className="card-flip group cursor-pointer">
-                  <div className="card-flip-inner">
-                    <div className="card-flip-front">
-                      <div className="business-card-elevated h-full">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center">
-                            <Users className="h-6 w-6 text-cream" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Netwerk bijhouden</h3>
-                          <p className="font-inter text-charcoal">Bewaar notities bij elke LinkedIn connectie</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="card-flip-back">
-                      <div className="business-card-elevated h-full bg-gold/5 border-gold/30">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center">
-                            <Users className="h-6 w-6 text-navy" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Netwerk bijhouden</h3>
-                          <ul className="font-inter text-sm text-charcoal space-y-2">
-                            <li>• Automatische profielherkenning</li>
-                            <li>• Persoonlijke notities per contact</li>
-                            <li>• Zoeken in je netwerk</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+            <Grid cols={3} gap="lg">
+              {/* Feature Card 1 */}
+              <Card variant="elevated" hover className="group cursor-pointer transition-all duration-300 hover:scale-105">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center mb-4">
+                    <Users className="h-6 w-6 text-cream" />
                   </div>
-                </div>
+                  <CardTitle>Netwerk bijhouden</CardTitle>
+                  <CardDescription>
+                    Bewaar notities bij elke LinkedIn connectie
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="font-inter text-sm text-charcoal space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Automatische profielherkenning
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Persoonlijke notities per contact
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Zoeken in je netwerk
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
                 
-                {/* Feature Card 2 */}
-                <div className="card-flip group cursor-pointer">
-                  <div className="card-flip-inner">
-                    <div className="card-flip-front">
-                      <div className="business-card-elevated h-full">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center">
-                            <MessageSquare className="h-6 w-6 text-cream" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Gesprekken onthouden</h3>
-                          <p className="font-inter text-charcoal">Waar spraken jullie over? Waar ontmoetten jullie elkaar?</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="card-flip-back">
-                      <div className="business-card-elevated h-full bg-gold/5 border-gold/30">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center">
-                            <MessageSquare className="h-6 w-6 text-navy" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Gesprekken onthouden</h3>
-                          <ul className="font-inter text-sm text-charcoal space-y-2">
-                            <li>• Contextuele notities</li>
-                            <li>• Gespreksgeschiedenis</li>
-                            <li>• Follow-up herinneringen</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+              {/* Feature Card 2 */}
+              <Card variant="elevated" hover className="group cursor-pointer transition-all duration-300 hover:scale-105">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="h-6 w-6 text-cream" />
                   </div>
-                </div>
+                  <CardTitle>Gesprekken onthouden</CardTitle>
+                  <CardDescription>
+                    Waar spraken jullie over? Waar ontmoetten jullie elkaar?
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="font-inter text-sm text-charcoal space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Contextuele notities
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Gespreksgeschiedenis
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Follow-up herinneringen
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
                 
-                {/* Feature Card 3 */}
-                <div className="card-flip group cursor-pointer">
-                  <div className="card-flip-inner">
-                    <div className="card-flip-front">
-                      <div className="business-card-elevated h-full">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center">
-                            <Calendar className="h-6 w-6 text-cream" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Slimmer opvolgen</h3>
-                          <p className="font-inter text-charcoal">Geen vergeten afspraken of verloren contacten meer</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="card-flip-back">
-                      <div className="business-card-elevated h-full bg-gold/5 border-gold/30">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center">
-                            <Calendar className="h-6 w-6 text-navy" />
-                          </div>
-                          <h3 className="font-playfair text-xl text-navy">Slimmer opvolgen</h3>
-                          <ul className="font-inter text-sm text-charcoal space-y-2">
-                            <li>• Automatische herinneringen</li>
-                            <li>• Follow-up templates</li>
-                            <li>• Prioriteit instellen</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+              {/* Feature Card 3 */}
+              <Card variant="elevated" hover className="group cursor-pointer transition-all duration-300 hover:scale-105">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center mb-4">
+                    <Calendar className="h-6 w-6 text-cream" />
                   </div>
-                </div>
-              </div>
+                  <CardTitle>Slimmer opvolgen</CardTitle>
+                  <CardDescription>
+                    Geen vergeten afspraken of verloren contacten meer
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="font-inter text-sm text-charcoal space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Automatische herinneringen
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Follow-up templates
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                      Prioriteit instellen
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </Grid>
           </PageContainer>
         </PageSection>
 
         {/* Social Proof */}
-        <PageSection background="white">
+        <PageSection background="white" padding="lg">
           <PageContainer>
-            <PageHeader>
-              <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+            <PageHeader spacing="lg">
+              <Text variant="heading" size="5xl" weight="bold" className="text-navy">
                 Perfect voor professionals
-              </h2>
+              </Text>
             </PageHeader>
-            <ProfessionGrid>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Recruiters</span>
+            <Grid cols={3} gap="md">
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Recruiters</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Sales professionals</span>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Sales professionals</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Netwerkers</span>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Netwerkers</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Freelancers</span>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Freelancers</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Consultants</span>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Consultants</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">Entrepreneurs</span>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="font-inter text-sm font-medium text-charcoal">Entrepreneurs</span>
               </div>
-            </ProfessionGrid>
+            </Grid>
           </PageContainer>
         </PageSection>
 
         {/* FAQ - Vintage Accordion Cards */}
-        <PageSection background="gray">
+        <PageSection background="gray" padding="lg">
           <PageContainer>
-            <PageHeader>
-              <h2 className="font-playfair text-4xl md:text-5xl text-navy">FAQ</h2>
+            <PageHeader spacing="lg">
+              <Text variant="heading" size="5xl" weight="bold" className="text-navy">
+                FAQ
+              </Text>
             </PageHeader>
             
             <div className="space-y-6">
-              <div className="business-card-elevated border-gold/30">
-                <div className="space-y-4">
+              <Card variant="vintage" className="transition-all duration-200 hover:shadow-xl">
+                <CardHeader>
                   <div className="flex items-start justify-between">
-                    <h3 className="font-playfair text-xl text-navy font-semibold">
+                    <CardTitle className="text-left">
                       Waarom Rolodink? Er zijn toch genoeg CRM-systemen?
-                    </h3>
+                    </CardTitle>
                     <div className="w-6 h-6 bg-gold rounded-full flex items-center justify-center ml-4 flex-shrink-0">
                       <svg className="w-3 h-3 text-navy" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
                       </svg>
                     </div>
                   </div>
-                  <div className="border-t border-navy/20 pt-4">
-                    <PageContent>
-                      <p className="font-inter text-charcoal leading-relaxed">
-                        CRM-systemen zijn voor verkoop. Rolodink is voor menselijke connecties. Het is de digitale versie van wat je vroeger op de achterkant van een visitekaartje schreef — simpel, persoonlijk, en direct beschikbaar waar je het nodig hebt: in LinkedIn.
-                      </p>
-                    </PageContent>
-                  </div>
-                </div>
-              </div>
+                </CardHeader>
+                <CardContent>
+                  <PageContent>
+                    <Text variant="body" className="text-charcoal leading-relaxed">
+                      CRM-systemen zijn voor verkoop. Rolodink is voor menselijke connecties. Het is de digitale versie van wat je vroeger op de achterkant van een visitekaartje schreef — simpel, persoonlijk, en direct beschikbaar waar je het nodig hebt: in LinkedIn.
+                    </Text>
+                  </PageContent>
+                </CardContent>
+              </Card>
             </div>
           </PageContainer>
         </PageSection>
 
         {/* CTA Section - Premium Business Card */}
-        <PageSection background="paper">
+        <PageSection background="paper" padding="xl">
           <PageContainer>
-            <div className="business-card-elevated border-2 border-gold/50 bg-gradient-to-br from-cream to-warm-gray">
-              <PageHeader>
-                <div className="w-16 h-16 bg-gold rounded-full flex items-center justify-center mx-auto">
+            <Card variant="vintage" className="text-center">
+              <CardHeader className="pb-8">
+                <div className="w-16 h-16 bg-gold rounded-full flex items-center justify-center mx-auto mb-6">
                   <svg className="w-8 h-8 text-navy" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
                 </div>
-                <h2 className="font-playfair text-4xl md:text-5xl text-navy">
+                <Text variant="heading" size="5xl" weight="bold" className="text-navy mb-6">
                   Begin vandaag nog
-                </h2>
+                </Text>
                 <PageContent maxWidth="xl">
-                  <p className="font-inter text-lg text-charcoal leading-relaxed">
+                  <Text variant="lead" className="text-charcoal leading-relaxed">
                     Installeer Rolodink en transformeer hoe je je LinkedIn netwerk beheert. 
                     Breng de persoonlijke touch van visitekaartjes terug naar je digitale netwerk.
-                  </p>
+                  </Text>
                 </PageContent>
-              </PageHeader>
+              </CardHeader>
               
-              <CtaSection className="mb-8">
-                <Button asChild size="lg" className="vintage-button text-lg px-8 py-4">
+              <CtaSection spacing="lg" className="mb-8">
+                <Button asChild size="xl" variant="vintage">
                   <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
                     Add to Chrome - Gratis
                   </a>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="border-navy text-navy hover:bg-navy hover:text-cream text-lg px-8 py-4">
+                <Button asChild variant="outline" size="xl" className="border-navy text-navy hover:bg-navy hover:text-cream">
                   <Link href="/how-it-works">
                     Bekijk demo
                   </Link>
                 </Button>
               </CtaSection>
               
-              <div className="pt-8 border-t border-navy/20 text-center">
-                <p className="font-inter text-sm text-charcoal/70">
+              <div className="pt-8 border-t border-navy/20">
+                <Text variant="caption" className="text-charcoal/70">
                   Geen creditcard vereist • 30 seconden installatie • Werkt direct in LinkedIn
-                </p>
+                </Text>
               </div>
-            </div>
+            </Card>
           </PageContainer>
         </PageSection>
       </main>
