@@ -21,7 +21,7 @@ const Text = React.forwardRef<HTMLElement, TextProps>(
     ...props 
   }, ref) => {
     // Determine the HTML element based on variant and as prop
-    const getElement = () => {
+    const getElement = (): keyof React.JSX.IntrinsicElements => {
       if (as) return as
       switch (variant) {
         case 'heading': return 'h2'
@@ -31,7 +31,7 @@ const Text = React.forwardRef<HTMLElement, TextProps>(
       }
     }
 
-    const Element = getElement() as keyof JSX.IntrinsicElements
+    const Element = getElement()
 
     // Variant-based styling
     const variantClasses = {
