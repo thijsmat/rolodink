@@ -8,37 +8,34 @@ import { Menu } from 'lucide-react'
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+    <header className="sticky top-0 z-50 w-full border-b border-gold/20 bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/60 shadow-sm">
+      <div className="container flex h-16 max-w-4xl items-center">
         {/* Left: Logo */}
-        <Link className="mr-4 flex items-center space-x-2" href="/">
-          <Image
-            src="/logo.png"
-            alt="Rolodink"
-            width={140}
-            height={28}
-            priority
-          />
+        <Link className="mr-8 flex items-center space-x-2" href="/">
+          <div className="w-8 h-8 bg-navy rounded-lg flex items-center justify-center">
+            <span className="text-cream font-bold text-lg font-playfair">R</span>
+          </div>
+          <span className="font-playfair text-xl font-bold text-navy">Rolodink</span>
         </Link>
 
         {/* Desktop Nav (right aligned) */}
-        <nav className="ml-auto hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/">
+        <nav className="ml-auto hidden md:flex items-center space-x-8 text-sm font-medium">
+          <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/">
             Home
           </Link>
-          <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/features">
+          <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/features">
             Features
           </Link>
-          <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/help">
+          <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/help">
             Help
           </Link>
-          <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/privacy">
+          <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/privacy">
             Privacy
           </Link>
-          <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/terms">
+          <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/terms">
             Terms
           </Link>
-          <Button asChild>
+          <Button asChild variant="vintage" size="sm">
             <Link href="/download">Download</Link>
           </Button>
         </nav>
@@ -46,7 +43,7 @@ export function SiteHeader() {
         {/* Mobile: Hamburger button */}
         <button
           aria-label="Open navigation menu"
-          className="ml-auto inline-flex items-center justify-center rounded-md p-2 hover:bg-accent md:hidden"
+          className="ml-auto inline-flex items-center justify-center rounded-lg p-2 hover:bg-navy/10 text-navy md:hidden transition-colors"
           onClick={() => setOpen((v) => !v)}
         >
           <Menu className="h-5 w-5" />
@@ -55,14 +52,50 @@ export function SiteHeader() {
 
       {/* Mobile menu drawer */}
       {open && (
-        <div className="md:hidden border-t bg-background">
-          <nav className="container py-2 flex flex-col space-y-1">
-            <Link className="px-2 py-2 rounded hover:bg-accent" href="/" onClick={() => setOpen(false)}>Home</Link>
-            <Link className="px-2 py-2 rounded hover:bg-accent" href="/features" onClick={() => setOpen(false)}>Features</Link>
-            <Link className="px-2 py-2 rounded hover:bg-accent" href="/help" onClick={() => setOpen(false)}>Help</Link>
-            <Link className="px-2 py-2 rounded hover:bg-accent" href="/privacy" onClick={() => setOpen(false)}>Privacy</Link>
-            <Link className="px-2 py-2 rounded hover:bg-accent" href="/terms" onClick={() => setOpen(false)}>Terms</Link>
-            <Link className="px-2 py-2 rounded hover:bg-accent font-medium" href="/download" onClick={() => setOpen(false)}>Download</Link>
+        <div className="md:hidden border-t border-gold/20 bg-cream/95 backdrop-blur">
+          <nav className="container py-4 flex flex-col space-y-2">
+            <Link 
+              className="px-4 py-3 rounded-lg hover:bg-navy/10 text-charcoal font-inter transition-colors" 
+              href="/" 
+              onClick={() => setOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              className="px-4 py-3 rounded-lg hover:bg-navy/10 text-charcoal font-inter transition-colors" 
+              href="/features" 
+              onClick={() => setOpen(false)}
+            >
+              Features
+            </Link>
+            <Link 
+              className="px-4 py-3 rounded-lg hover:bg-navy/10 text-charcoal font-inter transition-colors" 
+              href="/help" 
+              onClick={() => setOpen(false)}
+            >
+              Help
+            </Link>
+            <Link 
+              className="px-4 py-3 rounded-lg hover:bg-navy/10 text-charcoal font-inter transition-colors" 
+              href="/privacy" 
+              onClick={() => setOpen(false)}
+            >
+              Privacy
+            </Link>
+            <Link 
+              className="px-4 py-3 rounded-lg hover:bg-navy/10 text-charcoal font-inter transition-colors" 
+              href="/terms" 
+              onClick={() => setOpen(false)}
+            >
+              Terms
+            </Link>
+            <div className="pt-2">
+              <Button asChild variant="vintage" size="sm" className="w-full">
+                <Link href="/download" onClick={() => setOpen(false)}>
+                  Download
+                </Link>
+              </Button>
+            </div>
           </nav>
         </div>
       )}
