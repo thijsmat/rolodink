@@ -1,58 +1,56 @@
-"use client"
+import * as React from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { ChevronDown } from "lucide-react";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils";
 
-interface AccordionItemProps {
-  title: string
-  children: React.ReactNode
-  defaultOpen?: boolean
-  className?: string
-}
+const Accordion = AccordionPrimitive.Root;
 
-export function AccordionItem({ title, children, defaultOpen = false, className }: AccordionItemProps) {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen)
+const AccordionItem = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Item
+    ref={ref}
+    className={cn("border-b", className)}
+    {...props}
+  />
+));
+AccordionItem.displayName = "AccordionItem";
 
-  return (
-    <div className={cn("border border-gold/20 rounded-lg overflow-hidden", className)}>
-      <button
-        className="w-full px-6 py-4 text-left bg-gradient-to-r from-cream to-warm-gray hover:from-cream/80 hover:to-warm-gray/80 transition-all duration-200 flex items-center justify-between group"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-      >
-        <span className="font-playfair text-lg font-semibold text-navy group-hover:text-navy/80 transition-colors">
-          {title}
-        </span>
-        <ChevronDown 
-          className={cn(
-            "w-5 h-5 text-navy transition-transform duration-200",
-            isOpen && "rotate-180"
-          )}
-        />
-      </button>
-      
-      <div className={cn(
-        "overflow-hidden transition-all duration-300 ease-in-out",
-        isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-      )}>
-        <div className="px-6 py-4 bg-white border-t border-gold/10">
-          {children}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-interface AccordionProps {
-  children: React.ReactNode
-  className?: string
-}
-
-export function Accordion({ children, className }: AccordionProps) {
-  return (
-    <div className={cn("space-y-4", className)}>
+const AccordionTrigger = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+        className,
+      )}
+      {...props}
+    >
       {children}
-    </div>
-  )
-}
+      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+    </AccordionPrimitive.Trigger>
+  </AccordionPrimitive.Header>
+));
+AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
+
+const AccordionContent = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Content
+    ref={ref}
+    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    {...props}
+  >
+    <div className={cn("pb-4 pt-0", className)}>{children}</div>
+  </AccordionPrimitive.Content>
+));
+
+AccordionContent.displayName = AccordionPrimitive.Content.displayName;
+
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

@@ -35,7 +35,7 @@ export function SiteHeader() {
           <Link className="transition-colors hover:text-navy/80 text-charcoal/70 font-inter" href="/terms">
             Terms
           </Link>
-          <Button asChild variant="vintage" size="sm">
+          <Button asChild size="sm">
             <Link href="/download">Download</Link>
           </Button>
         </nav>
@@ -90,7 +90,7 @@ export function SiteHeader() {
               Terms
             </Link>
             <div className="pt-2">
-              <Button asChild variant="vintage" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full">
                 <Link href="/download" onClick={() => setOpen(false)}>
                   Download
                 </Link>
