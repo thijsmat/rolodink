@@ -1,145 +1,113 @@
 export default function CTA() {
   return (
-    <section className="py-24 px-8 bg-gradient-to-br from-azure to-azure/80 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-gold/10 blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-linkBlue/10 blur-3xl"></div>
+    <section className="relative py-24 px-8 bg-gradient-to-br from-azure via-azure/90 to-azure/80 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px'
+        }} />
+      </div>
 
-      <div className="max-w-[896px] mx-auto relative z-10">
-        <div className="text-center mb-8">
-          <h2 className="font-playfair font-semibold text-5xl text-white mb-4">
-            Klaar om je netwerk te versterken?
+      <div className="container mx-auto px-6 max-w-4xl relative z-10">
+        <div className="text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/10 mb-8">
+            <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+            <span className="text-sm font-medium text-white">Klaar om te beginnen?</span>
+          </div>
+
+          {/* Headline */}
+          <h2 className="font-playfair font-bold text-5xl md:text-6xl lg:text-7xl text-white mb-8 leading-tight">
+            Start vandaag nog met{' '}
+            <span className="relative">
+              betere networking
+              <div className="absolute -bottom-2 left-0 right-0 h-3 bg-gold/30 -rotate-1 rounded"></div>
+            </span>
           </h2>
-          <p className="text-xl text-white/80 max-w-[672px] mx-auto">
-            Voeg vandaag nog Rolodink toe aan Chrome en begin met het opbouwen
-            van betekenisvolle, persoonlijke professionele relaties.
+
+          {/* Description */}
+          <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-3xl mx-auto mb-12">
+            Voeg Rolodink toe aan Chrome en transformeer je LinkedIn ervaring. 
+            Bouw betekenisvolle professionele relaties met persoonlijke notities en context.
           </p>
-        </div>
 
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <button className="h-10 px-4 rounded-lg bg-white text-azure text-sm font-medium shadow-xl hover:bg-white/90 transition-colors flex items-center gap-2">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
+            <a
+              href="https://chrome.google.com/webstore/detail/rolodink"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white hover:bg-gold text-azure font-bold px-10 py-5 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center gap-4 text-lg"
             >
-              <path
-                d="M7.25333 14.6268L10.3067 9.3335"
-                stroke="#1B2951"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M14.1133 5.3335H8"
-                stroke="#1B2951"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2.63333 4.04004L5.69333 9.33337"
-                stroke="#1B2951"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8 14.6668C11.6819 14.6668 14.6667 11.6821 14.6667 8.00016C14.6667 4.31826 11.6819 1.3335 8 1.3335C4.3181 1.3335 1.33334 4.31826 1.33334 8.00016C1.33334 11.6821 4.3181 14.6668 8 14.6668Z"
-                stroke="#1B2951"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8 10.6668C9.47276 10.6668 10.6667 9.47292 10.6667 8.00016C10.6667 6.5274 9.47276 5.3335 8 5.3335C6.52724 5.3335 5.33334 6.5274 5.33334 8.00016C5.33334 9.47292 6.52724 10.6668 8 10.6668Z"
-                stroke="#1B2951"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Add to Chrome - Gratis
-          </button>
-          <button className="h-10 px-4 rounded-lg border-2 border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2">
-            Bekijk demo
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="group-hover:rotate-12 transition-transform duration-300">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+                <path d="M2 17L12 22L22 17" fill="currentColor"/>
+                <path d="M2 12L12 17L22 12" fill="currentColor"/>
+              </svg>
+              Add to Chrome - Gratis
+            </a>
+            <a
+              href="/how-it-works"
+              className="group border-2 border-white bg-transparent hover:bg-white/10 text-white font-semibold px-10 py-5 rounded-xl transition-all duration-300 flex items-center gap-4 text-lg"
             >
-              <path
-                d="M3.33334 8H12.6667"
-                stroke="white"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8 3.3335L12.6667 8.00016L8 12.6668"
-                stroke="white"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="group-hover:scale-110 transition-transform duration-300">
+                <path d="M14.828 14.828L21 21M21 21L16.5 21M21 21V16.5M21 21V21M21 21H16.5M21 21H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 3H21M3 3V21M3 3L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Bekijk hoe het werkt
+            </a>
+          </div>
 
-        <div className="flex items-center justify-center gap-6 text-white/70 text-sm">
-          <div className="flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M10 18C12.1217 18 14.1566 17.1571 15.6569 15.6569C17.1571 14.1566 18 12.1217 18 10C18 7.87827 17.1571 5.84344 15.6569 4.34315C14.1566 2.84285 12.1217 2 10 2C7.87827 2 5.84344 2.84285 4.34315 4.34315C2.84285 5.84344 2 7.87827 2 10C2 12.1217 2.84285 14.1566 4.34315 15.6569C5.84344 17.1571 7.87827 18 10 18ZM13.707 8.707C13.8892 8.5184 13.99 8.2658 13.9877 8.0036C13.9854 7.7414 13.8802 7.49059 13.6948 7.30518C13.5094 7.11977 13.2586 7.0146 12.9964 7.01233C12.7342 7.01005 12.4816 7.11084 12.293 7.293L9 10.586L7.707 9.293C7.5184 9.11084 7.2658 9.01005 7.0036 9.01233C6.7414 9.0146 6.49059 9.11977 6.30518 9.30518C6.11977 9.49059 6.0146 9.7414 6.01233 10.0036C6.01005 10.2658 6.11084 10.5184 6.293 10.707L8.293 12.707C8.48053 12.8945 8.73484 12.9998 9 12.9998C9.26516 12.9998 9.51947 12.8945 9.707 12.707L13.707 8.707Z"
-                fill="#B8860B"
-              />
-            </svg>
-            <span>Gratis te gebruiken</span>
+          {/* Social Proof */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-white/80">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-10 rounded-full border-3 border-white bg-gradient-to-br from-gold to-gold/80 shadow-md"
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium">500+ actieve gebruikers</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex text-gold text-lg">
+                ★★★★★
+              </div>
+              <span className="text-sm font-medium">4.9/5 rating</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 0L10.472 5.528L16 8L10.472 10.472L8 16L5.528 10.472L0 8L5.528 5.528L8 0Z" fill="currentColor"/>
+              </svg>
+              <span className="text-sm font-medium">100% gratis</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M10 18C12.1217 18 14.1566 17.1571 15.6569 15.6569C17.1571 14.1566 18 12.1217 18 10C18 7.87827 17.1571 5.84344 15.6569 4.34315C14.1566 2.84285 12.1217 2 10 2C7.87827 2 5.84344 2.84285 4.34315 4.34315C2.84285 5.84344 2 7.87827 2 10C2 12.1217 2.84285 14.1566 4.34315 15.6569C5.84344 17.1571 7.87827 18 10 18ZM13.707 8.707C13.8892 8.5184 13.99 8.2658 13.9877 8.0036C13.9854 7.7414 13.8802 7.49059 13.6948 7.30518C13.5094 7.11977 13.2586 7.0146 12.9964 7.01233C12.7342 7.01005 12.4816 7.11084 12.293 7.293L9 10.586L7.707 9.293C7.5184 9.11084 7.2658 9.01005 7.0036 9.01233C6.7414 9.0146 6.49059 9.11977 6.30518 9.30518C6.11977 9.49059 6.0146 9.7414 6.01233 10.0036C6.01005 10.2658 6.11084 10.5184 6.293 10.707L8.293 12.707C8.48053 12.8945 8.73484 12.9998 9 12.9998C9.26516 12.9998 9.51947 12.8945 9.707 12.707L13.707 8.707Z"
-                fill="#B8860B"
-              />
-            </svg>
-            <span>Privacy gegarandeerd</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M10 18C12.1217 18 14.1566 17.1571 15.6569 15.6569C17.1571 14.1566 18 12.1217 18 10C18 7.87827 17.1571 5.84344 15.6569 4.34315C14.1566 2.84285 12.1217 2 10 2C7.87827 2 5.84344 2.84285 4.34315 4.34315C2.84285 5.84344 2 7.87827 2 10C2 12.1217 2.84285 14.1566 4.34315 15.6569C5.84344 17.1571 7.87827 18 10 18ZM13.707 8.707C13.8892 8.5184 13.99 8.2658 13.9877 8.0036C13.9854 7.7414 13.8802 7.49059 13.6948 7.30518C13.5094 7.11977 13.2586 7.0146 12.9964 7.01233C12.7342 7.01005 12.4816 7.11084 12.293 7.293L9 10.586L7.707 9.293C7.5184 9.11084 7.2658 9.01005 7.0036 9.01233C6.7414 9.0146 6.49059 9.11977 6.30518 9.30518C6.11977 9.49059 6.0146 9.7414 6.01233 10.0036C6.01005 10.2658 6.11084 10.5184 6.293 10.707L8.293 12.707C8.48053 12.8945 8.73484 12.9998 9 12.9998C9.26516 12.9998 9.51947 12.8945 9.707 12.707L13.707 8.707Z"
-                fill="#B8860B"
-              />
-            </svg>
-            <span>Installatie in 30 seconden</span>
+
+          {/* Trust Indicators */}
+          <div className="mt-16 pt-8 border-t border-white/20">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-white/60 text-sm">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z" fill="currentColor"/>
+                </svg>
+                <span>Privacy-first design</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z" fill="currentColor"/>
+                </svg>
+                <span>Geen account vereist</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z" fill="currentColor"/>
+                </svg>
+                <span>Direct te gebruiken</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
