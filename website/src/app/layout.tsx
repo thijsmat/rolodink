@@ -63,7 +63,7 @@ export default function RootLayout({
           src="https://plausible.io/js/script.js"
         />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} font-inter`}>
+      <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
         {children}
         <Analytics />
       </body>

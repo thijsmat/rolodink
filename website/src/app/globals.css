@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 40 27% 95%; /* #F7F5F0 */
     --foreground: 221 50% 21%;
 
     --card: 0 0% 100%;
@@ -33,6 +33,12 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 221 50% 21%;
+
+    /* Rolodink Design Kit Colors */
+    --azure: 221 50% 21%; /* #1B2951 */
+    --gold: 45 90% 38%; /* #B8860B */
+    --grey: 0 0% 32%; /* #525252 */
+    --link-blue: 211 100% 40%; /* #0066CC */
 
     --radius: 0.625rem;
   }
