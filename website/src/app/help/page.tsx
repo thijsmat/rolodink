@@ -1,119 +1,103 @@
-import Link from 'next/link'
-import { SiteHeader } from '@/components/site-header'
-import { SiteFooter } from '@/components/site-footer'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { pageSEO } from "@/lib/seo";
 
 export const metadata = {
-  title: 'Help',
-  description: 'Hulp, veelgestelde vragen en troubleshooting voor Rolodink.',
-}
+  title: "Help & Support",
+  description: "Vind antwoorden op veelgestelde vragen en krijg hulp bij het gebruik van Rolodink.",
+};
+
+const faqItems = [
+  {
+    question: "Hoe installeer ik Rolodink?",
+    answer:
+      "Rolodink is een Chrome Extensie. Je kunt het met één klik toevoegen vanuit de Chrome Web Store. Na de installatie is het direct actief op de LinkedIn website. Zorg ervoor dat je de pagina ververst als je de zijbalk niet direct ziet.",
+  },
+  {
+    question: "Is Rolodink echt gratis?",
+    answer:
+      "Ja, de kernfunctionaliteit van Rolodink is volledig gratis. We willen dat iedereen de mogelijkheid heeft om zijn netwerk beter te beheren. In de toekomst kunnen er premium features komen voor power-users, maar de basis blijft gratis.",
+  },
+  {
+    question: "Waar worden mijn notities opgeslagen?",
+    answer:
+      "Je notities worden veilig opgeslagen in de cloud, gekoppeld aan jouw account. Ze zijn privé en alleen voor jou zichtbaar. We nemen privacy zeer serieus en verkopen je data nooit. Lees onze Privacy Policy voor meer details.",
+  },
+  {
+    question: "Werkt Rolodink ook op de mobiele LinkedIn app?",
+    answer:
+      "Momenteel werkt Rolodink alleen als Chrome Extensie op desktop computers. Een mobiele oplossing staat op onze roadmap voor de toekomst.",
+  },
+  {
+    question: "Ik zie de Rolodink zijbalk niet op LinkedIn. Wat nu?",
+    answer:
+      "Probeer de LinkedIn pagina te verversen. Als dat niet werkt, controleer dan of de extensie is ingeschakeld via het puzzelstuk-icoon in je Chrome-werkbalk. Neem contact op als het probleem aanhoudt.",
+  },
+  {
+    question: "Kan ik mijn data exporteren?",
+    answer:
+      "Deze functionaliteit is momenteel in ontwikkeling. We begrijpen het belang van data-eigendom en werken aan een optie om al je notities en contactgegevens te kunnen exporteren.",
+  },
+];
 
 export default function HelpPage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
-        {/* Hero */}
-        <section className="py-24 px-8 bg-background">
-          <div className="max-w-[1136px] mx-auto">
-            <div className="text-center mb-16">
-              <h1 className="font-playfair font-semibold text-5xl text-azure mb-4">
-                Hulp & Veelgestelde vragen
-              </h1>
-              <p className="text-xl text-grey max-w-[672px] mx-auto">
-                Problemen met installatie of gebruik? Hieronder vind je de meest voorkomende oplossingen.
-              </p>
-            </div>
-          </div>
+        {/* Hero Section */}
+        <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
+          <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
+            Hulp & Veelgestelde Vragen
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
+            Vind hier de antwoorden op de meest voorkomende vragen. Staat je vraag er niet bij? Neem gerust contact op.
+          </p>
         </section>
 
-        {/* FAQ */}
-        <section className="py-24 px-8 bg-white">
-          <div className="max-w-[768px] mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-azure">Installatie</CardTitle>
-                <CardDescription className="text-grey">
-                  De extensie installeren vanuit de Chrome Web Store.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>1. Ga naar de <Link href="/download" className="text-primary underline">download</Link> pagina en klik op Add to Chrome.</p>
-                <p>2. Bevestig in de Chrome Web Store.</p>
-                <p>3. Open LinkedIn en bezoek een profiel.</p>
-              </CardContent>
-            </Card>
+        {/* FAQ Accordion Section */}
+        <section className="container max-w-3xl pb-16 md:pb-24 lg:pb-32">
+          <Accordion type="single" collapsible className="w-full">
+            {faqItems.map((item) => (
+              <AccordionItem key={item.question} value={item.question}>
+                <AccordionTrigger className="text-left font-playfair text-lg text-azure hover:no-underline">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-base text-grey">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>De knop verschijnt niet op LinkedIn</CardTitle>
-                <CardDescription>
-                  Veel LinkedIn-pagina's laden dynamisch (SPA).
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Ververs de pagina (Ctrl/Cmd + R) op het profiel.</li>
-                  <li>Wacht 1–2 seconden na het laden; de knop wordt pas na de profiel-CTA's toegevoegd.</li>
-                  <li>Controleer of content blockers (uBlock, adblockers) uit staan voor linkedin.com.</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Permissions</CardTitle>
-                <CardDescription>
-                  Welke rechten gebruikt Rolodink?
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <ul className="list-disc list-inside space-y-1">
-                  <li><strong>LinkedIn toegang</strong> om de knop te tonen.</li>
-                  <li><strong>Storage</strong> voor lokale instellingen/UI.</li>
-                  <li>Geen tracking, geen dataverkoop. Zie ook <Link href="/privacy" className="text-primary underline">privacy</Link>.</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Foutmeldingen bij toevoegen</CardTitle>
-                <CardDescription>
-                  Algemene tips bij een fout tijdens het opslaan.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Controleer je internetverbinding.</li>
-                  <li>Probeer het opnieuw op een ander profiel.</li>
-                  <li>Open de browser console (F12) en kijk of er een duidelijke melding staat.</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact</CardTitle>
-                <CardDescription>
-                  Hulp nodig? Neem contact op.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>E‑mail: <a href="mailto:hello@rolodink.app" className="text-primary underline">hello@rolodink.app</a></p>
-                <div className="flex gap-3">
-                  <Button asChild size="sm"><Link href="/download">Download</Link></Button>
-                  <Button asChild size="sm" variant="outline"><Link href="/how-it-works">Hoe werkt het?</Link></Button>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Final CTA */}
+        <section className="bg-azure/5">
+          <div className="container max-w-4xl py-16 text-center md:py-24">
+            <h2 className="font-playfair text-3xl font-bold tracking-tight text-azure sm:text-4xl">
+              Nog steeds vragen?
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-grey">
+              De beste manier om Rolodink te begrijpen is door het zelf te proberen.
+            </p>
+            <div className="mt-8">
+              <Button asChild size="lg">
+                <a href={process.env.NEXT_PUBLIC_EXTENSION_URL} target="_blank" rel="noreferrer">
+                  Probeer het Gratis
+                </a>
+              </Button>
+            </div>
           </div>
         </section>
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }
-
-

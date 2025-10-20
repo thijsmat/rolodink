@@ -2,12 +2,15 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
-
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' })
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair' })
+ 
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
 
 export const metadata: Metadata = {
-  title: "Rolodink – Je notitielaag bovenop LinkedIn",
+  title: {
+    default: "Rolodink – Je notitielaag bovenop LinkedIn",
+    template: "%s | Rolodink",
+  },
   description: "Rolodink is je moderne rolodex: bewaar notities en volg slimmer op, direct vanuit LinkedIn. Organiseer je netwerk met gemak.",
   metadataBase: new URL('https://rolodink.app'),
   alternates: {
