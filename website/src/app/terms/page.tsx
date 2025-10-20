@@ -1,177 +1,106 @@
-import Link from 'next/link'
-import { SiteHeader } from '@/components/site-header'
-import { SiteFooter } from '@/components/site-footer'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { pageSEO } from '@/lib/seo'
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { pageSEO } from "@/lib/seo";
 
 export const metadata = {
   title: pageSEO.terms.title,
   description: pageSEO.terms.description,
-}
+};
 
 export default function TermsPage() {
+  const lastUpdated = new Date().toLocaleDateString("nl-NL", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      
       <main className="flex-1">
-        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
-          <div className="mx-auto max-w-3xl space-y-8">
-            <div className="space-y-4 text-center">
-              <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-                Algemene Voorwaarden
-              </h1>
-              <p className="text-muted-foreground">
-                Laatste update: {new Date().toLocaleDateString('nl-NL')}
-              </p>
-            </div>
+        {/* Page Header */}
+        <section className="container max-w-4xl py-16 text-center md:py-24">
+          <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
+            Gebruiksvoorwaarden
+          </h1>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Laatst bijgewerkt: {lastUpdated}
+          </p>
+        </section>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Gebruiksvoorwaarden voor Rolodink</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">1. Aanvaarding van voorwaarden</h3>
-                  <p className="text-muted-foreground">
-                    Door Rolodink te installeren en te gebruiken, ga je akkoord met deze algemene voorwaarden. 
-                    Als je niet akkoord gaat, installeer en gebruik Rolodink dan niet.
-                  </p>
-                </div>
+        {/* Prose Content */}
+        <section className="container max-w-3xl pb-16 md:pb-24 lg:pb-32">
+          <div
+            className="prose prose-lg mx-auto max-w-none 
+                       text-grey 
+                       prose-headings:font-playfair prose-headings:font-semibold prose-headings:text-azure 
+                       prose-a:text-link-blue prose-a:underline-offset-4 hover:prose-a:text-link-blue/80
+                       prose-strong:text-azure"
+          >
+            <h2>1. Acceptatie van de Voorwaarden</h2>
+            <p>
+              Door de Rolodink Chrome Extensie en website (de &quot;Dienst&quot;)
+              te gebruiken, gaat u akkoord met deze Gebruiksvoorwaarden. Als u
+              niet akkoord gaat met deze voorwaarden, dient u de Dienst niet te
+              gebruiken.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">2. Beschrijving van de service</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink is een browser extensie die je helpt notities te maken bij LinkedIn profielen. 
-                    De service is gratis en werkt lokaal in je browser.
-                  </p>
-                </div>
+            <h2>2. Gebruik van de Dienst</h2>
+            <p>
+              U stemt ermee in de Dienst alleen te gebruiken voor legitieme
+              doeleinden. U bent verantwoordelijk voor alle data en notities die
+              u via de Dienst opslaat. Het is verboden de Dienst te gebruiken
+              voor illegale activiteiten of op een manier die de werking van de
+              Dienst kan schaden.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">3. Gebruik van de extensie</h3>
-                  <p className="text-muted-foreground">
-                    Je mag Rolodink gebruiken voor persoonlijke en professionele doeleinden. 
-                    Je mag de extensie niet gebruiken voor:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Illegale activiteiten</li>
-                    <li>Spam of ongewenste communicatie</li>
-                    <li>Het schenden van LinkedIn's gebruiksvoorwaarden</li>
-                    <li>Het verzamelen van data voor commerciële doeleinden zonder toestemming</li>
-                  </ul>
-                </div>
+            <h2>3. Intellectueel Eigendom</h2>
+            <p>
+              De Dienst en alle bijbehorende materialen, inclusief maar niet
+              beperkt tot software, logo&apos;s en ontwerpen, zijn het exclusieve
+              eigendom van Rolodink. U mag geen enkel deel van de Dienst
+              kopiëren, wijzigen of distribueren zonder onze uitdrukkelijke
+              schriftelijke toestemming.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">4. Privacy en data</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink respecteert je privacy. Alle notities worden lokaal opgeslagen in je browser. 
-                    We verzamelen geen persoonlijke informatie. Zie ons{' '}
-                    <Link href="/privacy" className="text-primary hover:underline">
-                      privacybeleid
-                    </Link>{' '}
-                    voor meer details.
-                  </p>
-                </div>
+            <h2>4. Beëindiging</h2>
+            <p>
+              Wij behouden ons het recht voor om uw toegang tot de Dienst op elk
+              moment, zonder voorafgaande kennisgeving, op te schorten of te
+              beëindigen als u deze voorwaarden schendt.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">5. Intellectueel eigendom</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink is open source software. De code is beschikbaar onder een open source licentie. 
-                    Je eigen notities blijven jouw eigendom.
-                  </p>
-                </div>
+            <h2>5. Vrijwaring van Garantie</h2>
+            <p>
+              De Dienst wordt geleverd &quot;as is&quot;, zonder enige vorm van
+              garantie, expliciet of impliciet. Wij garanderen niet dat de
+              Dienst ononderbroken, veilig of vrij van fouten zal zijn.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">6. Beschikbaarheid</h3>
-                  <p className="text-muted-foreground">
-                    We streven ernaar Rolodink beschikbaar te houden, maar kunnen geen garantie geven 
-                    over de continuïteit van de service. Updates kunnen op elk moment beschikbaar komen.
-                  </p>
-                </div>
+            <h2>6. Beperking van Aansprakelijkheid</h2>
+            <p>
+              In geen geval zal Rolodink aansprakelijk zijn voor enige indirecte,
+              incidentele, speciale, of gevolgschade die voortvloeit uit of in
+              verband met uw gebruik van de Dienst.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">7. Aansprakelijkheid</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink wordt geleverd "zoals het is". We zijn niet aansprakelijk voor:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Verlies van data door browser crashes of extensie problemen</li>
-                    <li>Schade door gebruik van de extensie</li>
-                    <li>Problemen met LinkedIn's platform of API wijzigingen</li>
-                  </ul>
-                  <p className="text-muted-foreground">
-                    We raden aan om regelmatig backups te maken van je belangrijke notities.
-                  </p>
-                </div>
+            <h2>7. Wijzigingen in de Voorwaarden</h2>
+            <p>
+              We kunnen deze Gebruiksvoorwaarden van tijd tot tijd bijwerken. We
+              zullen u op de hoogte stellen van eventuele wijzigingen door de
+              nieuwe voorwaarden op deze pagina te publiceren.
+            </p>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">8. Wijzigingen aan voorwaarden</h3>
-                  <p className="text-muted-foreground">
-                    We kunnen deze voorwaarden op elk moment wijzigen. Belangrijke wijzigingen 
-                    worden gecommuniceerd via de extensie of onze website.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">9. Beëindiging</h3>
-                  <p className="text-muted-foreground">
-                    Je kunt Rolodink op elk moment verwijderen uit je browser. 
-                    We kunnen de service ook beëindigen zonder voorafgaande kennisgeving.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">10. Toepasselijk recht</h3>
-                  <p className="text-muted-foreground">
-                    Deze voorwaarden worden beheerst door Nederlands recht. 
-                    Geschillen worden voorgelegd aan de bevoegde Nederlandse rechtbank.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">11. Contact</h3>
-                  <p className="text-muted-foreground">
-                    Vragen over deze voorwaarden? Neem contact op via{' '}
-                    <Link 
-                      href="https://twitter.com/matthijsgoes" 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      Twitter
-                    </Link>
-                    {' '}of{' '}
-                    <Link 
-                      href="mailto:hello@rolodink.app" 
-                      className="text-primary hover:underline"
-                    >
-                      hello@rolodink.app
-                    </Link>
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">12. Open source licentie</h3>
-                  <p className="text-muted-foreground">
-                    Rolodink is open source software. De volledige licentie is beschikbaar op{' '}
-                    <Link 
-                      href="https://github.com/matthijsgoes/rolodink" 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      GitHub
-                    </Link>
-                    .
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <h2>8. Contact</h2>
+            <p>
+              Als u vragen heeft over deze Gebruiksvoorwaarden, kunt u contact
+              met ons opnemen via e-mail op{" "}
+              <a href="mailto:hallo@rolodink.app">hallo@rolodink.app</a>.
+            </p>
           </div>
         </section>
       </main>
-      
       <SiteFooter />
     </div>
-  )
+  );
 }

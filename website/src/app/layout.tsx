@@ -1,13 +1,25 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import { Analytics } from "@vercel/analytics/next"
+ 
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
 
 export const metadata: Metadata = {
-  title: "Rolodink – Je notitielaag bovenop LinkedIn",
+  title: {
+    default: "Rolodink – Je notitielaag bovenop LinkedIn",
+    template: "%s | Rolodink",
+  },
   description: "Rolodink is je moderne rolodex: bewaar notities en volg slimmer op, direct vanuit LinkedIn. Organiseer je netwerk met gemak.",
   metadataBase: new URL('https://rolodink.app'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'nl': '/',
+      'en': '/en',
+    },
+  },
   openGraph: {
     type: "website",
     url: "https://rolodink.app",
@@ -54,8 +66,9 @@ export default function RootLayout({
           src="https://plausible.io/js/script.js"
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
         {children}
+        <Analytics />
       </body>
     </html>
   )

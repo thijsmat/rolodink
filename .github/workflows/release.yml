@@ -1,0 +1,147 @@
+name: Release Rolodink Extension
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build, Validate, and Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+
+      - name: Ensure jq is installed
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+
+      - name: Install UI deps (ci)
+        working-directory: linkedin-crm-extension/ui
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build Chrome package
+        run: |
+          chmod +x scripts/build-extension.sh || true
+          scripts/build-extension.sh --target=chrome
+
+      - name: Validate Chrome package
+        run: |
+          node scripts/validate-extension.mjs --target=chrome
+
+      - name: Build Edge package
+        run: |
+          scripts/build-extension.sh --target=edge
+
+      - name: Validate Edge package
+        run: |
+          node scripts/validate-extension.mjs --target=edge
+
+      - name: Build Firefox package (unsigned)
+        run: |
+          scripts/build-extension.sh --target=firefox
+
+      - name: Validate Firefox package
+        run: |
+          node scripts/validate-extension.mjs --target=firefox
+
+      - name: List build outputs
+        run: |
+          ls -la
+          echo "Firefox ZIP present?" && ls -1 Rolodink-Firefox-*.zip || true
+
+      - name: Install web-ext for signing
+        run: |
+          npm install -g web-ext@7
+
+      - name: Sign Firefox XPI with AMO (unlisted)
+        continue-on-error: true
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          # Ensure we have a source folder for signing
+          rm -rf .firefox-src && mkdir -p .firefox-src
+          unzip -oq "Rolodink-Firefox-*.zip" -d .firefox-src
+          # Validate AMO secrets present
+          if [ -z "${AMO_JWT_ISSUER}" ] || [ -z "${AMO_JWT_SECRET}" ]; then
+            echo "AMO credentials missing; set repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET" >&2
+            exit 1
+          fi
+          set -x
+          web-ext sign --verbose \
+            --source-dir .firefox-src \
+            --channel unlisted \
+            --artifacts-dir . \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET"
+          # Produced .xpi in current directory; keep the newest as our artifact
+          ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi || true
+
+      - name: Upload signed XPI (if present)
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-signed-xpi
+          path: Rolodink-Firefox-signed.xpi
+          if-no-files-found: ignore
+
+      - name: List artifacts before release
+        run: |
+          echo "Workspace files:" && ls -la
+          echo "ZIPs:" && ls -1 Rolodink-*.zip || true
+          echo "Signed XPI:" && ls -1 Rolodink-Firefox-signed.xpi || true
+
+      - name: Generate release notes with version
+        run: |
+          sed "s/\\${VERSION}/${{ steps.version.outputs.version }}/g" .github/RELEASE_TEMPLATE.md > .github/RELEASE_NOTES.md
+
+      - name: Upload artifact (zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rolodink-extension-artifacts
+          path: |
+            Rolodink-*.zip
+            Rolodink-Firefox-signed.xpi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Rolodink v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          body_path: .github/RELEASE_NOTES.md
+          files: |
+            Rolodink-*.zip
+            Rolodink-Firefox-signed.xpi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Rolodink",
-  "version": "1.0.0",
-  "description": "Rolodink: je notitielaag bovenop LinkedIn, als je moderne rolodex.",
+  "version": "1.0.2",
+  "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -11,11 +11,17 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-      "https://linkedin-crm-backend-matthijs-goes-projects.vercel.app/*"
+      "https://api.rolodink.app/*"
   ],
   "action": {
     "default_popup": "ui/dist/index.html",
     "default_icon": "icon.png"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "content_scripts": [
     {

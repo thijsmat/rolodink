@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
+const API_BASE_URL = 'https://api.rolodink.app';
 
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
@@ -52,7 +52,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
 
     if (container && !document.getElementById("crm-add-button")) {
         const crmButton = document.createElement("button");
-        crmButton.innerText = "Voeg toe aan CRM";
+        crmButton.innerText = "Add to CRM";
         crmButton.id = "crm-add-button";
         
         // Styling
@@ -102,7 +102,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 const data = await resp.json().catch(() => null);
                 const exists = Array.isArray(data) ? data.length > 0 : (data && (data.id || data.linkedInUrl));
                 if (exists) {
-                    crmButton.innerText = "Al toegevoegd ✔️";
+                    crmButton.innerText = "Already added ✔️";
                     crmButton.disabled = true;
                     console.log('Profiel reeds aanwezig, knop uitgeschakeld.');
                 }
@@ -160,7 +160,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
             // Final fallback - show error if no name found
             if (!profileName) {
                 console.error('No profile name found');
-                alert('Kon de profielnaam niet vinden. Probeer de pagina te verversen.');
+                alert('Could not find profile name. Please refresh the page.');
                 return;
             }
             
@@ -169,7 +169,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
 
             // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
             if (!chrome || !chrome.storage || !chrome.storage.local) {
-                alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                alert('Extension reloaded. Please refresh the page and try again.');
                 return;
             }
 
@@ -183,15 +183,15 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 console.error('Kon token niet ophalen uit storage:', err);
                 const message = err instanceof Error ? err.message : String(err);
                 if (message && message.toLowerCase().includes('invalidated')) {
-                    alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                    alert('Extension reloaded. Please refresh the page and try again.');
                     return;
                 }
-                alert('Kon authenticatie-informatie niet ophalen. Probeer het opnieuw.');
+                alert('Could not retrieve authentication info. Please try again.');
                 return;
             }
 
             if (!authToken) {
-                alert('Je bent niet ingelogd. Log in via de extensie-popup om deze functie te gebruiken.');
+                alert('You are not logged in. Please log in via the extension popup to use this feature.');
                 // We stoppen hier als de gebruiker niet is ingelogd.
                 return;
             }
@@ -213,36 +213,36 @@ waitForElement(stableButtonSelector, (foundButton) => {
                 console.log('Response ok:', response.ok);
 
                 if (response.ok) {
-                    alert(`${profileName} is succesvol toegevoegd!`);
-                    crmButton.innerText = "Toegevoegd ✔️";
+                    alert(`${profileName} has been successfully added!`);
+                    crmButton.innerText = "Added ✔️";
                     crmButton.disabled = true;
                 } else {
                     const errorData = await response.json();
                     console.error('Error response:', errorData);
                     if (response.status === 401) {
-                        alert('Sessie verlopen. Log opnieuw in via de extensie.');
+                        alert('Session expired. Please log in again via the extension.');
                         // TODO: Open de login-pagina van de extensie.
                     } else if (response.status === 409) {
                         // Bestaat al: markeer als toegevoegd zonder foutmelding
-                        crmButton.innerText = "Al toegevoegd ✔️";
+                        crmButton.innerText = "Already added ✔️";
                         crmButton.disabled = true;
                         // Eventueel een zachte notificatie
                         console.log('Connectie bestaat al, knop uitgeschakeld.');
                     } else {
-                        alert(`Er ging iets mis: ${errorData.error || 'Onbekende fout'}`);
+                        alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
                     }
                 }
             } catch (error) {
                 console.error('API Fout:', error);
-                alert('Kan de CRM-server niet bereiken.');
+                alert('Cannot reach the CRM server.');
             }
             } catch (err) {
                 console.error('Onherstelbare fout in click handler:', err);
                 const message = err instanceof Error ? err.message : String(err);
                 if (message && message.toLowerCase().includes('invalidated')) {
-                    alert('De extensie is herladen. Ververs de pagina en probeer opnieuw.');
+                    alert('Extension reloaded. Please refresh the page and try again.');
                 } else {
-                    alert('Er is iets misgegaan. Ververs de pagina en probeer opnieuw.');
+                    alert('Something went wrong. Please refresh the page and try again.');
                 }
             }
         };
