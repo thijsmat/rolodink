@@ -3,8 +3,8 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' })
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair' })
 
 export const metadata: Metadata = {
   title: "Rolodink – Je notitielaag bovenop LinkedIn",

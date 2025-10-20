@@ -64,3 +64,4 @@ prisma/dev.db-journal
 # Database
 *.db
 *.sqlite
+.config/
