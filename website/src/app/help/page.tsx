@@ -15,24 +15,26 @@ export default function HelpPage() {
       <SiteHeader />
       <main className="flex-1">
         {/* Hero */}
-        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-            <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-              Hulp & Veelgestelde vragen
-            </h1>
-            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Problemen met installatie of gebruik? Hieronder vind je de meest voorkomende oplossingen.
-            </p>
+        <section className="py-24 px-8 bg-background">
+          <div className="max-w-[1136px] mx-auto">
+            <div className="text-center mb-16">
+              <h1 className="font-playfair font-semibold text-5xl text-azure mb-4">
+                Hulp & Veelgestelde vragen
+              </h1>
+              <p className="text-xl text-grey max-w-[672px] mx-auto">
+                Problemen met installatie of gebruik? Hieronder vind je de meest voorkomende oplossingen.
+              </p>
+            </div>
           </div>
         </section>
 
         {/* FAQ */}
-        <section className="container space-y-6 py-8 md:py-12 lg:py-24">
-          <div className="mx-auto grid justify-center gap-6 md:max-w-[64rem]">
+        <section className="py-24 px-8 bg-white">
+          <div className="max-w-[768px] mx-auto">
             <Card>
               <CardHeader>
-                <CardTitle>Installatie</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-azure">Installatie</CardTitle>
+                <CardDescription className="text-grey">
                   De extensie installeren vanuit de Chrome Web Store.
                 </CardDescription>
               </CardHeader>
