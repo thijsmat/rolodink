@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function Hero() {
   return (
     <section className="pt-24 pb-24 px-8">
@@ -110,9 +112,11 @@ export default function Hero() {
             <div className="relative">
               <div className="w-[512px] rotate-2 bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-6 relative">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/5 to-gold/0"></div>
-                <img
+                <Image
                   src="https://api.builder.io/api/v1/image/assets/TEMP/e7ffcbf098ffe35ae50afc7e64c526af17538e04?width=896"
                   alt="Business Card Networking"
+                  width={896}
+                  height={256}
                   className="w-full h-64 object-cover rounded-2xl relative z-10"
                 />
                 <div className="flex items-start gap-3 relative z-10">
