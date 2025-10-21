@@ -1,0 +1,275 @@
+# Rolodink Project - Cursor Rules
+
+## 🎯 Project Overview
+This is a LinkedIn CRM extension project with a Next.js website and browser extension. We use GitHub Flow for version control and follow modern development practices.
+
+## 🌳 Branch Strategy (GitHub Flow)
+- **main**: Production branch (always deployable)
+- **feature/description**: New features
+- **fix/description**: Bug fixes
+- **hotfix/description**: Urgent production fixes
+- **docs/description**: Documentation updates
+
+## 🚀 Development Workflow
+
+### Starting New Work
+```bash
+# Always start from main
+git checkout main
+git pull origin main
+git checkout -b feature/your-feature-name
+```
+
+### Commit Messages
+Use conventional commits format:
+```
+type(scope): description
+
+feat(auth): add OAuth2 integration
+fix(ui): resolve button alignment issue
+docs(readme): update installation instructions
+```
+
+### Pull Request Process
+1. Create PR from feature branch to main
+2. Fill out PR template completely
+3. Request appropriate reviewers
+4. Wait for approval + CI checks
+5. Squash and merge
+
+## 🏗️ Project Structure
+
+### Website (`/website/`)
+- **Framework**: Next.js 15.4.7 with App Router
+- **Styling**: Tailwind CSS v4 + shadcn/ui components
+- **Fonts**: Playfair Display (headings), Inter (body)
+- **Deployment**: Vercel
+
+### Extension (`/linkedin-crm-extension/`)
+- **Framework**: React + Vite
+- **Purpose**: LinkedIn CRM functionality
+- **Distribution**: Chrome Web Store, Firefox AMO, Edge Add-ons
+
+### Backend (`/linkedin-crm-backend/`)
+- **Framework**: Next.js API routes
+- **Database**: Prisma with SQLite
+- **Deployment**: Vercel
+
+## 🎨 Design System
+
+### Colors
+- Primary: `azure: #1B2951`
+- Background: `background: #F7F5F0`
+- Accent: `gold: #B8860B`
+- LinkedIn: `linkBlue: #0066CC`
+- Text: `grey: #525252`
+
+### Typography
+- Headings: `font-playfair font-semibold`
+- Body: Inter (default sans-serif)
+- Sizes: `text-5xl` (headings), `text-xl` (subheadings), `text-sm` (body)
+
+### Spacing
+- Section padding: `py-24 px-8`
+- Container: `max-w-[1136px] mx-auto` (large), `max-w-[768px] mx-auto` (prose)
+- Gap: `space-y-16` (sections), `space-y-4` (within sections)
+
+## 🧩 Component Guidelines
+
+### React Components
+- Use TypeScript for all components
+- Prefer functional components with hooks
+- Use proper prop types and interfaces
+- Follow shadcn/ui patterns for UI components
+
+### Next.js Pages
+- Use App Router structure
+- Implement proper SEO metadata
+- Use server components by default
+- Add "use client" only when needed
+
+### Styling
+- Use Tailwind CSS utilities
+- Follow design system tokens
+- Use shadcn/ui components when possible
+- Maintain responsive design
+
+## 🔧 Code Quality Standards
+
+### TypeScript
+- Strict mode enabled
+- No `any` types without justification
+- Proper interface definitions
+- Use type guards and assertions carefully
+
+### Testing
+- Write unit tests for utilities
+- Test component behavior
+- Use React Testing Library
+- Maintain test coverage > 80%
+
+### Performance
+- Use Next.js Image component
+- Implement proper loading states
+- Optimize bundle size
+- Use dynamic imports when appropriate
+
+### Accessibility
+- Use semantic HTML
+- Implement proper ARIA labels
+- Ensure keyboard navigation
+- Test with screen readers
+
+## 🚨 Common Issues & Solutions
+
+### Build Errors
+- Check TypeScript errors first
+- Verify all imports are correct
+- Ensure dependencies are installed
+- Check Tailwind CSS configuration
+
+### Deployment Issues
+- Verify Vercel configuration
+- Check environment variables
+- Ensure build commands are correct
+- Review deployment logs
+
+### Extension Issues
+- Check manifest.json syntax
+- Verify content script selectors
+- Test in different browsers
+- Check permissions and APIs
+
+## 📚 Documentation Standards
+
+### Code Comments
+- Explain complex logic
+- Document public APIs
+- Use JSDoc for functions
+- Keep comments up to date
+
+### README Files
+- Include setup instructions
+- Document environment variables
+- Provide usage examples
+- Keep installation steps current
+
+### API Documentation
+- Document all endpoints
+- Include request/response examples
+- Specify error codes
+- Update when APIs change
+
+## 🔄 Git Best Practices
+
+### Branch Management
+- Delete merged branches
+- Keep feature branches small
+- Use descriptive names
+- Don't commit to main directly
+
+### Commit History
+- Make atomic commits
+- Write clear messages
+- Squash related commits
+- Avoid merge commits in feature branches
+
+### Pull Requests
+- Keep PRs focused and small
+- Write descriptive titles
+- Fill out templates completely
+- Request appropriate reviewers
+
+## 🛠️ Development Tools
+
+### Required Tools
+- Node.js 18+
+- npm 9+
+- Git
+- VS Code with Cursor
+- Browser dev tools
+
+### Recommended Extensions
+- TypeScript Hero
+- Tailwind CSS IntelliSense
+- GitLens
+- Prettier
+- ESLint
+
+### Environment Setup
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm test
+```
+
+## 🚀 Deployment Process
+
+### Website
+- Automatic deployment from main branch
+- Vercel handles build and deployment
+- Environment variables in Vercel dashboard
+- Custom domain: rolodink.app
+
+### Extension
+- Manual build and upload process
+- Chrome Web Store, Firefox AMO, Edge Add-ons
+- Version bumping required
+- Store listings updated
+
+## 🆘 Getting Help
+
+### Documentation
+- Check this file first
+- Review GitHub Flow guide
+- Read component documentation
+- Check existing issues
+
+### Team Communication
+- Use GitHub Discussions for questions
+- Create issues for bugs/features
+- Use PR comments for code review
+- Tag relevant team members
+
+### Emergency Procedures
+- Rollback via git revert
+- Use hotfix branches for urgent fixes
+- Document all emergency changes
+- Communicate with team
+
+## 📋 Checklist for New Features
+
+- [ ] Create feature branch from main
+- [ ] Implement feature with tests
+- [ ] Update documentation
+- [ ] Create pull request
+- [ ] Get code review
+- [ ] Merge to main
+- [ ] Deploy to production
+- [ ] Monitor for issues
+
+## 🎯 Success Metrics
+
+### Code Quality
+- Zero TypeScript errors
+- All tests passing
+- No console errors
+- Good performance scores
+
+### Process Quality
+- All PRs reviewed
+- Clear commit messages
+- Updated documentation
+- Successful deployments
+
+---
+
+**Remember**: These rules are guidelines. When in doubt, ask for help or clarification. The goal is to maintain code quality while enabling productive development.
