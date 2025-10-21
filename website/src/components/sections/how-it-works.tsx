@@ -1,3 +1,5 @@
+import { PenTool, Save, Link2 } from 'lucide-react';
+
 export default function HowItWorks() {
   return (
     <section id="how-it-works" className="py-24 px-8 bg-white">
@@ -52,9 +54,7 @@ export default function HowItWorks() {
                       <h4 className="font-semibold text-sm text-azure">Rolodink Notities</h4>
                     </div>
                     <button className="text-xs px-3 py-1 rounded-lg bg-white text-azure font-medium hover:bg-azure/5 transition-colors flex items-center gap-1">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 13H3.17157L12.5 3.67157M13 1L11.2929 -0.707107L1 9.58579L3.17157 11.7574L13 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <PenTool size={14} />
                       Bewerk
                     </button>
                   </div>
@@ -86,31 +86,34 @@ export default function HowItWorks() {
           <div className="space-y-6">
             {[
               {
-                icon: "✎",
+                icon: PenTool,
                 title: "Eenvoudig bewerken",
                 description: "Voeg notities toe met één klik"
               },
               {
-                icon: "💾",
+                icon: Save,
                 title: "Automatisch opslaan",
                 description: "Je notities zijn altijd veilig"
               },
               {
-                icon: "🔗",
+                icon: Link2,
                 title: "LinkedIn integratie",
                 description: "Werkt naadloos in LinkedIn"
               }
-            ].map((benefit, idx) => (
-              <div key={idx} className="flex gap-4 items-start">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center text-xl">
-                  {benefit.icon}
+            ].map((benefit, idx) => {
+              const Icon = benefit.icon;
+              return (
+                <div key={idx} className="flex gap-4 items-start">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+                    <Icon size={24} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-azure mb-1">{benefit.title}</h5>
+                    <p className="text-sm text-grey">{benefit.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h5 className="font-semibold text-azure mb-1">{benefit.title}</h5>
-                  <p className="text-sm text-grey">{benefit.description}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
