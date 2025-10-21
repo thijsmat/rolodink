@@ -105,7 +105,7 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Rolodink. Alle rechten voorbehouden.
           </p>
           <nav className="flex items-center gap-6">
-            <a href="#" className="text-sm text-grey hover:text-azure transition-colors">
+            <a href="/terms" className="text-sm text-grey hover:text-azure transition-colors">
               Terms of Service
             </a>
             <a href="/privacy" className="text-sm text-grey hover:text-azure transition-colors">
