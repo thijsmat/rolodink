@@ -74,6 +74,12 @@ html {
     --border: 215 28% 17%;
     --input: 215 28% 17%;
     --ring: 0 0% 98%;
+
+    /* Enhanced dark mode colors for better contrast */
+    --azure: 211 100% 70%; /* Lighter azure for dark mode */
+    --gold: 45 90% 55%; /* Brighter gold for dark mode */
+    --grey: 0 0% 75%; /* Lighter grey text for dark mode */
+    --link-blue: 211 100% 55%; /* Adjusted link blue for dark mode */
   }
 }
 
@@ -84,6 +90,7 @@ html {
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
   }
 }
 
