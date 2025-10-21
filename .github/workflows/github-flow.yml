@@ -117,21 +117,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run Trivy vulnerability scanner
-      # Use latest stable release - check https://github.com/aquasecurity/trivy-action/releases
-      uses: aquasecurity/trivy-action@master
+    - name: Aqua Security Trivy
+      uses: aquasecurity/trivy-action@0.33.1
       with:
         scan-type: 'fs'
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
-      continue-on-error: true
         
     - name: Upload Trivy scan results
       # Use v3 - v1/v2 are deprecated and can fail the job
       uses: github/codeql-action/upload-sarif@v3
       # Only try to upload SARIF when running in the repository (skip uploads on fork PRs)
-      if: ${{ github.event_name != 'pull_request' && hashFiles('trivy-results.sarif') != '' }}
+      if: ${{ github.event_name != 'pull_request' }}
       with:
         sarif_file: 'trivy-results.sarif'
 
