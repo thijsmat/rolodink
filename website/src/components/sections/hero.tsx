@@ -115,7 +115,7 @@ export default function Hero() {
                 <Image
                   src="/images/business-card-networking.jpg"
                   alt="Business Card Networking"
-                  width={449}
+                  width={512}
                   height={256}
                   className="w-full h-64 object-cover rounded-2xl relative z-10"
                 />
