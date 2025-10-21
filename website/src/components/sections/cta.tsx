@@ -16,7 +16,7 @@ export default function CTA() {
         </div>
 
         <div className="flex items-center justify-center gap-4 mb-8">
-          <button className="h-10 px-4 rounded-lg bg-white text-azure text-sm font-medium shadow-xl hover:bg-white/90 transition-colors flex items-center gap-2">
+          <button className="h-10 px-4 rounded-lg bg-white text-azure text-sm font-medium shadow-xl hover:bg-white/90 hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center gap-2">
             <svg
               width="16"
               height="16"
@@ -62,7 +62,7 @@ export default function CTA() {
             </svg>
             Add to Chrome - Gratis
           </button>
-          <button className="h-10 px-4 rounded-lg border-2 border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2">
+          <button className="h-10 px-4 rounded-lg border-2 border-white/30 text-white text-sm font-medium hover:bg-white/10 hover:border-white/50 transition-all duration-200 flex items-center gap-2">
             Bekijk demo
             <svg
               width="16"

@@ -48,7 +48,7 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white border border-azure/10 rounded-2xl p-8 relative"
+              className="bg-white border border-azure/10 rounded-2xl p-8 relative transition-all duration-300 hover:shadow-lg hover:border-azure/20 hover:-translate-y-1"
             >
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-linkBlue to-linkBlue/80 flex items-center justify-center flex-shrink-0">

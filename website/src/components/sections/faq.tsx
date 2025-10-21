@@ -68,7 +68,7 @@ export default function FAQ() {
                   viewBox="0 0 16 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 transition-transform ${
+                  className={`flex-shrink-0 transition-transform duration-200 ${
                     openIndex === index ? "rotate-180" : ""
                   }`}
                 >
@@ -82,7 +82,7 @@ export default function FAQ() {
                 </svg>
               </button>
               {openIndex === index && (
-                <div className="px-6 pb-5">
+                <div className="px-6 pb-5 animate-in fade-in slide-in-from-top-2 duration-200">
                   <p className="text-grey text-sm leading-relaxed">
                     {faq.answer}
                   </p>
