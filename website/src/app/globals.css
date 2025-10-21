@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scroll behavior for hash-based navigation */
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --background: 40 27% 95%; /* #F7F5F0 */
