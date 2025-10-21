@@ -117,6 +117,7 @@ export default function Hero() {
                   alt="Business Card Networking"
                   width={512}
                   height={256}
+                  priority
                   className="w-full h-64 object-cover rounded-2xl relative z-10"
                 />
                 <div className="flex items-start gap-3 relative z-10">
