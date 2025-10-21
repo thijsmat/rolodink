@@ -113,9 +113,9 @@ export default function Hero() {
               <div className="w-[512px] rotate-2 bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-6 relative">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/5 to-gold/0"></div>
                 <Image
-                  src="https://api.builder.io/api/v1/image/assets/TEMP/e7ffcbf098ffe35ae50afc7e64c526af17538e04?width=896"
+                  src="/images/business-card-networking.jpg"
                   alt="Business Card Networking"
-                  width={896}
+                  width={449}
                   height={256}
                   className="w-full h-64 object-cover rounded-2xl relative z-10"
                 />
