@@ -50,29 +50,7 @@ export default function Testimonials() {
               key={index}
               className="bg-white border border-azure/10 rounded-2xl p-8 relative transition-all duration-300 hover:shadow-lg hover:border-azure/20 hover:-translate-y-1"
             >
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-linkBlue to-linkBlue/80 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold">
-                    {testimonial.initials}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-azure truncate">
-                    {testimonial.name}
-                  </h3>
-                  <p className="text-sm text-grey truncate">
-                    {testimonial.role}
-                  </p>
-                  <div className="flex gap-0.5 mt-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <span key={i} className="text-gold text-sm">
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
+              {/* Quote Mark Background */}
               <div className="absolute top-6 right-6 opacity-10">
                 <svg
                   width="73"
@@ -98,30 +76,45 @@ export default function Testimonials() {
                 </svg>
               </div>
 
-              <div className="bg-background border border-gold/20 rounded-xl p-4 shadow-sm space-y-3 relative z-10">
-                {testimonial.notes.map((note, noteIndex) => (
-                  <div key={noteIndex} className="flex items-start gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2 ${
-                        note.type === "quote"
-                          ? "bg-gold"
-                          : note.type === "action"
-                            ? "bg-azure"
-                            : "bg-linkBlue"
-                      }`}
-                    ></div>
-                    <p
-                      className={`text-sm ${
-                        note.type === "quote"
-                          ? "text-grey italic"
-                          : note.type === "action"
-                            ? "text-azure font-medium"
-                            : "text-grey"
-                      }`}
-                    >
-                      {note.text}
-                    </p>
+              {/* Header with Avatar and Stars */}
+              <div className="flex items-start gap-4 mb-6 relative z-10">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-linkBlue to-linkBlue/80 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-semibold">
+                    {testimonial.initials}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-azure truncate">
+                    {testimonial.name}
+                  </h3>
+                  <p className="text-sm text-grey truncate">
+                    {testimonial.role}
+                  </p>
+                  <div className="flex gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <span key={i} className="text-gold text-sm">
+                        ★
+                      </span>
+                    ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Notes/Content */}
+              <div className="space-y-3 text-grey relative z-10">
+                {testimonial.notes.map((note, noteIndex) => (
+                  <p
+                    key={noteIndex}
+                    className={
+                      note.type === "quote"
+                        ? "font-playfair text-lg text-azure italic"
+                        : note.type === "action"
+                          ? "text-sm text-linkBlue"
+                          : "text-sm"
+                    }
+                  >
+                    {note.text}
+                  </p>
                 ))}
               </div>
             </div>
