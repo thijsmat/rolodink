@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+description: Website Design System (Tailwind, Fonts, Colors)
+auto_attachments:
+  - /website/tailwind.config.js
+  - /website/app/globals.css
+---
+## ðŸŽ¨ Design System
+
+### Colors
+- Primary: `azure: #1B2951`
+- Background: `background: #F7F5F0`
+- Accent: `gold: #B8860B`
+- LinkedIn: `linkBlue: #0066CC`
+- Text: `grey: #525252`
+
+### Typography
+- Headings: `font-playfair font-semibold`
+- Body: Inter (default sans-serif)
+- Sizes: `text-5xl` (headings), `text-xl` (subheadings), `text-sm` (body)
+
+### Spacing
+- Section padding: `py-24 px-8`
+- Container: `max-w-[1136px] mx-auto` (large), `max-w-[768px] mx-auto` (prose)
+- Gap: `space-y-16` (sections), `space-y-4` (within sections)

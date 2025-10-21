@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+description: Project Overzicht en Tech Stack (Rolodink)
+auto_attachments:
+  - /website/package.json
+  - /linkedin-crm-extension/package.json
+  - /linkedin-crm-backend/package.json
+---
+# ðŸŽ¯ Project Overview
+This is a LinkedIn CRM extension project with a Next.js website and browser extension. We use GitHub Flow for version control and follow modern development practices.
+
+## ðŸ—ï¸ Project Structure
+
+### Website (`/website/`)
+- **Framework**: Next.js 15.4.7 with App Router
+- **Deployment**: Vercel
+
+### Extension (`/linkedin-crm-extension/`)
+- **Framework**: React + Vite
+- **Distribution**: Chrome Web Store, Firefox AMO, Edge Add-ons
+
+### Backend (`/linkedin-crm-backend/`)
+- **Framework**: Next.js API routes
+- **Database**: Prisma with SQLite
+- **Deployment**: Vercel
