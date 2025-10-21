@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
-      
+
       <main className="flex-1">
         <Hero />
         <Features />
@@ -18,7 +18,7 @@ export default function HomePage() {
         <FAQ />
         <CTA />
       </main>
-      
+
       <SiteFooter />
     </div>
   )
