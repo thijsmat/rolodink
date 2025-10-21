@@ -62,7 +62,7 @@ export default function HowItWorks() {
                     Ontmoet op Networking Event Amsterdam. Geïnteresseerd in AI voor recruitment.
                   </p>
                   <p className="text-xs text-gold font-medium">
-                    💡 Tip: Gebruik notities voor follow-ups, gespreksonderwerpen, of persoonlijke details
+                    Tip: Gebruik notities voor follow-ups, gespreksonderwerpen, of persoonlijke details
                   </p>
                 </div>
 

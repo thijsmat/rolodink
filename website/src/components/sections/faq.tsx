@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react";
+import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
@@ -38,13 +39,13 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-24 px-8">
+    <section id="faq" className="py-16 md:py-24 px-4 md:px-8">
       <div className="max-w-[768px] mx-auto">
         <div className="text-center mb-16">
-          <h2 className="font-playfair font-semibold text-5xl text-azure mb-4">
+          <h2 className="text-4xl md:text-5xl font-playfair font-semibold text-azure mb-4">
             Veelgestelde vragen
           </h2>
-          <p className="text-xl text-grey">
+          <p className="text-lg text-grey">
             Alles wat je moet weten over Rolodink
           </p>
         </div>
@@ -57,29 +58,16 @@ export default function FAQ() {
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors"
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors duration-200 ease-out"
               >
                 <span className="font-semibold text-sm text-azure pr-4">
                   {faq.question}
                 </span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 transition-transform duration-200 ${
+                <ChevronDown
+                  className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 ${
                     openIndex === index ? "rotate-180" : ""
                   }`}
-                >
-                  <path
-                    d="M4 6L8 10L12 6"
-                    stroke="#525252"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                />
               </button>
               {openIndex === index && (
                 <div className="px-6 pb-5 animate-in fade-in slide-in-from-top-2 duration-200">

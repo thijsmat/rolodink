@@ -4,6 +4,21 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Menu, X, Moon, Sun } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/...";
 
@@ -49,24 +64,30 @@ export function SiteHeader() {
         </Link>
 
         {/* Center: Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-4">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-azure hover:text-azure/80 transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            {navLinks.map((link) => (
+              <NavigationMenuItem key={link.href}>
+                <NavigationMenuLink
+                  href={link.href}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "text-sm text-azure hover:text-azure/80 bg-transparent hover:bg-azure/5"
+                  )}
+                >
+                  {link.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
 
         {/* Right: Theme Toggle + CTA + Mobile Menu */}
         <div className="flex items-center justify-end gap-3">
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-azure/5 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-azure/5 transition-colors duration-200 ease-out"
             aria-label="Toggle theme"
           >
             {isDark ? (
@@ -86,46 +107,43 @@ export function SiteHeader() {
             </a>
           </Button>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden p-1 hover:bg-azure/5 rounded-lg transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? (
-              <X className="h-6 w-6 text-azure" />
-            ) : (
-              <Menu className="h-6 w-6 text-azure" />
-            )}
-          </button>
+          {/* Mobile Menu */}
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6 text-azure" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-8">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm text-azure hover:text-azure/80 transition-colors duration-200 ease-out py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <Button
+                  asChild
+                  className="w-full bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-4"
+                >
+                  <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
+                    Add to Chrome - Gratis
+                  </a>
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile menu drawer with smooth animation */}
-      {isMenuOpen && (
-        <div className="md:hidden border-t border-azure/10 bg-background animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="max-w-[1136px] mx-auto px-8 py-4 space-y-4 flex flex-col">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm text-azure hover:text-azure/80 transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </a>
-            ))}
-            <Button
-              asChild
-              className="w-full h-9 bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-2"
-            >
-              <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-                Add to Chrome - Gratis
-              </a>
-            </Button>
-          </div>
-        </div>
-      )}
     </header>
   )
 }
