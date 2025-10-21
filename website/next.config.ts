@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
   compress: true,
-  swcMinify: true,
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
 }
