@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { 
   Users, 
@@ -86,10 +85,8 @@ const features = [
 
 export default function FeaturesPage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      
-      <main className="flex-1">
+    <>
+      <main className="flex-1 pt-16">
         {/* Hero */}
         <section className="container max-w-5xl py-16 md:py-24 lg:py-32">
           <div className="mx-auto flex flex-col items-center space-y-6 text-center">
@@ -183,8 +180,7 @@ export default function FeaturesPage() {
           </div>
         </section>
       </main>
-      
       <SiteFooter />
-    </div>
+    </>
   )
 }

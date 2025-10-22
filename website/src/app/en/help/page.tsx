@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,9 +7,9 @@ export const metadata = { title: 'Help', description: 'FAQ and troubleshooting f
 
 export default function HelpPage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      
+      <main className="flex-1 pt-16">
         <section className="container space-y-6 py-8 md:py-12 lg:py-24 text-center">
           <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">Help & FAQ</h1>
           <p className="max-w-[58rem] mx-auto text-muted-foreground">Issues with install or usage? Find the most common fixes below.</p>
@@ -25,7 +24,7 @@ export default function HelpPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   )
 }
 

@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { pageSEO } from "@/lib/seo";
@@ -14,9 +13,8 @@ export default function DownloadPage() {
   const extensionUrl = process.env.NEXT_PUBLIC_EXTENSION_URL || "#";
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex flex-1 items-center justify-center">
+    <>
+      <main className="flex flex-1 items-center justify-center pt-16">
         <section className="container py-16 text-center md:py-24 lg:py-32">
           <div className="mx-auto max-w-2xl">
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
@@ -42,6 +40,6 @@ export default function DownloadPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

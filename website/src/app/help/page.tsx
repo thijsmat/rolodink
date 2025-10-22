@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import {
   Accordion,
@@ -49,9 +48,8 @@ const faqItems = [
 
 export default function HelpPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      <main className="flex-1 pt-16">
         {/* Hero Section */}
         <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
@@ -98,6 +96,6 @@ export default function HelpPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

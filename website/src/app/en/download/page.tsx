@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Download, Chrome, Shield, Clock, CheckCircle, ExternalLink } from 'lucide-react'
 
@@ -12,9 +11,9 @@ const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || 'https://chrome.g
 
 export default function DownloadPage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      
+      <main className="flex-1 pt-16">
         <section className="container space-y-6 py-8 md:py-12 lg:py-24 text-center">
           <Badge variant="secondary" className="rounded-full px-3 py-1">Free download</Badge>
           <h1 className="font-heading text-3xl leading-tight sm:text-3xl md:text-6xl">Download Rolodink</h1>
@@ -52,7 +51,7 @@ export default function DownloadPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   )
 }
 
