@@ -1,7 +1,4 @@
-"use client"
-
-import { useState } from "react";
-import { ChevronDown } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 const faqs = [
   {
@@ -36,8 +33,6 @@ const faqs = [
 ];
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   return (
     <section id="faq" className="py-16 md:py-24 px-4 md:px-8">
       <div className="max-w-[768px] mx-auto">
@@ -50,35 +45,26 @@ export default function FAQ() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <Accordion type="single" collapsible className="space-y-4">
           {faqs.map((faq, index) => (
-            <div
+            <AccordionItem
               key={index}
+              value={`item-${index}`}
               className="bg-white border border-azure/10 rounded-2xl shadow-sm overflow-hidden"
             >
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors duration-200 ease-out"
-              >
-                <span className="font-semibold text-sm text-azure pr-4">
+              <AccordionTrigger className="px-6 py-5 hover:bg-azure/5 transition-colors duration-200 ease-out">
+                <span className="font-semibold text-sm text-azure pr-4 text-left">
                   {faq.question}
                 </span>
-                <ChevronDown
-                  className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 ${
-                    openIndex === index ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {openIndex === index && (
-                <div className="px-6 pb-5 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="text-grey text-sm leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
-              )}
-            </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-5">
+                <p className="text-grey text-sm leading-relaxed">
+                  {faq.answer}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
     </section>
   );
