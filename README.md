@@ -46,6 +46,7 @@ cd linkedin-crm-backend && npm install && npm run dev
 - **[Team Workflow](TEAM_WORKFLOW.md)** - Complete development guide
 - **[GitHub Flow](.github/GITHUB_FLOW.md)** - Version control strategy
 - **[Installation Guide](INSTALL.md)** - User installation instructions
+- **[Styling Architecture](STYLING.md)** - CSS and styling guide
 - **[Cursor Rules](.cursorrules)** - Development guidelines
 
 ## 🎨 Design System
