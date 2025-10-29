@@ -1,4 +1,5 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
@@ -33,38 +34,49 @@ const faqs = [
 ];
 
 export default function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
-    <section id="faq" className="py-16 md:py-24 px-4 md:px-8">
+    <section id="faq" className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[768px] mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-playfair font-semibold text-azure mb-4">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-5xl text-azure mb-3 sm:mb-4">
             Veelgestelde vragen
           </h2>
-          <p className="text-lg text-grey">
+          <p className="text-base sm:text-lg lg:text-xl text-grey">
             Alles wat je moet weten over Rolodink
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {faqs.map((faq, index) => (
-            <AccordionItem
+            <div
               key={index}
-              value={`item-${index}`}
-              className="bg-white border border-azure/10 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl shadow-sm overflow-hidden"
             >
-              <AccordionTrigger className="px-6 py-5 hover:bg-azure/5 transition-colors duration-200 ease-out">
-                <span className="font-semibold text-sm text-azure pr-4 text-left">
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors gap-3"
+              >
+                <span className="font-semibold text-xs sm:text-sm text-azure">
                   {faq.question}
                 </span>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-5">
-                <p className="text-grey text-sm leading-relaxed">
-                  {faq.answer}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
+                <ChevronDown
+                  className={`h-4 w-4 flex-shrink-0 transition-transform text-neutral-500 ${
+                    openIndex === index ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {openIndex === index && (
+                <div className="px-4 sm:px-6 pb-4 sm:pb-5 border-t border-azure/10">
+                  <p className="text-grey text-xs sm:text-sm leading-relaxed pt-4">
+                    {faq.answer}
+                  </p>
+                </div>
+              )}
+            </div>
           ))}
-        </Accordion>
+        </div>
       </div>
     </section>
   );
