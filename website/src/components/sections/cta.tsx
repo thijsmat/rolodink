@@ -18,11 +18,24 @@ export default function CTA() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button className="h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2">
+          <button
+            style={{
+              backgroundColor: "white",
+              color: "hsl(221, 50%, 21%)",
+            }}
+            className="h-10 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          >
             <Chrome className="h-4 w-4" />
             Add to Chrome - Gratis
           </button>
-          <button className="h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+          <button
+            style={{
+              borderColor: "rgba(255, 255, 255, 0.3)",
+              borderWidth: "2px",
+              color: "white",
+            }}
+            className="h-10 px-3 sm:px-4 rounded-lg bg-transparent text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+          >
             Bekijk demo
             <ArrowRight className="h-4 w-4" />
           </button>
