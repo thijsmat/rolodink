@@ -54,10 +54,10 @@ export default function HelpPage() {
         <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
             Hulp & Veelgestelde Vragen
-          </h1>
+            </h1>
           <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
             Vind hier de antwoorden op de meest voorkomende vragen. Staat je vraag er niet bij? Neem gerust contact op.
-          </p>
+            </p>
         </section>
 
         {/* FAQ Accordion Section */}
@@ -91,7 +91,7 @@ export default function HelpPage() {
                   Probeer het Gratis
                 </a>
               </Button>
-            </div>
+                </div>
           </div>
         </section>
       </main>
