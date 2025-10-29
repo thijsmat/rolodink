@@ -24,13 +24,13 @@ export default function Hero() {
               contact en onthoud waarom jullie connectie waardevol is.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <button
                 style={{
                   backgroundColor: "hsl(221, 50%, 21%)",
                   color: "white",
                 }}
-                className="h-10 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium shadow-lg transition-colors items-center justify-center gap-2"
               >
                 <Chrome className="h-4 w-4" />
                 Add to Chrome - Gratis
@@ -40,8 +40,9 @@ export default function Hero() {
                   borderColor: "hsl(43, 91%, 38%)",
                   borderWidth: "2px",
                   color: "hsl(43, 91%, 38%)",
+                  backgroundColor: "transparent",
                 }}
-                className="h-10 px-3 sm:px-4 rounded-lg bg-background text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors flex items-center justify-center gap-2"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-colors items-center justify-center gap-2"
               >
                 <Play className="h-4 w-4" />
                 Bekijk demo
