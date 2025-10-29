@@ -71,7 +71,7 @@ export default function Hero() {
                   className="w-full h-40 sm:h-48 lg:h-64 object-cover rounded-lg sm:rounded-2xl relative z-10"
                 />
                 <div className="flex items-start gap-2 sm:gap-3 relative z-10">
-                  <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-linkBlue flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
+                  <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-link-blue flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
                     JD
                   </div>
                   <div className="flex-1 min-w-0">
@@ -90,7 +90,7 @@ export default function Hero() {
                   </p>
                 </div>
               </div>
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 rounded-full bg-linkBlue/10 blur-2xl"></div>
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 rounded-full bg-link-blue/10 blur-2xl"></div>
               <div className="absolute -top-2 -right-4 w-24 h-24 rounded-full bg-gold/10 blur-2xl"></div>
             </div>
           </div>

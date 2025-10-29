@@ -5,7 +5,7 @@ export default function CTA() {
   return (
     <section className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-azure to-azure/80 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-gold/10 blur-2xl sm:blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-linkBlue/10 blur-2xl sm:blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-link-blue/10 blur-2xl sm:blur-3xl"></div>
 
       <div className="max-w-[896px] mx-auto relative z-10">
         <div className="text-center mb-6 sm:mb-8">

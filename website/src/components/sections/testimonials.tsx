@@ -57,7 +57,7 @@ export default function Testimonials() {
               className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl p-4 sm:p-8 relative"
             >
               <CardHeader className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6 p-0">
-                <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-gradient-to-br from-linkBlue to-linkBlue/80 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-gradient-to-br from-link-blue to-link-blue/80 flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-semibold text-xs sm:text-base">
                     {testimonial.initials}
                   </span>
@@ -115,7 +115,7 @@ export default function Testimonials() {
                             ? "bg-gold"
                             : note.type === "action"
                               ? "bg-azure"
-                              : "bg-linkBlue"
+                              : "bg-link-blue"
                         }`}
                       ></div>
                       <p
