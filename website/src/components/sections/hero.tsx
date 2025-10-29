@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Chrome, Play, Star } from "lucide-react";
 
 export default function Hero() {
@@ -26,14 +25,14 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-              <Button className="h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors flex items-center justify-center gap-2">
+              <button className="h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors flex items-center justify-center gap-2">
                 <Chrome className="h-4 w-4" />
                 Add to Chrome - Gratis
-              </Button>
-              <Button className="h-10 px-3 sm:px-4 rounded-lg border-2 border-gold bg-background text-gold text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors flex items-center justify-center gap-2">
+              </button>
+              <button className="h-10 px-3 sm:px-4 rounded-lg border-2 border-gold bg-background text-gold text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors flex items-center justify-center gap-2">
                 <Play className="h-4 w-4" />
                 Bekijk demo
-              </Button>
+              </button>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 pt-2 sm:pt-4">

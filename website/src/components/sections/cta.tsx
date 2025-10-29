@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Chrome, ArrowRight, Check } from "lucide-react";
 
 export default function CTA() {
@@ -19,14 +18,14 @@ export default function CTA() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <Button className="h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2">
+          <button className="h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2">
             <Chrome className="h-4 w-4" />
             Add to Chrome - Gratis
-          </Button>
-          <Button className="h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+          </button>
+          <button className="h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
             Bekijk demo
             <ArrowRight className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-white/70 text-xs sm:text-sm flex-wrap">
