@@ -1,0 +1,71 @@
+name: Publish Edge Extension
+
+on:
+  push:
+    tags:
+      - 'ext-v*'  # Triggers on tags like ext-v1.0.3
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/ext-v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Check for Edge ZIP
+        run: |
+          if [ -f "Rolodink-Edge-v${{ steps.version.outputs.version }}.zip" ]; then
+            echo "✅ Edge ZIP found: Rolodink-Edge-v${{ steps.version.outputs.version }}.zip"
+            ls -lh Rolodink-Edge-v${{ steps.version.outputs.version }}.zip
+          else
+            echo "⚠️  Edge ZIP not found at expected location"
+            echo "Looking for any Edge ZIP files..."
+            ls -lh Rolodink-Edge-*.zip 2>/dev/null || echo "No Edge ZIP files found"
+          fi
+
+      - name: Edge Add-ons Status
+        run: |
+          echo "ℹ️  Edge Add-ons publishing"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📋 Current Status:"
+          echo "  Edge Add-ons requires manual upload via Microsoft Partner Center"
+          echo ""
+          echo "📦 Extension Package:"
+          echo "  Version: ${{ steps.version.outputs.version }}"
+          echo "  File: Rolodink-Edge-v${{ steps.version.outputs.version }}.zip (if exists)"
+          echo ""
+          echo "🚀 Next Steps:"
+          echo "  1. Go to: https://partner.microsoft.com/en-us/dashboard/microsoftedge/"
+          echo "  2. Sign in with Microsoft account"
+          echo "  3. Navigate to Edge Add-ons → Rolodink"
+          echo "  4. Upload: Rolodink-Edge-v${{ steps.version.outputs.version }}.zip"
+          echo "  5. Complete store listing and submit for review"
+          echo ""
+          echo "📚 Documentation:"
+          echo "  See: docs/EDGE_UPLOAD_INSTRUCTIONS.md for detailed steps"
+          echo ""
+          echo "🔮 Future:"
+          echo "  Automated publishing will be enabled when edge-addons-publish action"
+          echo "  becomes available or Microsoft Partner Center API supports it."
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Upload artifact (if exists)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-extension-zip
+          path: Rolodink-Edge-v*.zip
+          retention-days: 30
+          if-no-files-found: ignore
+
