@@ -103,7 +103,7 @@ export function SiteHeader() {
             className="hidden md:inline-flex h-9 px-4 bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg"
           >
             <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-              Add to Chrome - Gratis
+              Gratis Installeren - 30 seconden
             </a>
           </Button>
 
@@ -136,7 +136,7 @@ export function SiteHeader() {
                   className="w-full bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-4"
                 >
                   <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-                    Add to Chrome - Gratis
+                    Gratis Installeren - 30 seconden
                   </a>
                 </Button>
               </div>

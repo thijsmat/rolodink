@@ -4,37 +4,37 @@ import { Users, Lightbulb, Heart, Shield, Zap, Target } from "lucide-react";
 const features = [
   {
     icon: Users,
-    title: "Network management",
+    title: "Contacten organiseren & onthouden",
     description:
       "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom je contact hebt.",
   },
   {
     icon: Lightbulb,
-    title: "Memory aids",
+    title: "Belangrijke details onthouden",
     description:
       "Onthoud belangrijke details over gesprekken, interesses en afspraken. Perfect voor het bijhouden van follow-ups en networking.",
   },
   {
     icon: Heart,
-    title: "Human follow-up",
+    title: "Persoonlijke relaties opbouwen",
     description:
       "Maak elke interactie persoonlijk door relevante details bij de hand te hebben. Bouw sterkere, authentiekere professionele relaties op.",
   },
   {
     icon: Shield,
-    title: "Privacy first",
+    title: "Je notities blijven privé",
     description:
-      "Al je notities worden veilig opgeslagen en zijn alleen voor jou zichtbaar. Volledige controle over je eigen data.",
+      "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. GDPR-compliant, geen gegevens worden gedeeld met derden.",
   },
   {
     icon: Zap,
-    title: "Instant access",
+    title: "Snel toevoegen met één klik",
     description:
       "Voeg notities toe met één klik vanuit elk LinkedIn profiel. Snelle toegang tot al je contactinformatie wanneer je het nodig hebt.",
   },
   {
     icon: Target,
-    title: "Focus on what matters",
+    title: "Slimme zoeken & filteren",
     description:
       "Filter en zoek door je notities om snel te vinden wat belangrijk is. Slimme organisatie voor effectief netwerkbeheer.",
   },

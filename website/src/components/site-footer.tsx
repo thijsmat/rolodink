@@ -83,7 +83,10 @@ export function SiteFooter() {
               </a>
               <Link href="/privacy" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Privacy Policy
-            </Link>
+              </Link>
+              <Link href="/security" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+                Security
+              </Link>
             </nav>
           </div>
 

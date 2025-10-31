@@ -46,7 +46,7 @@ export default function Hero() {
                   ))}
                 </div>
                 <span className="text-xs sm:text-sm text-grey">
-                  500+ gebruikers
+                  Vertrouwd door professionals
                 </span>
               </div>
               <div className="flex items-center gap-1">

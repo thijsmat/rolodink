@@ -11,12 +11,13 @@ const faqs = [
   },
   {
     question: "Is Rolodink echt gratis?",
-    answer: "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie.",
+    answer:
+      "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie. Geen creditcard nodig, geen limits.",
   },
   {
     question: "Hoe veilig zijn mijn notities?",
     answer:
-      "Je notities worden veilig opgeslagen en zijn alleen voor jou zichtbaar. We hebben volledige privacy garanties.",
+      "Je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. We gebruiken end-to-end encryptie en voldoen aan GDPR en AVG-richtlijnen.",
   },
   {
     question: "Werkt Rolodink ook op mobiel?",
@@ -32,6 +33,16 @@ const faqs = [
     question: "Zien anderen mijn notities op LinkedIn?",
     answer:
       "Nee, je notities zijn volledig privé en alleen zichtbaar voor jou.",
+  },
+  {
+    question: "Voldoet Rolodink aan privacy- en veiligheidswetten?",
+    answer:
+      "Ja, Rolodink voldoet aan GDPR, AVG, en alle relevante privacywetgeving. Je data wordt nooit gedeeld met derden.",
+  },
+  {
+    question: "Hoe zit het met updates en ondersteuning?",
+    answer:
+      "Rolodink wordt regelmatig geupdate met nieuwe features en security patches. Ondersteuning is beschikbaar via ons Help Center.",
   },
 ];
 

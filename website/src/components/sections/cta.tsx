@@ -12,8 +12,7 @@ export default function CTA() {
             Klaar om je netwerk te versterken?
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-white/80 max-w-[672px] mx-auto px-4 sm:px-0">
-            Voeg vandaag nog Rolodink toe aan Chrome en begin met het opbouwen
-            van betekenisvolle, persoonlijke professionele relaties.
+            Voeg Rolodink vandaag gratis toe en onthoud morgen waarom elke connectie werkt. Geen creditcard nodig, geen limits, alleen persoonlijke netwerk-management.
           </p>
         </div>
 
