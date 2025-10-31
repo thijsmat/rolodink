@@ -94,6 +94,66 @@ docs(readme): update installation instructions
 - Use shadcn/ui components when possible
 - Maintain responsive design
 
+## 🔒 Security Best Practices
+
+### Secret Management
+- **Never commit secrets** to the repository (API keys, passwords, tokens, credentials)
+- Use GitHub Secrets for CI/CD credentials (not in code)
+- Store secrets in `.env` files (already gitignored)
+- TruffleHog automatically scans all commits and PRs - will catch mistakes
+- Pre-commit hook scans locally before commits (optional but recommended)
+- Rotate secrets immediately if accidentally exposed
+
+### Security Scanning
+- **Automatic**: GitHub Actions runs TruffleHog on every push and PR
+- **Local**: Pre-commit hook available (see `docs/SECRET_SCANNING.md`)
+- **Result**: Workflow fails if secrets detected, blocking merges
+- **Coverage**: Scans entire git history, not just current files
+
+**If secrets are found:**
+1. Rotate the secret immediately (assume compromised)
+2. Remove from git history
+3. Update GitHub Secrets
+4. See `docs/SECRET_SCANNING.md` for remediation steps
+
+### Rate Limiting
+- **CRITICAL**: All API routes must have rate limiting (100 req/hour per IP)
+- Use `rateLimitMiddleware` from `@/lib/rate-limit` on all `/api/*` routes
+- Prevents bot abuse and protects against excessive API costs
+- Test rate limits before deploying: verify 429 responses after limit
+
+### Row-Level Security (RLS)
+- **CRITICAL**: All user data tables must have RLS enabled
+- Connection and Note tables use RLS policies based on `auth.uid()`
+- Test RLS policies before deploying: ensure users can't access others' data
+- See `docs/RLS_SETUP.md` for setup instructions
+- Run `prisma/migrations/enable_rls.sql` in Supabase before production
+
+### API Key Security
+- **NEVER** hardcode API keys, secrets, or credentials in source code
+- **ALWAYS** use environment variables (`.env.local` for development)
+- Move ALL secrets to environment variables immediately if found hardcoded
+- Update `.gitignore` to ensure secrets are never committed
+- Provide `.env.example` files showing required variables (without actual values)
+
+### Dependency Security
+- Run `npm audit` regularly (automated in CI/CD)
+- Fix critical and high severity vulnerabilities before merging
+- Review `npm audit` output in GitHub Actions workflows
+- Update dependencies regularly to patch security issues
+
+### Authentication Security
+- Verify OAuth flow is secure (Supabase OAuth is already secure)
+- **NEVER** store credentials in localStorage (use secure storage like chrome.storage.local)
+- Verify CORS headers are properly configured (no wildcards in production)
+- Test authentication: sign in/out should work securely
+
+### Security Testing
+- Test rate limiting: make >100 requests, verify 429 response
+- Test RLS: attempt to access another user's data, should fail
+- Test authentication: verify tokens are validated on every request
+- Review security logs regularly for suspicious activity
+
 ## 🔧 Code Quality Standards
 
 ### TypeScript
@@ -220,7 +280,7 @@ npm test
 - Custom domain: rolodink.app
 
 ### Extension
-- Manual build and upload process
+- Automated publishing via GitHub Actions (see Extension Publishing Guide below)
 - Chrome Web Store, Firefox AMO, Edge Add-ons
 - Version bumping required
 - Store listings updated
@@ -269,6 +329,67 @@ npm test
 - Clear commit messages
 - Updated documentation
 - Successful deployments
+
+---
+
+## 📦 Rolodink Extension Publishing Guide
+
+### Release Process
+
+To publish a new version of Rolodink to all stores:
+
+1. **Update version in package.json**
+   - Update `linkedin-crm-extension/package.json`: `"version": "1.0.X"`
+   - Also update `manifest.json` and `manifest-firefox.json` version fields
+
+2. **Commit changes:**
+   ```bash
+   git add .
+   git commit -m "Release v1.0.X"
+   ```
+
+3. **Create and push tag:**
+   ```bash
+   git tag -a ext-v1.0.X -m "Release Rolodink v1.0.X"
+   git push origin ext-v1.0.X
+   ```
+
+### Automated Workflows
+
+GitHub Actions automatically triggered by tags matching `ext-v*`:
+
+- **Firefox**: Signs with `web-ext` and publishes to AMO (3-7 days review)
+- **Chrome**: Publishes to Chrome Web Store (24-48 hours review)
+- **Edge**: Placeholder workflow; manual upload required (see `docs/EDGE_UPLOAD_INSTRUCTIONS.md`)
+
+### Required Secrets
+
+All secrets must be configured in **GitHub Settings → Secrets → Actions**:
+
+- `FIREFOX_JWT_ISSUER`
+- `FIREFOX_JWT_SECRET`
+- `CHROME_CLIENT_ID`
+- `CHROME_CLIENT_SECRET`
+- `CHROME_REFRESH_TOKEN`
+- `CHROME_EXTENSION_ID`
+
+### Documentation
+
+- `docs/GITHUB_ACTIONS_SETUP.md`: Complete setup guide
+- `docs/FIREFOX_PUBLISHING.md`: Firefox-specific details
+- `docs/CHROME_UPLOAD_INSTRUCTIONS.md`: Chrome manual upload
+- `docs/EDGE_UPLOAD_INSTRUCTIONS.md`: Edge manual upload
+
+### Important Notes
+
+- **Tag format must be `ext-vX.Y.Z`** (not `vX.Y.Z`)
+- **Version in package.json must match tag version**
+- **Check GitHub Actions tab** for workflow status
+- **Monitor store dashboards** for review progress
+
+### Next Steps (Future)
+
+- Edge automation when better API tooling available
 
 ---
 
