@@ -34,9 +34,7 @@ export async function GET(request: NextRequest) {
         { error: authError || 'Unauthorized' },
         { 
           status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -60,9 +58,7 @@ export async function GET(request: NextRequest) {
         { error: 'User not found' },
         { 
           status: 404,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -74,9 +70,7 @@ export async function GET(request: NextRequest) {
         { error: `Export limit exceeded. Maximum ${MAX_CONNECTIONS} connections allowed.` },
         { 
           status: 413,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -119,9 +113,9 @@ export async function GET(request: NextRequest) {
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,
       headers: {
+        ...corsHeaders,
         'Content-Type': 'application/json',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'Access-Control-Allow-Origin': origin || '*',
       },
     });
 
@@ -131,9 +125,7 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error' },
       { 
         status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
-        },
+        headers: buildCorsHeaders(request),
       }
     );
   }

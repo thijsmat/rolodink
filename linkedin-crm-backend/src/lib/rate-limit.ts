@@ -77,23 +77,62 @@ export function checkRateLimit(identifier: string): RateLimitResult {
 /**
  * Get client IP from request
  * Handles proxy headers (X-Forwarded-For, X-Real-IP)
+ * SECURITY: Never returns 'unknown' to avoid shared rate limit bucket (DOS risk)
  */
 export function getClientIP(request: Request): string {
   // Check X-Forwarded-For header (first IP if multiple)
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    const ips = forwarded.split(',').map((ip) => ip.trim());
-    return ips[0] || 'unknown';
+    const ips = forwarded.split(',').map((ip) => ip.trim()).filter(Boolean);
+    // Validate IP format before using
+    if (ips.length > 0 && isValidIP(ips[0])) {
+      return ips[0];
+    }
   }
 
   // Check X-Real-IP header
   const realIP = request.headers.get('x-real-ip');
-  if (realIP) {
+  if (realIP && isValidIP(realIP)) {
     return realIP;
   }
 
-  // Fallback (won't work in serverless, but helps in local dev)
-  return 'unknown';
+  // SECURITY FIX: Instead of 'unknown', generate per-request unique identifier
+  // This prevents all requests without IP from sharing the same rate limit bucket
+  // In serverless environments, this uses request URL + timestamp as fallback
+  const requestId = `${request.url}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  console.warn(`[Rate Limit] Could not determine client IP, using request ID: ${requestId.substring(0, 50)}...`);
+  return requestId;
+}
+
+/**
+ * Basic IP address validation
+ * Checks if string looks like a valid IP (IPv4 or IPv6)
+ */
+function isValidIP(ip: string): boolean {
+  if (!ip || typeof ip !== 'string') return false;
+  
+  // IPv4 pattern: 1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  
+  // IPv6 pattern: hex digits with colons (simplified check)
+  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+  
+  // Basic validation - check format
+  if (ipv4Pattern.test(ip)) {
+    // Validate IPv4 ranges (0-255 per octet)
+    const parts = ip.split('.');
+    return parts.length === 4 && parts.every(part => {
+      const num = parseInt(part, 10);
+      return num >= 0 && num <= 255;
+    });
+  }
+  
+  // IPv6 validation is more complex, but basic format check is sufficient here
+  if (ipv6Pattern.test(ip)) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
@@ -105,7 +144,7 @@ export function rateLimitMiddleware(request: Request): Response | null {
   const result = checkRateLimit(ip);
 
   if (!result.success) {
-    const origin = request.headers.get('origin') || '*';
+    // Use secure CORS headers (will be applied by route handler)
     return new Response(
       JSON.stringify({
         error: 'Rate limit exceeded',
@@ -116,9 +155,8 @@ export function rateLimitMiddleware(request: Request): Response | null {
         status: 429,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          // Note: CORS headers should be added by route handler using buildCorsHeaders
+          // We omit Access-Control-Allow-Origin here to prevent reflection attacks
           'X-RateLimit-Limit': result.limit.toString(),
           'X-RateLimit-Remaining': result.remaining.toString(),
           'X-RateLimit-Reset': result.resetTime.toString(),

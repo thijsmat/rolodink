@@ -2,19 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { createSupabaseServerClient, getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
+import { buildCorsHeaders } from '@/lib/cors';
 
 const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': origin || '*',
-      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
+  return new NextResponse(null, { headers: buildCorsHeaders(request) });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -24,8 +17,9 @@ export async function DELETE(request: NextRequest) {
     return rateLimitResponse;
   }
 
+  const corsHeaders = buildCorsHeaders(request);
+
   try {
-    const origin = request.headers.get('origin');
     
     // Authenticate user
     const { user, error: authError } = await getUserFromRequest(request);
@@ -34,9 +28,7 @@ export async function DELETE(request: NextRequest) {
         { error: authError || 'Unauthorized' },
         { 
           status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -56,9 +48,7 @@ export async function DELETE(request: NextRequest) {
         { error: 'User not found' },
         { 
           status: 404,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -118,9 +108,7 @@ export async function DELETE(request: NextRequest) {
       },
       { 
         status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': origin || '*',
-        },
+        headers: corsHeaders,
       }
     );
 
@@ -130,9 +118,7 @@ export async function DELETE(request: NextRequest) {
       { error: 'Internal server error' },
       { 
         status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
-        },
+        headers: buildCorsHeaders(request),
       }
     );
   }

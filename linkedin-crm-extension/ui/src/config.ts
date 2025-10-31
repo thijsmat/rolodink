@@ -8,13 +8,14 @@ export const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects
 
 // Supabase configuration
 // NOTE: These MUST be set as environment variables - never hardcode in production!
-// For development, set these in .env.local
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// For Vite, use import.meta.env (not process.env)
+// For development, set these in .env.local with VITE_ prefix
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Validate that Supabase credentials are provided
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('⚠️  Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables.');
+  console.error('⚠️  Missing Supabase credentials. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in environment variables.');
 }
 
 

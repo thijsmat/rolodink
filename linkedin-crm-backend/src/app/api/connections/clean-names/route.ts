@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
+import { buildCorsHeaders } from '@/lib/cors';
 
 const prisma = new PrismaClient();
-
-function buildCorsHeaders(request: NextRequest): Record<string, string> {
-  const origin = request.headers.get('origin') || request.headers.get('Origin') || '*';
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'false',
-    'Vary': 'Origin',
-  };
-}
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
