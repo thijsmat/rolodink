@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "build:firefox": "bash scripts/prepare-firefox-source.sh",
+    "sign:firefox": "bash scripts/prepare-firefox-source.sh && web-ext sign --source-dir .web-ext-src --artifacts-dir web-ext-artifacts --channel listed",
+    "watch:firefox": "web-ext run --source-dir linkedin-crm-extension --firefox=firefox-developer-edition --watch-file linkedin-crm-extension --start-url https://www.linkedin.com/in/"
+  },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19"
+    "@tailwindcss/typography": "^0.5.19",
+    "web-ext": "^7.12.0"
   }
 }

@@ -65,3 +65,7 @@ prisma/dev.db-journal
 *.db
 *.sqlite
 .config/
+
+.env
+web-ext-artifacts/
+.web-ext-src/

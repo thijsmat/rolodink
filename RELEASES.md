@@ -22,3 +22,4 @@ This avoids collisions when both products evolve independently.
 - Do not retroactively rename existing tags for now (risk of breaking links)
 - When creating a new release, clearly mention whether it is Website or Extension in the title and notes
 - Attach packaged artifacts only to Extension releases
+
