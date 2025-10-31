@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 const prisma = new PrismaClient();
 
@@ -48,6 +49,12 @@ export async function OPTIONS(request: NextRequest) {
 
 // GET functie - Haal alle connecties op voor de ingelogde gebruiker
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
@@ -102,6 +109,12 @@ function normalizeLinkedInUrl(rawUrl: string): string {
 
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
@@ -150,6 +163,12 @@ export async function POST(request: NextRequest) {
 
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);

@@ -7,8 +7,14 @@ export const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects
 // export const API_BASE_URL = 'https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app';
 
 // Supabase configuration
-// Note: These should be set as environment variables in production
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://matthijs-goes-projects.supabase.co';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'PLACEHOLDER_KEY_NEEDS_REPLACEMENT';
+// NOTE: These MUST be set as environment variables - never hardcode in production!
+// For development, set these in .env.local
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+// Validate that Supabase credentials are provided
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('⚠️  Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables.');
+}
 
 

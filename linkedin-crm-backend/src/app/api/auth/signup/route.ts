@@ -1,6 +1,7 @@
 // src/app/api/auth/signup/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +14,13 @@ export async function OPTIONS() {
   return new Response(null, { headers: corsHeaders });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limiting (especially important for auth endpoints)
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const { email, password } = await request.json();
 
