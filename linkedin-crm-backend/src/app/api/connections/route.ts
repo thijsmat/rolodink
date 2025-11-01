@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
+import { buildCorsHeaders } from '@/lib/cors';
 
 const prisma = new PrismaClient();
 
@@ -30,17 +32,7 @@ function cleanProfileName(name: string): string {
   return cleaned.replace(/\s+/g, ' ').trim();
 }
 
-function buildCorsHeaders(request: NextRequest): Record<string, string> {
-  const origin = request.headers.get('origin') || request.headers.get('Origin') || '*';
-  // Echo back the requesting origin to avoid mismatches across multiple chrome-extension origins
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'false',
-    'Vary': 'Origin',
-  };
-}
+// buildCorsHeaders now imported from @/lib/cors with secure whitelisting
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
@@ -48,6 +40,12 @@ export async function OPTIONS(request: NextRequest) {
 
 // GET functie - Haal alle connecties op voor de ingelogde gebruiker
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
@@ -102,6 +100,12 @@ function normalizeLinkedInUrl(rawUrl: string): string {
 
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);
@@ -150,6 +154,12 @@ export async function POST(request: NextRequest) {
 
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);

@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
+import { buildCorsHeaders } from '@/lib/cors';
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': origin || '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return new NextResponse(null, { headers: buildCorsHeaders(request) });
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const corsHeaders = buildCorsHeaders(request);
+
   try {
-    const origin = request.headers.get('origin');
-    
     // Get current version from query parameter with validation
     const { searchParams } = new URL(request.url);
     const currentVersion = searchParams.get('version');
@@ -26,9 +26,7 @@ export async function GET(request: NextRequest) {
         { error: 'Invalid version format. Expected format: x.y.z' },
         { 
           status: 400,
-          headers: {
-            'Access-Control-Allow-Origin': origin || '*',
-          },
+          headers: corsHeaders,
         }
       );
     }
@@ -59,9 +57,7 @@ export async function GET(request: NextRequest) {
           { error: 'Invalid version format' },
           { 
             status: 400,
-            headers: {
-              'Access-Control-Allow-Origin': origin || '*',
-            },
+            headers: corsHeaders,
           }
         );
       }
@@ -174,7 +170,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(versionInfo, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        ...corsHeaders,
         'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
       },
     });
@@ -185,9 +181,7 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error' },
       { 
         status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
-        },
+        headers: buildCorsHeaders(request),
       }
     );
   }
