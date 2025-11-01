@@ -23,6 +23,20 @@ if [[ ! -f "$NOTES_FILE" ]]; then
   exit 1
 fi
 
+# Check that all artifact files exist before creating release
+for artifact in "$CHROME_ZIP" "$EDGE_ZIP" "$FIREFOX_ZIP"; do
+  if [[ ! -f "$artifact" ]]; then
+    echo "Error: Artifact file not found: $artifact" >&2
+    echo "Please build the extension artifacts before running this script." >&2
+    exit 1
+  fi
+done
+
+echo "All artifact files found:"
+echo "  - $CHROME_ZIP"
+echo "  - $EDGE_ZIP"
+echo "  - $FIREFOX_ZIP"
+
 # Ensure tag exists locally
 if git rev-parse "$TAG" >/dev/null 2>&1; then
   echo "Tag $TAG already exists locally."

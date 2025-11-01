@@ -359,15 +359,9 @@ git push origin ext-v1.0.4
 
 ### Step 2: Generate Refresh Token
 
-Use one of these methods:
+Use Google OAuth 2.0 Playground (recommended method):
 
-**Method A: Using `cws-publish` action's tool:**
-```bash
-# Install mobilefirstllc/cws-publish CLI tool (if available)
-# Or use Google OAuth Playground:
-```
-
-**Method B: Google OAuth 2.0 Playground:**
+**Google OAuth 2.0 Playground:**
 
 1. Go to: https://developers.google.com/oauthplayground/
 2. Click gear icon (top-right) → "Use your own OAuth credentials"
@@ -400,9 +394,8 @@ Add all four secrets:
 
 ## 📚 Related Documentation
 
-- **Firefox Publishing:** `docs/FIREFOX_PUBLISHING.md`
-- **Chrome Upload:** `docs/CHROME_UPLOAD_INSTRUCTIONS.md`
-- **Edge Upload:** `docs/EDGE_UPLOAD_INSTRUCTIONS.md`
+- **Firefox Publishing:** `linkedin-crm-extension/AMO-submission.md`
+- **Edge Upload:** `linkedin-crm-extension/edge-submission.md`
 - **Build Instructions:** `linkedin-crm-extension/BUILD_INSTRUCTIONS.md`
 - **Release Notes:** `linkedin-crm-extension/RELEASE_NOTES.md`
 
