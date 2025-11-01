@@ -2,19 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
+import { buildCorsHeaders } from '@/lib/cors';
 
 const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': origin || '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
+  return new NextResponse(null, { headers: buildCorsHeaders(request) });
 }
 
 export async function GET(request: NextRequest) {
@@ -24,8 +17,9 @@ export async function GET(request: NextRequest) {
     return rateLimitResponse;
   }
 
+  const corsHeaders = buildCorsHeaders(request);
+
   try {
-    const origin = request.headers.get('origin');
     
     // Authenticate user
     const { user, error: authError } = await getUserFromRequest(request);
