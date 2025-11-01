@@ -1,6 +1,8 @@
 // Rate limiting utility for API routes
 // Limits: 100 requests per IP per hour (strict)
 
+import { getAllowedOrigin } from './cors';
+
 interface RateLimitStore {
   [key: string]: {
     count: number;
@@ -77,9 +79,10 @@ export function checkRateLimit(identifier: string): RateLimitResult {
 /**
  * Get client IP from request
  * Handles proxy headers (X-Forwarded-For, X-Real-IP)
- * SECURITY: Never returns 'unknown' to avoid shared rate limit bucket (DOS risk)
+ * SECURITY: Returns undefined if IP cannot be determined (safer than fallback)
+ * Based on Gemini Code Assist recommendation: block requests if IP cannot be determined
  */
-export function getClientIP(request: Request): string {
+export function getClientIP(request: Request): string | undefined {
   // Check X-Forwarded-For header (first IP if multiple)
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
@@ -96,12 +99,9 @@ export function getClientIP(request: Request): string {
     return realIP;
   }
 
-  // SECURITY FIX: Instead of 'unknown', generate per-request unique identifier
-  // This prevents all requests without IP from sharing the same rate limit bucket
-  // In serverless environments, this uses request URL + timestamp as fallback
-  const requestId = `${request.url}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-  console.warn(`[Rate Limit] Could not determine client IP, using request ID: ${requestId.substring(0, 50)}...`);
-  return requestId;
+  // SECURITY: Return undefined if IP cannot be determined
+  // This forces route handlers to decide how to handle requests without IP
+  return undefined;
 }
 
 /**
@@ -138,13 +138,62 @@ function isValidIP(ip: string): boolean {
 /**
  * Rate limit middleware wrapper for Next.js API routes
  * Returns response if rate limited, null if allowed
+ * SECURITY: Uses secure CORS headers with origin whitelisting
+ * Based on Gemini Code Assist recommendation: block requests if IP cannot be determined
  */
 export function rateLimitMiddleware(request: Request): Response | null {
   const ip = getClientIP(request);
+  
+  // If IP cannot be determined, block the request for security
+  // This prevents potential abuse where requests without IP headers bypass rate limiting
+  // Based on Gemini Code Assist recommendation
+  if (!ip) {
+    console.warn('[Rate Limit] Blocking request because client IP could not be determined for rate limiting.');
+    
+    const allowedOrigin = getAllowedOrigin(request);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Only add CORS headers if origin is whitelisted
+    if (allowedOrigin) {
+      headers['Access-Control-Allow-Origin'] = allowedOrigin;
+      headers['Vary'] = 'Origin';
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        error: 'Could not determine client IP',
+        message: 'Request blocked for security reasons'
+      }), 
+      { 
+        status: 400,
+        headers
+      }
+    );
+  }
+  
   const result = checkRateLimit(ip);
 
   if (!result.success) {
-    // Use secure CORS headers (will be applied by route handler)
+    // Use secure CORS headers with origin whitelisting
+    // Based on Gemini Code Assist recommendation: use strict whitelist, include Vary header
+    const allowedOrigin = getAllowedOrigin(request);
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-RateLimit-Limit': result.limit.toString(),
+      'X-RateLimit-Remaining': result.remaining.toString(),
+      'X-RateLimit-Reset': result.resetTime.toString(),
+      'Retry-After': Math.ceil((result.resetTime - Date.now()) / 1000).toString(),
+    };
+    
+    // Only add CORS headers if origin is whitelisted (prevents reflection attacks)
+    if (allowedOrigin) {
+      headers['Access-Control-Allow-Origin'] = allowedOrigin;
+      headers['Vary'] = 'Origin'; // Important: prevents browser caching for wrong origin
+    }
+    
     return new Response(
       JSON.stringify({
         error: 'Rate limit exceeded',
@@ -153,15 +202,7 @@ export function rateLimitMiddleware(request: Request): Response | null {
       }),
       {
         status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          // Note: CORS headers should be added by route handler using buildCorsHeaders
-          // We omit Access-Control-Allow-Origin here to prevent reflection attacks
-          'X-RateLimit-Limit': result.limit.toString(),
-          'X-RateLimit-Remaining': result.remaining.toString(),
-          'X-RateLimit-Reset': result.resetTime.toString(),
-          'Retry-After': Math.ceil((result.resetTime - Date.now()) / 1000).toString(),
-        },
+        headers,
       }
     );
   }
