@@ -15,13 +15,18 @@ const ALLOWED_ORIGINS = [
   // Edge Extension IDs (if applicable)
   // 'extension://...',
   
-  // Development origins (remove in production)
+  // Development origins (allow in development and testing)
+  // Note: For production testing, add specific origins via environment variable
   ...(process.env.NODE_ENV === 'development' ? [
     'http://localhost:3000',
     'http://localhost:5173', // Vite dev server
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
   ] : []),
+  
+  // Allow additional origins via environment variable (comma-separated)
+  // Useful for testing production builds locally or allowing specific test domains
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean) : []),
 ];
 
 /**
