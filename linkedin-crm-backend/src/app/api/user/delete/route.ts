@@ -14,7 +14,15 @@ export async function DELETE(request: NextRequest) {
   // Rate limiting
   const rateLimitResponse = rateLimitMiddleware(request);
   if (rateLimitResponse) {
-    return rateLimitResponse;
+    const corsHeaders = buildCorsHeaders(request);
+    const responseHeaders = new Headers(rateLimitResponse.headers);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      if (value) responseHeaders.set(key, value);
+    });
+    return new Response(rateLimitResponse.body, {
+      status: rateLimitResponse.status,
+      headers: responseHeaders,
+    });
   }
 
   const corsHeaders = buildCorsHeaders(request);
