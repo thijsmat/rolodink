@@ -85,7 +85,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
 
                 let authToken;
                 try {
-                    const result = await browser.storage.local.get('supabaseAccessToken');
+                    const result = await browser.storage.session.get('supabaseAccessToken');
                     authToken = result.supabaseAccessToken;
                 } catch (_) {
                     return;
