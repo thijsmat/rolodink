@@ -121,7 +121,7 @@ jobs:
 
       - name: Generate release notes with version
         run: |
-          sed "s/\\${VERSION}/${{ steps.version.outputs.version }}/g" .github/RELEASE_TEMPLATE.md > .github/RELEASE_NOTES.md
+          sed 's/${VERSION}/${{ steps.version.outputs.version }}/g' .github/RELEASE_TEMPLATE.md > .github/RELEASE_NOTES.md
 
       - name: Upload artifact (zip)
         uses: actions/upload-artifact@v4
