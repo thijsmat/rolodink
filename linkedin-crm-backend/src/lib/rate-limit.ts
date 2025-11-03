@@ -2,6 +2,7 @@
 // Limits: 100 requests per IP per hour (strict)
 
 import { getAllowedOrigin } from './cors';
+import { isIP } from 'net';
 
 interface RateLimitStore {
   [key: string]: {
@@ -110,29 +111,7 @@ export function getClientIP(request: Request): string | undefined {
  */
 function isValidIP(ip: string): boolean {
   if (!ip || typeof ip !== 'string') return false;
-  
-  // IPv4 pattern: 1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits
-  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-  
-  // IPv6 pattern: hex digits with colons (simplified check)
-  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
-  
-  // Basic validation - check format
-  if (ipv4Pattern.test(ip)) {
-    // Validate IPv4 ranges (0-255 per octet)
-    const parts = ip.split('.');
-    return parts.length === 4 && parts.every(part => {
-      const num = parseInt(part, 10);
-      return num >= 0 && num <= 255;
-    });
-  }
-  
-  // IPv6 validation is more complex, but basic format check is sufficient here
-  if (ipv6Pattern.test(ip)) {
-    return true;
-  }
-  
-  return false;
+  return isIP(ip) !== 0; // Uses Node's robust IPv4/IPv6 validation
 }
 
 /**
