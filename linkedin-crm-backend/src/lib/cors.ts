@@ -6,9 +6,10 @@
  * SECURITY: Whitelist only - never use wildcard or reflect untrusted origins
  */
 const ALLOWED_ORIGINS = [
-  // Chrome Extension IDs (add your extension ID here)
-  'chrome-extension://hidgijlndiamdghcfjloaihnakmllimd',
-  
+  // Allow extension origins via environment variable (comma-separated)
+  // Example: "chrome-extension://id1,chrome-extension://id2,moz-extension://abc"
+  ...(process.env.ALLOWED_EXTENSION_ORIGINS ? process.env.ALLOWED_EXTENSION_ORIGINS.split(',').map(o => o.trim()).filter(Boolean) : []),
+
   // Firefox Extension IDs (if applicable)
   // 'moz-extension://...',
   
