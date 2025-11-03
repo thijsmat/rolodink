@@ -77,7 +77,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
         <SiteHeader />
-        <div className="relative flex min-h-screen flex-col">
+        <div className="relative flex min-h-screen flex-col pt-16">
           {children}
         </div>
         <Analytics />
