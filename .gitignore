@@ -10,6 +10,11 @@ out/
 dist/
 build/
 
+# Extension build artifacts
+linkedin-crm-extension/ui/dist/
+linkedin-crm-extension/.dist-*/
+**/.dist-*/
+
 # Environment variables
 .env
 .env.local
