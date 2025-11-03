@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.rolodink.app';
+const API_BASE_URL = ''; // This should be dynamically configured
 
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
