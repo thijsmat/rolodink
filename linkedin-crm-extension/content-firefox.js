@@ -71,7 +71,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
         (async () => {
             try {
-                if (!browser || !browser.storage || !browser.storage.local) {
+                if (!browser || !browser.storage) {
                     return;
                 }
 
@@ -85,7 +85,8 @@ waitForElement(stableButtonSelector, (foundButton) => {
 
                 let authToken;
                 try {
-                    const result = await browser.storage.local.get('supabaseAccessToken');
+                    const storage = (browser.storage && browser.storage.session) ? browser.storage.session : browser.storage.local;
+                    const result = await storage.get('supabaseAccessToken');
                     authToken = result.supabaseAccessToken;
                 } catch (_) {
                     return;
@@ -168,7 +169,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
             console.log('Profile URL:', profileUrl);
 
             // Controleer of de browser API beschikbaar is (context kan ongeldig zijn na reload)
-            if (!browser || !browser.storage || !browser.storage.local) {
+            if (!browser || !browser.storage) {
                 alert('Extension reloaded. Please refresh the page and try again.');
                 return;
             }
@@ -176,7 +177,8 @@ waitForElement(stableButtonSelector, (foundButton) => {
             // Haal het authenticatietoken op uit de storage van de extensie.
             let authToken;
             try {
-                const result = await browser.storage.local.get('supabaseAccessToken');
+                const storage = (browser.storage && browser.storage.session) ? browser.storage.session : browser.storage.local;
+                const result = await storage.get('supabaseAccessToken');
                 authToken = result.supabaseAccessToken;
                 console.log('Auth token exists:', !!authToken);
             } catch (err) {
