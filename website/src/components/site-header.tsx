@@ -23,9 +23,9 @@ import {
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/...";
 
 const navLinks = [
-  { href: "#features", label: "Features" },
-  { href: "#testimonials", label: "Testimonials" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/#features", label: "Features" },
+  { href: "/#testimonials", label: "Testimonials" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export function SiteHeader() {
