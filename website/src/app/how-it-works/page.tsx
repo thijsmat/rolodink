@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,17 +41,16 @@ const steps: Step[] = [
 
 export default function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      <main className="flex-1 pt-16">
         {/* Hero Section */}
         <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
             Van Chaos naar Connectie in 4 Stappen
-          </h1>
+            </h1>
           <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
             Rolodink is ontworpen om naadloos in je workflow te passen. Geen ingewikkelde software, gewoon een simpele tool die doet wat het moet doen.
-          </p>
+            </p>
         </section>
 
         {/* Step-by-step Section */}
@@ -60,7 +58,7 @@ export default function HowItWorksPage() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, index) => (
               <Card key={step.title} className="relative flex flex-col text-center border-azure/10">
-                <CardHeader>
+                  <CardHeader>
                   <Badge
                     variant="outline"
                     className="absolute -top-4 left-1/2 -translate-x-1/2 border-gold bg-background px-3 py-1 text-sm font-semibold text-gold"
@@ -92,16 +90,16 @@ export default function HowItWorksPage() {
               Het kost minder dan een minuut om te beginnen.
             </p>
             <div className="mt-8">
-              <Button asChild size="lg">
+            <Button asChild size="lg">
                 <a href={process.env.NEXT_PUBLIC_EXTENSION_URL} target="_blank" rel="noreferrer">
                   Add to Chrome - Gratis
                 </a>
-              </Button>
+            </Button>
             </div>
           </div>
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

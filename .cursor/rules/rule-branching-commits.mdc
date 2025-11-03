@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+description: Branching Strategie (GitHub Flow) en Commit Messages
+auto_attachments:
+  - /.gitmessage
+---
+## ðŸŒ³ Branch Strategy (GitHub Flow)
+- **main**: Production branch (always deployable)
+- **feature/description**: New features
+- **fix/description**: Bug fixes
+- **hotfix/description**: Urgent production fixes
+- **docs/description**: Documentation updates
+
+## ðŸš€ Development Workflow
+
+### Starting New Work
+```bash
+# Always start from main
+git checkout main
+git pull origin main
+git checkout -b feature/your-feature-name
+
+###Commit Messages
+Use conventional commits format:
+
+type(scope): description
+
+feat(auth): add OAuth2 integration
+fix(ui): resolve button alignment issue
+docs(readme): update installation instructions

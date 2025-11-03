@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
@@ -10,12 +11,13 @@ const faqs = [
   },
   {
     question: "Is Rolodink echt gratis?",
-    answer: "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie.",
+    answer:
+      "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie. Geen creditcard nodig, geen limits.",
   },
   {
     question: "Hoe veilig zijn mijn notities?",
     answer:
-      "Je notities worden veilig opgeslagen en zijn alleen voor jou zichtbaar. We hebben volledige privacy garanties.",
+      "Je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. We gebruiken end-to-end encryptie en voldoen aan GDPR en AVG-richtlijnen.",
   },
   {
     question: "Werkt Rolodink ook op mobiel?",
@@ -32,58 +34,55 @@ const faqs = [
     answer:
       "Nee, je notities zijn volledig privé en alleen zichtbaar voor jou.",
   },
+  {
+    question: "Voldoet Rolodink aan privacy- en veiligheidswetten?",
+    answer:
+      "Ja, Rolodink voldoet aan GDPR, AVG, en alle relevante privacywetgeving. Je data wordt nooit gedeeld met derden.",
+  },
+  {
+    question: "Hoe zit het met updates en ondersteuning?",
+    answer:
+      "Rolodink wordt regelmatig geupdate met nieuwe features en security patches. Ondersteuning is beschikbaar via ons Help Center.",
+  },
 ];
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-24 px-8">
+    <section id="faq" className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[768px] mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="font-playfair font-semibold text-5xl text-azure mb-4">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-5xl text-azure mb-3 sm:mb-4">
             Veelgestelde vragen
           </h2>
-          <p className="text-xl text-grey">
+          <p className="text-base sm:text-lg lg:text-xl text-grey">
             Alles wat je moet weten over Rolodink
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white border border-azure/10 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl shadow-sm overflow-hidden"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors"
+                className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors gap-3"
               >
-                <span className="font-semibold text-sm text-azure pr-4">
+                <span className="font-semibold text-xs sm:text-sm text-azure">
                   {faq.question}
                 </span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 transition-transform ${
+                <ChevronDown
+                  className={`h-4 w-4 flex-shrink-0 transition-transform text-neutral-500 ${
                     openIndex === index ? "rotate-180" : ""
                   }`}
-                >
-                  <path
-                    d="M4 6L8 10L12 6"
-                    stroke="#525252"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                />
               </button>
               {openIndex === index && (
-                <div className="px-6 pb-5">
-                  <p className="text-grey text-sm leading-relaxed">
+                <div className="px-4 sm:px-6 pb-4 sm:pb-5 border-t border-azure/10">
+                  <p className="text-grey text-xs sm:text-sm leading-relaxed pt-4">
                     {faq.answer}
                   </p>
                 </div>

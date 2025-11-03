@@ -1,83 +1,149 @@
 "use client";
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Moon, Sun } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/...";
 
 const navLinks = [
-  { href: "/features", label: "Features" },
-  { href: "/how-it-works", label: "Hoe het werkt" },
-  { href: "/help", label: "Help" },
+  { href: "/#features", label: "Features" },
+  { href: "/#testimonials", label: "Testimonials" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    // Check for saved theme preference or system preference
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDark(saved === 'dark' || (!saved && prefersDark));
+  }, []);
+
+  const toggleTheme = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    localStorage.setItem('theme', newDark ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newDark);
+  };
+
+  if (!isMounted) return null;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
-        {/* Left: Logo */}
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <span className="font-playfair text-2xl font-bold text-azure">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95 border-b border-azure/10">
+      <div className="max-w-[1136px] mx-auto px-8 h-16 flex items-center justify-between">
+        {/* Left: Logo with Badge */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-white to-white/80 dark:from-azure/20 dark:to-azure/10 flex items-center justify-center flex-shrink-0">
+            <span className="text-azure font-semibold text-base">R</span>
+          </div>
+          <span className="font-playfair font-semibold text-xl text-azure whitespace-nowrap">
             Rolodink
           </span>
         </Link>
 
-        {/* Desktop Nav (right aligned) */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href as any}
-              className="text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {/* Center: Desktop Navigation Links */}
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            {navLinks.map((link) => (
+              <NavigationMenuItem key={link.href}>
+                <NavigationMenuLink
+                  href={link.href}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "text-sm text-azure hover:text-azure/80 bg-transparent hover:bg-azure/5"
+                  )}
+                >
+                  {link.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
 
-        {/* CTA and Mobile Menu Toggle */}
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <Button asChild className="hidden md:inline-flex" variant="default">
+        {/* Right: Theme Toggle + CTA + Mobile Menu */}
+        <div className="flex items-center justify-end gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-azure/5 transition-colors duration-200 ease-out"
+            aria-label="Toggle theme"
+          >
+            {isDark ? (
+              <Sun className="h-4 w-4 text-azure" />
+            ) : (
+              <Moon className="h-4 w-4 text-azure" />
+            )}
+          </button>
+
+          {/* Desktop CTA Button */}
+          <Button
+            asChild
+            className="hidden md:inline-flex h-9 px-4 bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg"
+          >
             <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-              Add to Chrome - Gratis
+              Gratis Installeren - 30 seconden
             </a>
           </Button>
-          <button
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+
+          {/* Mobile Menu */}
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6 text-azure" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-8">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm text-azure hover:text-azure/80 transition-colors duration-200 ease-out py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <Button
+                  asChild
+                  className="w-full bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-4"
+                >
+                  <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
+                    Gratis Installeren - 30 seconden
+                  </a>
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile menu drawer */}
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="container flex flex-col space-y-4 py-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href as any}
-                className="text-foreground/80"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Button asChild variant="default" className="w-full">
-              <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
-                Add to Chrome - Gratis
-              </a>
-            </Button>
-          </div>
-        </div>
-      )}
     </header>
   )
 }

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL } from '../config';
+import { setStoredToken } from '../lib/auth';
 
 export function LoginView() {
   const { handleLoginSuccess } = useConnection();
@@ -37,7 +38,7 @@ export function LoginView() {
     try {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
-        await chrome.storage.local.set({ supabaseAccessToken: data.session.access_token });
+        await setStoredToken(data.session.access_token);
         handleLoginSuccess();
       } else {
         setIsError(false);

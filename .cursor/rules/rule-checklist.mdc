@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+description: Checklist voor Nieuwe Features
+---
+## ðŸ“‹ Checklist for New Features
+
+- [ ] Create feature branch from main
+- [ ] Implement feature with tests
+- [ ] Update documentation
+- [ ] Create pull request
+- [ ] Get code review
+- [ ] Merge to main
+- [ ] Deploy to production
+- [ ] Monitor for issues

@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import Hero from "@/components/sections/hero";
 import Features from "@/components/sections/features";
@@ -8,9 +7,8 @@ import CTA from "@/components/sections/cta";
 
 export default function HomePage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      <main className="flex-1 pt-16">
         <Hero />
         <Features />
         <Testimonials />
@@ -18,6 +16,6 @@ export default function HomePage() {
         <CTA />
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

@@ -1,0 +1,46 @@
+name: Publish Firefox Extension
+
+on:
+  push:
+    tags:
+      - 'ext-v*'  # Triggers on tags like ext-v1.0.3
+
+jobs:
+  sign-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install deps
+        run: npm install
+
+      - name: Prepare Firefox source
+        run: bash scripts/prepare-firefox-source.sh
+
+      - name: Sign and upload to AMO
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          npx web-ext sign \
+            --source-dir .web-ext-src \
+            --artifacts-dir web-ext-artifacts \
+            --channel listed
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-signed-xpi
+          path: web-ext-artifacts/*.xpi
+
+
+
+

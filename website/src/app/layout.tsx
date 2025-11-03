@@ -1,10 +1,19 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
+import { SiteHeader } from "@/components/site-header"
  
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#1B2951',
+}
 
 export const metadata: Metadata = {
   title: {
@@ -67,7 +76,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
-        {children}
+        <SiteHeader />
+        <div className="relative flex min-h-screen flex-col pt-16">
+          {children}
+        </div>
         <Analytics />
       </body>
     </html>

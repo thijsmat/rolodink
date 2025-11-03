@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { pageSEO } from "@/lib/seo";
 
@@ -15,9 +14,8 @@ export default function PrivacyPage() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      <main className="flex-1 pt-16">
         {/* Page Header */}
         <section className="container max-w-4xl py-16 text-center md:py-24">
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
@@ -110,6 +108,6 @@ export default function PrivacyPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

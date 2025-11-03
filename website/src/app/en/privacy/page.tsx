@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -7,9 +6,9 @@ export const metadata = { title: 'Privacy Policy', description: 'Privacy policy 
 
 export default function PrivacyPage() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <>
+      
+      <main className="flex-1 pt-16">
         <section className="container space-y-6 py-8 md:py-12 lg:py-24">
           <div className="mx-auto max-w-3xl space-y-8">
             <div className="space-y-4 text-center">
@@ -78,7 +77,7 @@ export default function PrivacyPage() {
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   )
 }
 
