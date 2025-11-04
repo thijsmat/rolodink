@@ -1,6 +1,7 @@
 // src/context/ConnectionContext.tsx
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL } from '../config';
+import { getStoredToken, clearStoredToken } from '../lib/auth';
 
 export type Connection = {
   id?: string;
@@ -148,7 +149,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoading(true);
     setError(null);
     try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setIsLoggedIn(false);
         setConnection(null);
@@ -182,7 +183,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConnection(null);
         setError('Je sessie is verlopen. Log opnieuw in.');
         setToastMessage('Je sessie is verlopen. Log opnieuw in.');
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await clearStoredToken();
         return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
@@ -225,7 +226,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const handleLogout = async () => {
-    await chrome.storage.local.remove(['supabaseAccessToken', 'cachedConnections', 'connectionsCacheTimestamp']);
+    await clearStoredToken();
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
@@ -240,7 +241,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setError(null);
     }
     try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -254,7 +255,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setToastMessage('Je sessie is verlopen. Log opnieuw in.');
         }
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await clearStoredToken();
         return;
       }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
@@ -377,7 +378,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   async function resolveConnectionId(current: Connection | null): Promise<string | null> {
     try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) return null;
       const urlCandidate = current?.linkedInUrl;
       const urlToUse = urlCandidate || (await (async () => {
@@ -402,7 +403,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoading(true);
     setError(null);
     try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
       let idToUse: string | undefined = connection?.id;
@@ -463,7 +464,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setIsLoading(false);
         return;
       }
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
       let idToUse: string | undefined = connection?.id;
@@ -503,7 +504,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cleanAllNames = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setError('Je bent niet ingelogd.');
         return;

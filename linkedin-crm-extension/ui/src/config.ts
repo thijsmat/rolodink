@@ -1,10 +1,8 @@
-// Central API base URL for the UI code. Change this once for staging/production.
-// NOTE: Staging backend is currently not working due to missing environment variables
-// Use production backend until staging is properly configured
-export const API_BASE_URL = 'https://linkedin-crm-backend-matthijs-goes-projects.vercel.app';
+// Central API base URL for the UI code. Use Vite environment variable.
+// Configure via .env.local (VITE_API_BASE_URL) or CI/CD envs.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-// Fallback configuration for when staging is ready
-// export const API_BASE_URL = 'https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app';
+// Example staging/production values should be provided in .env.example
 
 // Supabase configuration
 // NOTE: These MUST be set as environment variables - never hardcode in production!

@@ -4,6 +4,7 @@ import styles from './SettingsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
+import { getStoredToken } from '../lib/auth';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
@@ -22,7 +23,7 @@ export function SettingsView() {
   const handleCleanNames = useCallback(async () => {
     try {
       setIsCleaning(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setToastMessage('Niet ingelogd. Log in om op te schonen.');
         return;
@@ -69,7 +70,7 @@ export function SettingsView() {
 
     try {
       setIsChangingPassword(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setToastMessage('Niet ingelogd. Log in om wachtwoord te wijzigen.');
         return;
@@ -124,7 +125,7 @@ export function SettingsView() {
   const handleExportData = useCallback(async () => {
     try {
       setIsExporting(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setToastMessage('Niet ingelogd. Log in om data te exporteren.');
         return;
@@ -192,7 +193,7 @@ export function SettingsView() {
     
     try {
       setIsDeleting(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
+      const supabaseAccessToken = await getStoredToken();
       if (!supabaseAccessToken) {
         setToastMessage('Niet ingelogd. Log in om account te verwijderen.');
         return;

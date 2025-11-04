@@ -57,12 +57,20 @@ Rolodink consists of three main components, each requiring different environment
 
 ### For Development
 
-Create `.env.local` in `linkedin-crm-extension/`:
+Create `.env.local` in `linkedin-crm-extension/ui/`:
 
 ```bash
 VITE_API_BASE_URL=http://localhost:3000
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+Example file for reference (place in `linkedin-crm-extension/ui/.env.example`):
+
+```bash
+VITE_API_BASE_URL=https://linkedin-crm-backend-matthijs-goes-projects.vercel.app
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ### For Production Build
@@ -111,10 +119,9 @@ npm run dev
 ### 2. Extension Setup
 
 ```bash
-cd linkedin-crm-extension
+cd linkedin-crm-extension/ui
 cp .env.example .env.local
 # Edit .env.local with your values
-cd ui
 npm install
 npm run dev
 ```
