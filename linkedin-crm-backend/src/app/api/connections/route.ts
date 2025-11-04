@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, url, meetingPlace, notes } = body;
+    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = body;
 
     if (!name || !url) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
         linkedInUrl: normalizedUrl,
         meetingPlace,
         notes,
+        userCompanyAtTheTime,
         ownerId: user.id,
       },
     });
