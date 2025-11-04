@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'ext-v*'  # Triggers on tags like ext-v1.0.3
+  release:
+    types: [published]
 
 jobs:
   sign-and-publish:

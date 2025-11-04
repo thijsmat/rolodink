@@ -43,15 +43,7 @@ export async function GET(request: NextRequest) {
   // Rate limiting
   const rateLimitResponse = rateLimitMiddleware(request);
   if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
+    return rateLimitResponse;
   }
 
   const corsHeaders = buildCorsHeaders(request);
@@ -111,15 +103,7 @@ export async function POST(request: NextRequest) {
   // Rate limiting
   const rateLimitResponse = rateLimitMiddleware(request);
   if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
+    return rateLimitResponse;
   }
 
   const corsHeaders = buildCorsHeaders(request);
@@ -130,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, url, meetingPlace, notes } = body;
+    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = body;
 
     if (!name || !url) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
@@ -145,6 +129,7 @@ export async function POST(request: NextRequest) {
         linkedInUrl: normalizedUrl,
         meetingPlace,
         notes,
+        userCompanyAtTheTime,
         ownerId: user.id,
       },
     });
@@ -173,15 +158,7 @@ export async function PATCH(request: NextRequest) {
   // Rate limiting
   const rateLimitResponse = rateLimitMiddleware(request);
   if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
+    return rateLimitResponse;
   }
 
   const corsHeaders = buildCorsHeaders(request);

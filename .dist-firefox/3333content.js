@@ -1,0 +1,1 @@
+console.log("✅ Content script is succesvol geladen op deze LinkedIn pagina!");

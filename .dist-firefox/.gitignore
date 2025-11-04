@@ -1,0 +1,24 @@
+# Build outputs
+dist/
+*.zip
+
+# Node modules
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
