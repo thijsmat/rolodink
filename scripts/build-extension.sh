@@ -44,7 +44,7 @@ echo "==> Preparing clean dist folder"
 rm -rf "$TMP_DIR"
 mkdir -p "$TMP_DIR"
 
-# Copy minimal runtime files
+# Copy minimal runtime files - only include essential files
 rsync -a --delete \
   --exclude '.git' \
   --exclude 'node_modules' \
@@ -52,12 +52,32 @@ rsync -a --delete \
   --exclude '*.ts' \
   --exclude '*.tsx' \
   --exclude 'ui/src' \
+  --exclude 'ui/package*.json' \
+  --exclude 'ui/.env*' \
+  --exclude 'ui/.gitignore' \
+  --exclude 'ui/*.config.*' \
+  --exclude 'ui/tsconfig*.json' \
+  --exclude 'ui/*.tsbuildinfo' \
+  --exclude 'ui/index.html' \
+  --exclude 'ui/public' \
   --exclude '.DS_Store' \
+  --exclude '/dist' \
+  --exclude '*.md' \
+  --exclude '*.sh' \
+  --exclude '*.zip' \
+  --exclude '.github' \
+  --exclude 'manifest-firefox.json' \
+  --exclude 'content-firefox.js' \
+  --exclude 'build-production.js' \
+  --exclude 'package.json' \
+  --exclude 'validate.js' \
+  --exclude '*content.js' \
   "$EXT_DIR/" "$TMP_DIR/"
 
-# Overwrite manifest and content script for target
-cp "$MANIFEST_SRC" "$TMP_DIR/manifest.json"
+# Copy only the correct content script for this target
 cp "$CONTENT_SRC" "$TMP_DIR/content.js"
+# Overwrite manifest for target
+cp "$MANIFEST_SRC" "$TMP_DIR/manifest.json"
 
 # Remove development-only and redundant items
 rm -rf "$TMP_DIR/ui/src" || true

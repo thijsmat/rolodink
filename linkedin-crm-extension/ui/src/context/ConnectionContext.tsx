@@ -347,6 +347,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const profileUrl = tabs[0]?.url;
       const profileName = tabs[0]?.title?.split(' | ')[0] || 'Onbekende Naam';
 
+      // Trace create payload fields
+      if (!import.meta.env.PROD) {
+        console.info('connection.create.client.flags', {
+          hasMeetingPlace: Boolean(formData.meetingPlace),
+          hasNotes: Boolean(formData.notes),
+          hasUserCompanyAtTheTime: Boolean(formData.userCompanyAtTheTime),
+        });
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
         method: 'POST',
         headers: {
@@ -419,6 +428,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         userCompanyAtTheTime: formData.userCompanyAtTheTime || null,
         notes: formData.notes || null
       };
+
+      // Trace update payload fields
+      if (!import.meta.env.PROD) {
+        console.info('connection.update.client.payload', payload);
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
         method: 'PATCH',

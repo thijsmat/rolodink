@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, url, meetingPlace, notes } = body;
+    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = body;
 
     if (!name || !url) {
       return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
@@ -123,12 +123,22 @@ export async function POST(request: NextRequest) {
     const normalizedUrl = normalizeLinkedInUrl(url);
     const cleanedName = cleanProfileName(name);
 
+    // Minimal tracing to verify payload fields on create (dev only)
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('connection.create.flags', {
+        hasMeetingPlace: Boolean(meetingPlace),
+        hasNotes: Boolean(notes),
+        hasUserCompanyAtTheTime: Boolean(userCompanyAtTheTime),
+      });
+    }
+
     const newConnection = await prisma.connection.create({
       data: {
         name: cleanedName,
         linkedInUrl: normalizedUrl,
         meetingPlace,
         notes,
+        userCompanyAtTheTime,
         ownerId: user.id,
       },
     });
