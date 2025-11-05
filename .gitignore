@@ -69,3 +69,6 @@ prisma/dev.db-journal
 .env
 web-ext-artifacts/
 .web-ext-src/
+
+# Turborepo cache
+.turbo/
