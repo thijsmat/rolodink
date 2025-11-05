@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { createSupabaseServerClient, getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
-
-const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: buildCorsHeaders(request) });
@@ -59,7 +58,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete all user data in transaction with error handling
     try {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Delete all connections first (due to foreign key constraints)
         const deletedConnections = await tx.connection.deleteMany({
           where: {

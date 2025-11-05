@@ -1,11 +1,28 @@
 // src/app/api/connections/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
+import { z } from 'zod';
 
-const prisma = new PrismaClient();
+// Validation schema for creating a connection
+const createConnectionSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().url(),
+  meetingPlace: z.string().optional(),
+  notes: z.string().optional(),
+  userCompanyAtTheTime: z.string().optional(),
+});
+
+// Validation schema for updating a connection (all fields optional)
+const updateConnectionSchema = z.object({
+  name: z.string().min(1).optional(),
+  url: z.string().url().optional(),
+  meetingPlace: z.string().optional(),
+  notes: z.string().optional(),
+  userCompanyAtTheTime: z.string().optional(),
+});
 
 // Function to clean notification counts from profile names
 function cleanProfileName(name: string): string {
@@ -114,11 +131,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = body;
-
-    if (!name || !url) {
-      return NextResponse.json({ error: 'Naam en URL zijn verplicht' }, { status: 400, headers: corsHeaders });
+    
+    // Validate input with Zod
+    const validation = createConnectionSchema.safeParse(body);
+    if (!validation.success) {
+      const flattened = validation.error.flatten();
+      return NextResponse.json(
+        { error: 'Validation failed', errors: flattened.fieldErrors, formErrors: flattened.formErrors },
+        { status: 400, headers: corsHeaders }
+      );
     }
+
+    // Use validated data
+    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = validation.data;
 
     const normalizedUrl = normalizeLinkedInUrl(url);
     const cleanedName = cleanProfileName(name);
@@ -175,9 +200,22 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Connection ID is verplicht' }, { status: 400, headers: corsHeaders });
     }
 
+    // Validate input with Zod
+    const validation = updateConnectionSchema.safeParse(updateData);
+    if (!validation.success) {
+      const flattened = validation.error.flatten();
+      return NextResponse.json(
+        { error: 'Validation failed', errors: flattened.fieldErrors, formErrors: flattened.formErrors },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Use validated data
+    const validatedUpdateData = validation.data;
+
     // Clean the name if it's being updated
-    if (updateData.name) {
-      updateData.name = cleanProfileName(updateData.name);
+    if (validatedUpdateData.name) {
+      validatedUpdateData.name = cleanProfileName(validatedUpdateData.name);
     }
 
     const updatedConnection = await prisma.connection.update({
@@ -185,7 +223,7 @@ export async function PATCH(request: NextRequest) {
         id: id,
         ownerId: user.id, // Veiligheidscheck
       },
-      data: updateData,
+      data: validatedUpdateData,
     });
 
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });

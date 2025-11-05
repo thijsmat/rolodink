@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { buildCorsHeaders } from '@/lib/cors';
-
-const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });

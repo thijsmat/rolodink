@@ -1,22 +1,16 @@
 {
-  "name": "rolodink-extension",
-  "version": "1.0.3",
-  "description": "Rolodink Chrome Extension - Build and validation scripts",
+  "name": "extension",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "validate": "node validate.js",
-    "build": "node build-production.js",
-    "build:production": "npm run validate && node build-production.js",
+    "build": "node build.js",
     "dev": "cd ui && npm run dev",
-    "test:local": "echo '🧪 Load the dist/ folder in chrome://extensions/ with Developer Mode enabled'"
+    "lint": "cd ui && npm run lint",
+    "clean": "rm -rf dist .dist-firefox .dist-firefox-clean .dist-tmp .web-ext-src"
   },
-  "keywords": [
-    "chrome-extension",
-    "linkedin",
-    "crm",
-    "notes"
-  ],
-  "author": "Matthijs Goes",
-  "license": "UNLICENSED"
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "fs-extra": "^11.2.0",
+    "web-ext": "^8.2.0"
+  }
 }
-

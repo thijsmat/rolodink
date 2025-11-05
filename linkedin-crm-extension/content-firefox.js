@@ -32,25 +32,13 @@ function cleanProfileName(name) {
     return cleaned;
 }
 
-// Functie om te wachten tot een element op de pagina is geladen
-function waitForElement(selector, callback) {
-    const interval = setInterval(() => {
-        const element = document.querySelector(selector);
-        if (element) {
-            clearInterval(interval);
-            callback(element);
-        }
-    }, 500);
-}
+// Function to inject the CRM button into the LinkedIn profile page
+function injectCRMButton(foundButton) {
+    // Navigate to the container using parentElement (robust, no brittle class selectors)
+    const container = foundButton.parentElement;
 
-// De selector die bewezen heeft te werken
-const stableButtonSelector = "button[aria-label*='Message']";
-
-waitForElement(stableButtonSelector, (foundButton) => {
-    // Vind de dichtstbijzijnde container met .closest() - dit is erg stabiel
-    const container = foundButton.closest("div[class*='pvs-sticky-header-profile-actions']");
-
-    if (container && !document.getElementById("crm-add-button")) {
+    // Guard clause: check if button already exists in this container to prevent duplicates
+    if (container && !container.querySelector("#crm-add-button")) {
         const crmButton = document.createElement("button");
         crmButton.innerText = "Add to CRM";
         crmButton.id = "crm-add-button";
@@ -249,5 +237,62 @@ waitForElement(stableButtonSelector, (foundButton) => {
         
         container.appendChild(crmButton);
     }
-});
+}
+
+// Stable anchor selector that won't break with LinkedIn UI changes
+const stableButtonSelector = "button[aria-label*='Message']";
+
+// MutationObserver to watch for DOM changes (supports SPA navigation)
+function observeAndInject() {
+    // Throttle observer callbacks to avoid excessive checks
+    let isChecking = false;
+    
+    const checkAndInject = () => {
+        // Prevent multiple simultaneous checks
+        if (isChecking) return;
+        isChecking = true;
+        
+        // Use requestAnimationFrame for performance
+        requestAnimationFrame(() => {
+            const foundButton = document.querySelector(stableButtonSelector);
+            if (foundButton) {
+                injectCRMButton(foundButton);
+            }
+            isChecking = false;
+        });
+    };
+    
+    // Create MutationObserver to watch for DOM changes
+    const observer = new MutationObserver(() => {
+        checkAndInject();
+    });
+    
+    // Start observing the document body for changes
+    if (document.body) {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        // Initial check in case the button is already present
+        checkAndInject();
+    } else {
+        // Wait for body to be available
+        const bodyObserver = new MutationObserver(() => {
+            if (document.body) {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                checkAndInject();
+                bodyObserver.disconnect();
+            }
+        });
+        bodyObserver.observe(document.documentElement, {
+            childList: true
+        });
+    }
+}
+
+// Initialize the observer when the script loads
+observeAndInject();
 
