@@ -38,14 +38,15 @@ jobs:
             sudo apt-get install -y jq
           fi
 
-      - name: Install UI deps (ci)
-        working-directory: linkedin-crm-extension/ui
+      - name: Update Manifest Version
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install --no-audit --no-fund
-          fi
+          VERSION="${{ steps.version.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' linkedin-crm-extension/manifest.json > manifest.json.tmp && mv manifest.json.tmp linkedin-crm-extension/manifest.json
+          jq --arg v "$VERSION" '.version = $v' linkedin-crm-extension/manifest-firefox.json > manifest-firefox.json.tmp && mv manifest-firefox.json.tmp linkedin-crm-extension/manifest-firefox.json
+          echo "Updated manifest versions to $VERSION"
+
+      - name: Install Monorepo Dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Build Chrome package
         run: |
@@ -56,6 +57,16 @@ jobs:
         run: |
           node scripts/validate-extension.mjs --target=chrome
 
+      - name: Publish Chrome Extension to CWS
+        uses: fregante/chrome-extension-upload@v3
+        with:
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          file: Rolodink-${{ steps.version.outputs.version }}.zip
+          publish: true
+
       - name: Build Edge package
         run: |
           scripts/build-extension.sh --target=edge
@@ -63,6 +74,15 @@ jobs:
       - name: Validate Edge package
         run: |
           node scripts/validate-extension.mjs --target=edge
+
+      - name: Publish Edge Extension to MEAO
+        uses: microsoft/action-publish-extension@v1
+        with:
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+          client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
+          access-token: ${{ secrets.EDGE_ACCESS_TOKEN }}
+          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
+          file: Rolodink-Edge-${{ steps.version.outputs.version }}.zip
 
       - name: Build Firefox package (unsigned)
         run: |
@@ -105,6 +125,14 @@ jobs:
             --api-secret "$AMO_JWT_SECRET"
           # Produced .xpi in current directory; keep the newest as our artifact
           ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi || true
+
+      - name: Publish Firefox Extension to AMO
+        uses: barnaby-walters/web-ext-publish@v1
+        with:
+          api-key: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          api-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
+          file: Rolodink-Firefox-signed.xpi
+          channel: unlisted
 
       - name: Upload signed XPI (if present)
         uses: actions/upload-artifact@v4
