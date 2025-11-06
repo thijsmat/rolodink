@@ -4,9 +4,73 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
+import { handlePrismaError } from '@/lib/prisma-error-handler';
+import { revalidateTag } from 'next/cache';
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // Rate limiting
+  const rateLimitResponse = rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const corsHeaders = buildCorsHeaders(request);
+
+  try {
+    const { user } = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    }
+
+    const { id: connectionId } = await params;
+
+    if (!connectionId) {
+      return NextResponse.json({ error: 'Connection ID is required' }, { status: 400, headers: corsHeaders });
+    }
+
+    // Get the connection first, then verify ownership
+    const connection = await prisma.connection.findUnique({
+      where: {
+        id: connectionId,
+      },
+    });
+
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'Connection not found' },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    // Security: verify that the connection belongs to the user
+    if (connection.ownerId !== user.id) {
+      return NextResponse.json(
+        { error: 'No permission to access this connection' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    return NextResponse.json(connection, { status: 200, headers: corsHeaders });
+
+  } catch (err) {
+    const errorResponse = handlePrismaError(err, corsHeaders, 'Error fetching connection');
+    if (errorResponse.handled) {
+      return errorResponse.response;
+    }
+    // Fallback for unhandled errors
+    console.error('Error fetching connection:', err);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: corsHeaders }
+    );
+  }
 }
 
 export async function DELETE(
@@ -41,13 +105,37 @@ export async function DELETE(
       return NextResponse.json({ error: 'Connection ID is required' }, { status: 400, headers: corsHeaders });
     }
 
-    // Delete the connection, ensuring the user can only delete their own connections
+    // First find the connection to verify ownership
+    const connection = await prisma.connection.findUnique({
+      where: {
+        id: connectionId,
+      },
+    });
+
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'Connection not found' },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    // Security: verify that the connection belongs to the user
+    if (connection.ownerId !== user.id) {
+      return NextResponse.json(
+        { error: 'No permission to delete this connection' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    // Delete the connection (ownership already verified)
     await prisma.connection.delete({
       where: {
         id: connectionId,
-        ownerId: user.id, // Security: only allow deletion of own connections
       },
     });
+
+    // Invalidate cache for this user's connections
+    revalidateTag(`connections-${user.id}`);
 
     return NextResponse.json(
       { message: 'Connection deleted' },
@@ -55,27 +143,14 @@ export async function DELETE(
     );
 
   } catch (err) {
+    const errorResponse = handlePrismaError(err, corsHeaders, 'Error deleting connection');
+    if (errorResponse.handled) {
+      return errorResponse.response;
+    }
+    // Fallback for unhandled errors
     console.error('Error deleting connection:', err);
-    
-    // Handle case where connection doesn't exist or user doesn't have permission
-    if (err instanceof Error && 'code' in err && err.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Connection not found or no permission to delete' },
-        { status: 404, headers: corsHeaders }
-      );
-    }
-
-    // Handle other Prisma errors
-    if (err instanceof Error && 'code' in err) {
-      console.error('Prisma error code:', err.code);
-      return NextResponse.json(
-        { error: `Database error: ${err.message}` },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
     return NextResponse.json(
-      { error: `Internal server error: ${err instanceof Error ? err.message : 'Unknown error'}` },
+      { error: 'Internal server error' },
       { status: 500, headers: corsHeaders }
     );
   }

@@ -72,3 +72,8 @@ web-ext-artifacts/
 
 # Turborepo cache
 .turbo/
+
+# Build output directories (managed by Turborepo)
+dist-*/
+dist/
+*.zip

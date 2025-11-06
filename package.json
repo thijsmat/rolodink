@@ -13,7 +13,9 @@
     "website"
   ],
   "devDependencies": {
-    "turbo": "^2.6.0"
+    "turbo": "^2.6.0",
+    "typescript": "^5",
+    "eslint": "^8"
   },
   "packageManager": "npm@10.8.1"
 }

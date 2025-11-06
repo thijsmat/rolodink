@@ -5,6 +5,9 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { z } from 'zod';
+import { handlePrismaError } from '@/lib/prisma-error-handler';
+import { unstable_cache } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 
 // Validation schema for creating a connection
 const createConnectionSchema = z.object({
@@ -74,17 +77,32 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
 
-    const whereClause: { ownerId: string; linkedInUrl?: string } = { ownerId: user.id };
-    
-    // Als er een URL parameter is, filter op die URL
-    if (url) {
-      whereClause.linkedInUrl = url;
-    }
+    // Create cache key based on user ID and optional URL filter
+    const cacheKey = url ? `connections-${user.id}-${url}` : `connections-${user.id}`;
 
-    const connections = await prisma.connection.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' }
-    });
+    // Use unstable_cache to cache the database query
+    const getCachedConnections = unstable_cache(
+      async (userId: string, urlFilter?: string | null) => {
+        const whereClause: { ownerId: string; linkedInUrl?: string } = { ownerId: userId };
+        
+        // Als er een URL parameter is, filter op die URL
+        if (urlFilter) {
+          whereClause.linkedInUrl = urlFilter;
+        }
+
+        return await prisma.connection.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' }
+        });
+      },
+      [cacheKey], // Cache key includes user ID and URL filter
+      {
+        tags: [`connections-${user.id}`], // Tag for cache invalidation
+        revalidate: 60, // Revalidate every 60 seconds
+      }
+    );
+
+    const connections = await getCachedConnections(user.id, url);
 
     return NextResponse.json(connections, { status: 200, headers: corsHeaders });
 
@@ -159,21 +177,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Invalidate cache for this user's connections
+    revalidateTag(`connections-${user.id}`);
+
     return NextResponse.json(newConnection, { status: 201, headers: corsHeaders });
 
   } catch (err: unknown) {
-    console.error('Fout bij het aanmaken van connectie:', err);
-    // Prisma unieke constraint (bijv. bestaande connectie voor dezelfde URL/owner)
-    if (err && typeof err === 'object' && 'code' in err) {
-      const prismaError = err as { code?: string };
-      if (prismaError.code === 'P2002') {
+    const errorResponse = handlePrismaError(err, corsHeaders, 'Er is een interne serverfout opgetreden');
+    if (errorResponse.handled) {
+      // Customize message for duplicate connection
+      if (err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P2002') {
         return NextResponse.json({ error: 'Connectie bestaat al voor deze URL.' }, { status: 409, headers: corsHeaders });
-        
       }
-      if (prismaError.code === 'P2003') {
-        return NextResponse.json({ error: 'Ongeldige referentie of gegevens.' }, { status: 400, headers: corsHeaders });
-      }
+      return errorResponse.response;
     }
+    // Fallback for unhandled errors
+    console.error('Fout bij het aanmaken van connectie:', err);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
   }
 }
@@ -213,26 +232,53 @@ export async function PATCH(request: NextRequest) {
     // Use validated data
     const validatedUpdateData = validation.data;
 
+    // First find the connection to verify ownership
+    const connection = await prisma.connection.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'Connection not found' },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    // Security: verify that the connection belongs to the user
+    if (connection.ownerId !== user.id) {
+      return NextResponse.json(
+        { error: 'No permission to update this connection' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     // Clean the name if it's being updated
     if (validatedUpdateData.name) {
       validatedUpdateData.name = cleanProfileName(validatedUpdateData.name);
     }
 
+    // Update the connection (ownership already verified)
     const updatedConnection = await prisma.connection.update({
       where: {
         id: id,
-        ownerId: user.id, // Veiligheidscheck
       },
       data: validatedUpdateData,
     });
 
+    // Invalidate cache for this user's connections
+    revalidateTag(`connections-${user.id}`);
+
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });
 
   } catch (err) {
-    console.error('Fout bij het updaten van de connectie:', err);
-    if (err instanceof Error && 'code' in err && err.code === 'P2025') {
-      return NextResponse.json({ error: 'Connectie niet gevonden of geen permissie.' }, { status: 404, headers: corsHeaders });
+    const errorResponse = handlePrismaError(err, corsHeaders, 'Er is een interne serverfout opgetreden');
+    if (errorResponse.handled) {
+      return errorResponse.response;
     }
+    // Fallback for unhandled errors
+    console.error('Fout bij het updaten van de connectie:', err);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
   }
 }
