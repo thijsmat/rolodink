@@ -68,6 +68,11 @@ jobs:
       continue-on-error: true
       working-directory: ./linkedin-crm-extension/ui
       
+    - name: Run TypeScript type check
+      run: npm run typecheck
+      working-directory: ./linkedin-crm-extension/ui
+      continue-on-error: false
+      
     - name: Run linting (extension)
       run: npm run lint || echo "Linting completed with warnings"
       continue-on-error: true
