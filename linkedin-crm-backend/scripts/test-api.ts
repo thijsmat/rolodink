@@ -167,7 +167,7 @@ async function runTests() {
         headers: { Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({
           name: 'Test Connection',
-          url: 'https://linkedin.com/in/test-profile',
+          url: `https://linkedin.com/in/test-profile-${Date.now()}`,
           notes: 'Test notes',
         }),
       });

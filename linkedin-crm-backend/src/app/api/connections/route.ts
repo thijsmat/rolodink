@@ -5,6 +5,7 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
 import { unstable_cache } from 'next/cache';
 import { revalidateTag } from 'next/cache';
@@ -183,17 +184,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newConnection, { status: 201, headers: corsHeaders });
 
   } catch (err: unknown) {
-    const errorResponse = handlePrismaError(err, corsHeaders, 'Er is een interne serverfout opgetreden');
-    if (errorResponse.handled) {
-      // Customize message for duplicate connection
-      if (err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P2002') {
-        return NextResponse.json({ error: 'Connectie bestaat al voor deze URL.' }, { status: 409, headers: corsHeaders });
-      }
-      return errorResponse.response;
+    // Handle specific P2002 error with custom Dutch message for this route
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Connectie bestaat al voor deze URL.' },
+        { status: 409, headers: corsHeaders }
+      );
     }
-    // Fallback for unhandled errors
-    console.error('Fout bij het aanmaken van connectie:', err);
-    return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
+
+    // Fallback to generic handler for all other errors
+    const errorResponse = handlePrismaError(err, corsHeaders, 'Er is een interne serverfout opgetreden');
+    return errorResponse.response;
   }
 }
 
