@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
+import type { Connection } from '@prisma/client';
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: buildCorsHeaders(request) });
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
         createdAt: userData.created_at?.toISOString(),
         updatedAt: userData.updated_at?.toISOString(),
       },
-      connections: userData.connections.map((connection: any) => ({
+      connections: userData.connections.map((connection: Connection) => ({
         id: connection.id,
         name: sanitizeString(connection.name),
         linkedInUrl: sanitizeString(connection.linkedInUrl),
