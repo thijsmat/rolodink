@@ -48,9 +48,6 @@ jobs:
   # Extension Build & Test
   extension:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./linkedin-crm-extension/ui
     
     steps:
     - name: Checkout code
@@ -61,21 +58,23 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: linkedin-crm-extension/ui/package-lock.json
+        cache-dependency-path: package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
       continue-on-error: true
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Build extension
       run: npm run build
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Validate extension
       run: |
-        if [ ! -f "../manifest.json" ]; then
+        if [ ! -f "linkedin-crm-extension/manifest.json" ]; then
           echo "Extension manifest not found"
           exit 1
         fi
