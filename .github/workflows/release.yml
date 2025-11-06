@@ -58,7 +58,7 @@ jobs:
           node scripts/validate-extension.mjs --target=chrome
 
       - name: Publish Chrome Extension to CWS
-        uses: fregante/chrome-extension-upload@2.0.0
+        uses: fregante/chrome-extension-upload@v2
         with:
           extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
@@ -76,7 +76,7 @@ jobs:
           node scripts/validate-extension.mjs --target=edge
 
       - name: Publish Edge Extension to MEAO
-        uses: microsoft/action-publish-extension@v1.2
+        uses: microsoft/action-publish-extension@v1
         with:
           client-id: ${{ secrets.EDGE_CLIENT_ID }}
           client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
@@ -127,7 +127,7 @@ jobs:
           ls -1t *.xpi | head -n1 | xargs -I{} mv {} Rolodink-Firefox-signed.xpi || true
 
       - name: Publish Firefox Extension to AMO
-        uses: barnaby-walters/web-ext-publish@1.4.0
+        uses: barnaby-walters/web-ext-publish@v1
         with:
           api-key: ${{ secrets.FIREFOX_JWT_ISSUER }}
           api-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
