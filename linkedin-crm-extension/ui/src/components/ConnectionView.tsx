@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
 import styles from './ConnectionView.module.css';
-import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
+import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();

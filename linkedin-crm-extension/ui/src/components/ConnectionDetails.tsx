@@ -1,6 +1,6 @@
 import { useState } from 'react';
 // We gaan ervan uit dat NewConnectionForm deze props accepteert en deze types exporteert.
-import { NewConnectionForm, ConnectionFormData } from './NewConnectionForm';
+import { NewConnectionForm, type ConnectionFormData } from './NewConnectionForm';
 import { API_BASE_URL } from '../config';
 
 // Het type voor een connectie-object
