@@ -8,11 +8,13 @@ interface ImportMetaEnv {
 }
 
 // Chrome API is globally available in extension context
-// The @types/chrome package provides the chrome namespace types
-// This makes chrome available without explicit imports
+// The @types/chrome package defines chrome on Window, but we need it as a global
+// We extend the global scope to make chrome available globally (not just on window)
 declare global {
+  // Use the chrome namespace type that's already defined by @types/chrome
+  // Since @types/chrome defines Window.chrome, we reference that type
   // eslint-disable-next-line no-var
-  var chrome: chrome;
+  var chrome: Window['chrome'];
 }
 
 export {};
