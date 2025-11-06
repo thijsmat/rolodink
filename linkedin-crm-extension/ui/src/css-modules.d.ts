@@ -4,3 +4,9 @@ declare module '*.module.css' {
   export default classes;
 }
 
+// Regular CSS file type declarations
+declare module '*.css' {
+  const content: string;
+  export default content;
+}
+
