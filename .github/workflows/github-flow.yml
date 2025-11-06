@@ -10,9 +10,6 @@ jobs:
   # Website Build & Test
   website:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./website
     
     steps:
     - name: Checkout code
@@ -25,21 +22,24 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
       
     - name: Run linting
       run: npm run lint || echo "Linting completed with warnings"
+      working-directory: ./website
       
     - name: Run type checking
       run: npx tsc --noEmit
+      working-directory: ./website
       
     - name: Build website
       run: npm run build
+      working-directory: ./website
       
     - name: Test build output
       run: |
-        if [ ! -d ".next" ]; then
+        if [ ! -d "website/.next" ]; then
           echo "Build failed - .next directory not found"
           exit 1
         fi
@@ -84,9 +84,6 @@ jobs:
   # Backend Build & Test
   backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./linkedin-crm-backend
     
     steps:
     - name: Checkout code
@@ -97,23 +94,27 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: linkedin-crm-backend/package-lock.json
+        cache-dependency-path: package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
       continue-on-error: true
+      working-directory: ./linkedin-crm-backend
       
     - name: Run linting
       run: npm run lint || echo "Linting completed with warnings"
+      working-directory: ./linkedin-crm-backend
       
     - name: Run type checking
       run: npx tsc --noEmit
+      working-directory: ./linkedin-crm-backend
       
     - name: Build backend
       run: npm run build
+      working-directory: ./linkedin-crm-backend
 
   # Security Scan
   security:
