@@ -1,7 +1,7 @@
 // src/components/ConnectionForm.tsx
 import { useState, useEffect, useRef } from 'react';
 import styles from './ConnectionForm.module.css';
-import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
+import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 import { SkeletonForm } from './Skeleton';
 
 export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {

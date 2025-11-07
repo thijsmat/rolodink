@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
 import styles from './ConnectionView.module.css';
-import { useConnection, ConnectionFormData } from '../context/ConnectionContext';
+import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();
@@ -18,8 +18,9 @@ export function ConnectionView() {
     try {
       await handleUpdate(formData);
       setIsEditing(false);
-    } catch (e: any) {
-      setError(e?.message || 'Kon de connectie niet bijwerken');
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Kon de connectie niet bijwerken';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

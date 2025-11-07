@@ -9,7 +9,7 @@ export type ConnectionFormData = {
 };
 
 type NewConnectionFormProps = {
-  initialData?: any;
+  initialData?: ConnectionFormData;
   onSubmit: (formData: ConnectionFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;

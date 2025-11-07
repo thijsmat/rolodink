@@ -1,13 +1,15 @@
 {
-  "name": "ui",
+  "name": "rolodink-extension-ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "typecheck": "tsc --noEmit --project tsconfig.app.json",
+    "build": "tsc --project tsconfig.app.json && vite build",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 20",
+    "preview": "vite preview",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",

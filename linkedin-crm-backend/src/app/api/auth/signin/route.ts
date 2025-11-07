@@ -1,8 +1,15 @@
 // src/app/api/auth/signin/route.ts
 import { NextResponse, NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
+import { z } from 'zod';
+
+// Validation schema for signin
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
@@ -27,17 +34,22 @@ export async function POST(request: NextRequest) {
   const corsHeaders = buildCorsHeaders(request);
 
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email en wachtwoord zijn verplicht' }, { status: 400, headers: corsHeaders });
+    // Validate input with Zod
+    const validation = signInSchema.safeParse(body);
+    if (!validation.success) {
+      const flattened = validation.error.flatten();
+      return NextResponse.json(
+        { error: 'Validation failed', errors: flattened.fieldErrors, formErrors: flattened.formErrors },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Use validated data
+    const { email, password } = validation.data;
 
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data.session) {

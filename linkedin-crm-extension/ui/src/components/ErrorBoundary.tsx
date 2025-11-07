@@ -1,5 +1,5 @@
 // src/components/ErrorBoundary.tsx
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import styles from './ErrorBoundary.module.css';
 
 interface Props {

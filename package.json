@@ -1,11 +1,21 @@
 {
+  "name": "linkedin-crm-monorepo",
+  "private": true,
   "scripts": {
-    "build:firefox": "bash scripts/prepare-firefox-source.sh",
-    "sign:firefox": "bash scripts/prepare-firefox-source.sh && web-ext sign --source-dir .web-ext-src --artifacts-dir web-ext-artifacts --channel listed",
-    "watch:firefox": "web-ext run --source-dir linkedin-crm-extension --firefox=firefox-developer-edition --watch-file linkedin-crm-extension --start-url https://www.linkedin.com/in/"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
   },
+  "workspaces": [
+    "linkedin-crm-backend",
+    "linkedin-crm-extension",
+    "website"
+  ],
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
-    "web-ext": "^7.12.0"
-  }
+    "turbo": "^2.6.0",
+    "typescript": "^5",
+    "eslint": "^8"
+  },
+  "packageManager": "npm@10.8.1"
 }

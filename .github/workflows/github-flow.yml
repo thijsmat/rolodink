@@ -10,9 +10,6 @@ jobs:
   # Website Build & Test
   website:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./website
     
     steps:
     - name: Checkout code
@@ -23,23 +20,26 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: website/package-lock.json
+        cache-dependency-path: package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
       
     - name: Run linting
       run: npm run lint || echo "Linting completed with warnings"
+      working-directory: ./website
       
     - name: Run type checking
       run: npx tsc --noEmit
+      working-directory: ./website
       
     - name: Build website
       run: npm run build
+      working-directory: ./website
       
     - name: Test build output
       run: |
-        if [ ! -d ".next" ]; then
+        if [ ! -d "website/.next" ]; then
           echo "Build failed - .next directory not found"
           exit 1
         fi
@@ -48,9 +48,6 @@ jobs:
   # Extension Build & Test
   extension:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./linkedin-crm-extension/ui
     
     steps:
     - name: Checkout code
@@ -61,22 +58,44 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: linkedin-crm-extension/ui/package-lock.json
+        cache-dependency-path: |
+          package-lock.json
+          linkedin-crm-extension/ui/package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
+      
+    - name: Install extension UI dependencies
+      run: npm ci
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
       continue-on-error: true
+      working-directory: ./linkedin-crm-extension/ui
+      
+    - name: Run TypeScript type check
+      run: npm run typecheck
+      working-directory: ./linkedin-crm-extension/ui
+      continue-on-error: false
+      
+    - name: Run linting (extension)
+      run: npm run lint || echo "Linting completed with warnings"
+      continue-on-error: true
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Build extension
       run: npm run build
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Validate extension
       run: |
-        if [ ! -f "../manifest.json" ]; then
+        if [ ! -f "linkedin-crm-extension/manifest.json" ]; then
           echo "Extension manifest not found"
+          exit 1
+        fi
+        if [ ! -d "linkedin-crm-extension/ui/dist" ]; then
+          echo "Extension build output not found"
           exit 1
         fi
         echo "Extension build successful"
@@ -84,9 +103,6 @@ jobs:
   # Backend Build & Test
   backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./linkedin-crm-backend
     
     steps:
     - name: Checkout code
@@ -97,23 +113,45 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: linkedin-crm-backend/package-lock.json
+        cache-dependency-path: package-lock.json
         
-    - name: Install dependencies
+    - name: Install dependencies (monorepo root)
       run: npm ci
+      
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      working-directory: ./linkedin-crm-backend
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+        DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
       continue-on-error: true
+      working-directory: ./linkedin-crm-backend
       
     - name: Run linting
       run: npm run lint || echo "Linting completed with warnings"
+      working-directory: ./linkedin-crm-backend
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
       
     - name: Run type checking
       run: npx tsc --noEmit
+      working-directory: ./linkedin-crm-backend
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
       
     - name: Build backend
       run: npm run build
+      working-directory: ./linkedin-crm-backend
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+        DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
 
   # Security Scan
   security:
