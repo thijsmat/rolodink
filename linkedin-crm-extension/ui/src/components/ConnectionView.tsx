@@ -18,8 +18,9 @@ export function ConnectionView() {
     try {
       await handleUpdate(formData);
       setIsEditing(false);
-    } catch (e: any) {
-      setError(e?.message || 'Kon de connectie niet bijwerken');
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Kon de connectie niet bijwerken';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

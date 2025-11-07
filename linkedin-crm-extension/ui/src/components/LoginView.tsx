@@ -12,7 +12,12 @@ export function LoginView() {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const callAuth = async (endpoint: string, payload: any) => {
+  type AuthPayload = {
+    email: string;
+    password: string;
+  };
+
+  const callAuth = async (endpoint: string, payload: AuthPayload) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,9 +48,10 @@ export function LoginView() {
         setIsError(false);
         setMessage('Account aangemaakt! Check je e-mail voor bevestiging.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setIsError(true);
-      setMessage(e.message || `${type} mislukt.`);
+      const errorMessage = e instanceof Error ? e.message : `${type} mislukt.`;
+      setMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }

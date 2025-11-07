@@ -13,7 +13,6 @@ interface ImportMetaEnv {
 declare global {
   // Use the chrome namespace type that's already defined by @types/chrome
   // Since @types/chrome defines Window.chrome, we reference that type
-  // eslint-disable-next-line no-var
   var chrome: Window['chrome'];
 }
 

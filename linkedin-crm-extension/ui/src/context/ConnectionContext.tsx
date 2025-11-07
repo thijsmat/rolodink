@@ -29,7 +29,7 @@ type ConnectionContextState = {
   toastMessage: string;
   isInitialized: boolean;
   isOffline: boolean;
-  setToastMessage: (msg: string) => void;
+  setToastMessage: (message: string) => void;
   fetchData: () => Promise<void>;
   fetchAllConnections: (silent?: boolean) => Promise<void>;
   showListView: () => Promise<void>;
@@ -38,9 +38,9 @@ type ConnectionContextState = {
   hideSettingsView: () => void;
   showHelpView: () => void;
   hideHelpView: () => void;
-  selectConnection: (conn: Connection) => void;
-  handleCreateConnection: (formData: ConnectionFormData) => Promise<void>;
-  handleUpdate: (formData: ConnectionFormData) => Promise<void>;
+  selectConnection: (connection: Connection) => void;
+  handleCreateConnection: (data: ConnectionFormData) => Promise<void>;
+  handleUpdate: (data: ConnectionFormData) => Promise<void>;
   handleDelete: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;
@@ -187,22 +187,26 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Fout bij ophalen van connectie:', e);
       
       // Check if it's a network error
-      if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      if (e instanceof TypeError && e.message.includes('fetch')) {
         setError('Geen internetverbinding. Controleer je wifi of mobiele data.');
-      } else if (e.message.includes('401')) {
-        setError('Je sessie is verlopen. Log opnieuw in.');
-        setIsLoggedIn(false);
-        setConnection(null);
-      } else if (e.message.includes('403')) {
-        setError('Je hebt geen toegang tot deze functie.');
-      } else if (e.message.includes('500')) {
-        setError('Er is een serverprobleem. Probeer het later opnieuw.');
+      } else if (e instanceof Error) {
+        if (e.message.includes('401')) {
+          setError('Je sessie is verlopen. Log opnieuw in.');
+          setIsLoggedIn(false);
+          setConnection(null);
+        } else if (e.message.includes('403')) {
+          setError('Je hebt geen toegang tot deze functie.');
+        } else if (e.message.includes('500')) {
+          setError('Er is een serverprobleem. Probeer het later opnieuw.');
+        } else {
+          setError(e.message || 'Kon de connectie-data niet ophalen.');
+        }
       } else {
-        setError(e.message || 'Kon de connectie-data niet ophalen.');
+        setError('Kon de connectie-data niet ophalen.');
       }
     } finally {
       setIsLoading(false);
@@ -445,10 +449,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       await saveConnectionsToCache(updatedConnections);
       
       setToastMessage('Connectie bijgewerkt.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Fout bij bijwerken:', e);
-      setError(`Kon de connectie niet bijwerken: ${e?.message || 'Onbekende fout'}`);
-      setToastMessage(e?.message || 'Bijwerken mislukt.');
+      const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
+      setError(`Kon de connectie niet bijwerken: ${errorMessage}`);
+      setToastMessage(errorMessage || 'Bijwerken mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -491,10 +496,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       await saveConnectionsToCache(updatedConnections);
       
       setToastMessage('Connectie verwijderd.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Fout bij verwijderen:', e);
+      const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
       setError('Kon de connectie niet verwijderen.');
-      setToastMessage(e?.message || 'Verwijderen mislukt.');
+      setToastMessage(errorMessage || 'Verwijderen mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -528,7 +534,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } else {
         setToastMessage('Er is iets misgegaan bij het opschonen van de namen.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Fout bij opschonen namen:', e);
       setError('Kon de namen niet opschonen.');
       setToastMessage('Fout bij opschonen van namen.');
