@@ -58,10 +58,16 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: package-lock.json
+        cache-dependency-path: |
+          package-lock.json
+          linkedin-crm-extension/ui/package-lock.json
         
     - name: Install dependencies (monorepo root)
       run: npm ci
+      
+    - name: Install extension UI dependencies
+      run: npm ci
+      working-directory: ./linkedin-crm-extension/ui
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
