@@ -182,7 +182,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConnection(null);
         setError('Je sessie is verlopen. Log opnieuw in.');
         setToastMessage('Je sessie is verlopen. Log opnieuw in.');
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await chrome.storage.local.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
         return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
@@ -229,7 +229,13 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const handleLogout = async () => {
-    await chrome.storage.local.remove(['supabaseAccessToken', 'cachedConnections', 'connectionsCacheTimestamp']);
+    await chrome.storage.local.remove([
+      'supabaseAccessToken',
+      'supabaseRefreshToken',
+      'supabaseSessionExpiresAt',
+      'cachedConnections',
+      'connectionsCacheTimestamp',
+    ]);
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
@@ -258,7 +264,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setToastMessage('Je sessie is verlopen. Log opnieuw in.');
         }
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await chrome.storage.local.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
         return;
       }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
@@ -453,7 +459,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('Fout bij bijwerken:', e);
       const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
       setError(`Kon de connectie niet bijwerken: ${errorMessage}`);
-      setToastMessage(errorMessage);
+      setToastMessage(errorMessage || 'Bijwerken mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -500,7 +506,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('Fout bij verwijderen:', e);
       const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
       setError('Kon de connectie niet verwijderen.');
-      setToastMessage(errorMessage);
+      setToastMessage(errorMessage || 'Verwijderen mislukt.');
     } finally {
       setIsLoading(false);
     }

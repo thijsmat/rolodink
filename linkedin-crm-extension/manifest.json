@@ -13,7 +13,7 @@
       "https://api.rolodink.app/*"
   ],
   "action": {
-    "default_popup": "ui/dist/index.html",
+    "default_popup": "index.html",
     "default_icon": "icon.png"
   },
   "icons": {
@@ -30,9 +30,15 @@
     }
   ],
   "web_accessible_resources": [
-    {
-      "resources": ["ui/dist/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  {
+    "resources": [
+      "assets/*",
+      "*.js",
+      "*.css",
+      "*.html",
+      "index.html"
+    ],
+    "matches": ["<all_urls>"]
+  }
+]
 }

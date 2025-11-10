@@ -33,7 +33,7 @@
     }
   ],
   "web_accessible_resources": [
-    "ui/dist/*"
+    "assets/*"
   ],
   "browser_specific_settings": {
     "data_collection_permissions": {

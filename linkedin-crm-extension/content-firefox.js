@@ -1,4 +1,20 @@
-const API_BASE_URL = 'https://api.rolodink.app';
+const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
+let API_BASE_URL = DEFAULT_API_BASE_URL;
+
+async function loadApiBaseUrl() {
+    try {
+        if (!browser || !browser.storage || !browser.storage.local?.get) {
+            return;
+        }
+        const result = await browser.storage.local.get('apiBaseUrl');
+        const storedValue = typeof result.apiBaseUrl === 'string' ? result.apiBaseUrl.trim() : '';
+        if (storedValue) {
+            API_BASE_URL = storedValue;
+        }
+    } catch (error) {
+        console.warn('Falling back to default API base URL due to error:', error);
+    }
+}
 
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
@@ -33,15 +49,26 @@ function cleanProfileName(name) {
 }
 
 // Function to inject the CRM button into the LinkedIn profile page
-function injectCRMButton(foundButton) {
-    // Navigate to the container using parentElement (robust, no brittle class selectors)
-    const container = foundButton.parentElement;
+function injectCRMButton(anchorButton) {
+    if (!anchorButton) return;
 
-    // Guard clause: check if button already exists in this container to prevent duplicates
+    // Determine the best container to place the CRM button
+    const candidateContainers = [
+        anchorButton.parentElement,
+        anchorButton.closest("div[data-test-id='profile-actions']"),
+        anchorButton.closest(".pv-top-card__actions"),
+        anchorButton.closest(".pv-top-card__inner"),
+        document.querySelector("div[data-test-id='profile-actions']"),
+        document.querySelector(".pv-top-card__actions"),
+    ].filter(Boolean);
+
+    const container = candidateContainers.find((el) => el instanceof HTMLElement);
+
     if (container && !container.querySelector("#crm-add-button")) {
         const crmButton = document.createElement("button");
         crmButton.innerText = "Add to CRM";
         crmButton.id = "crm-add-button";
+        crmButton.type = "button";
         
         // Styling
         crmButton.style.padding = "0px 12px"; // Aangepast voor de header
@@ -235,12 +262,38 @@ function injectCRMButton(foundButton) {
             }
         };
         
-        container.appendChild(crmButton);
+        if (anchorButton.parentElement === container) {
+            anchorButton.insertAdjacentElement('afterend', crmButton);
+        } else if (anchorButton.parentElement) {
+            anchorButton.parentElement.appendChild(crmButton);
+        } else {
+            container.appendChild(crmButton);
+        }
     }
 }
 
-// Stable anchor selector that won't break with LinkedIn UI changes
-const stableButtonSelector = "button[aria-label*='Message']";
+// Stable anchor selectors that cover the variety of LinkedIn CTAs
+const primaryButtonSelectors = [
+    "button[aria-label*='Message']",
+    "button[aria-label*='Bericht']",
+    "button[aria-label*='InMail']",
+    "button[aria-label*='Contact']",
+    "button[aria-label*='Connect']",
+    "button[aria-label='Follow']",
+    "button[data-control-name='connect']",
+    "button[data-control-name='message']",
+    ".artdeco-button--primary",
+];
+
+function findAnchorButton() {
+    for (const selector of primaryButtonSelectors) {
+        const button = document.querySelector(selector);
+        if (button) {
+            return button;
+        }
+    }
+    return null;
+}
 
 // MutationObserver to watch for DOM changes (supports SPA navigation)
 function observeAndInject() {
@@ -254,11 +307,12 @@ function observeAndInject() {
         
         // Use requestAnimationFrame for performance
         requestAnimationFrame(() => {
-            const foundButton = document.querySelector(stableButtonSelector);
-            if (foundButton) {
-                injectCRMButton(foundButton);
+            try {
+                const anchorButton = findAnchorButton();
+                injectCRMButton(anchorButton);
+            } finally {
+                isChecking = false;
             }
-            isChecking = false;
         });
     };
     
@@ -294,5 +348,7 @@ function observeAndInject() {
 }
 
 // Initialize the observer when the script loads
-observeAndInject();
+loadApiBaseUrl().finally(() => {
+    observeAndInject();
+});
 

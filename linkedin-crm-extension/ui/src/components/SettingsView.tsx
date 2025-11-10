@@ -69,9 +69,12 @@ export function SettingsView() {
 
     try {
       setIsChangingPassword(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
-        setToastMessage('Niet ingelogd. Log in om wachtwoord te wijzigen.');
+      const { supabaseAccessToken, supabaseRefreshToken } = await chrome.storage.local.get([
+        'supabaseAccessToken',
+        'supabaseRefreshToken',
+      ]);
+      if (!supabaseAccessToken || !supabaseRefreshToken) {
+        setToastMessage('Niet ingelogd of sessie onvolledig. Log opnieuw in om je wachtwoord te wijzigen.');
         return;
       }
 
@@ -93,10 +96,14 @@ export function SettingsView() {
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       
       // Set the session token
-      await supabase.auth.setSession({
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
         access_token: supabaseAccessToken,
-        refresh_token: '', // We don't store refresh tokens
+        refresh_token: supabaseRefreshToken,
       });
+      if (sessionError || !sessionData.session) {
+        setToastMessage('Sessie herstellen mislukt. Log opnieuw in en probeer het nog eens.');
+        return;
+      }
 
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
@@ -105,6 +112,26 @@ export function SettingsView() {
       if (error) {
         setToastMessage(`Wachtwoord wijzigen mislukt: ${error.message}`);
         return;
+      }
+
+      // Persist potentially refreshed tokens after password change
+      try {
+        const { data: refreshed } = await supabase.auth.getSession();
+        const latestSession = refreshed.session ?? sessionData.session;
+        if (latestSession) {
+          await chrome.storage.local.set({
+            supabaseAccessToken: latestSession.access_token,
+            supabaseRefreshToken: latestSession.refresh_token ?? supabaseRefreshToken,
+            supabaseSessionExpiresAt: latestSession.expires_at ?? null,
+          });
+        } else {
+          await chrome.storage.local.set({
+            supabaseAccessToken,
+            supabaseRefreshToken,
+          });
+        }
+      } catch (storageError) {
+        console.warn('Kon vernieuwde Supabase tokens niet opslaan:', storageError);
       }
 
       setToastMessage('Wachtwoord succesvol gewijzigd.');
