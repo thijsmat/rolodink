@@ -185,6 +185,20 @@ npm run dev
 # Check browser console for missing env warnings
 ```
 
+#### Vereiste variabelen (Vite)
+
+Maak in `linkedin-crm-extension/ui` een `.env.local` bestand met:
+
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-public-anon-key
+
+# Optioneel: overschrijf het API eindpunt tijdens lokaal testen
+# VITE_API_BASE_URL=http://localhost:3000
+```
+
+> Let op: gebruik altijd de publieke Supabase anon key en nooit de service role key in de extensie.
+
 ### Website
 
 ```bash
