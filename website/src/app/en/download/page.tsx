@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { SiteFooter } from '@/components/site-footer'
 import { Download, Chrome, Shield, Clock, CheckCircle, ExternalLink } from 'lucide-react'
+import { getExtensionUrl } from '@/lib/utils'
 
 export const metadata = { title: 'Download', description: 'Install the Rolodink browser extension.' }
 
-const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || 'https://chrome.google.com/webstore/detail/rolodink/...'
+const EXTENSION_URL = getExtensionUrl();
 
 export default function DownloadPage() {
   return (

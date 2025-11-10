@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, User, Edit3, Search, type LucideIcon } from "lucide-react";
 import { pageSEO } from "@/lib/seo";
+import { getExtensionUrl } from "@/lib/utils";
 
 export const metadata = {
   title: pageSEO.howItWorks.title,
@@ -40,6 +41,8 @@ const steps: Step[] = [
 ];
 
 export default function HowItWorksPage() {
+  const extensionUrl = getExtensionUrl();
+
   return (
     <>
       <main className="flex-1 pt-16">
@@ -91,7 +94,7 @@ export default function HowItWorksPage() {
             </p>
             <div className="mt-8">
             <Button asChild size="lg">
-                <a href={process.env.NEXT_PUBLIC_EXTENSION_URL} target="_blank" rel="noreferrer">
+                <a href={extensionUrl} target="_blank" rel="noreferrer">
                   Add to Chrome - Gratis
                 </a>
             </Button>

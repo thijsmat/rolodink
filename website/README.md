@@ -41,7 +41,7 @@ Create a `.env.local` file:
 
 ```env
 # Extension URL - update when published to Chrome Web Store
-NEXT_PUBLIC_EXTENSION_URL=https://chrome.google.com/webstore/detail/rolodink/...
+NEXT_PUBLIC_EXTENSION_URL=https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc
 
 # Site URL for sitemap generation
 SITE_URL=https://rolodink.app

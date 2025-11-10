@@ -14,6 +14,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { pageSEO } from '@/lib/seo'
+import { getExtensionUrl } from '@/lib/utils'
 
 export const metadata = {
   title: pageSEO.features.title,
@@ -84,6 +85,8 @@ const features = [
 ]
 
 export default function FeaturesPage() {
+  const extensionUrl = getExtensionUrl();
+
   return (
     <>
       <main className="flex-1 pt-16">
@@ -167,7 +170,7 @@ export default function FeaturesPage() {
             </p>
             <div className="flex gap-4">
               <Button asChild size="lg">
-                <a href={process.env.NEXT_PUBLIC_EXTENSION_URL} target="_blank" rel="noreferrer">
+                <a href={extensionUrl} target="_blank" rel="noreferrer">
                   Add to Chrome - Gratis
                 </a>
               </Button>

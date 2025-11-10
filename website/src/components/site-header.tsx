@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Menu, X, Moon, Sun } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Menu, Moon, Sun } from 'lucide-react'
+import { cn, getExtensionUrl } from '@/lib/utils'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,7 +20,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "https://chrome.google.com/webstore/detail/rolodink/...";
+const EXTENSION_URL = getExtensionUrl();
 
 const navLinks = [
   { href: "#features", label: "Features" },

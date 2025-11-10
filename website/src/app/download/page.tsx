@@ -1,6 +1,7 @@
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { pageSEO } from "@/lib/seo";
+import { getExtensionUrl } from "@/lib/utils";
 import { Chrome } from "lucide-react";
 
 export const metadata = {
@@ -10,7 +11,7 @@ export const metadata = {
 };
 
 export default function DownloadPage() {
-  const extensionUrl = process.env.NEXT_PUBLIC_EXTENSION_URL || "#";
+  const extensionUrl = getExtensionUrl();
 
   return (
     <>
