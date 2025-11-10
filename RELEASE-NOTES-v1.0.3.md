@@ -46,7 +46,7 @@ Visit the Releases page: https://github.com/thijsmat/rolodink/releases/tag/v1.0.
 ---
 
 ## 🛍️ Store Links (will be updated when published)
-- Chrome Web Store: (pending) — https://chrome.google.com/webstore/detail/rolodink/[extension-id]
+- Chrome Web Store: (pending) — https://chromewebstore.google.com/detail/rolodink/[extension-id]
 - Edge Add‑ons: (pending) — https://microsoftedge.microsoft.com/addons/detail/[listing-id]
 - Firefox AMO: (pending) — https://addons.mozilla.org/firefox/addon/rolodink/
 

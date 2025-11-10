@@ -38,7 +38,7 @@ This extension is **currently under review** by Chrome Web Store. Once approved,
 
 Once approved, install from:
 ```
-https://chrome.google.com/webstore/detail/rolodink/[extension-id]
+https://chromewebstore.google.com/detail/rolodink/[extension-id]
 ```
 
 **Benefits:**

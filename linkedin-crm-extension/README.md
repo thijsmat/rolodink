@@ -39,7 +39,7 @@ Just like writing notes on the back of a business card, Rolodink lets you add pe
 
 Once approved, install with one click:
 ```
-https://chrome.google.com/webstore/detail/rolodink/[extension-id]
+https://chromewebstore.google.com/detail/rolodink/[extension-id]
 ```
 
 **Benefits:**

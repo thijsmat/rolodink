@@ -88,7 +88,7 @@ vercel env add VITE_SUPABASE_ANON_KEY
 #### `NEXT_PUBLIC_EXTENSION_URL`
 - **Description**: Chrome Web Store extension URL
 - **Where to get**: After publishing extension to Chrome Web Store
-- **Example**: `https://chrome.google.com/webstore/detail/rolodink/abcdefghijklmnopqrstuvwxyz`
+- **Example**: `https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc`
 
 ### Optional Variables
 

@@ -420,7 +420,7 @@ Run through these quickly:
 
 2. **Extension Live:**
    - Available in Chrome Web Store within minutes
-   - URL format: `https://chrome.google.com/webstore/detail/rolodink/[extension-id]`
+   - URL format: `https://chromewebstore.google.com/detail/rolodink/[extension-id]`
    - Note your extension ID for future reference
 
 3. **Verify Listing:**
@@ -431,7 +431,7 @@ Run through these quickly:
 4. **Update Website:**
    ```
    Update NEXT_PUBLIC_EXTENSION_URL in website/.env:
-   NEXT_PUBLIC_EXTENSION_URL=https://chrome.google.com/webstore/detail/rolodink/[your-extension-id]
+   NEXT_PUBLIC_EXTENSION_URL=https://chromewebstore.google.com/detail/rolodink/[your-extension-id]
    ```
 
 5. **Celebrate! 🎉**
