@@ -182,7 +182,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConnection(null);
         setError('Je sessie is verlopen. Log opnieuw in.');
         setToastMessage('Je sessie is verlopen. Log opnieuw in.');
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await chrome.storage.local.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
         return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
@@ -229,7 +229,13 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const handleLogout = async () => {
-    await chrome.storage.local.remove(['supabaseAccessToken', 'cachedConnections', 'connectionsCacheTimestamp']);
+    await chrome.storage.local.remove([
+      'supabaseAccessToken',
+      'supabaseRefreshToken',
+      'supabaseSessionExpiresAt',
+      'cachedConnections',
+      'connectionsCacheTimestamp',
+    ]);
     setIsLoggedIn(false);
     setConnection(null);
     setError(null);
@@ -258,7 +264,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setToastMessage('Je sessie is verlopen. Log opnieuw in.');
         }
-        await chrome.storage.local.remove(['supabaseAccessToken']);
+        await chrome.storage.local.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
         return;
       }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);

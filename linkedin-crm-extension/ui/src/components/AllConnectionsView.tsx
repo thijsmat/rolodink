@@ -62,7 +62,7 @@ export function AllConnectionsView() {
   const filteredConnections = useMemo(() => {
     if (!allConnections) return [];
 
-    let filtered = allConnections;
+    let filtered = [...allConnections];
 
     // Apply search filter with debounced query
     if (debouncedSearchQuery.trim()) {
@@ -82,12 +82,12 @@ export function AllConnectionsView() {
         break;
       case 'recent':
         // Sort by ID (assuming higher IDs are more recent) and take recent ones
-        filtered = filtered
-          .sort((a, b) => {
-            const aId = parseInt(a.id || '0', 10);
-            const bId = parseInt(b.id || '0', 10);
-            return bId - aId;
-          })
+        const toNumericId = (value: string | undefined) => {
+          const parsed = Number(value);
+          return Number.isFinite(parsed) ? parsed : 0;
+        };
+        filtered = [...filtered]
+          .sort((a, b) => toNumericId(b.id) - toNumericId(a.id))
           .slice(0, 10);
         break;
       default:

@@ -9,10 +9,15 @@ const extDir = __dirname;
 const uiDir = path.join(extDir, 'ui');
 const distDir = path.join(repoRoot, 'dist');
 const tmpDir = path.join(distDir, 'tmp', target);
+const uiBuildDir = path.join(uiDir, 'dist');
 
 async function build() {
   console.log(`==> Building UI for ${target}...`);
   execSync('npm run build', { cwd: uiDir, stdio: 'inherit' });
+
+  if (!(await fs.pathExists(uiBuildDir))) {
+    throw new Error(`UI build output not found at ${uiBuildDir}. Did Vite finish successfully?`);
+  }
 
   console.log('==> Preparing clean dist folder...');
   await fs.emptyDir(tmpDir);
@@ -20,8 +25,11 @@ async function build() {
   const manifestFile = target === 'firefox' ? 'manifest-firefox.json' : 'manifest.json';
   const contentScriptFile = target === 'firefox' ? 'content-firefox.js' : 'content.js';
 
+  console.log('==> Copying UI build artifacts...');
+  await fs.copy(uiBuildDir, tmpDir);
+
+  console.log('==> Copying extension assets...');
   await fs.copy(path.join(extDir, 'icons'), path.join(tmpDir, 'icons'));
-  await fs.copy(path.join(extDir, 'ui', 'dist'), path.join(tmpDir, 'ui'));
   await fs.copy(path.join(extDir, manifestFile), path.join(tmpDir, 'manifest.json'));
   await fs.copy(path.join(extDir, contentScriptFile), path.join(tmpDir, 'content.js'));
   await fs.copy(path.join(extDir, 'icon.png'), path.join(tmpDir, 'icon.png'));
