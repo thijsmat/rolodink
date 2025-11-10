@@ -1,6 +1,9 @@
 import { Chrome, Play, Star } from "lucide-react";
+import { getExtensionUrl } from "@/lib/utils";
 
 export default function Hero() {
+  const extensionUrl = getExtensionUrl();
+
   return (
     <section className="pt-20 sm:pt-24 pb-12 sm:pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[1136px] mx-auto">
@@ -25,14 +28,22 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <button className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2">
+              <a
+                href={extensionUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
+              >
                 <Chrome className="h-4 w-4" />
                 Add to Chrome - Gratis
-              </button>
-              <button className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-gold bg-background text-gold text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors items-center justify-center gap-2">
+              </a>
+              <a
+                href="#features"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-gold bg-background text-gold text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors items-center justify-center gap-2"
+              >
                 <Play className="h-4 w-4" />
                 Bekijk demo
-              </button>
+              </a>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 pt-2 sm:pt-4">

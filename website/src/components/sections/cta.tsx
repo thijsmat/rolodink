@@ -1,6 +1,9 @@
 import { Chrome, ArrowRight, Check } from "lucide-react";
+import { getExtensionUrl } from "@/lib/utils";
 
 export default function CTA() {
+  const extensionUrl = getExtensionUrl();
+
   return (
     <section className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-azure to-azure/80 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-gold/10 blur-2xl sm:blur-3xl"></div>
@@ -17,14 +20,22 @@ export default function CTA() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors items-center justify-center gap-2">
+          <a
+            href={extensionUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors items-center justify-center gap-2"
+          >
             <Chrome className="h-4 w-4" />
             Add to Chrome - Gratis
-          </button>
-          <button className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors items-center justify-center gap-2">
+          </a>
+          <a
+            href="#features"
+            className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors items-center justify-center gap-2"
+          >
             Bekijk demo
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </a>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-white/70 text-xs sm:text-sm flex-wrap">
