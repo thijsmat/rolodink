@@ -122,8 +122,8 @@ jobs:
       run: npx prisma generate
       working-directory: ./linkedin-crm-backend
       env:
-        DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-        DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+        DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
       
     - name: Run npm audit
       run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
@@ -134,24 +134,24 @@ jobs:
       run: npm run lint || echo "Linting completed with warnings"
       working-directory: ./linkedin-crm-backend
       env:
-        NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
       
     - name: Run type checking
       run: npx tsc --noEmit
       working-directory: ./linkedin-crm-backend
       env:
-        NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
       
     - name: Build backend
       run: npm run build
       working-directory: ./linkedin-crm-backend
       env:
-        NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key
-        DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-        DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key' }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+        DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
 
   # Security Scan
   security:
