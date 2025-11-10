@@ -105,34 +105,41 @@ export async function DELETE(
       return NextResponse.json({ error: 'Connection ID is required' }, { status: 400, headers: corsHeaders });
     }
 
-    // First find the connection to verify ownership
-    const connection = await prisma.connection.findUnique({
+    // Attempt delete in a single round-trip (ownership check in filter)
+    const deleteResult = await prisma.connection.deleteMany({
       where: {
         id: connectionId,
+        ownerId: user.id,
       },
     });
 
-    if (!connection) {
+    if (deleteResult.count === 0) {
+      // Determine whether the record is missing or user lacks access
+      const connection = await prisma.connection.findUnique({
+        where: { id: connectionId },
+        select: { ownerId: true },
+      });
+
+      if (!connection) {
+        return NextResponse.json(
+          { error: 'Connection not found' },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+
+      if (connection.ownerId !== user.id) {
+        return NextResponse.json(
+          { error: 'No permission to delete this connection' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      // Fallback for unexpected failure
       return NextResponse.json(
-        { error: 'Connection not found' },
-        { status: 404, headers: corsHeaders }
+        { error: 'Could not delete connection' },
+        { status: 500, headers: corsHeaders }
       );
     }
-
-    // Security: verify that the connection belongs to the user
-    if (connection.ownerId !== user.id) {
-      return NextResponse.json(
-        { error: 'No permission to delete this connection' },
-        { status: 403, headers: corsHeaders }
-      );
-    }
-
-    // Delete the connection (ownership already verified)
-    await prisma.connection.delete({
-      where: {
-        id: connectionId,
-      },
-    });
 
     // Invalidate cache for this user's connections
     revalidateTag(`connections-${user.id}`);
