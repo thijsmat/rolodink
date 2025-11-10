@@ -2,6 +2,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL } from '../config';
 
+export const INVALID_PROFILE_PAGE_ERROR = 'invalid-profile-page';
+
 export type Connection = {
   id?: string;
   name: string;
@@ -45,6 +47,7 @@ type ConnectionContextState = {
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;
   cleanAllNames: () => Promise<void>;
+  clearError: () => void;
 };
 
 const ConnectionContext = createContext<ConnectionContextState | undefined>(undefined);
@@ -159,7 +162,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const currentUrl = tabs[0]?.url;
       if (!currentUrl || !currentUrl.includes('linkedin.com/in/')) {
-        setError('Dit is geen geldige LinkedIn profielpagina.');
+        setError(INVALID_PROFILE_PAGE_ERROR);
         setConnection(null);
         return;
       }
@@ -549,6 +552,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [fetchAllConnections]);
 
+  const clearError = useCallback(() => setError(null), []);
+
   const value: ConnectionContextState = useMemo(() => ({
     isLoading,
     error,
@@ -577,6 +582,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleLogout,
     handleLoginSuccess,
     cleanAllNames,
+    clearError,
   }), [
     isLoading,
     error,
@@ -605,6 +611,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleLogout,
     handleLoginSuccess,
     cleanAllNames,
+    clearError,
   ]);
 
   return (

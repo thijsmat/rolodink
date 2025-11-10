@@ -55,6 +55,24 @@
   word-break: break-word;
 }
 
+.errorBody {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.errorBody a {
+  color: var(--info);
+  text-decoration: underline;
+  font-weight: var(--font-weight-medium);
+}
+
+.errorBody a:hover {
+  color: var(--linkedin-blue-hover);
+  text-decoration: none;
+}
+
 .technicalDetails {
   margin-top: var(--space-2);
 }
@@ -127,6 +145,15 @@
   background: var(--bg-muted);
   color: var(--text-secondary);
   border-color: var(--border-strong);
+}
+
+.profileHint {
+  background: #e3f2fd;
+  border-left-color: #2196f3;
+}
+
+.profileHint .errorIcon {
+  color: #2196f3;
 }
 
 /* Responsive adjustments */

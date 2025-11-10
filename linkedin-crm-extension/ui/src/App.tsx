@@ -1,7 +1,7 @@
 // src/App.tsx
 import { useEffect } from 'react';
 import styles from './App.module.css';
-import { ConnectionProvider, useConnection } from './context/ConnectionContext';
+import { ConnectionProvider, useConnection, INVALID_PROFILE_PAGE_ERROR } from './context/ConnectionContext';
 import { UpdateProvider } from './context/UpdateContext';
 import { LoginView } from './components/LoginView';
 import { ConnectionView } from './components/ConnectionView';
@@ -15,7 +15,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 
 function Content() {
-  const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, isHelpView, showListView, hideListView, showSettingsView, hideSettingsView, showHelpView, hideHelpView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData } = useConnection();
+  const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, isHelpView, showListView, hideListView, showSettingsView, hideSettingsView, showHelpView, hideHelpView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData, clearError } = useConnection();
 
   // Global keyboard shortcuts for navigation
   useEffect(() => {
@@ -52,6 +52,8 @@ function Content() {
     if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
     if (!isLoggedIn) return <LoginView />;
     if (error) {
+      const isProfilePageWarning = error === INVALID_PROFILE_PAGE_ERROR;
+
       return (
         <div className={styles.errorContainer}>
           {isOffline ? (
@@ -59,9 +61,30 @@ function Content() {
           ) : (
             <ErrorMessage 
               error={error} 
-              onRetry={fetchData} 
-              onDismiss={() => setToastMessage('')}
+              onRetry={isProfilePageWarning ? clearError : fetchData} 
+              onDismiss={() => {
+                clearError();
+                setToastMessage('');
+              }}
               showRetry={true}
+              retryLabel={isProfilePageWarning ? 'OK' : undefined}
+              type={isProfilePageWarning ? 'info' : 'error'}
+              description={
+                isProfilePageWarning ? (
+                  <>
+                    Open een LinkedIn profiel om connecties te bekijken. Niet zeker waar te beginnen? Bekijk{' '}
+                    <a
+                      href="https://www.linkedin.com/in/matthijsgoes"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      mijn profiel
+                    </a>{' '}
+                    als voorbeeld.
+                  </>
+                ) : undefined
+              }
+              variant={isProfilePageWarning ? 'profileHint' : undefined}
             />
           )}
         </div>

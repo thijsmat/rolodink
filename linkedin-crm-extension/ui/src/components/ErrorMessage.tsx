@@ -1,4 +1,6 @@
 // src/components/ErrorMessage.tsx
+import { type ReactNode } from 'react';
+import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
 import styles from './ErrorMessage.module.css';
 
 interface ErrorMessageProps {
@@ -8,6 +10,9 @@ interface ErrorMessageProps {
   type?: 'error' | 'warning' | 'info';
   showRetry?: boolean;
   showDismiss?: boolean;
+  description?: ReactNode;
+  retryLabel?: string;
+  variant?: 'default' | 'profileHint';
 }
 
 export function ErrorMessage({ 
@@ -16,7 +21,10 @@ export function ErrorMessage({
   onDismiss, 
   type = 'error',
   showRetry = false,
-  showDismiss = true 
+  showDismiss = true,
+  description,
+  retryLabel,
+  variant = 'default',
 }: ErrorMessageProps) {
   const getErrorIcon = () => {
     switch (type) {
@@ -41,6 +49,7 @@ export function ErrorMessage({
       'Internal Server Error': 'Er is een serverprobleem. Probeer het later opnieuw.',
       'Connection ID is missing': 'Er is een probleem met deze connectie. Probeer de pagina te vernieuwen.',
       'Connectie bestaat al voor deze URL': 'Deze LinkedIn connectie is al toegevoegd aan Rolodink.',
+      [INVALID_PROFILE_PAGE_ERROR]: "Rolodink werkt op LinkedIn profielpagina's",
     };
 
     // Check for exact matches first
@@ -60,14 +69,22 @@ export function ErrorMessage({
   };
 
   const userFriendlyError = getErrorMessage(error);
+  const shouldShowTechnicalDetails = error !== userFriendlyError && error !== INVALID_PROFILE_PAGE_ERROR;
+  const containerClasses = [styles.errorMessage, styles[type]];
+  if (variant === 'profileHint') {
+    containerClasses.push(styles.profileHint);
+  }
 
   return (
-    <div className={`${styles.errorMessage} ${styles[type]}`}>
+    <div className={containerClasses.join(' ')}>
       <div className={styles.errorContent}>
         <div className={styles.errorIcon}>{getErrorIcon()}</div>
         <div className={styles.errorText}>
           <p className={styles.errorTitle}>{userFriendlyError}</p>
-          {error !== userFriendlyError && (
+          {description && (
+            <p className={styles.errorBody}>{description}</p>
+          )}
+          {shouldShowTechnicalDetails && (
             <details className={styles.technicalDetails}>
               <summary>Technische details</summary>
               <code>{error}</code>
@@ -81,9 +98,9 @@ export function ErrorMessage({
           <button 
             onClick={onRetry} 
             className={`${styles.button} ${styles.retryButton}`}
-            title="Probeer opnieuw"
+            title={retryLabel ?? 'Probeer opnieuw'}
           >
-            🔄 Opnieuw
+            {retryLabel ?? '🔄 Opnieuw'}
           </button>
         )}
         {showDismiss && onDismiss && (
