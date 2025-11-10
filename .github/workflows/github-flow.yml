@@ -184,11 +184,12 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     needs: [website, extension, backend, security]
     runs-on: ubuntu-latest
-    environment: staging
-    
+
     steps:
     - name: Deploy to staging
       run: |
+        echo "Deploying to staging environment"
+        # Add staging deployment commands here
         echo "Deploying to staging environment"
         # Add staging deployment commands here
 

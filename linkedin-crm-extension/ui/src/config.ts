@@ -1,7 +1,12 @@
-// Central API base URL for the UI code. Change this once for staging/production.
-// NOTE: Staging backend is currently not working due to missing environment variables
-// Use production backend until staging is properly configured
-export const API_BASE_URL = 'https://api.rolodink.app';
+// Central API base URL for the UI code.
+// Prefer configuring via Vite environment variables for flexibility across environments.
+const defaultApiBaseUrl = 'https://api.rolodink.app';
+const apiBaseUrlFromEnv = import.meta.env.VITE_API_BASE_URL;
+
+export const API_BASE_URL =
+  (typeof apiBaseUrlFromEnv === 'string' && apiBaseUrlFromEnv.trim().length > 0
+    ? apiBaseUrlFromEnv.trim().replace(/\/$/, '')
+    : defaultApiBaseUrl);
 
 // Fallback configuration for when staging is ready
 // export const API_BASE_URL = 'https://linkedin-crm-staging-k21f8gwio-matthijs-goes-projects.vercel.app';
