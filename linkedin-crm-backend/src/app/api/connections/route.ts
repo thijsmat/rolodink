@@ -231,42 +231,58 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Use validated data
-    const validatedUpdateData = validation.data;
-
-    // First find the connection to verify ownership
-    const connection = await prisma.connection.findUnique({
-      where: {
-        id: id,
-      },
-    });
-
-    if (!connection) {
-      return NextResponse.json(
-        { error: 'Connection not found' },
-        { status: 404, headers: corsHeaders }
-      );
-    }
-
-    // Security: verify that the connection belongs to the user
-    if (connection.ownerId !== user.id) {
-      return NextResponse.json(
-        { error: 'No permission to update this connection' },
-        { status: 403, headers: corsHeaders }
-      );
-    }
+    const validatedUpdateData = { ...validation.data };
 
     // Clean the name if it's being updated
     if (validatedUpdateData.name) {
       validatedUpdateData.name = cleanProfileName(validatedUpdateData.name);
     }
 
-    // Update the connection (ownership already verified)
-    const updatedConnection = await prisma.connection.update({
+    // Try update in single round-trip (ownership in filter)
+    const updateResult = await prisma.connection.updateMany({
       where: {
         id: id,
+        ownerId: user.id,
       },
       data: validatedUpdateData,
     });
+
+    if (updateResult.count === 0) {
+      const connection = await prisma.connection.findUnique({
+        where: { id: id },
+        select: { ownerId: true },
+      });
+
+      if (!connection) {
+        return NextResponse.json(
+          { error: 'Connection not found' },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+
+      if (connection.ownerId !== user.id) {
+        return NextResponse.json(
+          { error: 'No permission to update this connection' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      return NextResponse.json(
+        { error: 'Could not update connection' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    const updatedConnection = await prisma.connection.findUnique({
+      where: { id: id },
+    });
+
+    if (!updatedConnection) {
+      return NextResponse.json(
+        { error: 'Connection not found after update' },
+        { status: 404, headers: corsHeaders }
+      );
+    }
 
     // Invalidate cache for this user's connections
     revalidateTag(`connections-${user.id}`);
