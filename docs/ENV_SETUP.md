@@ -48,6 +48,11 @@ Rolodink consists of three main components, each requiring different environment
 - **Default**: GitHub releases page
 - **Example**: `https://github.com/your-org/rolodink/releases/latest`
 
+#### `EMAIL_CONFIRMATION_REDIRECT_TO`
+- **Description**: URL used in Supabase email confirmations (`auth.signUp`)
+- **Default**: `https://rolodink.app/auth/callback`
+- **When to change**: Only if the public website domain changes
+
 #### `NODE_ENV`
 - **Description**: Node environment (`development`, `production`, `test`)
 - **Default**: `development`

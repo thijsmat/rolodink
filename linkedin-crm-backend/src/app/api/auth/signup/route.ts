@@ -50,7 +50,15 @@ export async function POST(request: NextRequest) {
     const { email, password } = validation.data;
 
     const supabase = createSupabaseServerClient();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const emailRedirectTo =
+      process.env.EMAIL_CONFIRMATION_REDIRECT_TO ?? 'https://rolodink.app/auth/callback';
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo,
+      },
+    });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400, headers: corsHeaders });
