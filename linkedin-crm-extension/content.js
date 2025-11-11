@@ -150,7 +150,7 @@ function injectCRMButton(anchorButton) {
                 if (element && element.innerText && element.innerText.trim()) {
                     profileName = element.innerText.trim();
                     console.log('Found profile name from DOM:', profileName);
-                    console.log('Element HTML:', element.innerHTML);
+                    console.log('Element text:', element.textContent);
                     break;
                 }
             }
