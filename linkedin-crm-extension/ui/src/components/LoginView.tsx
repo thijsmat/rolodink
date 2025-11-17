@@ -1,5 +1,14 @@
 // src/components/LoginView.tsx
-import { useState } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type PointerEvent,
+  type SyntheticEvent,
+} from 'react';
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL } from '../config';
@@ -11,13 +20,20 @@ export function LoginView() {
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const lastAuthIntentRef = useRef<'signin' | 'signup'>('signin');
+  const edgePointerHandledRef = useRef(false);
+
+  const isEdgeBrowser = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /\bEdg\//i.test(navigator.userAgent);
+  }, []);
 
   type AuthPayload = {
     email: string;
     password: string;
   };
 
-  const callAuth = async (endpoint: string, payload: AuthPayload) => {
+  const callAuth = useCallback(async (endpoint: string, payload: AuthPayload) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -26,9 +42,9 @@ export function LoginView() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || 'Unknown error');
     return data;
-  };
+  }, []);
 
-  const handleAuth = async (type: 'signin' | 'signup') => {
+  const handleAuth = useCallback(async (type: 'signin' | 'signup') => {
     if (!email || !password) {
       setIsError(true);
       setMessage('Vul e-mail en wachtwoord in.');
@@ -59,7 +75,39 @@ export function LoginView() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [callAuth, email, handleLoginSuccess, password]);
+
+  const triggerAuth = useCallback((type: 'signin' | 'signup', event?: SyntheticEvent<HTMLButtonElement> | PointerEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    void handleAuth(type);
+  }, [handleAuth]);
+
+  const createClickHandler = useCallback((type: 'signin' | 'signup') => (event?: MouseEvent<HTMLButtonElement>) => {
+    lastAuthIntentRef.current = type;
+    if (isEdgeBrowser && edgePointerHandledRef.current) {
+      edgePointerHandledRef.current = false;
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+    triggerAuth(type, event);
+  }, [isEdgeBrowser, triggerAuth]);
+
+  const createPointerHandler = useCallback((type: 'signin' | 'signup') => (event: PointerEvent<HTMLButtonElement>) => {
+    if (!isEdgeBrowser) return;
+    lastAuthIntentRef.current = type;
+    edgePointerHandledRef.current = true;
+    triggerAuth(type, event);
+    setTimeout(() => {
+      edgePointerHandledRef.current = false;
+    }, 0);
+  }, [isEdgeBrowser, triggerAuth]);
+
+  const handleFormSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    triggerAuth(lastAuthIntentRef.current);
+  }, [triggerAuth]);
 
   return (
     <div className={styles.container}>
@@ -71,7 +119,7 @@ export function LoginView() {
         </p>
       </div>
 
-      <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+      <form className={styles.form} onSubmit={handleFormSubmit}>
         <div className={styles.formGroup}>
           <label htmlFor="email" className={styles.label}>
             E-mailadres
@@ -106,14 +154,18 @@ export function LoginView() {
 
         <div className={styles.buttonGroup}>
           <button
-            onClick={() => handleAuth('signin')}
+            type="button"
+            onClick={createClickHandler('signin')}
+            onPointerUp={isEdgeBrowser ? createPointerHandler('signin') : undefined}
             className={`${styles.button} ${styles.buttonPrimary}`}
             disabled={isLoading}
           >
             {isLoading ? 'Bezig...' : 'Inloggen'}
           </button>
           <button
-            onClick={() => handleAuth('signup')}
+            type="button"
+            onClick={createClickHandler('signup')}
+            onPointerUp={isEdgeBrowser ? createPointerHandler('signup') : undefined}
             className={`${styles.button} ${styles.buttonSecondary}`}
             disabled={isLoading}
           >

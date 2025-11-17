@@ -80,7 +80,7 @@ export function AllConnectionsView() {
       case 'withNotes':
         filtered = filtered.filter(conn => conn.notes && conn.notes.trim().length > 0);
         break;
-      case 'recent':
+      case 'recent': {
         // Sort by ID (assuming higher IDs are more recent) and take recent ones
         const toNumericId = (value: string | undefined) => {
           const parsed = Number(value);
@@ -90,6 +90,7 @@ export function AllConnectionsView() {
           .sort((a, b) => toNumericId(b.id) - toNumericId(a.id))
           .slice(0, 10);
         break;
+      }
       default:
         break;
     }
