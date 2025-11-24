@@ -8,7 +8,21 @@ export const metadata: Metadata = {
   description: 'Create your Rolodink account with LinkedIn or email.',
 }
 
-export default function SignupPage() {
+type SignupPageProps = {
+  searchParams?: {
+    oauth_error?: string | string[]
+  }
+}
+
+export default function SignupPage({ searchParams }: SignupPageProps) {
+  const oauthErrorParam = searchParams?.oauth_error
+  const oauthError =
+    typeof oauthErrorParam === 'string'
+      ? oauthErrorParam
+      : Array.isArray(oauthErrorParam)
+        ? oauthErrorParam[0]
+        : null
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-azure/10 bg-white/95 p-8 shadow-xl backdrop-blur">
@@ -19,7 +33,13 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <LinkedInSignInButton />
+        {oauthError ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {oauthError}
+          </div>
+        ) : null}
+
+        <LinkedInSignInButton intent="signup" />
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
