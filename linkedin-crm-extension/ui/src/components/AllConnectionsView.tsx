@@ -86,7 +86,7 @@ export function AllConnectionsView() {
           const parsed = Number(value);
           return Number.isFinite(parsed) ? parsed : 0;
         };
-        filtered = [...filtered]
+        filtered = filtered
           .sort((a, b) => toNumericId(b.id) - toNumericId(a.id))
           .slice(0, 10);
         break;
