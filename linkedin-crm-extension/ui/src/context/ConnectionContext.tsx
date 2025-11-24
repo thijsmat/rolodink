@@ -83,14 +83,8 @@ const getChromeTabs = () => {
   return chrome.tabs;
 };
 
-const getSupabaseAccessToken = async (): Promise<string | null> => {
-  const storage = getChromeStorage();
-  if (!storage) {
-    return null;
-  }
-  const result = await storage.get('supabaseAccessToken');
-  return result.supabaseAccessToken ?? null;
-};
+
+
 
 function normalizeLinkedInUrl(raw: string): string {
   try {
@@ -264,7 +258,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     } catch (e: unknown) {
       console.error('Fout bij ophalen van connectie:', e);
-      
+
       // Check if it's a network error
       if (e instanceof TypeError && e.message.includes('fetch')) {
         setError('Geen internetverbinding. Controleer je wifi of mobiele data.');
@@ -362,10 +356,10 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const connections = await response.json();
       setAllConnections(connections);
-      
+
       // Save to cache
       await saveConnectionsToCache(connections);
-      
+
       if (silent) {
         console.log('Background refresh completed:', connections.length, 'connections');
       }
@@ -389,7 +383,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const showListView = useCallback(async () => {
     setIsListView(true);
-    
+
     // If we already have connections loaded, show them immediately
     if (allConnections.length > 0) {
       // Trigger background refresh
@@ -468,12 +462,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!response.ok) throw new Error('Opslaan mislukt');
       const newConnection = await response.json();
       setConnection(newConnection);
-      
+
       // Update cache with new connection
       const updatedConnections = [...allConnections, newConnection];
       setAllConnections(updatedConnections);
       await saveConnectionsToCache(updatedConnections);
-      
+
       setToastMessage('Connectie opgeslagen.');
     } catch (e) {
       console.error('Fout bij opslaan:', e);
@@ -555,14 +549,14 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const updated = await response.json();
       setConnection(updated);
-      
+
       // Update cache with updated connection
-      const updatedConnections = allConnections.map(conn => 
+      const updatedConnections = allConnections.map(conn =>
         conn.id === updated.id ? updated : conn
       );
       setAllConnections(updatedConnections);
       await saveConnectionsToCache(updatedConnections);
-      
+
       setToastMessage('Connectie bijgewerkt.');
     } catch (e: unknown) {
       console.error('Fout bij bijwerken:', e);
@@ -610,12 +604,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
       if (!response.ok) throw new Error('Verwijderen mislukt');
       setConnection(null);
-      
+
       // Update cache by removing deleted connection
       const updatedConnections = allConnections.filter(conn => conn.id !== idToUse);
       setAllConnections(updatedConnections);
       await saveConnectionsToCache(updatedConnections);
-      
+
       setToastMessage('Connectie verwijderd.');
     } catch (e: unknown) {
       console.error('Fout bij verwijderen:', e);
@@ -652,7 +646,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const result = await response.json();
       console.log('Clean names result:', result);
-      
+
       if (result.success) {
         setToastMessage(`✅ ${result.updatedCount} namen opgeschoond van ${result.totalConnections} contacten`);
         // Refresh the connections list to show updated names

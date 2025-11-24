@@ -66,13 +66,13 @@ function buildUI() {
 function copyFile(src, dest) {
   const srcPath = path.join(EXTENSION_ROOT, src);
   const destPath = path.join(DIST_DIR, dest);
-  
+
   // Ensure destination directory exists
   const destDir = path.dirname(destPath);
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
-  
+
   if (fs.existsSync(srcPath)) {
     fs.copyFileSync(srcPath, destPath);
     return true;
@@ -83,32 +83,32 @@ function copyFile(src, dest) {
 function copyDirectory(src, dest) {
   const srcPath = path.join(EXTENSION_ROOT, src);
   const destPath = path.join(DIST_DIR, dest);
-  
+
   if (!fs.existsSync(srcPath)) {
     return false;
   }
-  
+
   fs.mkdirSync(destPath, { recursive: true });
-  
+
   const items = fs.readdirSync(srcPath);
   items.forEach(item => {
     const srcItem = path.join(srcPath, item);
     const destItem = path.join(destPath, item);
-    
+
     if (fs.statSync(srcItem).isDirectory()) {
       copyDirectory(path.relative(EXTENSION_ROOT, srcItem), path.relative(DIST_DIR, destItem));
     } else {
       fs.copyFileSync(srcItem, destItem);
     }
   });
-  
+
   return true;
 }
 
 // Copy all necessary files
 function copyFiles() {
   step('Copying extension files to dist');
-  
+
   // Copy manifest.json
   if (copyFile('manifest.json', 'manifest.json')) {
     success('Copied manifest.json');
@@ -116,7 +116,7 @@ function copyFiles() {
     error('manifest.json not found');
     process.exit(1);
   }
-  
+
   // Copy icon.png
   if (copyFile('icon.png', 'icon.png')) {
     success('Copied icon.png');
@@ -124,7 +124,7 @@ function copyFiles() {
     error('icon.png not found');
     process.exit(1);
   }
-  
+
   // Copy icons directory
   if (copyDirectory('icons', 'icons')) {
     success('Copied icons/ directory');
@@ -132,7 +132,7 @@ function copyFiles() {
     error('icons/ directory not found');
     process.exit(1);
   }
-  
+
   // Copy content.js
   if (copyFile('content.js', 'content.js')) {
     success('Copied content.js');
@@ -140,9 +140,9 @@ function copyFiles() {
     error('content.js not found');
     process.exit(1);
   }
-  
+
   // Copy UI dist
-  if (copyDirectory('ui/dist', 'ui/dist')) {
+  if (copyDirectory('ui/dist', '')) {
     success('Copied ui/dist directory');
   } else {
     error('ui/dist not found - did UI build fail?');
@@ -153,17 +153,17 @@ function copyFiles() {
 // Create ZIP file
 function createZip() {
   step('Creating ZIP file');
-  
+
   const manifest = JSON.parse(fs.readFileSync(path.join(EXTENSION_ROOT, 'manifest.json'), 'utf8'));
   const version = manifest.version;
   const zipName = `rolodink-v${version}-chrome.zip`;
   const zipPath = path.join(EXTENSION_ROOT, zipName);
-  
+
   // Remove old ZIP if exists
   if (fs.existsSync(zipPath)) {
     fs.unlinkSync(zipPath);
   }
-  
+
   try {
     // Create ZIP using system zip command
     execSync(`cd dist && zip -r ../${zipName} . -x "*.DS_Store" "*.map"`, {
@@ -171,12 +171,12 @@ function createZip() {
       stdio: 'inherit'
     });
     success(`Created ${zipName}`);
-    
+
     // Show ZIP stats
     const stats = fs.statSync(zipPath);
     const sizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
     log(`   📦 Size: ${sizeInMB} MB`, colors.cyan);
-    
+
     return zipName;
   } catch (err) {
     error('Failed to create ZIP file');
@@ -188,13 +188,13 @@ function createZip() {
 // Verify ZIP contents
 function verifyZip(zipName) {
   step('Verifying ZIP contents');
-  
+
   try {
     const output = execSync(`unzip -l ${zipName}`, {
       cwd: EXTENSION_ROOT,
       encoding: 'utf8'
     });
-    
+
     const requiredFiles = [
       'manifest.json',
       'icon.png',
@@ -203,9 +203,9 @@ function verifyZip(zipName) {
       'icons/icon48.png',
       'icons/icon128.png',
       'content.js',
-      'ui/dist/index.html'
+      'index.html'
     ];
-    
+
     let allFound = true;
     requiredFiles.forEach(file => {
       if (output.includes(file)) {
@@ -215,12 +215,12 @@ function verifyZip(zipName) {
         allFound = false;
       }
     });
-    
+
     if (!allFound) {
       error('ZIP verification failed - some required files are missing');
       process.exit(1);
     }
-    
+
     success('ZIP verification passed');
   } catch (err) {
     error('Failed to verify ZIP contents');
@@ -232,13 +232,13 @@ function verifyZip(zipName) {
 function main() {
   log('\n🚀 Building Chrome Extension for Production', colors.cyan);
   log('='.repeat(60), colors.cyan);
-  
+
   cleanDist();
   buildUI();
   copyFiles();
   const zipName = createZip();
   verifyZip(zipName);
-  
+
   log('\n' + '='.repeat(60), colors.cyan);
   log('✨ Production build complete!', colors.green);
   log(`\n📦 Package: ${zipName}`, colors.green);
