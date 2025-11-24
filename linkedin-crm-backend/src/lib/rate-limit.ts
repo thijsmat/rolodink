@@ -1,6 +1,7 @@
 // Rate limiting utility for API routes
 // Limits: 100 requests per IP per hour (strict)
 
+import { isIP } from 'net';
 import { getAllowedOrigin } from './cors';
 
 interface RateLimitStore {
@@ -105,34 +106,14 @@ export function getClientIP(request: Request): string | undefined {
 }
 
 /**
- * Basic IP address validation
- * Checks if string looks like a valid IP (IPv4 or IPv6)
+ * Validate IP address using Node.js built-in net.isIP()
+ * Handles all IPv4 and IPv6 variations including compressed formats
+ * Returns true if valid IPv4 or IPv6, false otherwise
  */
 function isValidIP(ip: string): boolean {
   if (!ip || typeof ip !== 'string') return false;
-  
-  // IPv4 pattern: 1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits
-  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-  
-  // IPv6 pattern: hex digits with colons (simplified check)
-  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
-  
-  // Basic validation - check format
-  if (ipv4Pattern.test(ip)) {
-    // Validate IPv4 ranges (0-255 per octet)
-    const parts = ip.split('.');
-    return parts.length === 4 && parts.every(part => {
-      const num = parseInt(part, 10);
-      return num >= 0 && num <= 255;
-    });
-  }
-  
-  // IPv6 validation is more complex, but basic format check is sufficient here
-  if (ipv6Pattern.test(ip)) {
-    return true;
-  }
-  
-  return false;
+  // isIP returns 4 for IPv4, 6 for IPv6, or 0 for invalid
+  return isIP(ip) !== 0;
 }
 
 /**
@@ -143,43 +124,43 @@ function isValidIP(ip: string): boolean {
  */
 export function rateLimitMiddleware(request: Request): Response | null {
   const ip = getClientIP(request);
-  
+
   // If IP cannot be determined, block the request for security
   // This prevents potential abuse where requests without IP headers bypass rate limiting
   // Based on Gemini Code Assist recommendation
   if (!ip) {
     console.warn('[Rate Limit] Blocking request because client IP could not be determined for rate limiting.');
-    
+
     const allowedOrigin = getAllowedOrigin(request);
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    
+
     // Only add CORS headers if origin is whitelisted
     if (allowedOrigin) {
       headers['Access-Control-Allow-Origin'] = allowedOrigin;
       headers['Vary'] = 'Origin';
     }
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Could not determine client IP',
         message: 'Request blocked for security reasons'
-      }), 
-      { 
+      }),
+      {
         status: 400,
         headers
       }
     );
   }
-  
+
   const result = checkRateLimit(ip);
 
   if (!result.success) {
     // Use secure CORS headers with origin whitelisting
     // Based on Gemini Code Assist recommendation: use strict whitelist, include Vary header
     const allowedOrigin = getAllowedOrigin(request);
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-RateLimit-Limit': result.limit.toString(),
@@ -187,13 +168,13 @@ export function rateLimitMiddleware(request: Request): Response | null {
       'X-RateLimit-Reset': result.resetTime.toString(),
       'Retry-After': Math.ceil((result.resetTime - Date.now()) / 1000).toString(),
     };
-    
+
     // Only add CORS headers if origin is whitelisted (prevents reflection attacks)
     if (allowedOrigin) {
       headers['Access-Control-Allow-Origin'] = allowedOrigin;
       headers['Vary'] = 'Origin'; // Important: prevents browser caching for wrong origin
     }
-    
+
     return new Response(
       JSON.stringify({
         error: 'Rate limit exceeded',
