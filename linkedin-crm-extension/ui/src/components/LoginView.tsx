@@ -85,10 +85,12 @@ export function LoginView() {
 
   const createClickHandler = useCallback((type: 'signin' | 'signup') => (event?: MouseEvent<HTMLButtonElement>) => {
     lastAuthIntentRef.current = type;
-    if (isEdgeBrowser && edgePointerHandledRef.current) {
-      edgePointerHandledRef.current = false;
-      event?.preventDefault();
-      event?.stopPropagation();
+    if (isEdgeBrowser) {
+      if (edgePointerHandledRef.current) {
+        edgePointerHandledRef.current = false;
+        event?.preventDefault();
+        event?.stopPropagation();
+      }
       return;
     }
     triggerAuth(type, event);
@@ -98,10 +100,9 @@ export function LoginView() {
     if (!isEdgeBrowser) return;
     lastAuthIntentRef.current = type;
     edgePointerHandledRef.current = true;
+    event.preventDefault();
+    event.stopPropagation();
     triggerAuth(type, event);
-    setTimeout(() => {
-      edgePointerHandledRef.current = false;
-    }, 0);
   }, [isEdgeBrowser, triggerAuth]);
 
   const handleFormSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
@@ -156,7 +157,7 @@ export function LoginView() {
           <button
             type="button"
             onClick={createClickHandler('signin')}
-            onPointerUp={isEdgeBrowser ? createPointerHandler('signin') : undefined}
+            onPointerDown={isEdgeBrowser ? createPointerHandler('signin') : undefined}
             className={`${styles.button} ${styles.buttonPrimary}`}
             disabled={isLoading}
           >
@@ -165,7 +166,7 @@ export function LoginView() {
           <button
             type="button"
             onClick={createClickHandler('signup')}
-            onPointerUp={isEdgeBrowser ? createPointerHandler('signup') : undefined}
+            onPointerDown={isEdgeBrowser ? createPointerHandler('signup') : undefined}
             className={`${styles.button} ${styles.buttonSecondary}`}
             disabled={isLoading}
           >
