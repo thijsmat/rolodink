@@ -13,6 +13,26 @@ import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL } from '../config';
 
+const warnOnce = (() => {
+  const cache = new Set<string>();
+  return (key: string, message: string) => {
+    if (cache.has(key)) return;
+    cache.add(key);
+    console.warn(message);
+  };
+})();
+
+const getChromeStorage = () => {
+  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
+    warnOnce(
+      'login-storage',
+      '[LoginView] chrome.storage.local is unavailable. Running outside the extension environment.'
+    );
+    return null;
+  }
+  return chrome.storage.local;
+};
+
 export function LoginView() {
   const { handleLoginSuccess } = useConnection();
   const [email, setEmail] = useState('');
@@ -58,11 +78,14 @@ export function LoginView() {
     try {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
-        await chrome.storage.local.set({
-          supabaseAccessToken: data.session.access_token,
-          supabaseRefreshToken: data.session.refresh_token ?? null,
-          supabaseSessionExpiresAt: data.session.expires_at ?? null,
-        });
+        const storage = getChromeStorage();
+        if (storage) {
+          await storage.set({
+            supabaseAccessToken: data.session.access_token,
+            supabaseRefreshToken: data.session.refresh_token ?? null,
+            supabaseSessionExpiresAt: data.session.expires_at ?? null,
+          });
+        }
         handleLoginSuccess();
       } else {
         setIsError(false);
