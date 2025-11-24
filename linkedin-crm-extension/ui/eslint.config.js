@@ -36,7 +36,7 @@ export default [
         { allowConstantExport: true },
       ],
       'no-undef': 'off', // TypeScript handles this
-      '@typescript-eslint/no-explicit-any': 'warn', // Warn instead of error for now
+      '@typescript-eslint/no-explicit-any': 'error', // Enforce strong typing
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
