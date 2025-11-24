@@ -90,8 +90,9 @@ export function LoginView() {
         edgePointerHandledRef.current = false;
         event?.preventDefault();
         event?.stopPropagation();
+        return;
       }
-      return;
+      // Pointer event did not fire (e.g. keyboard, touch, or browser quirk) – fall back to click.
     }
     triggerAuth(type, event);
   }, [isEdgeBrowser, triggerAuth]);
