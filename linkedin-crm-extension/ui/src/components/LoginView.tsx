@@ -47,7 +47,6 @@ export function LoginView() {
     if (typeof navigator === 'undefined') return false;
     return /\bEdg\//i.test(navigator.userAgent);
   }, []);
-
   type AuthPayload = {
     email: string;
     password: string;
@@ -70,7 +69,7 @@ export function LoginView() {
       setMessage('Vul e-mail en wachtwoord in.');
       return;
     }
-    
+
     setIsLoading(true);
     setMessage(type === 'signin' ? 'Bezig met inloggen...' : 'Bezig met registreren...');
     setIsError(false);

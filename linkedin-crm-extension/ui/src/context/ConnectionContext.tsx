@@ -562,7 +562,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('Fout bij bijwerken:', e);
       const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
       setError(`Kon de connectie niet bijwerken: ${errorMessage}`);
-      setToastMessage(errorMessage);
+      setToastMessage(errorMessage || 'Bijwerken mislukt.');
     } finally {
       setIsLoading(false);
     }
@@ -615,7 +615,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('Fout bij verwijderen:', e);
       const errorMessage = e instanceof Error ? e.message : 'Onbekende fout';
       setError('Kon de connectie niet verwijderen.');
-      setToastMessage(errorMessage);
+      setToastMessage(errorMessage || 'Verwijderen mislukt.');
     } finally {
       setIsLoading(false);
     }

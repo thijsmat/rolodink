@@ -63,13 +63,12 @@ function injectCRMButton(anchorButton) {
     ].filter(Boolean);
 
     const container = candidateContainers.find((el) => el instanceof HTMLElement);
-
     if (container && !container.querySelector("#crm-add-button")) {
         const crmButton = document.createElement("button");
         crmButton.innerText = "Add to CRM";
         crmButton.id = "crm-add-button";
         crmButton.type = "button";
-        
+
         // Styling
         crmButton.style.padding = "0px 12px"; // Aangepast voor de header
         crmButton.style.marginLeft = "8px";
@@ -129,128 +128,128 @@ function injectCRMButton(anchorButton) {
 
         crmButton.onclick = async () => {
             try {
-            console.log('CRM Button clicked - starting profile extraction...');
-            
-            // More robust profile name extraction with multiple fallback selectors
-            let profileName = '';
-            const selectors = [
-                'h1.text-heading-xlarge',
-                'h1[data-test-id="profile-name"]',
-                'h1.break-words',
-                'h1',
-                '.text-heading-xlarge',
-                '[data-test-id="profile-name"]'
-            ];
-            
-            console.log('Trying selectors:', selectors);
-            
-            for (const selector of selectors) {
-                const element = document.querySelector(selector);
-                console.log(`Selector "${selector}":`, element);
-                if (element && element.innerText && element.innerText.trim()) {
-                    profileName = element.innerText.trim();
-                    console.log('Found profile name from DOM:', profileName);
-                    console.log('Element text:', element.textContent);
-                    break;
-                }
-            }
-            
-            // If still no name found, try to get it from the page title
-            if (!profileName) {
-                const title = document.title;
-                console.log('Page title:', title);
-                if (title && title.includes('|')) {
-                    profileName = title.split('|')[0].trim();
-                } else if (title) {
-                    profileName = title.replace(' | LinkedIn', '').trim();
-                }
-                console.log('Profile name from title:', profileName);
-            }
-            
-            // Clean up notification count from profile name (applies to ALL extraction methods)
-            if (profileName) {
-                profileName = cleanProfileName(profileName);
-            }
-            
-            // Final fallback - show error if no name found
-            if (!profileName) {
-                console.error('No profile name found');
-                alert('Could not find profile name. Please refresh the page.');
-                return;
-            }
-            
-            const profileUrl = window.location.href;
-            console.log('Profile URL:', profileUrl);
+                console.log('CRM Button clicked - starting profile extraction...');
 
-            // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
-            if (!chrome || !chrome.storage || !chrome.storage.local) {
-                alert('Extension reloaded. Please refresh the page and try again.');
-                return;
-            }
+                // More robust profile name extraction with multiple fallback selectors
+                let profileName = '';
+                const selectors = [
+                    'h1.text-heading-xlarge',
+                    'h1[data-test-id="profile-name"]',
+                    'h1.break-words',
+                    'h1',
+                    '.text-heading-xlarge',
+                    '[data-test-id="profile-name"]'
+                ];
 
-            // Haal het authenticatietoken op uit de storage van de extensie.
-            let authToken;
-            try {
-                const result = await chrome.storage.local.get('supabaseAccessToken');
-                authToken = result.supabaseAccessToken;
-                console.log('Auth token exists:', !!authToken);
-            } catch (err) {
-                console.error('Kon token niet ophalen uit storage:', err);
-                const message = err instanceof Error ? err.message : String(err);
-                if (message && message.toLowerCase().includes('invalidated')) {
+                console.log('Trying selectors:', selectors);
+
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    console.log(`Selector "${selector}":`, element);
+                    if (element && element.innerText && element.innerText.trim()) {
+                        profileName = element.innerText.trim();
+                        console.log('Found profile name from DOM:', profileName);
+                        console.log('Element text:', element.textContent);
+                        break;
+                    }
+                }
+
+                // If still no name found, try to get it from the page title
+                if (!profileName) {
+                    const title = document.title;
+                    console.log('Page title:', title);
+                    if (title && title.includes('|')) {
+                        profileName = title.split('|')[0].trim();
+                    } else if (title) {
+                        profileName = title.replace(' | LinkedIn', '').trim();
+                    }
+                    console.log('Profile name from title:', profileName);
+                }
+
+                // Clean up notification count from profile name (applies to ALL extraction methods)
+                if (profileName) {
+                    profileName = cleanProfileName(profileName);
+                }
+
+                // Final fallback - show error if no name found
+                if (!profileName) {
+                    console.error('No profile name found');
+                    alert('Could not find profile name. Please refresh the page.');
+                    return;
+                }
+
+                const profileUrl = window.location.href;
+                console.log('Profile URL:', profileUrl);
+
+                // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
+                if (!chrome || !chrome.storage || !chrome.storage.local) {
                     alert('Extension reloaded. Please refresh the page and try again.');
                     return;
                 }
-                alert('Could not retrieve authentication info. Please try again.');
-                return;
-            }
 
-            if (!authToken) {
-                alert('You are not logged in. Please log in via the extension popup to use this feature.');
-                // We stoppen hier als de gebruiker niet is ingelogd.
-                return;
-            }
-
-            const requestBody = { name: profileName, url: profileUrl };
-            console.log('Request body:', requestBody);
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/connections`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}` 
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-
-                if (response.ok) {
-                    alert(`${profileName} has been successfully added!`);
-                    crmButton.innerText = "Added ✔️";
-                    crmButton.disabled = true;
-                } else {
-                    const errorData = await response.json();
-                    console.error('Error response:', errorData);
-                    if (response.status === 401) {
-                        alert('Session expired. Please log in again via the extension.');
-                        // TODO: Open de login-pagina van de extensie.
-                    } else if (response.status === 409) {
-                        // Bestaat al: markeer als toegevoegd zonder foutmelding
-                        crmButton.innerText = "Already added ✔️";
-                        crmButton.disabled = true;
-                        // Eventueel een zachte notificatie
-                        console.log('Connectie bestaat al, knop uitgeschakeld.');
-                    } else {
-                        alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
+                // Haal het authenticatietoken op uit de storage van de extensie.
+                let authToken;
+                try {
+                    const result = await chrome.storage.local.get('supabaseAccessToken');
+                    authToken = result.supabaseAccessToken;
+                    console.log('Auth token exists:', !!authToken);
+                } catch (err) {
+                    console.error('Kon token niet ophalen uit storage:', err);
+                    const message = err instanceof Error ? err.message : String(err);
+                    if (message && message.toLowerCase().includes('invalidated')) {
+                        alert('Extension reloaded. Please refresh the page and try again.');
+                        return;
                     }
+                    alert('Could not retrieve authentication info. Please try again.');
+                    return;
                 }
-            } catch (error) {
-                console.error('API Fout:', error);
-                alert('Cannot reach the CRM server.');
-            }
+
+                if (!authToken) {
+                    alert('You are not logged in. Please log in via the extension popup to use this feature.');
+                    // We stoppen hier als de gebruiker niet is ingelogd.
+                    return;
+                }
+
+                const requestBody = { name: profileName, url: profileUrl };
+                console.log('Request body:', requestBody);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/connections`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(requestBody),
+                    });
+
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+
+                    if (response.ok) {
+                        alert(`${profileName} has been successfully added!`);
+                        crmButton.innerText = "Added ✔️";
+                        crmButton.disabled = true;
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error response:', errorData);
+                        if (response.status === 401) {
+                            alert('Session expired. Please log in again via the extension.');
+                            // TODO: Open de login-pagina van de extensie.
+                        } else if (response.status === 409) {
+                            // Bestaat al: markeer als toegevoegd zonder foutmelding
+                            crmButton.innerText = "Already added ✔️";
+                            crmButton.disabled = true;
+                            // Eventueel een zachte notificatie
+                            console.log('Connectie bestaat al, knop uitgeschakeld.');
+                        } else {
+                            alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('API Fout:', error);
+                    alert('Cannot reach the CRM server.');
+                }
             } catch (err) {
                 console.error('Onherstelbare fout in click handler:', err);
                 const message = err instanceof Error ? err.message : String(err);
@@ -261,7 +260,7 @@ function injectCRMButton(anchorButton) {
                 }
             }
         };
-        
+
         // Insert the button right after the anchor button when possible for consistent UX
         if (anchorButton.parentElement === container) {
             anchorButton.insertAdjacentElement('afterend', crmButton);
@@ -300,12 +299,12 @@ function findAnchorButton() {
 function observeAndInject() {
     // Throttle observer callbacks to avoid excessive checks
     let isChecking = false;
-    
+
     const checkAndInject = () => {
         // Prevent multiple simultaneous checks
         if (isChecking) return;
         isChecking = true;
-        
+
         // Use requestAnimationFrame for performance
         requestAnimationFrame(() => {
             try {
@@ -316,12 +315,12 @@ function observeAndInject() {
             }
         });
     };
-    
+
     // Create MutationObserver to watch for DOM changes
     const observer = new MutationObserver(() => {
         checkAndInject();
     });
-    
+
     // Start observing the document body for changes
     if (document.body) {
         observer.observe(document.body, {

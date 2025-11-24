@@ -18,7 +18,6 @@ async function build() {
   if (!(await fs.pathExists(uiBuildDir))) {
     throw new Error(`UI build output not found at ${uiBuildDir}. Did Vite finish successfully?`);
   }
-
   console.log('==> Preparing clean dist folder...');
   await fs.emptyDir(tmpDir);
 

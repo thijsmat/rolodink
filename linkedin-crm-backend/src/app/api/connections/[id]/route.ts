@@ -140,7 +140,6 @@ export async function DELETE(
         { status: 500, headers: corsHeaders }
       );
     }
-
     // Invalidate cache for this user's connections
     revalidateTag(`connections-${user.id}`);
 
