@@ -79,13 +79,17 @@ export function LoginView() {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
         const storage = getChromeStorage();
-        if (storage) {
-          await storage.set({
-            supabaseAccessToken: data.session.access_token,
-            supabaseRefreshToken: data.session.refresh_token ?? null,
-            supabaseSessionExpiresAt: data.session.expires_at ?? null,
-          });
+        if (!storage) {
+          setIsLoading(false);
+          setIsError(true);
+          setMessage('Inloggen is alleen beschikbaar via de browser-extensie (chrome.storage niet beschikbaar).');
+          return;
         }
+        await storage.set({
+          supabaseAccessToken: data.session.access_token,
+          supabaseRefreshToken: data.session.refresh_token ?? null,
+          supabaseSessionExpiresAt: data.session.expires_at ?? null,
+        });
         handleLoginSuccess();
       } else {
         setIsError(false);

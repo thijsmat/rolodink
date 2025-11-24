@@ -125,6 +125,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const storage = getChromeStorage();
       if (!storage) {
+        warnOnce('connection-cache-read', '[ConnectionContext] chrome.storage.local ontbreekt - cache kan niet geladen worden');
         return [];
       }
       const result = await storage.get('cachedConnections');
@@ -139,11 +140,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const storage = getChromeStorage();
       if (!storage) {
+        warnOnce('connection-cache-write', '[ConnectionContext] chrome.storage.local ontbreekt - sla cache over');
         return;
       }
-      await storage.set({ 
+      await storage.set({
         cachedConnections: connections,
-        connectionsCacheTimestamp: Date.now()
+        connectionsCacheTimestamp: Date.now(),
       });
     } catch (error) {
       console.error('Failed to save connections to cache:', error);
@@ -203,6 +205,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!storage) {
         setIsLoggedIn(false);
         setConnection(null);
+        setError('chrome.storage.local ontbreekt. Open de Rolodink-extensie om door te gaan.');
+        setIsLoading(false);
         return;
       }
 
@@ -248,7 +252,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConnection(null);
         setError('Je sessie is verlopen. Log opnieuw in.');
         setToastMessage('Je sessie is verlopen. Log opnieuw in.');
-        await storage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
+        const freshStorage = getChromeStorage();
+        if (freshStorage) {
+          await freshStorage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
+        } else {
+          warnOnce('connection-storage-clear', '[ConnectionContext] kon tokens niet wissen omdat chrome.storage.local ontbreekt.');
+        }
         return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
@@ -321,7 +330,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const storage = getChromeStorage();
       if (!storage) {
-        throw new Error('chrome.storage is niet beschikbaar.');
+        if (!silent) {
+          setError('Deze lijst is alleen beschikbaar binnen de Rolodink-extensie (chrome.storage.local ontbreekt).');
+          setIsLoading(false);
+        }
+        return;
       }
       const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
@@ -337,7 +350,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setToastMessage('Je sessie is verlopen. Log opnieuw in.');
         }
-        await storage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
+        const freshStorage = getChromeStorage();
+        if (freshStorage) {
+          await freshStorage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
+        } else {
+          warnOnce('connection-storage-clear', '[ConnectionContext] kon tokens niet wissen omdat chrome.storage.local ontbreekt.');
+        }
         return;
       }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
@@ -424,7 +442,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError(null);
     try {
       const storage = getChromeStorage();
-      if (!storage) throw new Error('chrome.storage is niet beschikbaar.');
+      if (!storage) {
+        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
+        setIsLoading(false);
+        return;
+      }
       const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
@@ -494,7 +516,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError(null);
     try {
       const storage = getChromeStorage();
-      if (!storage) throw new Error('chrome.storage is niet beschikbaar.');
+      if (!storage) {
+        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
+        setIsLoading(false);
+        return;
+      }
       const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
@@ -558,7 +584,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return;
       }
       const storage = getChromeStorage();
-      if (!storage) throw new Error('chrome.storage is niet beschikbaar.');
+      if (!storage) {
+        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
+        setIsLoading(false);
+        return;
+      }
       const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
       if (!supabaseAccessToken) throw new Error('Niet ingelogd');
 
