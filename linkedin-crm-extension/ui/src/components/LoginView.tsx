@@ -1,8 +1,37 @@
 // src/components/LoginView.tsx
-import { useState } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type PointerEvent,
+  type SyntheticEvent,
+} from 'react';
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL } from '../config';
+
+const warnOnce = (() => {
+  const cache = new Set<string>();
+  return (key: string, message: string) => {
+    if (cache.has(key)) return;
+    cache.add(key);
+    console.warn(message);
+  };
+})();
+
+const getChromeStorage = () => {
+  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
+    warnOnce(
+      'login-storage',
+      '[LoginView] chrome.storage.local is unavailable. Running outside the extension environment.'
+    );
+    return null;
+  }
+  return chrome.storage.local;
+};
 
 export function LoginView() {
   const { handleLoginSuccess } = useConnection();
@@ -11,13 +40,19 @@ export function LoginView() {
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const lastAuthIntentRef = useRef<'signin' | 'signup'>('signin');
+  const edgePointerHandledRef = useRef(false);
 
+  const isEdgeBrowser = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /\bEdg\//i.test(navigator.userAgent);
+  }, []);
   type AuthPayload = {
     email: string;
     password: string;
   };
 
-  const callAuth = async (endpoint: string, payload: AuthPayload) => {
+  const callAuth = useCallback(async (endpoint: string, payload: AuthPayload) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -26,15 +61,15 @@ export function LoginView() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || 'Unknown error');
     return data;
-  };
+  }, []);
 
-  const handleAuth = async (type: 'signin' | 'signup') => {
+  const handleAuth = useCallback(async (type: 'signin' | 'signup') => {
     if (!email || !password) {
       setIsError(true);
       setMessage('Vul e-mail en wachtwoord in.');
       return;
     }
-    
+
     setIsLoading(true);
     setMessage(type === 'signin' ? 'Bezig met inloggen...' : 'Bezig met registreren...');
     setIsError(false);
@@ -42,7 +77,14 @@ export function LoginView() {
     try {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
-        await chrome.storage.local.set({
+        const storage = getChromeStorage();
+        if (!storage) {
+          setIsLoading(false);
+          setIsError(true);
+          setMessage('Inloggen is alleen beschikbaar via de browser-extensie (chrome.storage niet beschikbaar).');
+          return;
+        }
+        await storage.set({
           supabaseAccessToken: data.session.access_token,
           supabaseRefreshToken: data.session.refresh_token ?? null,
           supabaseSessionExpiresAt: data.session.expires_at ?? null,
@@ -59,7 +101,41 @@ export function LoginView() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [callAuth, email, handleLoginSuccess, password]);
+
+  const triggerAuth = useCallback((type: 'signin' | 'signup', event?: SyntheticEvent<HTMLButtonElement> | PointerEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    void handleAuth(type);
+  }, [handleAuth]);
+
+  const createClickHandler = useCallback((type: 'signin' | 'signup') => (event?: MouseEvent<HTMLButtonElement>) => {
+    lastAuthIntentRef.current = type;
+    if (isEdgeBrowser) {
+      if (edgePointerHandledRef.current) {
+        edgePointerHandledRef.current = false;
+        event?.preventDefault();
+        event?.stopPropagation();
+        return;
+      }
+      // Pointer event did not fire (e.g. keyboard, touch, or browser quirk) – fall back to click.
+    }
+    triggerAuth(type, event);
+  }, [isEdgeBrowser, triggerAuth]);
+
+  const createPointerHandler = useCallback((type: 'signin' | 'signup') => (event: PointerEvent<HTMLButtonElement>) => {
+    if (!isEdgeBrowser) return;
+    lastAuthIntentRef.current = type;
+    edgePointerHandledRef.current = true;
+    event.preventDefault();
+    event.stopPropagation();
+    triggerAuth(type, event);
+  }, [isEdgeBrowser, triggerAuth]);
+
+  const handleFormSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    triggerAuth(lastAuthIntentRef.current);
+  }, [triggerAuth]);
 
   return (
     <div className={styles.container}>
@@ -71,7 +147,7 @@ export function LoginView() {
         </p>
       </div>
 
-      <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+      <form className={styles.form} onSubmit={handleFormSubmit}>
         <div className={styles.formGroup}>
           <label htmlFor="email" className={styles.label}>
             E-mailadres
@@ -106,14 +182,18 @@ export function LoginView() {
 
         <div className={styles.buttonGroup}>
           <button
-            onClick={() => handleAuth('signin')}
+            type="button"
+            onClick={createClickHandler('signin')}
+            onPointerDown={isEdgeBrowser ? createPointerHandler('signin') : undefined}
             className={`${styles.button} ${styles.buttonPrimary}`}
             disabled={isLoading}
           >
             {isLoading ? 'Bezig...' : 'Inloggen'}
           </button>
           <button
-            onClick={() => handleAuth('signup')}
+            type="button"
+            onClick={createClickHandler('signup')}
+            onPointerDown={isEdgeBrowser ? createPointerHandler('signup') : undefined}
             className={`${styles.button} ${styles.buttonSecondary}`}
             disabled={isLoading}
           >

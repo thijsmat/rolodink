@@ -3,15 +3,16 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  background-color: var(--bg-muted);
 }
 
 .header {
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-4);
   background: var(--bg-surface);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
+  box-shadow: var(--shadow-sm);
 }
 
 .headerContent {
@@ -22,13 +23,14 @@
 }
 
 .title {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
   flex: 1;
   min-width: 0;
+  letter-spacing: -0.3px;
 }
 
 .headerActions {
@@ -40,7 +42,7 @@
 .button {
   padding: var(--space-2) var(--space-3);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   font-family: inherit;
@@ -50,7 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   white-space: nowrap;
 }
 
@@ -60,14 +62,15 @@
 }
 
 .buttonPrimary {
-  background: var(--linkedin-blue);
+  background: var(--brand-primary);
   color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
 }
 
 .buttonPrimary:hover:not(:disabled) {
-  background: var(--linkedin-blue-hover);
+  background: var(--brand-primary-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .buttonDanger {
@@ -79,27 +82,41 @@
 .buttonDanger:hover:not(:disabled) {
   background: var(--danger-subtle);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .content {
   flex: 1;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5);
   overflow-y: auto;
 }
 
 .profileCard {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-5);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.profileCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brand-secondary), var(--brand-primary));
 }
 
 .profileCard:hover {
@@ -131,6 +148,7 @@
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
+  letter-spacing: -0.5px;
 }
 
 .verifiedBadge {
@@ -140,10 +158,11 @@
   padding: var(--space-1) var(--space-2);
   background: var(--success-subtle);
   color: var(--success);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   width: fit-content;
+  border: 1px solid rgba(5, 118, 66, 0.1);
 }
 
 .badgeIcon {
@@ -151,27 +170,26 @@
 }
 
 .linkedinLink {
-  color: var(--linkedin-blue);
+  color: var(--brand-primary);
   text-decoration: none;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   transition: all var(--transition-normal);
   border: none;
-  background: transparent;
+  background: var(--linkedin-blue-subtle);
   cursor: pointer;
   font-family: inherit;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--linkedin-blue);
+  border-radius: var(--radius-full);
   width: fit-content;
 }
 
 .linkedinLink:hover {
-  color: var(--linkedin-blue-hover);
-  background: var(--linkedin-blue-subtle);
+  color: var(--brand-primary-hover);
+  background: rgba(10, 102, 194, 0.15);
   transform: translateY(-1px);
 }
 
@@ -182,7 +200,7 @@
 .connectionDetails {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .detailRow {
@@ -191,18 +209,21 @@
   gap: var(--space-3);
   padding: var(--space-3);
   background: var(--bg-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   transition: all var(--transition-normal);
+  border: 1px solid transparent;
 }
 
 .detailRow:hover {
-  background: var(--bg-muted);
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-xs);
 }
 
 .detailIcon {
   width: 20px;
   height: 20px;
-  color: var(--text-tertiary);
+  color: var(--brand-accent);
   flex-shrink: 0;
   margin-top: 2px;
   font-size: var(--font-size-md);
@@ -218,14 +239,14 @@
 
 .detailLabel {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .detailValue {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   color: var(--text-primary);
   line-height: var(--line-height-normal);
   word-break: break-word;
@@ -239,11 +260,12 @@
 }
 
 .notesSection {
-  background: var(--bg-subtle);
-  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-4);
-  border-left: 3px solid var(--linkedin-blue);
-  margin-top: var(--space-2);
+  border-left: 4px solid var(--brand-accent);
+  margin-top: var(--space-4);
+  box-shadow: var(--shadow-sm);
 }
 
 .notesHeader {
@@ -255,13 +277,13 @@
 
 .notesIcon {
   font-size: var(--font-size-sm);
-  color: var(--linkedin-blue);
+  color: var(--brand-accent);
 }
 
 .notesLabel {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--linkedin-blue);
+  font-weight: var(--font-weight-bold);
+  color: var(--brand-secondary);
 }
 
 .notesContent {
@@ -269,9 +291,9 @@
   color: var(--text-primary);
   line-height: var(--line-height-relaxed);
   white-space: pre-wrap;
-  background: var(--bg-surface);
+  background: var(--bg-muted);
   padding: var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
 }
 
@@ -285,7 +307,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border: 1px solid var(--danger);
+  border: 1px solid rgba(204, 16, 22, 0.1);
 }
 
 .errorIcon {

@@ -3,7 +3,6 @@
   "name": "Rolodink",
   "version": "1.0.5",
   "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
-  "privacy_policy_url": "https://rolodink.app/privacy",
   "permissions": [
     "activeTab",
     "storage",
@@ -11,7 +10,7 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-      "https://api.rolodink.app/*"
+    "https://api.rolodink.app/*"
   ],
   "action": {
     "default_popup": "index.html",
@@ -25,21 +24,27 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.linkedin.com/in/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://www.linkedin.com/in/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
-  {
-    "resources": [
-      "assets/*",
-      "*.js",
-      "*.css",
-      "*.html",
-      "index.html"
-    ],
-    "matches": ["<all_urls>"]
-  }
-]
+    {
+      "resources": [
+        "assets/*",
+        "*.js",
+        "*.css",
+        "*.html",
+        "index.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

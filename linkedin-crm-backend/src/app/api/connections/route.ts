@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     const getCachedConnections = unstable_cache(
       async (userId: string, urlFilter?: string | null) => {
         const whereClause: { ownerId: string; linkedInUrl?: string } = { ownerId: userId };
-        
+
         // Als er een URL parameter is, filter op die URL
         if (urlFilter) {
           whereClause.linkedInUrl = urlFilter;
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate input with Zod
     const validation = createConnectionSchema.safeParse(body);
     if (!validation.success) {
@@ -283,7 +283,6 @@ export async function PATCH(request: NextRequest) {
         { status: 404, headers: corsHeaders }
       );
     }
-
     // Invalidate cache for this user's connections
     revalidateTag(`connections-${user.id}`);
 

@@ -24,6 +24,37 @@ interface UpdateContextState {
 
 const UpdateContext = createContext<UpdateContextState | undefined>(undefined);
 
+const warnOnce = (() => {
+  const cache = new Set<string>();
+  return (key: string, message: string) => {
+    if (cache.has(key)) return;
+    cache.add(key);
+    console.warn(message);
+  };
+})();
+
+const getChromeStorage = () => {
+  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
+    warnOnce(
+      'update-storage',
+      '[UpdateContext] chrome.storage.local is unavailable. Running outside the extension environment.'
+    );
+    return null;
+  }
+  return chrome.storage.local;
+};
+
+const getChromeRuntime = () => {
+  if (typeof chrome === 'undefined' || !chrome.runtime?.getManifest) {
+    warnOnce(
+      'update-runtime',
+      '[UpdateContext] chrome.runtime is unavailable. Running outside the extension environment.'
+    );
+    return null;
+  }
+  return chrome.runtime;
+};
+
 export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [isCheckingForUpdates, setIsCheckingForUpdates] = useState(false);
@@ -32,7 +63,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const getCurrentVersion = useCallback(() => {
     // Get version from Chrome extension manifest
     try {
-      return chrome.runtime.getManifest().version;
+      const runtime = getChromeRuntime();
+      if (!runtime) {
+        return '0.0.0';
+      }
+      return runtime.getManifest().version;
     } catch (error) {
       console.error('Failed to get extension version:', error);
       return '1.0.0'; // Fallback version
@@ -62,8 +97,9 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       
       // Check if this is a new update (different from previously dismissed)
-      const result = await chrome.storage.local.get(['dismissedVersion']);
-      const isNewUpdate = data.updateAvailable && data.latest !== result.dismissedVersion;
+      const storage = getChromeStorage();
+      const result = storage ? await storage.get(['dismissedVersion']) : {};
+      const isNewUpdate = data.updateAvailable && data.latest !== result?.dismissedVersion;
       
       // Reset dismissal state if this is a new update
       if (isNewUpdate) {
@@ -74,14 +110,16 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       setVersionInfo(data);
 
       // Store update info in chrome storage for persistence
-      if (data.updateAvailable) {
-        await chrome.storage.local.set({
-          updateInfo: data,
-          lastUpdateCheck: Date.now(),
-        });
-      } else {
-        // Clear any existing update info if no update available
-        await chrome.storage.local.remove(['updateInfo']);
+      if (storage) {
+        if (data.updateAvailable) {
+          await storage.set({
+            updateInfo: data,
+            lastUpdateCheck: Date.now(),
+          });
+        } else {
+          // Clear any existing update info if no update available
+          await storage.remove(['updateInfo']);
+        }
       }
 
     } catch (error) {
@@ -99,7 +137,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
     // Store dismissal in chrome storage first to ensure consistency
     try {
-      await chrome.storage.local.set({
+      const storage = getChromeStorage();
+      if (!storage) {
+        return;
+      }
+      await storage.set({
         dismissedVersion: versionInfo.latest,
       });
       
@@ -116,7 +158,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initializeUpdateSystem = async () => {
       try {
-        const result = await chrome.storage.local.get(['dismissedVersion', 'updateInfo', 'lastUpdateCheck']);
+        const storage = getChromeStorage();
+        if (!storage) {
+          return;
+        }
+        const result = await storage.get(['dismissedVersion', 'updateInfo', 'lastUpdateCheck']);
         const currentVersion = getCurrentVersion();
         console.log('Initializing update system, current version:', currentVersion);
         
@@ -172,7 +218,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        const result = await chrome.storage.local.get(['lastUpdateCheck']);
+        const storage = getChromeStorage();
+        if (!storage) {
+          return;
+        }
+        const result = await storage.get(['lastUpdateCheck']);
         const lastCheck = result.lastUpdateCheck || 0;
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds

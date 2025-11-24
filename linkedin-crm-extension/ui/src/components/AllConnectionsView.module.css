@@ -3,15 +3,16 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  background-color: var(--bg-muted);
 }
 
 .header {
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-4);
   background: var(--bg-surface);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
+  box-shadow: var(--shadow-sm);
 }
 
 .headerContent {
@@ -19,6 +20,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .title {
@@ -27,6 +29,7 @@
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -60,44 +63,25 @@
   justify-content: flex-end;
 }
 
-.cleanNamesButton {
-  padding: var(--space-2) var(--space-3);
-  background: var(--warning-subtle);
-  color: var(--warning-dark);
-  border: 1px solid var(--warning);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.cleanNamesButton:hover {
-  background: var(--warning);
-  color: var(--text-inverse);
-  transform: translateY(-1px);
-}
-
 .searchInput {
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  padding-right: 36px; /* Space for clear button */
+  padding: var(--space-3) var(--space-4);
+  padding-right: 40px;
+  /* Space for clear button */
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-md);
   font-family: inherit;
-  background: var(--bg-surface);
+  background: var(--bg-subtle);
   color: var(--text-primary);
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
 }
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--linkedin-blue);
-  box-shadow: 0 0 0 3px var(--linkedin-blue-subtle);
+  border-color: var(--brand-primary);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 4px rgba(10, 102, 194, 0.1);
 }
 
 .searchInput::placeholder {
@@ -106,11 +90,11 @@
 
 .clearSearchButton {
   position: absolute;
-  right: var(--space-2);
+  right: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: var(--text-tertiary);
   color: var(--bg-surface);
@@ -119,61 +103,83 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-2xs);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   transition: all var(--transition-normal);
+  opacity: 0.7;
 }
 
 .clearSearchButton:hover {
   background: var(--text-secondary);
-  transform: translateY(-50%) scale(1.05);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
 }
 
 .searchInfo {
   margin-top: var(--space-2);
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--brand-primary);
   text-align: center;
   padding: var(--space-1) var(--space-2);
   background: var(--linkedin-blue-subtle);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--linkedin-blue-subtle);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(10, 102, 194, 0.1);
+  display: inline-block;
 }
 
 .searchHighlight {
   background: var(--warning-subtle);
   color: var(--warning-dark);
-  padding: 1px 2px;
+  padding: 0 2px;
   border-radius: 2px;
   font-weight: var(--font-weight-semibold);
+  border-bottom: 2px solid var(--warning);
 }
 
 .content {
   flex: 1;
   min-height: 0;
   overflow: visible;
-  padding: var(--space-2);
+  padding: var(--space-3) var(--space-4);
 }
 
 .connectionsList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .connectionItem {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-3);
+  padding: var(--space-4);
   transition: all var(--transition-normal);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .connectionItem:hover {
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
-  border-color: var(--linkedin-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--brand-primary);
+}
+
+.connectionItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--brand-primary);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.connectionItem:hover::before {
+  opacity: 1;
 }
 
 .connectionHeader {
@@ -181,12 +187,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .connectionName {
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
@@ -196,26 +202,27 @@
 }
 
 .linkedinLink {
-  color: var(--linkedin-blue);
+  color: var(--brand-primary);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   display: flex;
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   transition: all var(--transition-normal);
   flex-shrink: 0;
-  border: none;
-  background: transparent;
+  border: 1px solid transparent;
+  background: var(--linkedin-blue-subtle);
   cursor: pointer;
   font-family: inherit;
 }
 
 .linkedinLink:hover {
-  color: var(--linkedin-blue-hover);
-  background: var(--linkedin-blue-subtle);
+  color: var(--brand-primary-hover);
+  background: rgba(10, 102, 194, 0.15);
+  border-color: rgba(10, 102, 194, 0.2);
   transform: translateY(-1px);
 }
 
@@ -244,25 +251,30 @@
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   min-width: 80px;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detailValue {
   color: var(--text-primary);
   flex: 1;
   word-break: break-word;
+  font-weight: var(--font-weight-medium);
 }
 
 .notesPreview {
   background: var(--bg-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  line-height: var(--line-height-normal);
-  max-height: 60px;
+  line-height: var(--line-height-relaxed);
+  max-height: 80px;
   overflow: hidden;
   position: relative;
+  border-left: 3px solid var(--brand-accent);
 }
 
 .notesPreview::after {
@@ -271,7 +283,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 30px;
   background: linear-gradient(transparent, var(--bg-subtle));
 }
 
@@ -283,12 +295,17 @@
   padding: var(--space-10);
   text-align: center;
   color: var(--text-secondary);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-color);
+  margin: var(--space-4);
 }
 
 .emptyIcon {
   font-size: var(--font-size-2xl);
   margin-bottom: var(--space-4);
   opacity: 0.5;
+  color: var(--brand-primary);
 }
 
 .emptyTitle {
@@ -318,11 +335,12 @@
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: var(--bg-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
+  border: 1px solid var(--border-subtle);
 }
 
 .stat {
@@ -334,14 +352,14 @@
 }
 
 .statValue {
-  font-weight: var(--font-weight-semibold);
-  color: var(--linkedin-blue);
+  font-weight: var(--font-weight-bold);
+  color: var(--brand-primary);
 }
 
 .controlsRight {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .filterTabs {
@@ -349,31 +367,32 @@
   gap: var(--space-1);
   padding: var(--space-1);
   background: var(--bg-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
 }
 
 .filterTab {
-  flex: 1;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) var(--space-3);
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-normal);
 }
 
 .filterTabActive {
   background: var(--bg-surface);
-  color: var(--linkedin-blue);
+  color: var(--brand-primary);
   box-shadow: var(--shadow-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .filterTab:hover:not(.filterTabActive) {
   color: var(--text-primary);
-  background: var(--bg-surface);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .settingsButton {
@@ -381,34 +400,34 @@
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-normal);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--font-size-md);
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 
 .settingsButton:hover {
-  color: var(--linkedin-blue);
+  color: var(--brand-primary);
   background: var(--linkedin-blue-subtle);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: rotate(45deg);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-2);
+  padding: 2px 6px;
   background: var(--success-subtle);
   color: var(--success);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
   margin-left: var(--space-2);
+  border: 1px solid rgba(5, 118, 66, 0.1);
 }
 
 .divider {
@@ -416,5 +435,3 @@
   background: var(--border-subtle);
   margin: var(--space-4) 0;
 }
-
-
