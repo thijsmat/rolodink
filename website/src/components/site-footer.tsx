@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Twitter, Linkedin } from 'lucide-react';
 
 export function SiteFooter() {
   return (
@@ -24,13 +24,6 @@ export function SiteFooter() {
             {/* Social Links */}
             <div className="flex items-center gap-4 mt-6">
               <a
-                href="#"
-                className="w-9 h-9 rounded-full bg-azure/5 hover:bg-azure/10 flex items-center justify-center transition-colors duration-200 ease-out"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-4 w-4 text-azure" />
-              </a>
-              <a
                 href="https://twitter.com/matthijsgoes"
                 target="_blank"
                 rel="noreferrer"
@@ -40,7 +33,20 @@ export function SiteFooter() {
                 <Twitter className="h-4 w-4 text-azure" />
               </a>
               <a
-                href="#"
+                href="https://bsky.app/profile/thijsmat.bsky.social"
+                target="_blank"
+                rel="noreferrer"
+                className="w-9 h-9 rounded-full bg-azure/5 hover:bg-azure/10 flex items-center justify-center transition-colors duration-200 ease-out"
+                aria-label="Bluesky"
+              >
+                <svg className="h-4 w-4 text-azure" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.81 9.498 7.824 4.308 4.557-5.073 1.082-6.498-2.831-7.078-.139-.016-.277-.034-.415-.056.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.686 12 10.8Z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/rolodink/"
+                target="_blank"
+                rel="noreferrer"
                 className="w-9 h-9 rounded-full bg-azure/5 hover:bg-azure/10 flex items-center justify-center transition-colors duration-200 ease-out"
                 aria-label="LinkedIn"
               >
@@ -53,21 +59,15 @@ export function SiteFooter() {
           <div>
             <h3 className="text-sm font-semibold text-azure mb-4">Product</h3>
             <nav className="space-y-3">
-              <Link href="#features" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              <Link href="/features" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Features
               </Link>
-              <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Pricing
-              </a>
               <Link href="/download" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Download
               </Link>
               <Link href="/changelog" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Changelog
               </Link>
-              <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Roadmap
-              </a>
             </nav>
           </div>
 
@@ -78,12 +78,12 @@ export function SiteFooter() {
               <Link href="#faq" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 FAQ
               </Link>
-              <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Help Center
-              </a>
-              <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              </Link>
+              <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Contact
-              </a>
+              </Link>
               <Link href="/privacy" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Privacy Policy
               </Link>
@@ -112,6 +112,9 @@ export function SiteFooter() {
             <a href="/privacy" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
               Privacy Policy
             </a>
+            <Link href="/disclaimer" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              Disclaimer
+            </Link>
           </nav>
         </div>
       </div>
