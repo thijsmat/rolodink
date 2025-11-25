@@ -21,6 +21,7 @@ async function build() {
   console.log('==> Preparing clean dist folder...');
   await fs.emptyDir(tmpDir);
 
+  // Edge uses the same manifest as Chrome (Chromium-based)
   const manifestFile = target === 'firefox' ? 'manifest-firefox.json' : 'manifest.json';
   const contentScriptFile = target === 'firefox' ? 'content-firefox.js' : 'content.js';
 

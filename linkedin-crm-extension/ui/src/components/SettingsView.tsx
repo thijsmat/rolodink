@@ -3,7 +3,8 @@ import { useState, useCallback } from 'react';
 import styles from './SettingsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { useUpdate } from '../context/UpdateContext';
-import { API_BASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
+import { API_BASE_URL } from '../config';
+import { supabase } from '../services/supabase';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
@@ -22,29 +23,31 @@ export function SettingsView() {
   const handleCleanNames = useCallback(async () => {
     try {
       setIsCleaning(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
+      setIsCleaning(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setToastMessage('Niet ingelogd. Log in om op te schonen.');
         return;
       }
-      
+      const supabaseAccessToken = session.access_token;
+
       const resp = await fetch(`${API_BASE_URL}/api/connections/clean-names`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${supabaseAccessToken}`,
           'Content-Type': 'application/json'
         },
       });
-      
+
       if (!resp.ok) {
         setToastMessage('Opschonen mislukt. Probeer later opnieuw.');
         return;
       }
-      
+
       const data = await resp.json().catch(() => null);
       const updated = data?.updatedCount ?? 0;
       setToastMessage(`Namen opgeschoond: ${updated} bijgewerkt.`);
-      
+
       // Refresh list silently
       await fetchAllConnections();
     } catch (e) {
@@ -56,12 +59,12 @@ export function SettingsView() {
 
   const handlePasswordChange = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setToastMessage('Nieuwe wachtwoorden komen niet overeen.');
       return;
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       setToastMessage('Nieuw wachtwoord moet minimaal 6 tekens lang zijn.');
       return;
@@ -69,14 +72,14 @@ export function SettingsView() {
 
     try {
       setIsChangingPassword(true);
-      const { supabaseAccessToken, supabaseRefreshToken } = await chrome.storage.local.get([
-        'supabaseAccessToken',
-        'supabaseRefreshToken',
-      ]);
-      if (!supabaseAccessToken || !supabaseRefreshToken) {
+      setIsChangingPassword(true);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
         setToastMessage('Niet ingelogd of sessie onvolledig. Log opnieuw in om je wachtwoord te wijzigen.');
         return;
       }
+      const supabaseAccessToken = session.access_token;
 
       // Validate current password by making a test API call
       const testResponse = await fetch(`${API_BASE_URL}/api/user/export`, {
@@ -91,20 +94,6 @@ export function SettingsView() {
         return;
       }
 
-      // Use Supabase client-side password update with proper authentication
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      
-      // Set the session token
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: supabaseAccessToken,
-        refresh_token: supabaseRefreshToken,
-      });
-      if (sessionError || !sessionData.session) {
-        setToastMessage('Sessie herstellen mislukt. Log opnieuw in en probeer het nog eens.');
-        return;
-      }
-
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
@@ -114,25 +103,7 @@ export function SettingsView() {
         return;
       }
 
-      // Persist potentially refreshed tokens after password change
-      try {
-        const { data: refreshed } = await supabase.auth.getSession();
-        const latestSession = refreshed.session ?? sessionData.session;
-        if (latestSession) {
-          await chrome.storage.local.set({
-            supabaseAccessToken: latestSession.access_token,
-            supabaseRefreshToken: latestSession.refresh_token ?? supabaseRefreshToken,
-            supabaseSessionExpiresAt: latestSession.expires_at ?? null,
-          });
-        } else {
-          await chrome.storage.local.set({
-            supabaseAccessToken,
-            supabaseRefreshToken,
-          });
-        }
-      } catch (storageError) {
-        console.warn('Kon vernieuwde Supabase tokens niet opslaan:', storageError);
-      }
+      // Tokens are automatically persisted by the client
 
       setToastMessage('Wachtwoord succesvol gewijzigd.');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -151,24 +122,26 @@ export function SettingsView() {
   const handleExportData = useCallback(async () => {
     try {
       setIsExporting(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
+      setIsExporting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setToastMessage('Niet ingelogd. Log in om data te exporteren.');
         return;
       }
-      
+      const supabaseAccessToken = session.access_token;
+
       const response = await fetch(`${API_BASE_URL}/api/user/export`, {
         method: 'GET',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${supabaseAccessToken}`,
         },
       });
-      
+
       if (!response.ok) {
         setToastMessage('Export mislukt. Probeer later opnieuw.');
         return;
       }
-      
+
       // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
       let filename = 'linkedin-crm-export.json';
@@ -178,7 +151,7 @@ export function SettingsView() {
           filename = filenameMatch[1];
         }
       }
-      
+
       // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -189,7 +162,7 @@ export function SettingsView() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
+
       setToastMessage('Data succesvol geëxporteerd!');
     } catch (e) {
       setToastMessage('Kon data niet exporteren. Controleer je internetverbinding.');
@@ -208,43 +181,45 @@ export function SettingsView() {
       'Deze actie kan NIET ongedaan worden gemaakt!\n\n' +
       'Typ "VERWIJDER" om te bevestigen:'
     );
-    
+
     if (!confirmed) return;
-    
+
     const verification = prompt('Typ "VERWIJDER" om je account permanent te verwijderen:');
     if (verification !== 'VERWIJDER') {
       setToastMessage('Account verwijdering geannuleerd.');
       return;
     }
-    
+
     try {
       setIsDeleting(true);
-      const { supabaseAccessToken } = await chrome.storage.local.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
+      setIsDeleting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setToastMessage('Niet ingelogd. Log in om account te verwijderen.');
         return;
       }
-      
+      const supabaseAccessToken = session.access_token;
+
       const response = await fetch(`${API_BASE_URL}/api/user/delete`, {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${supabaseAccessToken}`,
         },
       });
-      
+
       if (!response.ok) {
         setToastMessage('Account verwijdering mislukt. Probeer later opnieuw.');
         return;
       }
-      
+
       const data = await response.json();
       setToastMessage(`Account succesvol verwijderd. ${data.deletedConnections} connecties verwijderd.`);
-      
+
       // Log user out after successful deletion
       setTimeout(() => {
         handleLogout();
       }, 2000);
-      
+
     } catch (e) {
       setToastMessage('Kon account niet verwijderen. Controleer je internetverbinding.');
     } finally {
@@ -270,7 +245,7 @@ export function SettingsView() {
                 Verwijder notificatie-aantallen zoals "(1)" of "(2)" uit profielnamen in je connecties.
               </p>
             </div>
-            <button 
+            <button
               className={styles.actionButton}
               onClick={handleCleanNames}
               disabled={isCleaning}
@@ -283,7 +258,7 @@ export function SettingsView() {
         {/* Account Section */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Account</h3>
-          
+
           {!showPasswordForm ? (
             <div className={styles.settingItem}>
               <div className={styles.settingInfo}>
@@ -292,7 +267,7 @@ export function SettingsView() {
                   Wijzig je wachtwoord voor extra beveiliging.
                 </p>
               </div>
-              <button 
+              <button
                 className={styles.actionButton}
                 onClick={() => setShowPasswordForm(true)}
               >
@@ -302,7 +277,7 @@ export function SettingsView() {
           ) : (
             <form className={styles.passwordForm} onSubmit={handlePasswordChange}>
               <h4 className={styles.formTitle}>Wachtwoord wijzigen</h4>
-              
+
               <div className={styles.inputGroup}>
                 <label htmlFor="currentPassword" className={styles.label}>
                   Huidige wachtwoord
@@ -350,7 +325,7 @@ export function SettingsView() {
               </div>
 
               <div className={styles.formActions}>
-                <button 
+                <button
                   type="button"
                   className={styles.cancelButton}
                   onClick={() => {
@@ -360,7 +335,7 @@ export function SettingsView() {
                 >
                   Annuleren
                 </button>
-                <button 
+                <button
                   type="submit"
                   className={styles.submitButton}
                   disabled={isChangingPassword}
@@ -375,7 +350,7 @@ export function SettingsView() {
         {/* GDPR Section */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Privacy & GDPR</h3>
-          
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Exporteer mijn data</h4>
@@ -383,7 +358,7 @@ export function SettingsView() {
                 Download een volledig overzicht van al je connecties en notities als JSON bestand.
               </p>
             </div>
-            <button 
+            <button
               className={styles.actionButton}
               onClick={handleExportData}
               disabled={isExporting}
@@ -391,7 +366,7 @@ export function SettingsView() {
               {isExporting ? '⏳ Exporteren...' : '📊 Exporteer data'}
             </button>
           </div>
-          
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Verwijder mijn account</h4>
@@ -399,7 +374,7 @@ export function SettingsView() {
                 Permanent verwijderen van je account en alle gerelateerde gegevens. Deze actie kan niet ongedaan worden gemaakt.
               </p>
             </div>
-            <button 
+            <button
               className={`${styles.actionButton} ${styles.dangerButton}`}
               onClick={handleDeleteAccount}
               disabled={isDeleting}
@@ -407,7 +382,7 @@ export function SettingsView() {
               {isDeleting ? '⏳ Verwijderen...' : '🗑️ Verwijder account'}
             </button>
           </div>
-          
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Privacybeleid</h4>
@@ -415,8 +390,8 @@ export function SettingsView() {
                 Lees ons privacybeleid om te begrijpen hoe we je gegevens beschermen en gebruiken.
               </p>
             </div>
-            <button 
-              className={styles.disabledButton} 
+            <button
+              className={styles.disabledButton}
               disabled
               title="Binnenkort beschikbaar"
             >
@@ -428,7 +403,7 @@ export function SettingsView() {
         {/* Update Information Section */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Updates</h3>
-          
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Huidige versie</h4>
@@ -445,7 +420,7 @@ export function SettingsView() {
               )}
             </div>
           </div>
-          
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>Controleer op updates</h4>
@@ -453,7 +428,7 @@ export function SettingsView() {
                 Controleer handmatig of er een nieuwe versie beschikbaar is.
               </p>
             </div>
-            <button 
+            <button
               className={styles.actionButton}
               onClick={checkForUpdates}
               disabled={isCheckingForUpdates}

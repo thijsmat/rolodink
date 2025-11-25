@@ -18,6 +18,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8] - 2025-11-25
+
+### Added
+- **Cross-Browser Support**
+  - Added full support for Firefox (Manifest V2)
+  - Added full support for Microsoft Edge
+  - Unified build system for Chrome, Firefox, and Edge
+- **Background Authentication**
+  - Moved OAuth flow to persistent background service worker
+  - Solved "Heisenberg bug" where auth failed if popup closed
+  - Added `chrome.storage` listener for seamless session detection
+
+### Fixed
+- **Infinite Reload Loop**
+  - Fixed circular dependency in `ConnectionContext`
+  - Added equality check to prevent infinite storage update loops
+- **Build System**
+  - Fixed background script compilation (now outputs `background.js` correctly)
+  - Added TypeScript configuration for background worker
+
+### Changed
+- **Manifest Updates**
+  - Updated `manifest.json` (Chrome/Edge) to register service worker
+  - Created `manifest-firefox.json` for Firefox compatibility
+
+---
+
 ## [1.0.3] - 2025-10-29
 
 ### Fixed
