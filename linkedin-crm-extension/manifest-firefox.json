@@ -46,10 +46,7 @@
   ],
   "web_accessible_resources": [
     "assets/*",
-    "*.js",
-    "*.css",
-    "*.html",
-    "index.html"
+    "icons/*"
   ],
   "browser_specific_settings": {
     "gecko": {

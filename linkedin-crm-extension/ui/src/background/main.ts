@@ -39,11 +39,12 @@ async function handleAuth(authUrl: string) {
 
     try {
         // Get Supabase URL from storage (synced from UI)
-        // Fallback to hardcoded if not found (e.g. first run before UI open)
-        // But ideally we should wait or fail if not found.
-        // For now, we'll use a default or try to read it.
         const config = await browserAPI.storage.local.get('supabaseUrl');
-        const supabaseUrl = config.supabaseUrl || 'https://kcxcxpqvdpxqwbmfwfqw.supabase.co';
+        const supabaseUrl = config.supabaseUrl;
+
+        if (!supabaseUrl) {
+            throw new Error('Supabase URL is not configured. Please open the extension popup first.');
+        }
 
         const responseUrl = await browserAPI.identity.launchWebAuthFlow({
             url: authUrl,
