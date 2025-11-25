@@ -21,18 +21,31 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-async function syncApiBaseUrl() {
+import { getBrowserAPI } from './utils/browser';
+
+async function syncConfig() {
   try {
-    if (typeof chrome === 'undefined' || !chrome.storage?.local?.get || !chrome.storage?.local?.set) {
+    const browserAPI = getBrowserAPI();
+    if (!browserAPI?.storage?.local) {
       return;
     }
-    const result = await chrome.storage.local.get('apiBaseUrl');
+
+    const result = await browserAPI.storage.local.get(['apiBaseUrl', 'supabaseUrl']);
+
+    const updates: Record<string, string> = {};
     if (result.apiBaseUrl !== API_BASE_URL) {
-      await chrome.storage.local.set({ apiBaseUrl: API_BASE_URL });
+      updates.apiBaseUrl = API_BASE_URL;
+    }
+    if (result.supabaseUrl !== SUPABASE_URL) {
+      updates.supabaseUrl = SUPABASE_URL;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await browserAPI.storage.local.set(updates);
     }
   } catch (error) {
-    console.warn('Unable to sync API base URL to storage:', error);
+    console.warn('Unable to sync config to storage:', error);
   }
 }
 
-void syncApiBaseUrl();
+void syncConfig();

@@ -5,13 +5,14 @@
 // @ts-ignore - browser is defined in Firefox but not in Chrome types
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
-// Supabase config - must match what's in config.ts
-// We can't import from config.ts because it uses import.meta.env which doesn't work in service workers
-// So we read from chrome.storage where the config is synced
-const SUPABASE_URL = 'https://kcxcxpqvdpxqwbmfwfqw.supabase.co'; // Hardcoded for now - ideally read from storage
+// Define types for messages
+interface AuthMessage {
+    type: 'START_AUTH';
+    url: string;
+}
 
 // Listen for messages from the popup
-browserAPI.runtime.onMessage.addListener((message: any, _sender: any, sendResponse: any) => {
+browserAPI.runtime.onMessage.addListener((message: AuthMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     if (message.type === 'START_AUTH') {
         handleAuth(message.url).then(sendResponse).catch((error) => {
             console.error('Auth error in background:', error);
@@ -23,9 +24,9 @@ browserAPI.runtime.onMessage.addListener((message: any, _sender: any, sendRespon
 
 // Calculate the storage key that Supabase uses
 // Format: sb-<project-ref>-auth-token
-function getSupabaseStorageKey(): string {
+function getSupabaseStorageKey(supabaseUrl: string): string {
     try {
-        const url = new URL(SUPABASE_URL);
+        const url = new URL(supabaseUrl);
         const projectRef = url.hostname.split('.')[0];
         return `sb-${projectRef}-auth-token`;
     } catch {
@@ -37,6 +38,13 @@ async function handleAuth(authUrl: string) {
     console.log('Starting auth flow in background...');
 
     try {
+        // Get Supabase URL from storage (synced from UI)
+        // Fallback to hardcoded if not found (e.g. first run before UI open)
+        // But ideally we should wait or fail if not found.
+        // For now, we'll use a default or try to read it.
+        const config = await browserAPI.storage.local.get('supabaseUrl');
+        const supabaseUrl = config.supabaseUrl || 'https://kcxcxpqvdpxqwbmfwfqw.supabase.co';
+
         const responseUrl = await browserAPI.identity.launchWebAuthFlow({
             url: authUrl,
             interactive: true,
@@ -75,12 +83,12 @@ async function handleAuth(authUrl: string) {
         const sessionData = {
             access_token: accessToken,
             refresh_token: refreshToken || '',
-            expires_in: expiresIn ? parseInt(expiresIn) : 3600,
+            expires_in: expiresIn ? parseInt(expiresIn, 10) : 3600,
             token_type: 'bearer',
             user: null, // Supabase will fetch user data when the session is loaded
         };
 
-        const storageKey = getSupabaseStorageKey();
+        const storageKey = getSupabaseStorageKey(supabaseUrl);
         console.log('Storing session with key:', storageKey);
 
         await browserAPI.storage.local.set({

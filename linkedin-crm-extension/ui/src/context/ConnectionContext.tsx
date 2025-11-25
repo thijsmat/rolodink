@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
+import { getBrowserAPI } from '../utils/browser';
 
 export const INVALID_PROFILE_PAGE_ERROR = 'invalid-profile-page';
 
@@ -252,14 +253,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     // Add storage listener if available
-    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
-      chrome.storage.onChanged.addListener(handleStorageChange);
+    const browserAPI = getBrowserAPI();
+    if (browserAPI?.storage?.onChanged) {
+      browserAPI.storage.onChanged.addListener(handleStorageChange);
     }
 
     return () => {
       subscription.unsubscribe();
-      if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
-        chrome.storage.onChanged.removeListener(handleStorageChange);
+      if (browserAPI?.storage?.onChanged) {
+        browserAPI.storage.onChanged.removeListener(handleStorageChange);
       }
     };
   }, []);

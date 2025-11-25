@@ -14,6 +14,7 @@ import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
 import { getAuthRedirectUrl } from '../utils/auth';
+import { getBrowserAPI } from '../utils/browser';
 import { supabase } from '../services/supabase';
 
 
@@ -159,12 +160,14 @@ export function LoginView() {
       if (authError) throw authError;
       if (!data?.url) throw new Error('Geen auth URL ontvangen');
 
+      // ...
+
       console.log('Auth URL received, sending to background script...');
 
       // Send message to background script to handle auth flow
       // Don't wait for response - the popup might close
       // The ConnectionContext will detect the session via onAuthStateChange
-      chrome.runtime.sendMessage({
+      getBrowserAPI().runtime.sendMessage({
         type: 'START_AUTH',
         url: data.url,
       });
