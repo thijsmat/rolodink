@@ -9,32 +9,17 @@ import {
   type PointerEvent,
   type SyntheticEvent,
 } from 'react';
+
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
+import { getAuthRedirectUrl } from '../utils/auth';
+import { supabase } from '../services/supabase';
 
-const warnOnce = (() => {
-  const cache = new Set<string>();
-  return (key: string, message: string) => {
-    if (cache.has(key)) return;
-    cache.add(key);
-    console.warn(message);
-  };
-})();
 
-const getChromeStorage = () => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    warnOnce(
-      'login-storage',
-      '[LoginView] chrome.storage.local is unavailable. Running outside the extension environment.'
-    );
-    return null;
-  }
-  return chrome.storage.local;
-};
 
 export function LoginView() {
-  const { handleLoginSuccess } = useConnection();
+  const { handleLoginSuccess, isInitializing } = useConnection();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -42,6 +27,21 @@ export function LoginView() {
   const [isLoading, setIsLoading] = useState(false);
   const lastAuthIntentRef = useRef<'signin' | 'signup'>('signin');
   const edgePointerHandledRef = useRef(false);
+
+
+
+
+
+  if (isInitializing) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <div className={styles.spinner}></div>
+          <p>Laden...</p>
+        </div>
+      </div>
+    );
+  }
 
   const isEdgeBrowser = useMemo(() => {
     if (typeof navigator === 'undefined') return false;
@@ -77,18 +77,12 @@ export function LoginView() {
     try {
       const data = await callAuth(type, { email, password });
       if (data.session?.access_token) {
-        const storage = getChromeStorage();
-        if (!storage) {
-          setIsLoading(false);
-          setIsError(true);
-          setMessage('Inloggen is alleen beschikbaar via de browser-extensie (chrome.storage niet beschikbaar).');
-          return;
-        }
-        await storage.set({
-          supabaseAccessToken: data.session.access_token,
-          supabaseRefreshToken: data.session.refresh_token ?? null,
-          supabaseSessionExpiresAt: data.session.expires_at ?? null,
+        const { error } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token || '',
         });
+        if (error) throw error;
+        if (error) throw error;
         handleLoginSuccess();
       } else {
         setIsError(false);
@@ -136,6 +130,58 @@ export function LoginView() {
     event.preventDefault();
     triggerAuth(lastAuthIntentRef.current);
   }, [triggerAuth]);
+
+  const handleLinkedInLogin = useCallback(async () => {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      setMessage('Supabase configuratie ontbreekt.');
+      setIsError(true);
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage('Bezig met LinkedIn login...');
+    setIsError(false);
+
+    try {
+      console.log('Starting LinkedIn login flow...');
+      const redirectUrl = getAuthRedirectUrl('provider_cb');
+      console.log('Redirect URL:', redirectUrl);
+
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+          scopes: 'email profile openid',
+        },
+      });
+
+      if (authError) throw authError;
+      if (!data?.url) throw new Error('Geen auth URL ontvangen');
+
+      console.log('Auth URL received, sending to background script...');
+
+      // Send message to background script to handle auth flow
+      // Don't wait for response - the popup might close
+      // The ConnectionContext will detect the session via onAuthStateChange
+      chrome.runtime.sendMessage({
+        type: 'START_AUTH',
+        url: data.url,
+      });
+
+      // Show message that auth is in progress
+      setMessage('Authenticatie wordt verwerkt in de achtergrond...');
+
+      // The popup can close now - the background script will complete the flow
+      // When the user reopens the popup, they'll be logged in
+
+    } catch (e: unknown) {
+      console.error('LinkedIn login error:', e);
+      setIsError(true);
+      setMessage(e instanceof Error ? e.message : 'LinkedIn login mislukt.');
+      setIsLoading(false);
+    }
+  }, [handleLoginSuccess]);
 
   return (
     <div className={styles.container}>
@@ -200,6 +246,22 @@ export function LoginView() {
             Registreren
           </button>
         </div>
+
+        <div className={styles.divider}>
+          <span>of</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLinkedInLogin}
+          className={`${styles.button} ${styles.buttonLinkedIn}`}
+          disabled={isLoading}
+        >
+          <svg className={styles.linkedinIcon} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
+          </svg>
+          Inloggen met LinkedIn
+        </button>
       </form>
 
       {message && (

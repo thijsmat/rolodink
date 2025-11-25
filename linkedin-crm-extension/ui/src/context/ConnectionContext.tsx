@@ -1,6 +1,7 @@
 // src/context/ConnectionContext.tsx
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL } from '../config';
+import { supabase } from '../services/supabase';
 
 export const INVALID_PROFILE_PAGE_ERROR = 'invalid-profile-page';
 
@@ -30,6 +31,7 @@ type ConnectionContextState = {
   isHelpView: boolean;
   toastMessage: string;
   isInitialized: boolean;
+  isInitializing: boolean;
   isOffline: boolean;
   setToastMessage: (message: string) => void;
   fetchData: () => Promise<void>;
@@ -61,26 +63,32 @@ const warnOnce = (() => {
   };
 })();
 
-const getChromeStorage = () => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    warnOnce(
-      'connection-storage',
-      '[ConnectionContext] chrome.storage.local is unavailable. Running outside the extension environment.'
-    );
-    return null;
+const getStorage = () => {
+  if (typeof browser !== 'undefined' && browser.storage?.local) {
+    return browser.storage.local;
   }
-  return chrome.storage.local;
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    return chrome.storage.local;
+  }
+  warnOnce(
+    'connection-storage',
+    '[ConnectionContext] Storage API is unavailable. Running outside the extension environment.'
+  );
+  return null;
 };
 
-const getChromeTabs = () => {
-  if (typeof chrome === 'undefined' || !chrome.tabs?.query) {
-    warnOnce(
-      'connection-tabs',
-      '[ConnectionContext] chrome.tabs is unavailable. Running outside the extension environment.'
-    );
-    return null;
+const getTabs = () => {
+  if (typeof browser !== 'undefined' && browser.tabs) {
+    return browser.tabs;
   }
-  return chrome.tabs;
+  if (typeof chrome !== 'undefined' && chrome.tabs) {
+    return chrome.tabs;
+  }
+  warnOnce(
+    'connection-tabs',
+    '[ConnectionContext] Tabs API is unavailable. Running outside the extension environment.'
+  );
+  return null;
 };
 
 
@@ -109,6 +117,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isHelpView, setIsHelpView] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
 
   // Keep latest reference to fetchAllConnections to avoid stale closure in effects
@@ -117,7 +126,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Cache management functions
   const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
     try {
-      const storage = getChromeStorage();
+      const storage = getStorage();
       if (!storage) {
         warnOnce('connection-cache-read', '[ConnectionContext] chrome.storage.local ontbreekt - cache kan niet geladen worden');
         return [];
@@ -132,7 +141,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const saveConnectionsToCache = useCallback(async (connections: Connection[]) => {
     try {
-      const storage = getChromeStorage();
+      const storage = getStorage();
       if (!storage) {
         warnOnce('connection-cache-write', '[ConnectionContext] chrome.storage.local ontbreekt - sla cache over');
         return;
@@ -159,6 +168,101 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsInitialized(true);
     }
   }, [loadCachedConnections]);
+
+
+  // Listen for auth state changes and perform initial check
+  useEffect(() => {
+    // Initial session check
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+          setConnection(null);
+          setAllConnections([]);
+        }
+      } catch (error) {
+        console.error('Error checking session in ConnectionContext:', error);
+        setIsLoggedIn(false);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+        setConnection(null);
+        setAllConnections([]);
+      }
+    });
+
+    // Listen for storage changes from background script
+    // When the background script stores a session, we need to manually trigger a session check
+    const handleStorageChange = async (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local') {
+        // Check if any Supabase auth key changed
+        const authKeys = Object.keys(changes).filter(key => key.startsWith('sb-') && key.includes('-auth-token'));
+        if (authKeys.length > 0) {
+          console.log('Auth session changed in storage, reloading session...');
+
+          // Get the key that changed
+          const authKey = authKeys[0];
+          const newValue = changes[authKey].newValue;
+
+          if (newValue) {
+            try {
+              // Parse the session data
+              const sessionData = typeof newValue === 'string' ? JSON.parse(newValue) : newValue;
+
+              // Get current session to check if it's different
+              const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+              // Only set session if the access token is different (prevents infinite loop)
+              if (currentSession?.access_token === sessionData.access_token) {
+                console.log('Session unchanged, skipping setSession to prevent loop');
+                return;
+              }
+
+              // Explicitly set the session in Supabase client
+              // This is crucial - getSession() alone won't update the client's internal state
+              const { error } = await supabase.auth.setSession({
+                access_token: sessionData.access_token,
+                refresh_token: sessionData.refresh_token || '',
+              });
+
+              if (error) {
+                console.error('Error setting session from storage:', error);
+              } else {
+                console.log('New session detected and set, logging in...');
+                setIsLoggedIn(true);
+                setToastMessage('Succesvol ingelogd!');
+              }
+            } catch (error) {
+              console.error('Error parsing session from storage:', error);
+            }
+          }
+        }
+      }
+    };
+
+    // Add storage listener if available
+    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      }
+    };
+  }, []);
 
   // Offline detection
   useEffect(() => {
@@ -195,28 +299,20 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoading(true);
     setError(null);
     try {
-      const storage = getChromeStorage();
-      if (!storage) {
-        setIsLoggedIn(false);
-        setConnection(null);
-        setError('chrome.storage.local ontbreekt. Open de Rolodink-extensie om door te gaan.');
-        setIsLoading(false);
-        return;
-      }
-
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setIsLoggedIn(false);
         setConnection(null);
         return;
       }
+      const supabaseAccessToken = session.access_token;
       setIsLoggedIn(true);
 
-      const tabsApi = getChromeTabs();
+      const tabsApi = getTabs();
       if (!tabsApi) {
         setError('Deze functionaliteit werkt alleen binnen de Rolodink-extensie.');
         setConnection(null);
-        setIsLoggedIn(false);
+        // Do NOT set isLoggedIn(false) here, as we still have a valid session
         return;
       }
 
@@ -246,12 +342,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConnection(null);
         setError('Je sessie is verlopen. Log opnieuw in.');
         setToastMessage('Je sessie is verlopen. Log opnieuw in.');
-        const freshStorage = getChromeStorage();
-        if (freshStorage) {
-          await freshStorage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
-        } else {
-          warnOnce('connection-storage-clear', '[ConnectionContext] kon tokens niet wissen omdat chrome.storage.local ontbreekt.');
-        }
+        setToastMessage('Je sessie is verlopen. Log opnieuw in.');
+        await supabase.auth.signOut();
+        return;
         return;
       } else {
         throw new Error(`Serverfout: ${response.statusText}`);
@@ -267,6 +360,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setIsLoggedIn(false);
           setConnection(null);
+          await supabase.auth.signOut(); // Ensure we sign out to prevent loop
         } else if (e.message.includes('403')) {
           setError('Je hebt geen toegang tot deze functie.');
         } else if (e.message.includes('500')) {
@@ -291,19 +385,17 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     initialize();
   }, [initializeFromCache, fetchData]);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = useCallback(() => {
     setIsLoggedIn(true);
     setToastMessage('Succesvol ingelogd.');
     fetchData();
-  };
+  }, [fetchData]);
 
   const handleLogout = async () => {
-    const storage = getChromeStorage();
+    await supabase.auth.signOut();
+    const storage = getStorage();
     if (storage) {
       await storage.remove([
-        'supabaseAccessToken',
-        'supabaseRefreshToken',
-        'supabaseSessionExpiresAt',
         'cachedConnections',
         'connectionsCacheTimestamp',
       ]);
@@ -322,16 +414,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setError(null);
     }
     try {
-      const storage = getChromeStorage();
-      if (!storage) {
-        if (!silent) {
-          setError('Deze lijst is alleen beschikbaar binnen de Rolodink-extensie (chrome.storage.local ontbreekt).');
-          setIsLoading(false);
-        }
-        return;
-      }
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Niet ingelogd');
+      const supabaseAccessToken = session.access_token;
 
       const response = await fetch(`${API_BASE_URL}/api/connections`, {
         headers: { 'Authorization': `Bearer ${supabaseAccessToken}` }
@@ -344,12 +429,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setError('Je sessie is verlopen. Log opnieuw in.');
           setToastMessage('Je sessie is verlopen. Log opnieuw in.');
         }
-        const freshStorage = getChromeStorage();
-        if (freshStorage) {
-          await freshStorage.remove(['supabaseAccessToken', 'supabaseRefreshToken', 'supabaseSessionExpiresAt']);
-        } else {
-          warnOnce('connection-storage-clear', '[ConnectionContext] kon tokens niet wissen omdat chrome.storage.local ontbreekt.');
-        }
+        await supabase.auth.signOut();
         return;
       }
       if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
@@ -435,16 +515,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoading(true);
     setError(null);
     try {
-      const storage = getChromeStorage();
-      if (!storage) {
-        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
-        setIsLoading(false);
-        return;
-      }
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Niet ingelogd');
+      const supabaseAccessToken = session.access_token;
 
-      const tabsApi = getChromeTabs();
+      const tabsApi = getTabs();
       if (!tabsApi) throw new Error('chrome.tabs is niet beschikbaar.');
       const tabs = await tabsApi.query({ active: true, currentWindow: true });
       const profileUrl = tabs[0]?.url;
@@ -480,13 +555,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   async function resolveConnectionId(current: Connection | null): Promise<string | null> {
     try {
-      const storage = getChromeStorage();
-      if (!storage) return null;
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) return null;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return null;
+      const supabaseAccessToken = session.access_token;
       const urlCandidate = current?.linkedInUrl;
       const urlToUse = urlCandidate || (await (async () => {
-        const tabsApi = getChromeTabs();
+        const tabsApi = getTabs();
         if (!tabsApi) return null;
         const tabs = await tabsApi.query({ active: true, currentWindow: true });
         return tabs[0]?.url || null;
@@ -509,14 +583,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsLoading(true);
     setError(null);
     try {
-      const storage = getChromeStorage();
-      if (!storage) {
-        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
-        setIsLoading(false);
-        return;
-      }
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Niet ingelogd');
+      const supabaseAccessToken = session.access_token;
 
       let idToUse: string | undefined = connection?.id;
       if (!idToUse) {
@@ -577,14 +646,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setIsLoading(false);
         return;
       }
-      const storage = getChromeStorage();
-      if (!storage) {
-        setError('Deze actie is alleen beschikbaar binnen de Rolodink-extensie.');
-        setIsLoading(false);
-        return;
-      }
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) throw new Error('Niet ingelogd');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Niet ingelogd');
+      const supabaseAccessToken = session.access_token;
 
       let idToUse: string | undefined = connection?.id;
       if (!idToUse) {
@@ -624,16 +688,12 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cleanAllNames = useCallback(async () => {
     setIsLoading(true);
     try {
-      const storage = getChromeStorage();
-      if (!storage) {
-        setError('chrome.storage.local is niet beschikbaar.');
-        return;
-      }
-      const { supabaseAccessToken } = await storage.get('supabaseAccessToken');
-      if (!supabaseAccessToken) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setError('Je bent niet ingelogd.');
         return;
       }
+      const supabaseAccessToken = session.access_token;
 
       const response = await fetch(`${API_BASE_URL}/api/connections/clean-names`, {
         method: 'POST',
@@ -676,6 +736,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isHelpView,
     toastMessage,
     isInitialized,
+    isInitializing,
     isOffline,
     setToastMessage,
     fetchData,
@@ -705,6 +766,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isHelpView,
     toastMessage,
     isInitialized,
+    isInitializing,
     isOffline,
     setToastMessage,
     fetchData,
