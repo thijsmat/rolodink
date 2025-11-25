@@ -55,6 +55,7 @@ jobs:
             dist/Rolodink-chrome-*.zip
             dist/Rolodink-edge-*.zip
             dist/Rolodink-firefox-*.zip
+          body_path: .github/RELEASE_TEMPLATE.md
           generate_release_notes: true
           draft: false
           prerelease: false
