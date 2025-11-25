@@ -59,6 +59,9 @@ export function SiteFooter() {
               <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Pricing
               </a>
+              <Link href="/download" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+                Download
+              </Link>
               <Link href="/changelog" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Changelog
               </Link>
