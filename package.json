@@ -13,9 +13,12 @@
     "website"
   ],
   "devDependencies": {
+    "eslint": "^8",
     "turbo": "^2.6.0",
-    "typescript": "^5",
-    "eslint": "^8"
+    "typescript": "^5"
   },
-  "packageManager": "npm@10.8.1"
+  "packageManager": "npm@10.8.1",
+  "dependencies": {
+    "glob": "10.5.0"
+  }
 }
