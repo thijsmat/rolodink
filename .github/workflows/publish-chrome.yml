@@ -1,67 +1,22 @@
 name: Publish Chrome Extension
 
 on:
-  push:
-    tags:
-      - 'ext-v*'  # Triggers on tags like ext-v1.0.3
   release:
     types: [published]
 
 jobs:
-  publish:
+  publish-chrome:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Extract version from tag
-        id: version
+      - name: Download Chrome Artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/ext-v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
-          echo "Expected ZIP: rolodink-v${VERSION}-chrome.zip"
-
-      - name: Check if Chrome ZIP exists
-        id: check_zip
-        run: |
-          if [ -f "linkedin-crm-extension/rolodink-v${{ steps.version.outputs.version }}-chrome.zip" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Chrome ZIP found: rolodink-v${{ steps.version.outputs.version }}-chrome.zip"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️  Chrome ZIP not found, will build it"
-          fi
-
-      - name: Build Chrome extension
-        if: steps.check_zip.outputs.exists != 'true'
-        run: |
-          echo "Building Chrome extension..."
-          cd linkedin-crm-extension
-          npm install
-          npm run build:production
-          ls -lh rolodink-v*.zip || echo "⚠️  Build may have different naming convention"
-
-      - name: Verify Chrome ZIP exists
-        run: |
-          cd linkedin-crm-extension
-          if ls rolodink-v*.zip 1> /dev/null 2>&1; then
-            echo "✅ Found Chrome ZIP file(s):"
-            ls -lh rolodink-v*.zip
-            # Use the first matching file
-            ZIP_FILE=$(ls -t rolodink-v*.zip | head -n 1)
-            echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
-          else
-            echo "❌ No Chrome ZIP file found!"
-            exit 1
-          fi
+          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-chrome-*.zip"
+          echo "ZIP_FILE=$(ls Rolodink-chrome-*.zip)" >> $GITHUB_ENV
 
       - name: Publish to Chrome Web Store
         uses: mobilefirstllc/cws-publish@latest
@@ -71,18 +26,4 @@ jobs:
           client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
           extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
-          zip_file: "linkedin-crm-extension/${{ env.ZIP_FILE }}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: chrome-extension-zip
-          path: linkedin-crm-extension/rolodink-v*.zip
-          retention-days: 30
-
-      - name: Publish status
-        run: |
-          echo "✅ Chrome extension published successfully!"
-          echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Check Chrome Web Store dashboard for review status"
-
+          zip_file: ${{ env.ZIP_FILE }}

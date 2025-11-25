@@ -1,48 +1,38 @@
 name: Publish Firefox Extension
 
 on:
-  push:
-    tags:
-      - 'ext-v*'  # Triggers on tags like ext-v1.0.3
   release:
     types: [published]
 
 jobs:
-  sign-and-publish:
+  publish-firefox:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Install deps
-        run: npm install
+      - name: Download Firefox Artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-firefox-*.zip"
+          echo "ZIP_FILE=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_ENV
 
-      - name: Prepare Firefox source
-        run: bash scripts/prepare-firefox-source.sh
+      - name: Install web-ext
+        run: npm install -g web-ext
 
-      - name: Sign and upload to AMO
+      - name: Publish to Mozilla Add-ons
         env:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
         run: |
-          npx web-ext sign \
-            --source-dir .web-ext-src \
-            --artifacts-dir web-ext-artifacts \
-            --channel listed
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox-signed-xpi
-          path: web-ext-artifacts/*.xpi
-
-
-
-
+          web-ext sign \
+            --channel listed \
+            --source-dir ${{ env.ZIP_FILE }} \
+            --api-key $WEB_EXT_API_KEY \
+            --api-secret $WEB_EXT_API_SECRET
