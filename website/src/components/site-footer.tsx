@@ -31,9 +31,9 @@ export function SiteFooter() {
                 <Facebook className="h-4 w-4 text-azure" />
               </a>
               <a
-              href="https://twitter.com/matthijsgoes"
-              target="_blank"
-              rel="noreferrer"
+                href="https://twitter.com/matthijsgoes"
+                target="_blank"
+                rel="noreferrer"
                 className="w-9 h-9 rounded-full bg-azure/5 hover:bg-azure/10 flex items-center justify-center transition-colors duration-200 ease-out"
                 aria-label="Twitter"
               >
@@ -59,9 +59,9 @@ export function SiteFooter() {
               <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Pricing
               </a>
-              <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              <Link href="/changelog" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Changelog
-              </a>
+              </Link>
               <a href="#" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 Roadmap
               </a>
