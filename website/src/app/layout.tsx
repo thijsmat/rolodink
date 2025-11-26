@@ -3,7 +3,10 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
 import { SiteHeader } from "@/components/site-header"
- 
+
+import { CookieBanner } from "@/components/cookie-banner"
+import { Analytics as GoogleAnalytics } from "@/components/analytics"
+
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
 
@@ -69,9 +72,9 @@ export default function RootLayout({
     <html lang="nl">
       <head>
         {/* Plausible Analytics */}
-        <script 
-          defer 
-          data-domain="rolodink.app" 
+        <script
+          defer
+          data-domain="rolodink.app"
           src="https://plausible.io/js/script.js"
         />
       </head>
@@ -80,6 +83,8 @@ export default function RootLayout({
         <div className="relative flex min-h-screen flex-col">
           {children}
         </div>
+        <CookieBanner />
+        <GoogleAnalytics />
         <Analytics />
       </body>
     </html>

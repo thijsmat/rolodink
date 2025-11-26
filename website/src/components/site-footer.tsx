@@ -75,7 +75,7 @@ export function SiteFooter() {
           <div>
             <h3 className="text-sm font-semibold text-azure mb-4">Support</h3>
             <nav className="space-y-3">
-              <Link href="#faq" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 FAQ
               </Link>
               <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
@@ -106,12 +106,12 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Rolodink. Alle rechten voorbehouden.
           </p>
           <nav className="flex items-center gap-6">
-            <a href="/terms" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+            <Link href="/terms" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
               Terms of Service
-            </a>
-            <a href="/privacy" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+            </Link>
+            <Link href="/privacy" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
               Privacy Policy
-            </a>
+            </Link>
             <Link href="/disclaimer" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
               Disclaimer
             </Link>
