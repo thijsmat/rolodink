@@ -54,17 +54,17 @@ export default function HelpPage() {
     <>
       <main className="flex-1 pt-16">
         {/* Hero Section */}
-        <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
+        <section className="container mx-auto max-w-4xl py-16 text-center md:py-24 lg:py-32">
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
             Hulp & Veelgestelde Vragen
-            </h1>
+          </h1>
           <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
             Vind hier de antwoorden op de meest voorkomende vragen. Staat je vraag er niet bij? Neem gerust contact op.
-            </p>
+          </p>
         </section>
 
         {/* FAQ Accordion Section */}
-        <section className="container max-w-3xl pb-16 md:pb-24 lg:pb-32">
+        <section className="container mx-auto max-w-3xl pb-16 md:pb-24 lg:pb-32">
           <Accordion type="single" collapsible className="w-full">
             {faqItems.map((item) => (
               <AccordionItem key={item.question} value={item.question}>
@@ -81,7 +81,7 @@ export default function HelpPage() {
 
         {/* Final CTA */}
         <section className="bg-azure/5">
-          <div className="container max-w-4xl py-16 text-center md:py-24">
+          <div className="container mx-auto max-w-4xl py-16 text-center md:py-24">
             <h2 className="font-playfair text-3xl font-bold tracking-tight text-azure sm:text-4xl">
               Nog steeds vragen?
             </h2>
@@ -94,7 +94,7 @@ export default function HelpPage() {
                   Probeer het Gratis
                 </a>
               </Button>
-                </div>
+            </div>
           </div>
         </section>
       </main>
