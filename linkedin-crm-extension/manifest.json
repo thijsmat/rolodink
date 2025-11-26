@@ -47,7 +47,7 @@
         "index.html"
       ],
       "matches": [
-        "<all_urls>"
+        "https://www.linkedin.com/*"
       ]
     }
   ]

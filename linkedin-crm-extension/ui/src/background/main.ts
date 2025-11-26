@@ -35,7 +35,7 @@ function getSupabaseStorageKey(supabaseUrl: string): string {
 }
 
 async function handleAuth(authUrl: string) {
-    console.log('Starting auth flow in background...');
+
 
     try {
         // Get Supabase URL from storage (synced from UI)
@@ -60,7 +60,7 @@ async function handleAuth(authUrl: string) {
             throw new Error('Login geannuleerd');
         }
 
-        console.log('Auth flow completed, parsing URL...');
+
 
         // Parse hash fragment from response URL
         const url = new URL(responseUrl);
@@ -90,13 +90,13 @@ async function handleAuth(authUrl: string) {
         };
 
         const storageKey = getSupabaseStorageKey(supabaseUrl);
-        console.log('Storing session with key:', storageKey);
+
 
         await browserAPI.storage.local.set({
             [storageKey]: JSON.stringify(sessionData),
         });
 
-        console.log('Session stored in chrome.storage.local');
+
 
         return { success: true, accessToken, refreshToken };
 

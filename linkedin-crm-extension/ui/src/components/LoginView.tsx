@@ -144,9 +144,9 @@ export function LoginView() {
     setIsError(false);
 
     try {
-      console.log('Starting LinkedIn login flow...');
+
       const redirectUrl = getAuthRedirectUrl('provider_cb');
-      console.log('Redirect URL:', redirectUrl);
+
 
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
@@ -162,7 +162,7 @@ export function LoginView() {
 
       // ...
 
-      console.log('Auth URL received, sending to background script...');
+
 
       // Send message to background script to handle auth flow
       // Don't wait for response - the popup might close
