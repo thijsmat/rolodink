@@ -33,27 +33,27 @@ export default function DownloadPage() {
                   <Chrome className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">Chrome Web Store</span>
-                    <span className="text-xs font-normal opacity-90">Versie 1.0.8 • Gratis</span>
+                    <span className="text-xs font-normal opacity-90">Versie 1.0.9 • Gratis</span>
                   </div>
                 </a>
               </Button>
 
               {/* Edge - Secondary */}
               <Button asChild variant="outline" size="lg" className="h-16 px-8 text-lg w-full border-azure/20 hover:bg-azure/5">
-                <a href="#" className="cursor-not-allowed opacity-70" title="Binnenkort beschikbaar">
+                <a href="https://github.com/thijsmat/rolodink/releases/download/ext-v1.0.9/Rolodink-edge-v1.0.9.zip" target="_blank" rel="noreferrer">
                   <div className="flex flex-col items-start">
                     <span className="font-semibold text-azure">Microsoft Edge</span>
-                    <span className="text-xs font-normal text-grey">Binnenkort beschikbaar</span>
+                    <span className="text-xs font-normal text-grey">Download .zip (v1.0.9)</span>
                   </div>
                 </a>
               </Button>
 
               {/* Firefox - Secondary */}
               <Button asChild variant="outline" size="lg" className="h-16 px-8 text-lg w-full border-azure/20 hover:bg-azure/5">
-                <a href="#" className="cursor-not-allowed opacity-70" title="Binnenkort beschikbaar">
+                <a href="https://github.com/thijsmat/rolodink/releases/download/ext-v1.0.9/Rolodink-firefox-v1.0.9.zip" target="_blank" rel="noreferrer">
                   <div className="flex flex-col items-start">
                     <span className="font-semibold text-azure">Firefox Add-ons</span>
-                    <span className="text-xs font-normal text-grey">Binnenkort beschikbaar</span>
+                    <span className="text-xs font-normal text-grey">Download .zip (v1.0.9)</span>
                   </div>
                 </a>
               </Button>
