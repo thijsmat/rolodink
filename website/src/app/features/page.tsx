@@ -2,12 +2,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SiteFooter } from '@/components/site-footer'
-import { 
-  Users, 
-  MessageSquare, 
-  Calendar, 
-  FileText, 
-  Shield, 
+import {
+  Users,
+  MessageSquare,
+  Calendar,
+  FileText,
+  Shield,
   Zap,
   Target,
   BarChart3,
@@ -91,7 +91,7 @@ export default function FeaturesPage() {
     <>
       <main className="flex-1 pt-16">
         {/* Hero */}
-        <section className="container max-w-5xl py-16 md:py-24 lg:py-32">
+        <section className="container mx-auto max-w-5xl py-16 md:py-24 lg:py-32">
           <div className="mx-auto flex flex-col items-center space-y-6 text-center">
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl md:text-6xl">
               Alle Tools voor een Beter Netwerk
@@ -103,7 +103,7 @@ export default function FeaturesPage() {
         </section>
 
         {/* Features Grid */}
-        <section className="container max-w-6xl pb-16 md:pb-24 lg:pb-32">
+        <section className="container mx-auto max-w-6xl pb-16 md:pb-24 lg:pb-32">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => (
               <Card key={index} className="flex flex-col border-azure/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
@@ -133,10 +133,10 @@ export default function FeaturesPage() {
 
         {/* Stats Section - Restyled */}
         <section className="bg-azure/5 py-16 md:py-24">
-          <div className="container max-w-5xl">
+          <div className="container mx-auto max-w-5xl">
             <div className="text-center">
               <h2 className="font-playfair text-3xl font-bold text-azure sm:text-4xl">
-              Waarom professionals kiezen voor Rolodink
+                Waarom professionals kiezen voor Rolodink
               </h2>
             </div>
             <div className="mt-12 grid grid-cols-1 gap-8 text-center sm:grid-cols-3">
@@ -160,7 +160,7 @@ export default function FeaturesPage() {
         </section>
 
         {/* CTA */}
-        <section className="container max-w-5xl py-16 md:py-24 lg:py-32">
+        <section className="container mx-auto max-w-5xl py-16 md:py-24 lg:py-32">
           <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 text-center">
             <h2 className="font-playfair text-3xl font-bold text-azure sm:text-4xl">
               Klaar om te beginnen?

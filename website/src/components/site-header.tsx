@@ -23,9 +23,9 @@ import {
 const EXTENSION_URL = getExtensionUrl();
 
 const navLinks = [
-  { href: "#features", label: "Features" },
-  { href: "#testimonials", label: "Testimonials" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/features", label: "Features" },
+  { href: "/testimonials", label: "Testimonials" },
+  { href: "/help", label: "FAQ" },
 ];
 
 export function SiteHeader() {
