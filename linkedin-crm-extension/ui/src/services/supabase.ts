@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
 import { chromeStorageAdapter } from '../utils/storageAdapter';
 
@@ -6,7 +6,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error('⚠️  Missing Supabase credentials in services/supabase.ts');
 }
 
-let supabaseClient: any;
+let supabaseClient: SupabaseClient;
 
 try {
     console.log('Initializing Supabase client...');
@@ -29,7 +29,7 @@ try {
             getSession: async () => ({ data: { session: null }, error: new Error('Supabase not initialized') }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
         }
-    };
+    } as any;
 }
 
 export const supabase = supabaseClient;

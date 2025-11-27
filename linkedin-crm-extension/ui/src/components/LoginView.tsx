@@ -149,8 +149,6 @@ export function LoginView() {
         throw new Error(response?.error || 'Login failed');
       }
 
-      setMessage(t('msg_auth_background_processing'));
-
     } catch (e: unknown) {
       console.error('LinkedIn login error:', e);
       setIsError(true);
