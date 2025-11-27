@@ -13,14 +13,14 @@ import {
 import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
-import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
+
 import { supabase } from '../services/supabase';
 import { useTranslation } from '../hooks/useTranslation';
 
 export function LoginView() {
   const { t } = useTranslation();
-  const { handleLoginSuccess, isInitializing } = useConnection();
+  const { handleLoginSuccess, isInitializing, refreshSession } = useConnection();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -28,17 +28,6 @@ export function LoginView() {
   const [isLoading, setIsLoading] = useState(false);
   const lastAuthIntentRef = useRef<'signin' | 'signup'>('signin');
   const edgePointerHandledRef = useRef(false);
-
-  if (isInitializing) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>
-          <div className={styles.spinner}></div>
-          <p>{t('loading')}</p>
-        </div>
-      </div>
-    );
-  }
 
   const isEdgeBrowser = useMemo(() => {
     if (typeof navigator === 'undefined') return false;
@@ -144,24 +133,21 @@ export function LoginView() {
     setIsError(false);
 
     try {
-      const redirectUrl = getAuthRedirectUrl('provider_cb');
+      // Ensure supabaseUrl is in storage before background script needs it
+      void getBrowserAPI().storage.local.set({ supabaseUrl: SUPABASE_URL });
 
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-          scopes: 'email profile openid',
-        },
-      });
-
-      if (authError) throw authError;
-      if (!data?.url) throw new Error(t('msg_no_auth_url'));
-
-      getBrowserAPI().runtime.sendMessage({
+      // Send message to background script to handle auth flow
+      // The background script will generate the URL and launch the web auth flow
+      const response = await getBrowserAPI().runtime.sendMessage({
         type: 'START_AUTH',
-        url: data.url,
       });
+
+      if (response && response.success) {
+        await refreshSession();
+        handleLoginSuccess();
+      } else {
+        throw new Error(response?.error || 'Login failed');
+      }
 
       setMessage(t('msg_auth_background_processing'));
 
@@ -172,6 +158,17 @@ export function LoginView() {
       setIsLoading(false);
     }
   }, [handleLoginSuccess, t]);
+
+  if (isInitializing) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <div className={styles.spinner}></div>
+          <p>{t('loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

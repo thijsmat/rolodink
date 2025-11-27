@@ -78,3 +78,8 @@ export const chromeStorageAdapter: SupportedStorage = {
         }
     },
 };
+
+export function getSupabaseStorageKey(url: string): string {
+    const key = `sb-${new URL(url).hostname.split('.')[0]}-auth-token`;
+    return key;
+}

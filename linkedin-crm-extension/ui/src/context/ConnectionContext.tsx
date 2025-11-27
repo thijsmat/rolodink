@@ -50,6 +50,7 @@ type ConnectionContextState = {
   handleLoginSuccess: () => void;
   cleanAllNames: () => Promise<void>;
   clearError: () => void;
+  refreshSession: () => Promise<void>;
 };
 
 const ConnectionContext = createContext<ConnectionContextState | undefined>(undefined);
@@ -164,6 +165,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleLoginSuccess,
     cleanAllNames,
     clearError,
+    refreshSession,
   }), [
     isLoading,
     error,
@@ -194,6 +196,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleLoginSuccess,
     cleanAllNames,
     clearError,
+    refreshSession,
   ]);
 
   return (

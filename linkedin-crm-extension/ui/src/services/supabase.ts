@@ -3,14 +3,33 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
 import { chromeStorageAdapter } from '../utils/storageAdapter';
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error('Supabase URL and Anon Key are required in config');
+    console.error('⚠️  Missing Supabase credentials in services/supabase.ts');
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-        storage: chromeStorageAdapter,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false, // We handle OAuth redirect manually in extension
-    },
-});
+let supabaseClient: any;
+
+try {
+    console.log('Initializing Supabase client...');
+    supabaseClient = createClient(SUPABASE_URL || 'https://placeholder.supabase.co', SUPABASE_ANON_KEY || 'placeholder', {
+        auth: {
+            storage: chromeStorageAdapter,
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: false,
+        },
+    });
+    console.log('Supabase client initialized');
+} catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+    // Fallback to avoid crash on import
+    supabaseClient = {
+        auth: {
+            signInWithOAuth: async () => ({ error: new Error('Supabase not initialized') }),
+            setSession: async () => ({ error: new Error('Supabase not initialized') }),
+            getSession: async () => ({ data: { session: null }, error: new Error('Supabase not initialized') }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
+        }
+    };
+}
+
+export const supabase = supabaseClient;
