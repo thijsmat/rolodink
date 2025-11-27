@@ -3,6 +3,7 @@
   "name": "Rolodink",
   "version": "1.0.9",
   "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
+  "default_locale": "en",
   "permissions": [
     "activeTab",
     "storage",
@@ -24,7 +25,8 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
@@ -47,7 +49,7 @@
         "index.html"
       ],
       "matches": [
-        "<all_urls>"
+        "https://www.linkedin.com/*"
       ]
     }
   ]

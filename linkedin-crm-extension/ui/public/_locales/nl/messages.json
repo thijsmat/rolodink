@@ -1,0 +1,83 @@
+{
+    "appName": {
+        "message": "Rolodink"
+    },
+    "loading": {
+        "message": "Laden..."
+    },
+    "subtitle": {
+        "message": "Beheer je LinkedIn connecties op één plek met Rolodink"
+    },
+    "email_label": {
+        "message": "E-mailadres"
+    },
+    "email_placeholder": {
+        "message": "je@email.com"
+    },
+    "password_label": {
+        "message": "Wachtwoord"
+    },
+    "password_placeholder": {
+        "message": "••••••••"
+    },
+    "processing": {
+        "message": "Bezig..."
+    },
+    "login_button": {
+        "message": "Inloggen"
+    },
+    "register_button": {
+        "message": "Registreren"
+    },
+    "or": {
+        "message": "of"
+    },
+    "login_linkedin_button": {
+        "message": "Inloggen met LinkedIn"
+    },
+    "features_title": {
+        "message": "Wat kun je doen?"
+    },
+    "feature_add_profiles": {
+        "message": "Voeg LinkedIn profielen toe aan Rolodink"
+    },
+    "feature_save_notes": {
+        "message": "Bewaar notities en ontmoetingsdetails"
+    },
+    "feature_view_connections": {
+        "message": "Bekijk al je connecties overzichtelijk"
+    },
+    "msg_enter_email_password": {
+        "message": "Vul e-mail en wachtwoord in."
+    },
+    "msg_logging_in": {
+        "message": "Bezig met inloggen..."
+    },
+    "msg_registering": {
+        "message": "Bezig met registreren..."
+    },
+    "msg_account_created": {
+        "message": "Account aangemaakt! Check je e-mail voor bevestiging."
+    },
+    "msg_failed_suffix": {
+        "message": " mislukt."
+    },
+    "msg_supabase_config_missing": {
+        "message": "Supabase configuratie ontbreekt."
+    },
+    "msg_linkedin_login_progress": {
+        "message": "Bezig met LinkedIn login..."
+    },
+    "msg_no_auth_url": {
+        "message": "Geen auth URL ontvangen"
+    },
+    "msg_auth_background_processing": {
+        "message": "Authenticatie wordt verwerkt in de achtergrond..."
+    },
+    "msg_linkedin_login_failed": {
+        "message": "LinkedIn login mislukt."
+    },
+    "msg_unknown_error": {
+        "message": "Onbekende fout"
+    }
+}

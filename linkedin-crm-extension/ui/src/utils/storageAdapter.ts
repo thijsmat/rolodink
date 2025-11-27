@@ -5,7 +5,36 @@ import type { SupportedStorage } from '@supabase/supabase-js';
  * This allows session persistence within the browser extension environment.
  */
 declare global {
-    const browser: any;
+    interface BrowserAPI {
+        storage: {
+            local: {
+                get: (key: string | string[]) => Promise<Record<string, any>>;
+                set: (items: Record<string, any>) => Promise<void>;
+                remove: (keys: string | string[]) => Promise<void>;
+            };
+            onChanged: {
+                addListener: (callback: (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => void) => void;
+                removeListener: (callback: (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => void) => void;
+            };
+        };
+        runtime: {
+            sendMessage: (message: any) => Promise<any>;
+            onMessage: {
+                addListener: (callback: (message: any, sender: any, sendResponse: (response?: any) => void) => void | boolean) => void;
+            };
+        };
+        identity: {
+            launchWebAuthFlow: (details: { url: string; interactive?: boolean }) => Promise<string>;
+        };
+        tabs: {
+            query: (queryInfo: any) => Promise<any[]>;
+        };
+        i18n: {
+            getMessage: (messageName: string, substitutions?: string | string[]) => string;
+            getUILanguage: () => string;
+        };
+    }
+    const browser: BrowserAPI;
 }
 
 const getStorage = () => {
@@ -49,3 +78,8 @@ export const chromeStorageAdapter: SupportedStorage = {
         }
     },
 };
+
+export function getSupabaseStorageKey(url: string): string {
+    const key = `sb-${new URL(url).hostname.split('.')[0]}-auth-token`;
+    return key;
+}
