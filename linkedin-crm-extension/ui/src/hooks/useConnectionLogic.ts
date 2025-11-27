@@ -50,7 +50,7 @@ function normalizeLinkedInUrl(raw: string): string {
 }
 
 export function useConnectionLogic(user: User | null) {
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<Connection | null>(null);
     const [allConnections, setAllConnections] = useState<Connection[]>([]);

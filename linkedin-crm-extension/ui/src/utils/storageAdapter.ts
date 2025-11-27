@@ -29,6 +29,10 @@ declare global {
         tabs: {
             query: (queryInfo: any) => Promise<any[]>;
         };
+        i18n: {
+            getMessage: (messageName: string, substitutions?: string | string[]) => string;
+            getUILanguage: () => string;
+        };
     }
     const browser: BrowserAPI;
 }

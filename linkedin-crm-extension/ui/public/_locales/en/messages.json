@@ -1,0 +1,83 @@
+{
+    "appName": {
+        "message": "Rolodink"
+    },
+    "loading": {
+        "message": "Loading..."
+    },
+    "subtitle": {
+        "message": "Manage your LinkedIn connections in one place with Rolodink"
+    },
+    "email_label": {
+        "message": "Email address"
+    },
+    "email_placeholder": {
+        "message": "you@email.com"
+    },
+    "password_label": {
+        "message": "Password"
+    },
+    "password_placeholder": {
+        "message": "••••••••"
+    },
+    "processing": {
+        "message": "Processing..."
+    },
+    "login_button": {
+        "message": "Log In"
+    },
+    "register_button": {
+        "message": "Register"
+    },
+    "or": {
+        "message": "or"
+    },
+    "login_linkedin_button": {
+        "message": "Log in with LinkedIn"
+    },
+    "features_title": {
+        "message": "What can you do?"
+    },
+    "feature_add_profiles": {
+        "message": "Add LinkedIn profiles to Rolodink"
+    },
+    "feature_save_notes": {
+        "message": "Save notes and meeting details"
+    },
+    "feature_view_connections": {
+        "message": "View all your connections clearly"
+    },
+    "msg_enter_email_password": {
+        "message": "Please enter email and password."
+    },
+    "msg_logging_in": {
+        "message": "Logging in..."
+    },
+    "msg_registering": {
+        "message": "Registering..."
+    },
+    "msg_account_created": {
+        "message": "Account created! Check your email for confirmation."
+    },
+    "msg_failed_suffix": {
+        "message": " failed."
+    },
+    "msg_supabase_config_missing": {
+        "message": "Supabase configuration missing."
+    },
+    "msg_linkedin_login_progress": {
+        "message": "Logging in with LinkedIn..."
+    },
+    "msg_no_auth_url": {
+        "message": "No auth URL received"
+    },
+    "msg_auth_background_processing": {
+        "message": "Authentication is being processed in the background..."
+    },
+    "msg_linkedin_login_failed": {
+        "message": "LinkedIn login failed."
+    },
+    "msg_unknown_error": {
+        "message": "Unknown error"
+    }
+}
