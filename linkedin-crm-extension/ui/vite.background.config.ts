@@ -5,13 +5,14 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
     return {
         build: {
-            emptyOutDir: false, // Don't empty, we want to keep the UI build
+            emptyOutDir: false,
             outDir: 'dist',
+            target: 'esnext',
             lib: {
                 entry: path.resolve(__dirname, 'src/background/main.ts'),
                 name: 'background',
                 fileName: () => 'background.js',
-                formats: ['iife'], // IIFE is best for simple scripts, or 'es' if we use type="module"
+                formats: ['es'],
             },
             rollupOptions: {
                 output: {

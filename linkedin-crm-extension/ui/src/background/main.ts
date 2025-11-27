@@ -26,13 +26,11 @@ async function logToStorage(message: string, data?: any) {
     }
 }
 
-(async () => {
-    try {
-        await logToStorage('Background script loaded (v1.0.9-lazy)');
-    } catch (e) {
-        console.error(e);
-    }
-})();
+try {
+    await logToStorage('Background script loaded (v1.0.9-lazy)');
+} catch (e) {
+    console.error(e);
+}
 
 // Lazy Supabase Initialization
 let supabaseInstance: any = null;
