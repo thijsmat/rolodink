@@ -35,7 +35,16 @@ export default function Hero() {
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
                 <Chrome className="h-4 w-4" />
-                Add to Chrome - Gratis
+                Add to Chrome
+              </a>
+              <a
+                href="https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
+              >
+                <Chrome className="h-4 w-4" />
+                Add to Edge
               </a>
               <a
                 href="#features"
