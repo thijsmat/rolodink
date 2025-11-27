@@ -70,6 +70,39 @@ async function fetchConnectionData(token: string, url: string) {
     });
 }
 
+async function handleFetchResponse(
+    response: Response,
+    supabase: any,
+    setConnection: (c: Connection | null) => void,
+    setAllConnections: (c: Connection[]) => void,
+    setError: (e: string) => void
+) {
+    if (response.ok) {
+        const data = await response.json();
+        const picked = pickFirstConnection(data);
+        setConnection(picked);
+        if (!picked) setAllConnections([]);
+    } else if (response.status === 404) {
+        setConnection(null);
+    } else if (response.status === 401) {
+        setError('Je sessie is verlopen. Log opnieuw in.');
+        await supabase.auth.signOut();
+    } else {
+        throw new Error(`Serverfout: ${response.statusText}`);
+    }
+}
+
+function handleFetchError(e: unknown, setError: (e: string) => void) {
+    console.error('Fout bij ophalen van connectie:', e);
+    if (e instanceof TypeError && e.message.includes('fetch')) {
+        setError('Geen internetverbinding.');
+    } else if (e instanceof Error) {
+        setError(e.message || 'Kon de connectie-data niet ophalen.');
+    } else {
+        setError('Kon de connectie-data niet ophalen.');
+    }
+}
+
 export function useConnectionLogic(user: User | null) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -173,29 +206,9 @@ export function useConnectionLogic(user: User | null) {
             }
 
             const response = await fetchConnectionData(token, currentUrl);
-
-            if (response.ok) {
-                const data = await response.json();
-                const picked = pickFirstConnection(data);
-                setConnection(picked);
-                if (!picked) setAllConnections([]);
-            } else if (response.status === 404) {
-                setConnection(null);
-            } else if (response.status === 401) {
-                setError('Je sessie is verlopen. Log opnieuw in.');
-                await supabase.auth.signOut();
-            } else {
-                throw new Error(`Serverfout: ${response.statusText}`);
-            }
+            await handleFetchResponse(response, supabase, setConnection, setAllConnections, setError);
         } catch (e: unknown) {
-            console.error('Fout bij ophalen van connectie:', e);
-            if (e instanceof TypeError && e.message.includes('fetch')) {
-                setError('Geen internetverbinding.');
-            } else if (e instanceof Error) {
-                setError(e.message || 'Kon de connectie-data niet ophalen.');
-            } else {
-                setError('Kon de connectie-data niet ophalen.');
-            }
+            handleFetchError(e, setError);
         } finally {
             setIsLoading(false);
         }

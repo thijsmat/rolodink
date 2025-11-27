@@ -142,7 +142,7 @@ export function LoginView() {
         type: 'START_AUTH',
       });
 
-      if (response && response.success) {
+      if (response?.success) {
         await refreshSession();
         handleLoginSuccess();
       } else {
