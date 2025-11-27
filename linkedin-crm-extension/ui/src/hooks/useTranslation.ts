@@ -19,7 +19,6 @@ export function useTranslation() {
     // Chrome returns "" for missing keys sometimes, or the key itself if not found?
     // Actually, getMessage returns "" if the message is not found.
     if (!message) {
-      // console.warn(`[i18n] Missing translation for key: ${key}`);
       return key;
     }
 

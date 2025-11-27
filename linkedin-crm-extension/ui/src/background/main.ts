@@ -152,7 +152,7 @@ async function handleAuth() {
 }
 
 // Listen for messages
-if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (message.type === 'START_AUTH') {
             handleAuth()

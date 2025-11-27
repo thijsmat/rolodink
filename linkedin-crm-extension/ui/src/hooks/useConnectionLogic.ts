@@ -49,6 +49,27 @@ function normalizeLinkedInUrl(raw: string): string {
     }
 }
 
+function pickFirstConnection(data: any): Connection | null {
+    if (Array.isArray(data)) {
+        return data.length > 0 ? data[0] : null;
+    }
+    return data;
+}
+
+async function getCurrentTabUrl(): Promise<string | null> {
+    const tabsApi = getTabs();
+    if (!tabsApi) return null;
+    const tabs = await tabsApi.query({ active: true, currentWindow: true });
+    return tabs[0]?.url || null;
+}
+
+async function fetchConnectionData(token: string, url: string) {
+    const normalizedUrl = normalizeLinkedInUrl(url);
+    return fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+}
+
 export function useConnectionLogic(user: User | null) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -117,12 +138,12 @@ export function useConnectionLogic(user: User | null) {
             setToastMessage('Geen internetverbinding. Je werkt nu offline.');
         };
 
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+        globalThis.addEventListener('online', handleOnline);
+        globalThis.addEventListener('offline', handleOffline);
 
         return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
+            globalThis.removeEventListener('online', handleOnline);
+            globalThis.removeEventListener('offline', handleOffline);
         };
     }, [user]);
 
@@ -138,31 +159,26 @@ export function useConnectionLogic(user: User | null) {
             const token = session?.access_token;
             if (!token) return;
 
-            const tabsApi = getTabs();
-            if (!tabsApi) {
+            const currentUrl = await getCurrentTabUrl();
+            if (!currentUrl) {
                 setError('Deze functionaliteit werkt alleen binnen de Rolodink-extensie.');
                 setConnection(null);
                 return;
             }
 
-            const tabs = await tabsApi.query({ active: true, currentWindow: true });
-            const currentUrl = tabs[0]?.url;
-            if (!currentUrl || !currentUrl.includes('linkedin.com/in/')) {
+            if (!currentUrl.includes('linkedin.com/in/')) {
                 setError(INVALID_PROFILE_PAGE_ERROR);
                 setConnection(null);
                 return;
             }
 
-            const normalizedUrl = normalizeLinkedInUrl(currentUrl);
-            const response = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const response = await fetchConnectionData(token, currentUrl);
 
             if (response.ok) {
                 const data = await response.json();
-                const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+                const picked = pickFirstConnection(data);
                 setConnection(picked);
-                if (!picked) setAllConnections([]); // Is this logic correct? Original code had it.
+                if (!picked) setAllConnections([]);
             } else if (response.status === 404) {
                 setConnection(null);
             } else if (response.status === 401) {
@@ -288,22 +304,14 @@ export function useConnectionLogic(user: User | null) {
             if (!token) return null;
 
             const urlCandidate = current?.linkedInUrl;
-            const urlToUse = urlCandidate || (await (async () => {
-                const tabsApi = getTabs();
-                if (!tabsApi) return null;
-                const tabs = await tabsApi.query({ active: true, currentWindow: true });
-                return tabs[0]?.url || null;
-            })());
+            const urlToUse = urlCandidate || (await getCurrentTabUrl());
 
             if (!urlToUse) return null;
-            const normalizedUrl = normalizeLinkedInUrl(urlToUse);
 
-            const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const resp = await fetchConnectionData(token, urlToUse);
             if (!resp.ok) return null;
             const data = await resp.json();
-            const picked = Array.isArray(data) ? (data.length > 0 ? data[0] : null) : data;
+            const picked = pickFirstConnection(data);
             return picked?.id || null;
         } catch {
             return null;
@@ -367,7 +375,7 @@ export function useConnectionLogic(user: User | null) {
         setIsLoading(true);
         setError(null);
         try {
-            const confirmed = window.confirm('Weet je zeker dat je deze connectie wilt verwijderen?');
+            const confirmed = globalThis.confirm('Weet je zeker dat je deze connectie wilt verwijderen?');
             if (!confirmed) {
                 setIsLoading(false);
                 return;

@@ -87,7 +87,7 @@ export function LoginView() {
     // But here we are triggering auth manually
     event?.preventDefault();
     event?.stopPropagation();
-    void handleAuth(type);
+    handleAuth(type).catch(console.error);
   }, [handleAuth]);
 
   const createClickHandler = useCallback((type: 'signin' | 'signup') => (event?: MouseEvent<HTMLButtonElement>) => {
@@ -118,7 +118,7 @@ export function LoginView() {
   const handleFormSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Default to signin on enter key
-    void handleAuth('signin');
+    handleAuth('signin').catch(console.error);
   }, [handleAuth]);
 
   const handleLinkedInLogin = useCallback(async () => {
@@ -134,7 +134,7 @@ export function LoginView() {
 
     try {
       // Ensure supabaseUrl is in storage before background script needs it
-      void getBrowserAPI().storage.local.set({ supabaseUrl: SUPABASE_URL });
+      getBrowserAPI().storage.local.set({ supabaseUrl: SUPABASE_URL }).catch(console.error);
 
       // Send message to background script to handle auth flow
       // The background script will generate the URL and launch the web auth flow
