@@ -50,10 +50,10 @@ export default function DownloadPage() {
 
               {/* Firefox - Secondary */}
               <Button asChild variant="outline" size="lg" className="h-16 px-8 text-lg w-full border-azure/20 hover:bg-azure/5">
-                <a href="https://github.com/thijsmat/rolodink/releases/download/ext-v1.0.9/Rolodink-firefox-v1.0.9.zip" target="_blank" rel="noreferrer">
+                <a href="https://addons.mozilla.org/addon/rolodink/" target="_blank" rel="noreferrer">
                   <div className="flex flex-col items-start">
                     <span className="font-semibold text-azure">Firefox Add-ons</span>
-                    <span className="text-xs font-normal text-grey">Download .zip (v1.0.9)</span>
+                    <span className="text-xs font-normal text-grey">Versie 1.0.9 • Gratis</span>
                   </div>
                 </a>
               </Button>
