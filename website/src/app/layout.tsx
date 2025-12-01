@@ -20,10 +20,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Rolodink – Je notitielaag bovenop LinkedIn",
+    default: "Rolodink - Nooit meer vergeten wie je kent op LinkedIn",
     template: "%s | Rolodink",
   },
-  description: "Rolodink is je moderne rolodex: bewaar notities en volg slimmer op, direct vanuit LinkedIn. Organiseer je netwerk met gemak.",
+  description: "Stop met vergeten wie je connecties zijn. Rolodink legt een slimme notitielaag over LinkedIn zodat je altijd direct context hebt bij elk gesprek.",
   metadataBase: new URL('https://rolodink.app'),
   alternates: {
     canonical: '/',
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://rolodink.app",
-    title: "Rolodink – Je notitielaag bovenop LinkedIn",
-    description: "Je moderne rolodex: notities en opvolging rechtstreeks op LinkedIn.",
+    title: "Rolodink - Nooit meer vergeten wie je kent op LinkedIn",
+    description: "Stop met vergeten wie je connecties zijn. Rolodink legt een slimme notitielaag over LinkedIn zodat je altijd direct context hebt bij elk gesprek.",
     siteName: "Rolodink",
     images: [
       {
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rolodink – Je notitielaag bovenop LinkedIn",
-    description: "Je moderne rolodex: notities en opvolging rechtstreeks op LinkedIn.",
+    title: "Rolodink - Nooit meer vergeten wie je kent op LinkedIn",
+    description: "Stop met vergeten wie je connecties zijn. Rolodink legt een slimme notitielaag over LinkedIn zodat je altijd direct context hebt bij elk gesprek.",
     images: ["/og-image.png"],
   },
   robots: {
