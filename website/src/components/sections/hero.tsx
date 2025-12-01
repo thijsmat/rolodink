@@ -1,4 +1,5 @@
-import { Chrome, Play, Star } from "lucide-react";
+import { Chrome, Star } from "lucide-react";
+import { Edge, Firefox } from "@/components/icons";
 import { getExtensionUrl } from "@/lib/utils";
 
 export default function Hero() {
@@ -43,15 +44,17 @@ export default function Hero() {
                 rel="noreferrer"
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
-                <Chrome className="h-4 w-4" />
+                <Edge className="h-4 w-4" />
                 Add to Edge
               </a>
               <a
-                href="#features"
-                className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-gold bg-background text-gold text-xs sm:text-sm font-medium hover:bg-gold/5 transition-colors items-center justify-center gap-2"
+                href="https://github.com/thijsmat/rolodink/releases/download/ext-v1.0.9/Rolodink-firefox-v1.0.9.zip"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
-                <Play className="h-4 w-4" />
-                Bekijk demo
+                <Firefox className="h-4 w-4" />
+                Add to Firefox
               </a>
             </div>
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { pageSEO } from "@/lib/seo";
 import { getExtensionUrl } from "@/lib/utils";
 import { Chrome } from "lucide-react";
+import { Edge, Firefox } from "@/components/icons";
 
 export const metadata = {
   // Assuming seo config exists for download page
@@ -39,21 +40,23 @@ export default function DownloadPage() {
               </Button>
 
               {/* Edge - Secondary */}
-              <Button asChild variant="outline" size="lg" className="h-16 px-8 text-lg w-full border-azure/20 hover:bg-azure/5">
+              <Button asChild size="lg" className="h-16 px-8 text-lg w-full">
                 <a href="https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf" target="_blank" rel="noreferrer">
+                  <Edge className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
-                    <span className="font-semibold text-azure">Microsoft Edge Add-ons</span>
-                    <span className="text-xs font-normal text-grey">Versie 1.0.9 • Gratis</span>
+                    <span className="font-semibold">Microsoft Edge Add-ons</span>
+                    <span className="text-xs font-normal opacity-90">Versie 1.0.9 • Gratis</span>
                   </div>
                 </a>
               </Button>
 
               {/* Firefox - Secondary */}
-              <Button asChild variant="outline" size="lg" className="h-16 px-8 text-lg w-full border-azure/20 hover:bg-azure/5">
+              <Button asChild size="lg" className="h-16 px-8 text-lg w-full">
                 <a href="https://addons.mozilla.org/addon/rolodink/" target="_blank" rel="noreferrer">
+                  <Firefox className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
-                    <span className="font-semibold text-azure">Firefox Add-ons</span>
-                    <span className="text-xs font-normal text-grey">Versie 1.0.9 • Gratis</span>
+                    <span className="font-semibold">Firefox Add-ons</span>
+                    <span className="text-xs font-normal opacity-90">Versie 1.0.9 • Gratis</span>
                   </div>
                 </a>
               </Button>
