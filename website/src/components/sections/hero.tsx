@@ -48,7 +48,7 @@ export default function Hero() {
                 Add to Edge
               </a>
               <a
-                href="https://github.com/thijsmat/rolodink/releases/download/ext-v1.0.9/Rolodink-firefox-v1.0.9.zip"
+                href="https://addons.mozilla.org/addon/rolodink/"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
