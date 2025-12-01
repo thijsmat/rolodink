@@ -102,9 +102,9 @@ export function SiteHeader() {
             asChild
             className="hidden md:inline-flex h-9 px-4 bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg"
           >
-            <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
+            <Link href="/download">
               Gratis Installeren - 30 seconden
-            </a>
+            </Link>
           </Button>
 
           {/* Mobile Menu */}
@@ -135,9 +135,9 @@ export function SiteHeader() {
                   asChild
                   className="w-full bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-4"
                 >
-                  <a href={EXTENSION_URL} target="_blank" rel="noreferrer">
+                  <Link href="/download" onClick={() => setIsMenuOpen(false)}>
                     Gratis Installeren - 30 seconden
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </SheetContent>
