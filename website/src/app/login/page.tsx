@@ -9,13 +9,16 @@ export const metadata: Metadata = {
   description: 'Sign in to Rolodink with LinkedIn or email credentials.',
 }
 
+export const dynamic = 'force-dynamic'
+
 type LoginPageProps = {
-  searchParams?: {
+  searchParams: Promise<{
     oauth_error?: string | string[]
-  }
+  }>
 }
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
+export default async function LoginPage(props: Readonly<LoginPageProps>) {
+  const searchParams = await props.searchParams
   const oauthErrorParam = searchParams?.oauth_error
   const oauthError =
     typeof oauthErrorParam === 'string'
