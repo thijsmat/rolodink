@@ -16,7 +16,7 @@ type SignupPageProps = {
   }>
 }
 
-export default async function SignupPage(props: SignupPageProps) {
+export default async function SignupPage(props: Readonly<SignupPageProps>) {
   const searchParams = await props.searchParams
   const oauthErrorParam = searchParams?.oauth_error
   const oauthError =

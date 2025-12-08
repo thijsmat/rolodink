@@ -17,7 +17,7 @@ type LoginPageProps = {
   }>
 }
 
-export default async function LoginPage(props: LoginPageProps) {
+export default async function LoginPage(props: Readonly<LoginPageProps>) {
   const searchParams = await props.searchParams
   const oauthErrorParam = searchParams?.oauth_error
   const oauthError =
