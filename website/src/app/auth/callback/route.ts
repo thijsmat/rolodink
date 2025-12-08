@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     return redirectWithError(errorDescription ?? DEFAULT_ERROR_MESSAGE)
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createRouteHandlerClient({
     cookies: () => cookieStore,
   })
