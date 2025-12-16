@@ -283,13 +283,22 @@ export function useConnectionLogic(user: User | null) {
             const profileUrl = tabs[0]?.url;
             const profileName = tabs[0]?.title?.split(' | ')[0] || 'Onbekende Naam';
 
+            // Explicitely construct payload to ensure no fields are lost and empty strings are handled
+            const payload = {
+                name: profileName,
+                url: profileUrl,
+                meetingPlace: formData.meetingPlace || undefined,
+                userCompanyAtTheTime: formData.userCompanyAtTheTime || undefined,
+                notes: formData.notes || undefined
+            };
+
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ name: profileName, url: profileUrl, ...formData })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) throw new Error('Opslaan mislukt');

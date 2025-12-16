@@ -12,11 +12,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Edge Artifact
+        id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download ${{ github.event.release.tag_name }} -p "Rolodink-edge-*.zip"
-          echo "ZIP_FILE=$(ls Rolodink-edge-*.zip)" >> $GITHUB_ENV
+          echo "zip_file=$(ls Rolodink-edge-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Edge Add-ons Store
         uses: wdzeng/edge-addon@v1
@@ -25,4 +26,4 @@ jobs:
           client-id: ${{ secrets.EDGE_CLIENT_ID }}
           client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
           access-token-url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
-          zip-path: ${{ env.ZIP_FILE }}
+          zip-path: ${{ steps.download_artifact.outputs.zip_file }}
