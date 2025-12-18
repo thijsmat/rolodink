@@ -1,5 +1,5 @@
 // src/components/SettingsView.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import styles from './SettingsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { useUpdate } from '../context/UpdateContext';
@@ -22,7 +22,7 @@ export function SettingsView() {
   const [contextFieldEnabled, setContextFieldEnabled] = useState(true);
 
   // Load initial setting
-  useState(() => {
+  useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.get('contextFieldEnabled', (result) => {
         if (result.contextFieldEnabled !== undefined) {
@@ -30,7 +30,7 @@ export function SettingsView() {
         }
       });
     }
-  });
+  }, []);
 
   const toggleContextField = useCallback(async () => {
     const newValue = !contextFieldEnabled;
@@ -281,7 +281,7 @@ export function SettingsView() {
                 Toon een notitieveld op LinkedIn profielen van je connecties.
               </p>
             </div>
-            <label className={styles.toggleSwitch}>
+            <label className={styles.toggleSwitch} aria-label="Schakel profiel notitieveld in of uit">
               <input
                 type="checkbox"
                 checked={contextFieldEnabled}

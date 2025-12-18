@@ -20,7 +20,6 @@ async function loadApiBaseUrl() {
 function cleanProfileName(name) {
     if (!name) return name;
 
-    // console.log('Cleaning profile name:', name);
 
     // Normalize whitespace (including Unicode NBSP) first
     let cleaned = name.replace(/\u00A0/g, ' ');
@@ -44,7 +43,6 @@ function cleanProfileName(name) {
     // Collapse spaces again and trim
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
 
-    // console.log('Cleaned profile name:', cleaned);
     return cleaned;
 }
 
@@ -127,17 +125,14 @@ function injectCRMButton(anchorButton) {
                 if (exists) {
                     crmButton.innerText = "Already added ✔️";
                     crmButton.disabled = true;
-                    // console.log('Profiel reeds aanwezig, knop uitgeschakeld.');
                 }
             } catch (e) {
                 // Stil falen om UX niet te verstoren
-                // console.log('Kon bestaande connectie niet controleren:', e);
             }
         })();
 
         crmButton.onclick = async () => {
             try {
-                // console.log('CRM Button clicked - starting profile extraction...');
 
                 // More robust profile name extraction with multiple fallback selectors
                 let profileName = '';
@@ -150,15 +145,11 @@ function injectCRMButton(anchorButton) {
                     '[data-test-id="profile-name"]'
                 ];
 
-                // console.log('Trying selectors:', selectors);
 
                 for (const selector of selectors) {
                     const element = document.querySelector(selector);
-                    // console.log(`Selector "${selector}":`, element);
                     if (element && element.innerText && element.innerText.trim()) {
                         profileName = element.innerText.trim();
-                        // console.log('Found profile name from DOM:', profileName);
-                        // console.log('Element text:', element.textContent);
                         break;
                     }
                 }
@@ -166,13 +157,11 @@ function injectCRMButton(anchorButton) {
                 // If still no name found, try to get it from the page title
                 if (!profileName) {
                     const title = document.title;
-                    // console.log('Page title:', title);
                     if (title && title.includes('|')) {
                         profileName = title.split('|')[0].trim();
                     } else if (title) {
                         profileName = title.replace(' | LinkedIn', '').trim();
                     }
-                    // console.log('Profile name from title:', profileName);
                 }
 
                 // Clean up notification count from profile name (applies to ALL extraction methods)
@@ -188,7 +177,6 @@ function injectCRMButton(anchorButton) {
                 }
 
                 const profileUrl = window.location.href;
-                // console.log('Profile URL:', profileUrl);
 
                 // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
                 if (!chrome || !chrome.storage || !chrome.storage.local) {
@@ -201,7 +189,6 @@ function injectCRMButton(anchorButton) {
                 try {
                     const result = await chrome.storage.local.get('supabaseAccessToken');
                     authToken = result.supabaseAccessToken;
-                    // console.log('Auth token exists:', !!authToken);
                 } catch (err) {
                     console.error('Kon token niet ophalen uit storage:', err);
                     const message = err instanceof Error ? err.message : String(err);
@@ -220,7 +207,6 @@ function injectCRMButton(anchorButton) {
                 }
 
                 const requestBody = { name: profileName, url: profileUrl };
-                // console.log('Request body:', requestBody);
 
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -232,8 +218,6 @@ function injectCRMButton(anchorButton) {
                         body: JSON.stringify(requestBody),
                     });
 
-                    // console.log('Response status:', response.status);
-                    // console.log('Response ok:', response.ok);
 
                     if (response.ok) {
                         alert(`${profileName} has been successfully added!`);
@@ -250,7 +234,6 @@ function injectCRMButton(anchorButton) {
                             crmButton.innerText = "Already added ✔️";
                             crmButton.disabled = true;
                             // Eventueel een zachte notificatie
-                            // console.log('Connectie bestaat al, knop uitgeschakeld.');
                         } else {
                             alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
                         }
@@ -285,7 +268,6 @@ function injectCRMButton(anchorButton) {
 
 // Function to inject the Context Field (Note)
 async function injectContextField() {
-    // console.log('Rolodink: Checking for context field injection...');
 
     // 1. Check if already injected OR currently injecting (Race condition fix)
     // Check for ID OR class presence to catch any duplicates
@@ -343,38 +325,30 @@ async function injectContextField() {
             const anchor = findAnchorButton();
             if (anchor) {
                 // Debug: Trace parents to see what we are dealing with
-                // console.log('Rolodink Debug: Anchor found:', anchor.tagName, anchor.className);
                 let current = anchor.parentElement;
                 for (let i = 0; i < 5; i++) {
                     if (!current) break;
-                    // console.log(`Rolodink Debug: Ancestor ${i}: Tag=${current.tagName} Class="${current.className}" Height=${current.offsetHeight}`);
                     current = current.parentElement;
                 }
 
                 // Traverse up to find the main container (usually a SECTION tag)
                 const parentSection = anchor.closest('section');
                 if (parentSection) {
-                    // console.log(`Rolodink Debug: Found parent section. Height: ${parentSection.offsetHeight}`);
                     if (parentSection.offsetHeight > 100) {
                         // Verify it's not the sticky header
                         if (!parentSection.closest('.scaffold-layout__sticky-content')) {
                             topCard = parentSection;
-                            // console.log('Rolodink Debug: Found topCard via Anchor-Proximity fallback.');
                         } else {
-                            // console.log('Rolodink Debug: Parent section rejected (Sticky detected)');
                         }
                     } else {
-                        // console.log('Rolodink Debug: Parent section rejected (Height too small)');
                     }
                 } else {
-                    // console.log('Rolodink Debug: No parent section found for anchor.');
 
                     // Fallback 3b: If no section, maybe it's a DIV with specific class?
                     // Let's try to find a parent with class 'pv-top-card' manually if closest failed
                     // Or just the biggest parent < 5 levels up?
                 }
             } else {
-                // console.log('Rolodink Debug: No anchor button found.');
             }
         }
 
@@ -382,7 +356,6 @@ async function injectContextField() {
             // Debugging: Log ONLY ONCE per session/page-load to avoid spam if we can't find it
             if (!window.hasLoggedTopCardError) {
                 const count = document.querySelectorAll('.pv-top-card').length;
-                // console.log('Rolodink Debug: Profile top card not found. Candidates:', count);
                 // document.querySelectorAll('.pv-top-card').forEach((c, i) => {
                 //    console.log(`Candidate ${i}: Class="${c.className}" Height=${c.offsetHeight} Parent=${c.parentElement?.className}`);
                 // });
@@ -423,10 +396,8 @@ async function injectContextField() {
             }
         }
 
-        // console.log('Rolodink: Connection status check:', { is1stDegree });
 
         if (!is1stDegree) {
-            // console.log('Rolodink: Not a 1st degree connection.');
             window.rolodinkIsInjecting = false;
             return;
         }
@@ -445,13 +416,7 @@ async function injectContextField() {
 
             // FAILSAFE: Fallback traversal
             if (!actionsContainer) {
-                const parent = messageButton.parentElement;
-                if (parent && parent.children.length > 1) {
-                    actionsContainer = parent;
-                } else {
-                    actionsContainer = parent;
-                }
-                // console.log('Rolodink: Used fallback parent traversal.');
+                actionsContainer = messageButton.parentElement;
             }
         } else {
             // Fallback to direct selectors inside top card
@@ -532,11 +497,9 @@ async function injectContextField() {
 
             // Insert into DOM
             // Insert into DOM
-            // console.log('Rolodink Debug: Inserting context field container into DOM...');
             if (actionsContainer && actionsContainer.parentNode) {
                 // Insert after the actions container
                 actionsContainer.insertAdjacentElement('afterend', container);
-                // console.log('Rolodink Debug: Context field inserted.');
             } else {
                 // console.error('Rolodink Debug: Cannot insert. actionsContainer parent missing.', actionsContainer);
             }
@@ -679,7 +642,6 @@ function findAnchorButton() {
                 button.classList.contains('pvs-sticky-header-profile-actions__action');
 
             if (isSticky) {
-                // console.log('Rolodink: Skipping sticky button:', button);
                 continue; // Skip sticky buttons
             }
             return button; // Return the first non-sticky button found
