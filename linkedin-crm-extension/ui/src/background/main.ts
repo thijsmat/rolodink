@@ -26,11 +26,14 @@ async function logToStorage(message: string, data?: any) {
     }
 }
 
-try {
-    await logToStorage('Background script loaded (v1.0.9-lazy)');
-} catch (e) {
-    console.error(e);
-}
+// Wrap in IIFE to avoid top-level await issues in some environments
+(async () => {
+    try {
+        await logToStorage('Background script loaded (v1.0.9-lazy)');
+    } catch (e) {
+        console.error('Failed to log startup:', e);
+    }
+})();
 
 // Lazy Supabase Initialization
 let supabaseInstance: any = null;

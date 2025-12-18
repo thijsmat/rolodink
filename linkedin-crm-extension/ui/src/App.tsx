@@ -22,7 +22,7 @@ function Content() {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Only handle shortcuts when logged in and not in form inputs
       if (!isLoggedIn) return;
-      
+
       const target = event.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
@@ -59,9 +59,9 @@ function Content() {
           {isOffline ? (
             <OfflineError onRetry={fetchData} onDismiss={() => setToastMessage('')} />
           ) : (
-            <ErrorMessage 
-              error={error} 
-              onRetry={isProfilePageWarning ? clearError : fetchData} 
+            <ErrorMessage
+              error={error}
+              onRetry={isProfilePageWarning ? clearError : fetchData}
               onDismiss={() => {
                 clearError();
                 setToastMessage('');
@@ -125,9 +125,9 @@ function Content() {
     <div className={styles.container}>
       {/* Update Notification */}
       <UpdateNotification />
-      
+
       <div className={styles.header}>
-        <h1 className={styles.mainTitle}>Rolodink</h1>
+        <h1 className={styles.mainTitle}>Rolodink *</h1>
         <div className={styles.headerActions}>
           {isLoggedIn && !isListView && !isSettingsView && (
             <button onClick={showListView} className={styles.compactButton}>Toon alle connecties</button>

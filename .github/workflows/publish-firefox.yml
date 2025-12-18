@@ -17,11 +17,12 @@ jobs:
           node-version: '20'
 
       - name: Download Firefox Artifact
+        id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download ${{ github.event.release.tag_name }} -p "Rolodink-firefox-*.zip"
-          echo "ZIP_FILE=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_ENV
+          echo "zip_file=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Install web-ext
         run: npm install -g web-ext
@@ -33,6 +34,6 @@ jobs:
         run: |
           web-ext sign \
             --channel listed \
-            --source-dir ${{ env.ZIP_FILE }} \
+            --source-dir ${{ steps.download_artifact.outputs.zip_file }} \
             --api-key $WEB_EXT_API_KEY \
             --api-secret $WEB_EXT_API_SECRET

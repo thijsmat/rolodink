@@ -1,5 +1,5 @@
 // src/components/SettingsView.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import styles from './SettingsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { useUpdate } from '../context/UpdateContext';
@@ -19,6 +19,26 @@ export function SettingsView() {
     confirmPassword: ''
   });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [contextFieldEnabled, setContextFieldEnabled] = useState(true);
+
+  // Load initial setting
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get('contextFieldEnabled', (result) => {
+        if (result.contextFieldEnabled !== undefined) {
+          setContextFieldEnabled(result.contextFieldEnabled);
+        }
+      });
+    }
+  }, []);
+
+  const toggleContextField = useCallback(async () => {
+    const newValue = !contextFieldEnabled;
+    setContextFieldEnabled(newValue);
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      await chrome.storage.local.set({ contextFieldEnabled: newValue });
+    }
+  }, [contextFieldEnabled]);
 
   const handleCleanNames = useCallback(async () => {
     try {
@@ -253,6 +273,23 @@ export function SettingsView() {
               {isCleaning ? 'Bezig...' : '🧹 Opschonen'}
             </button>
           </div>
+
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>Profiel Notitieveld</h4>
+              <p className={styles.settingDescription}>
+                Toon een notitieveld op LinkedIn profielen van je connecties.
+              </p>
+            </div>
+            <label className={styles.toggleSwitch} aria-label="Schakel profiel notitieveld in of uit">
+              <input
+                type="checkbox"
+                checked={contextFieldEnabled}
+                onChange={toggleContextField}
+              />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
         </div>
 
         {/* Account Section */}
@@ -458,7 +495,7 @@ export function SettingsView() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
