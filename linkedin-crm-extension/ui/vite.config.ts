@@ -5,4 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './', // Zorgt voor relatieve paden in de build output
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      format: {
+        comments: false, // Remove all comments for Firefox AMO validation
+      },
+    },
+  },
 })

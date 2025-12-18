@@ -8,6 +8,12 @@ export default defineConfig(({ mode }) => {
             emptyOutDir: false,
             outDir: 'dist',
             target: 'esnext',
+            minify: 'terser',
+            terserOptions: {
+                format: {
+                    comments: false, // Remove all comments for Firefox AMO validation
+                },
+            },
             lib: {
                 entry: path.resolve(__dirname, 'src/background/main.ts'),
                 name: 'background',
