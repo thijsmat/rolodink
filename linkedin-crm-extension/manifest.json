@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rolodink",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
   "default_locale": "en",
   "permissions": [

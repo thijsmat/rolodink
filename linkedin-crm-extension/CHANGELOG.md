@@ -18,6 +18,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.10] - 2025-12-18
+
+### Fixed
+- **Context Field Authentication**
+  - Fixed "Not logged in" message appearing incorrectly in context field
+  - Synced access token to predictable storage key for content script
+  - Context field now correctly recognizes authenticated users
+  
+- **Code Quality**
+  - Fixed duplicate conditional branches (SonarQube Major Bug)
+  - Added accessible label to toggle switch (Accessibility)
+  - Fixed React anti-pattern: useState → useEffect for async operations
+  - Narrowed token sync scope to Supabase session keys only
+  
+### Changed
+- Updated "Add to CRM" button text to "Add to Rldnk" for branding consistency
+- Removed all commented-out debug logs for cleaner codebase (38 instances)
+
+---
+
 ## [1.0.8] - 2025-11-25
 
 ### Added
