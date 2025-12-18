@@ -53,6 +53,9 @@ rsync -a --delete \
   --exclude '*.tsx' \
   --exclude 'ui/src' \
   --exclude '.DS_Store' \
+  --exclude '*.sh' \
+  --exclude 'RELEASE-*.md' \
+  --exclude 'RELEASE_NOTES*.md' \
   "$EXT_DIR/" "$TMP_DIR/"
 
 # Overwrite manifest and content script for target

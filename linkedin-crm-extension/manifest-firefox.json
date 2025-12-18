@@ -3,6 +3,7 @@
   "name": "Rolodink",
   "version": "1.0.10",
   "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
+  "default_locale": "en",
   "privacy_policy_url": "https://rolodink.app/privacy",
   "permissions": [
     "activeTab",
@@ -14,7 +15,7 @@
   ],
   "background": {
     "scripts": [
-      "background.js"
+      "ui/dist/background.js"
     ],
     "persistent": false
   },
