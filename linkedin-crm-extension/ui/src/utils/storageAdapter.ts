@@ -63,7 +63,19 @@ export const chromeStorageAdapter: SupportedStorage = {
         const storage = getStorage();
         if (!storage) return;
         try {
-            await storage.set({ [key]: value });
+            const updates: Record<string, any> = { [key]: value };
+
+            // Rolodink Fix: Sync access token to a predictable key for content.js
+            try {
+                const parsed = JSON.parse(value);
+                if (parsed && typeof parsed === 'object' && typeof parsed.access_token === 'string') {
+                    updates['supabaseAccessToken'] = parsed.access_token;
+                }
+            } catch (e) {
+                // Ignore parsing errors, it might not be a session object
+            }
+
+            await storage.set(updates);
         } catch (error) {
             console.error('Error setting item in storage:', error);
         }
