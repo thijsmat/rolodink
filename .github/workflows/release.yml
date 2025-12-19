@@ -48,14 +48,23 @@ jobs:
         run: ls -lh dist/
         working-directory: .
 
+      - name: Prepare Release Notes
+        id: prepare_notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/ext-v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          export VERSION
+          envsubst < .github/RELEASE_TEMPLATE.md > RELEASE_NOTES.md
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          name: Rolodink v${{ env.VERSION }}
           files: |
             dist/Rolodink-chrome-*.zip
             dist/Rolodink-edge-*.zip
             dist/Rolodink-firefox-*.zip
-          body_path: .github/RELEASE_TEMPLATE.md
+          body_path: RELEASE_NOTES.md
           generate_release_notes: true
           draft: true
           prerelease: false
