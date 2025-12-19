@@ -105,8 +105,8 @@ export default function FeaturesPage() {
         {/* Features Grid */}
         <section className="container mx-auto max-w-6xl pb-16 md:pb-24 lg:pb-32">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => (
-              <Card key={index} className="flex flex-col border-azure/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            {features.map((feature) => (
+              <Card key={feature.title} className="flex flex-col border-azure/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                 <CardHeader>
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-azure text-background">
                     <feature.icon className="h-6 w-6" aria-hidden="true" />
@@ -118,8 +118,8 @@ export default function FeaturesPage() {
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <ul className="space-y-2">
-                    {feature.benefits.map((benefit, benefitIndex) => (
-                      <li key={benefitIndex} className="flex items-start text-sm text-grey">
+                    {feature.benefits.map((benefit) => (
+                      <li key={benefit} className="flex items-start text-sm text-grey">
                         <CheckCircle className="mr-2 mt-0.5 h-4 w-4 flex-shrink-0 text-gold" aria-hidden="true" />
                         <span>{benefit}</span>
                       </li>

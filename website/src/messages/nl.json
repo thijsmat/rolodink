@@ -1,0 +1,177 @@
+{
+    "Hero": {
+        "badge": "Gratis Chrome extensie",
+        "title": "Van de achterkant van een visitekaartje naar de toekomst van netwerken",
+        "subtitle": "Rolodink brengt de persoonlijke touch van business cards naar LinkedIn. Voeg moeiteloos persoonlijke notities toe aan elk contact en onthoud waarom jullie connectie waardevol is.",
+        "trustedBy": "Vertrouwd door professionals",
+        "demoCard": {
+            "name": "Jan de Vries",
+            "role": "Product Manager @ TechCorp",
+            "note": "Ontmoet op Networking Event Amsterdam. Geïnteresseerd in AI voor recruitment. Stuur artikel over ChatGPT."
+        }
+    },
+    "Features": {
+        "title": "De kracht van persoonlijke notities",
+        "description": "Alles wat je nodig hebt om je professionele netwerk effectief te beheren en betekenisvolle relaties op te bouwen.",
+        "items": {
+            "organize": {
+                "title": "Contacten organiseren & onthouden",
+                "description": "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom je contact hebt."
+            },
+            "details": {
+                "title": "Belangrijke details onthouden",
+                "description": "Onthoud belangrijke details over gesprekken, interesses en afspraken. Perfect voor het bijhouden van follow-ups en networking."
+            },
+            "relationships": {
+                "title": "Persoonlijke relaties opbouwen",
+                "description": "Maak elke interactie persoonlijk door relevante details bij de hand te hebben. Bouw sterkere, authentiekere professionele relaties op."
+            },
+            "privacy": {
+                "title": "Je notities blijven privé",
+                "description": "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. GDPR-compliant, geen gegevens worden gedeeld met derden."
+            },
+            "quickAdd": {
+                "title": "Snel toevoegen met één klik",
+                "description": "Voeg notities toe met één klik vanuit elk LinkedIn profiel. Snelle toegang tot al je contactinformatie wanneer je het nodig hebt."
+            },
+            "search": {
+                "title": "Slimme zoeken & filteren",
+                "description": "Filter en zoek door je notities om snel te vinden wat belangrijk is. Slimme organisatie voor effectief netwerkbeheer."
+            }
+        }
+    },
+    "Testimonials": {
+        "title": "Zo gebruiken professionals Rolodink",
+        "subtitle": "Ontdek hoe anderen hun netwerk versterken met persoonlijke notities.",
+        "items": [
+            {
+                "role": "Senior Recruiter @ TalentHub",
+                "notes": [
+                    {
+                        "text": "\"Ontmoet op Networking Event Amsterdam\""
+                    },
+                    {
+                        "text": "Geïnteresseerd in AI voor recruitment"
+                    },
+                    {
+                        "text": "→ Stuur artikel over ChatGPT"
+                    }
+                ]
+            },
+            {
+                "role": "CTO @ StartupX",
+                "notes": [
+                    {
+                        "text": "\"Kennismaking via LinkedIn\""
+                    },
+                    {
+                        "text": "Zoekt naar tech talent voor nieuwe project"
+                    },
+                    {
+                        "text": "→ Follow-up over developer posities"
+                    }
+                ]
+            },
+            {
+                "role": "Marketing Director @ BrandCo",
+                "notes": [
+                    {
+                        "text": "\"Gesproken over content strategie\""
+                    },
+                    {
+                        "text": "Plant een rebranding voor Q2"
+                    },
+                    {
+                        "text": "→ Deel case study volgende week"
+                    }
+                ]
+            }
+        ]
+    },
+    "FAQ": {
+        "title": "Veelgestelde vragen",
+        "subtitle": "Alles wat je moet weten over Rolodink",
+        "items": {
+            "why": {
+                "question": "Waarom Rolodink? Er zijn toch genoeg CRM-systemen?",
+                "answer": "Rolodink is specifiek ontworpen voor LinkedIn en focust op persoonlijke notities in plaats van complexe CRM-functies."
+            },
+            "free": {
+                "question": "Is Rolodink echt gratis?",
+                "answer": "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie. Geen creditcard nodig, geen limits."
+            },
+            "security": {
+                "question": "Hoe veilig zijn mijn notities?",
+                "answer": "Je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. We gebruiken end-to-end encryptie en voldoen aan GDPR en AVG-richtlijnen."
+            },
+            "mobile": {
+                "question": "Werkt Rolodink ook op mobiel?",
+                "answer": "Momenteel is Rolodink beschikbaar als Chrome extensie. Een mobiele versie is in ontwikkeling."
+            },
+            "export": {
+                "question": "Kan ik mijn notities exporteren?",
+                "answer": "Ja, je kunt al je notities exporteren naar verschillende formaten voor backup en overdracht."
+            },
+            "visibility": {
+                "question": "Zien anderen mijn notities op LinkedIn?",
+                "answer": "Nee, je notities zijn volledig privé en alleen zichtbaar voor jou."
+            },
+            "legal": {
+                "question": "Voldoet Rolodink aan privacy- en veiligheidswetten?",
+                "answer": "Ja, Rolodink voldoet aan GDPR, AVG, en alle relevante privacywetgeving. Je data wordt nooit gedeeld met derden."
+            },
+            "support": {
+                "question": "Hoe zit het met updates en ondersteuning?",
+                "answer": "Rolodink wordt regelmatig geupdate met nieuwe features en security patches. Ondersteuning is beschikbaar via ons Help Center."
+            }
+        }
+    },
+    "CTA": {
+        "title": "Klaar om je netwerk te versterken?",
+        "description": "Voeg Rolodink vandaag gratis toe en onthoud morgen waarom elke connectie werkt. Geen creditcard nodig, geen limits, alleen persoonlijke netwerk-management.",
+        "addToChrome": "Add to Chrome - Gratis",
+        "viewDemo": "Bekijk demo",
+        "badges": {
+            "free": "Gratis te gebruiken",
+            "privacy": "Privacy gegarandeerd",
+            "install": "Installatie in 30 seconden"
+        }
+    },
+    "Header": {
+        "nav": {
+            "features": "Functies",
+            "testimonials": "Ervaringen",
+            "faq": "FAQ"
+        },
+        "cta": "Gratis Installeren - 30 seconden"
+    },
+    "Footer": {
+        "description": "Breng de persoonlijke touch van business cards naar de digitale wereld. Onthoud waarom elke connectie waardevol is met Rolodink voor LinkedIn.",
+        "sections": {
+            "product": "Product",
+            "support": "Support"
+        },
+        "links": {
+            "features": "Functies",
+            "download": "Download",
+            "changelog": "Changelog",
+            "faq": "FAQ",
+            "helpCenter": "Help Center",
+            "contact": "Contact",
+            "privacy": "Privacybeleid",
+            "security": "Beveiliging",
+            "terms": "Algemene Voorwaarden",
+            "disclaimer": "Disclaimer"
+        },
+        "copyright": "Alle rechten voorbehouden."
+    },
+    "Metadata": {
+        "title": "Rolodink - Nooit meer vergeten wie je kent op LinkedIn",
+        "description": "Stop met vergeten wie je connecties zijn. Rolodink legt een slimme notitielaag over LinkedIn zodat je altijd direct context hebt bij elk gesprek."
+    },
+    "CookieBanner": {
+        "message": "Wij gebruiken cookies om de site goed te laten werken en voor anonieme statistieken.",
+        "accept": "Accepteren",
+        "decline": "Weigeren"
+    }
+}

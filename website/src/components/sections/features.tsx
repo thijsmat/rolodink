@@ -1,46 +1,43 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Users, Lightbulb, Heart, Shield, Zap, Target } from "lucide-react";
-
-const features = [
-  {
-    icon: Users,
-    title: "Contacten organiseren & onthouden",
-    description:
-      "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom je contact hebt.",
-  },
-  {
-    icon: Lightbulb,
-    title: "Belangrijke details onthouden",
-    description:
-      "Onthoud belangrijke details over gesprekken, interesses en afspraken. Perfect voor het bijhouden van follow-ups en networking.",
-  },
-  {
-    icon: Heart,
-    title: "Persoonlijke relaties opbouwen",
-    description:
-      "Maak elke interactie persoonlijk door relevante details bij de hand te hebben. Bouw sterkere, authentiekere professionele relaties op.",
-  },
-  {
-    icon: Shield,
-    title: "Je notities blijven privé",
-    description:
-      "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. GDPR-compliant, geen gegevens worden gedeeld met derden.",
-  },
-  {
-    icon: Zap,
-    title: "Snel toevoegen met één klik",
-    description:
-      "Voeg notities toe met één klik vanuit elk LinkedIn profiel. Snelle toegang tot al je contactinformatie wanneer je het nodig hebt.",
-  },
-  {
-    icon: Target,
-    title: "Slimme zoeken & filteren",
-    description:
-      "Filter en zoek door je notities om snel te vinden wat belangrijk is. Slimme organisatie voor effectief netwerkbeheer.",
-  },
-];
+import { useTranslations } from 'next-intl';
 
 export default function Features() {
+  const t = useTranslations('Features');
+
+  const features = [
+    {
+      icon: Users,
+      title: t('items.organize.title'),
+      description: t('items.organize.description'),
+    },
+    {
+      icon: Lightbulb,
+      title: t('items.details.title'),
+      description: t('items.details.description'),
+    },
+    {
+      icon: Heart,
+      title: t('items.relationships.title'),
+      description: t('items.relationships.description'),
+    },
+    {
+      icon: Shield,
+      title: t('items.privacy.title'),
+      description: t('items.privacy.description'),
+    },
+    {
+      icon: Zap,
+      title: t('items.quickAdd.title'),
+      description: t('items.quickAdd.description'),
+    },
+    {
+      icon: Target,
+      title: t('items.search.title'),
+      description: t('items.search.description'),
+    },
+  ];
+
   return (
     <section
       id="features"
@@ -49,11 +46,10 @@ export default function Features() {
       <div className="max-w-[1136px] mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-5xl text-azure mb-3 sm:mb-4">
-            De kracht van persoonlijke notities
+            {t('title')}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-grey max-w-[672px] mx-auto px-4 sm:px-0">
-            Alles wat je nodig hebt om je professionele netwerk effectief te
-            beheren en betekenisvolle relaties op te bouwen.
+            {t('description')}
           </p>
         </div>
 

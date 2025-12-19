@@ -1,40 +1,35 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
-const testimonials = [
+const testimonialsData = [
   {
     name: "Sarah van Berg",
-    role: "Senior Recruiter @ TalentHub",
     initials: "SvB",
-    notes: [
-      { type: "quote", text: '"Ontmoet op Networking Event Amsterdam"' },
-      { type: "normal", text: "Geïnteresseerd in AI voor recruitment" },
-      { type: "action", text: "→ Stuur artikel over ChatGPT" },
-    ],
   },
   {
     name: "Michael Peters",
-    role: "CTO @ StartupX",
     initials: "MP",
-    notes: [
-      { type: "quote", text: '"Kennismaking via LinkedIn"' },
-      { type: "normal", text: "Zoekt naar tech talent voor nieuwe project" },
-      { type: "action", text: "→ Follow-up over developer posities" },
-    ],
   },
   {
     name: "Linda Jansen",
-    role: "Marketing Director @ BrandCo",
     initials: "LJ",
-    notes: [
-      { type: "quote", text: '"Gesproken over content strategie"' },
-      { type: "normal", text: "Plant een rebranding voor Q2" },
-      { type: "action", text: "→ Deel case study volgende week" },
-    ],
   },
 ];
 
 export default function Testimonials() {
+  const t = useTranslations('Testimonials');
+
+  const testimonials = testimonialsData.map((person, i) => ({
+    ...person,
+    role: t(`items.${i}.role`),
+    notes: [
+      { type: "quote", text: t(`items.${i}.notes.0.text`) },
+      { type: "normal", text: t(`items.${i}.notes.1.text`) },
+      { type: "action", text: t(`items.${i}.notes.2.text`) },
+    ],
+  }));
+
   return (
     <section
       id="testimonials"
@@ -43,10 +38,10 @@ export default function Testimonials() {
       <div className="max-w-[1136px] mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-5xl text-azure mb-3 sm:mb-4">
-            Zo gebruiken professionals Rolodink
+            {t('title')}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-grey max-w-[672px] mx-auto px-4 sm:px-0">
-            Ontdek hoe anderen hun netwerk versterken met persoonlijke notities.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -110,22 +105,20 @@ export default function Testimonials() {
                   {testimonial.notes.map((note, noteIndex) => (
                     <div key={noteIndex} className="flex items-start gap-2">
                       <div
-                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${
-                          note.type === "quote"
+                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${note.type === "quote"
                             ? "bg-gold"
                             : note.type === "action"
                               ? "bg-azure"
                               : "bg-link-blue"
-                        }`}
+                          }`}
                       ></div>
                       <p
-                        className={`text-xs sm:text-sm ${
-                          note.type === "quote"
+                        className={`text-xs sm:text-sm ${note.type === "quote"
                             ? "text-grey italic"
                             : note.type === "action"
                               ? "text-azure font-medium"
                               : "text-grey"
-                        }`}
+                          }`}
                       >
                         {note.text}
                       </p>

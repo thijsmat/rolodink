@@ -6,7 +6,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { pageSEO } from "@/lib/seo";
 import { getExtensionUrl } from "@/lib/utils";
 
 export const metadata = {

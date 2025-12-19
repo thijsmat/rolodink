@@ -1,5 +1,4 @@
 import { SiteFooter } from "@/components/site-footer";
-import { pageSEO } from "@/lib/seo";
 
 export const metadata = {
   title: "Security - Rolodink",

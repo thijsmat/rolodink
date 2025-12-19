@@ -1,0 +1,177 @@
+{
+    "Hero": {
+        "badge": "Free Chrome extension",
+        "title": "From the back of a business card to the future of networking",
+        "subtitle": "Rolodink brings the personal touch of business cards to LinkedIn. Effortlessly add personal notes to every contact and remember why your connection is valuable.",
+        "trustedBy": "Trusted by professionals",
+        "demoCard": {
+            "name": "Jan de Vries",
+            "role": "Product Manager @ TechCorp",
+            "note": "Met at Networking Event Amsterdam. Interested in AI for recruitment. Send article about ChatGPT."
+        }
+    },
+    "Features": {
+        "title": "The power of personal notes",
+        "description": "Everything you need to effectively manage your professional network and build meaningful relationships.",
+        "items": {
+            "organize": {
+                "title": "Organize & remember contacts",
+                "description": "Organize all your LinkedIn connections with personal notes and context. Never forget who someone is or why you are in contact."
+            },
+            "details": {
+                "title": "Remember important details",
+                "description": "Remember important details about conversations, interests, and appointments. Perfect for keeping track of follow-ups and networking."
+            },
+            "relationships": {
+                "title": "Build personal relationships",
+                "description": "Make every interaction personal by having relevant details at hand. Build stronger, more authentic professional relationships."
+            },
+            "privacy": {
+                "title": "Your notes stay private",
+                "description": "All your notes are securely stored with encryption and are only visible to you. GDPR-compliant, no data is shared with third parties."
+            },
+            "quickAdd": {
+                "title": "Quick add with one click",
+                "description": "Add notes with one click from any LinkedIn profile. Quick access to all your contact information when you need it."
+            },
+            "search": {
+                "title": "Smart search & filter",
+                "description": "Filter and search through your notes to quickly find what is important. Smart organization for effective network management."
+            }
+        }
+    },
+    "Testimonials": {
+        "title": "How professionals use Rolodink",
+        "subtitle": "Discover how others strengthen their network with personal notes.",
+        "items": [
+            {
+                "role": "Senior Recruiter @ TalentHub",
+                "notes": [
+                    {
+                        "text": "\"Met at Networking Event Amsterdam\""
+                    },
+                    {
+                        "text": "Interested in AI for recruitment"
+                    },
+                    {
+                        "text": "→ Send article about ChatGPT"
+                    }
+                ]
+            },
+            {
+                "role": "CTO @ StartupX",
+                "notes": [
+                    {
+                        "text": "\"Intro via LinkedIn\""
+                    },
+                    {
+                        "text": "Looking for tech talent for new project"
+                    },
+                    {
+                        "text": "→ Follow-up about developer positions"
+                    }
+                ]
+            },
+            {
+                "role": "Marketing Director @ BrandCo",
+                "notes": [
+                    {
+                        "text": "\"Spoke about content strategy\""
+                    },
+                    {
+                        "text": "Planning rebranding for Q2"
+                    },
+                    {
+                        "text": "→ Share case study next week"
+                    }
+                ]
+            }
+        ]
+    },
+    "FAQ": {
+        "title": "Frequently Asked Questions",
+        "subtitle": "Everything you need to know about Rolodink",
+        "items": {
+            "why": {
+                "question": "Why Rolodink? Aren't there enough CRM systems?",
+                "answer": "Rolodink is specifically designed for LinkedIn and focuses on personal notes instead of complex CRM functions."
+            },
+            "free": {
+                "question": "Is Rolodink really free?",
+                "answer": "Yes, Rolodink is completely free to use as a Chrome extension. No credit card required, no limits."
+            },
+            "security": {
+                "question": "How secure are my notes?",
+                "answer": "Your notes are securely stored with encryption and are only visible to you. We use end-to-end encryption and comply with GDPR guidelines."
+            },
+            "mobile": {
+                "question": "Does Rolodink work on mobile?",
+                "answer": "Currently, Rolodink is available as a Chrome extension. A mobile version is in development."
+            },
+            "export": {
+                "question": "Can I export my notes?",
+                "answer": "Yes, you can export all your notes to various formats for backup and transfer."
+            },
+            "visibility": {
+                "question": "Do others see my notes on LinkedIn?",
+                "answer": "No, your notes are completely private and only visible to you."
+            },
+            "legal": {
+                "question": "Does Rolodink comply with privacy laws?",
+                "answer": "Yes, Rolodink complies with GDPR and all relevant privacy legislation. Your data is never shared with third parties."
+            },
+            "support": {
+                "question": "What about updates and support?",
+                "answer": "Rolodink is regularly updated with new features and security patches. Support is available via our Help Center."
+            }
+        }
+    },
+    "CTA": {
+        "title": "Ready to strengthen your network?",
+        "description": "Add Rolodink today for free and remember tomorrow why every connection works. No credit card needed, no limits, just personal network management.",
+        "addToChrome": "Add to Chrome - Free",
+        "viewDemo": "View demo",
+        "badges": {
+            "free": "Free to use",
+            "privacy": "Privacy guaranteed",
+            "install": "Install in 30 seconds"
+        }
+    },
+    "Header": {
+        "nav": {
+            "features": "Features",
+            "testimonials": "Testimonials",
+            "faq": "FAQ"
+        },
+        "cta": "Install Free - 30 seconds"
+    },
+    "Footer": {
+        "description": "Bring the personal touch of business cards to the digital world. Remember why every connection is valuable with Rolodink for LinkedIn.",
+        "sections": {
+            "product": "Product",
+            "support": "Support"
+        },
+        "links": {
+            "features": "Features",
+            "download": "Download",
+            "changelog": "Changelog",
+            "faq": "FAQ",
+            "helpCenter": "Help Center",
+            "contact": "Contact",
+            "privacy": "Privacy Policy",
+            "security": "Security",
+            "terms": "Terms of Service",
+            "disclaimer": "Disclaimer"
+        },
+        "copyright": "All rights reserved."
+    },
+    "Metadata": {
+        "title": "Rolodink - Never forget who you know on LinkedIn",
+        "description": "Stop forgetting who your connections are. Rolodink adds a smart note layer over LinkedIn so you always have immediate context for every conversation."
+    },
+    "CookieBanner": {
+        "message": "We use cookies to ensure the site functions properly and for anonymous statistics.",
+        "accept": "Accept",
+        "decline": "Decline"
+    }
+}

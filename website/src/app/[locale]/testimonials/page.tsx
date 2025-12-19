@@ -1,74 +1,12 @@
 import { SiteFooter } from "@/components/site-footer";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import { testimonials, getNoteColorClass, getNoteTextClass } from "@/lib/testimonials-data";
 
 export const metadata = {
     title: "Testimonials - Rolodink",
     description: "Ontdek hoe professionals Rolodink gebruiken om hun netwerk te versterken.",
 };
-
-const testimonials = [
-    {
-        name: "Sarah van Berg",
-        role: "Senior Recruiter @ TalentHub",
-        initials: "SvB",
-        notes: [
-            { type: "quote", text: '"Ontmoet op Networking Event Amsterdam"' },
-            { type: "normal", text: "Geïnteresseerd in AI voor recruitment" },
-            { type: "action", text: "→ Stuur artikel over ChatGPT" },
-        ],
-    },
-    {
-        name: "Michael Peters",
-        role: "CTO @ StartupX",
-        initials: "MP",
-        notes: [
-            { type: "quote", text: '"Kennismaking via LinkedIn"' },
-            { type: "normal", text: "Zoekt naar tech talent voor nieuwe project" },
-            { type: "action", text: "→ Follow-up over developer posities" },
-        ],
-    },
-    {
-        name: "Linda Jansen",
-        role: "Marketing Director @ BrandCo",
-        initials: "LJ",
-        notes: [
-            { type: "quote", text: '"Gesproken over content strategie"' },
-            { type: "normal", text: "Plant een rebranding voor Q2" },
-            { type: "action", text: "→ Deel case study volgende week" },
-        ],
-    },
-    {
-        name: "David de Vries",
-        role: "Sales Manager @ CloudSolutions",
-        initials: "DV",
-        notes: [
-            { type: "quote", text: '"Lead via webinar"' },
-            { type: "normal", text: "Heeft interesse in enterprise plan" },
-            { type: "action", text: "→ Plan demo in voor volgende week" },
-        ],
-    },
-    {
-        name: "Emma Bakker",
-        role: "Freelance Designer",
-        initials: "EB",
-        notes: [
-            { type: "quote", text: '"Oud-collega van DesignAgency"' },
-            { type: "normal", text: "Beschikbaar voor nieuwe projecten vanaf mei" },
-            { type: "action", text: "→ Introductie bij Marketing team" },
-        ],
-    },
-    {
-        name: "Tom Wouters",
-        role: "Investment Banker",
-        initials: "TW",
-        notes: [
-            { type: "quote", text: '"Ontmoet tijdens golf toernooi"' },
-            { type: "normal", text: "Zoekt investeringsmogelijkheden in SaaS" },
-            { type: "action", text: "→ Stuur pitch deck" },
-        ],
-    },
-];
 
 export default function TestimonialsPage() {
     return (
@@ -87,9 +25,9 @@ export default function TestimonialsPage() {
                 {/* Testimonials Grid */}
                 <section className="container mx-auto max-w-6xl pb-16 md:pb-24 lg:pb-32">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                        {testimonials.map((testimonial, index) => (
+                        {testimonials.map((testimonial) => (
                             <Card
-                                key={index}
+                                key={testimonial.name}
                                 className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl p-4 sm:p-8 relative hover:shadow-lg transition-shadow duration-300"
                             >
                                 <CardHeader className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6 p-0">
@@ -106,9 +44,9 @@ export default function TestimonialsPage() {
                                             {testimonial.role}
                                         </p>
                                         <div className="flex gap-0.5 mt-1">
-                                            {[1, 2, 3, 4, 5].map((i) => (
+                                            {[1, 2, 3, 4, 5].map((starIndex) => (
                                                 <Star
-                                                    key={i}
+                                                    key={`star-${starIndex}`}
                                                     className="h-4 w-4 text-gold fill-current"
                                                 />
                                             ))}
@@ -143,23 +81,13 @@ export default function TestimonialsPage() {
 
                                 <CardContent className="p-0">
                                     <div className="bg-background border border-gold/20 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm space-y-3 relative z-10">
-                                        {testimonial.notes.map((note, noteIndex) => (
-                                            <div key={noteIndex} className="flex items-start gap-2">
+                                        {testimonial.notes.map((note) => (
+                                            <div key={note.text} className="flex items-start gap-2">
                                                 <div
-                                                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${note.type === "quote"
-                                                            ? "bg-gold"
-                                                            : note.type === "action"
-                                                                ? "bg-azure"
-                                                                : "bg-link-blue"
-                                                        }`}
+                                                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${getNoteColorClass(note.type)}`}
                                                 ></div>
                                                 <p
-                                                    className={`text-xs sm:text-sm ${note.type === "quote"
-                                                            ? "text-grey italic"
-                                                            : note.type === "action"
-                                                                ? "text-azure font-medium"
-                                                                : "text-grey"
-                                                        }`}
+                                                    className={`text-xs sm:text-sm ${getNoteTextClass(note.type)}`}
                                                 >
                                                     {note.text}
                                                 </p>
