@@ -1,11 +1,12 @@
-import type { Metadata, Viewport } from 'next'
+import type { Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import '../globals.css'
 import { Analytics } from "@vercel/analytics/next"
 import { SiteHeader } from "@/components/site-header"
-
 import { CookieBanner } from "@/components/cookie-banner"
 import { Analytics as GoogleAnalytics } from "@/components/analytics"
+import { NextIntlClientProvider } from 'next-intl';
+import { getTranslations, getMessages } from 'next-intl/server';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
@@ -18,12 +19,10 @@ export const viewport: Viewport = {
   themeColor: '#1B2951',
 }
 
-import { getTranslations } from 'next-intl/server';
-
 export async function generateMetadata({
   params
 }: {
-  params: Promise<{ locale: string }>
+  readonly params: Promise<{ locale: string }>
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Metadata' });
@@ -74,15 +73,12 @@ export async function generateMetadata({
   };
 }
 
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-
 export default async function RootLayout({
   children,
   params
 }: {
-  children: React.ReactNode,
-  params: Promise<{ locale: string }>
+  readonly children: React.ReactNode,
+  readonly params: Promise<{ locale: string }>
 }) {
   const { locale } = await params;
   const messages = await getMessages();

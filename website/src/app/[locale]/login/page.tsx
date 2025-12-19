@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LinkedInSignInButton from '@/components/LinkedInSignInButton'
-import { Separator } from '@/components/ui/separator'
+
 import { EmailPasswordForm } from '@/components/EmailPasswordForm'
 
 export const metadata: Metadata = {
@@ -20,12 +20,12 @@ type LoginPageProps = {
 export default async function LoginPage(props: Readonly<LoginPageProps>) {
   const searchParams = await props.searchParams
   const oauthErrorParam = searchParams?.oauth_error
-  const oauthError =
-    typeof oauthErrorParam === 'string'
-      ? oauthErrorParam
-      : Array.isArray(oauthErrorParam)
-        ? oauthErrorParam[0]
-        : null
+  let oauthError: string | null = null;
+  if (typeof oauthErrorParam === 'string') {
+    oauthError = oauthErrorParam;
+  } else if (Array.isArray(oauthErrorParam) && oauthErrorParam.length > 0) {
+    oauthError = oauthErrorParam[0];
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">

@@ -19,12 +19,12 @@ type SignupPageProps = {
 export default async function SignupPage(props: Readonly<SignupPageProps>) {
   const searchParams = await props.searchParams
   const oauthErrorParam = searchParams?.oauth_error
-  const oauthError =
-    typeof oauthErrorParam === 'string'
-      ? oauthErrorParam
-      : Array.isArray(oauthErrorParam)
-        ? oauthErrorParam[0]
-        : null
+  let oauthError: string | null = null;
+  if (typeof oauthErrorParam === 'string') {
+    oauthError = oauthErrorParam;
+  } else if (Array.isArray(oauthErrorParam) && oauthErrorParam.length > 0) {
+    oauthError = oauthErrorParam[0];
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">

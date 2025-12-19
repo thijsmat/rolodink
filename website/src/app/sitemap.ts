@@ -54,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         changeFrequency = 'weekly'
       } else if (['/features', '/how-it-works'].includes(route)) {
         priority = 0.8
-        changeFrequency = 'monthly'
+        // changeFrequency stays 'monthly' (default)
       } else if (['/login', '/signup'].includes(route)) {
         priority = 0.7
         changeFrequency = 'yearly' // These pages don't change often in terms of SEO content
