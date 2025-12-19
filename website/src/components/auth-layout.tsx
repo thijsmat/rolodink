@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import LinkedInSignInButton from '@/components/LinkedInSignInButton';
 import { EmailPasswordForm } from '@/components/EmailPasswordForm';
 
