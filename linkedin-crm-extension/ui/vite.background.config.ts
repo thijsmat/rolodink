@@ -8,11 +8,9 @@ export default defineConfig(({ mode }) => {
             emptyOutDir: false,
             outDir: 'dist',
             target: 'esnext',
-            minify: 'terser',
-            terserOptions: {
-                format: {
-                    comments: false, // Remove all comments for Firefox AMO validation
-                },
+            minify: 'esbuild', // Use esbuild (faster and better comment removal)
+            esbuild: {
+                legalComments: 'none', // Remove ALL comments including @license
             },
             lib: {
                 entry: path.resolve(__dirname, 'src/background/main.ts'),
