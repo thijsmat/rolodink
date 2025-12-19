@@ -1,5 +1,7 @@
 const createNextIntlPlugin = require('next-intl/plugin');
 
+// Let next-intl auto-discover the config at src/i18n.ts
+// which re-exports from ./i18n/request.ts
 const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
