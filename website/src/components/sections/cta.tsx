@@ -1,8 +1,10 @@
 import { Chrome, ArrowRight, Check } from "lucide-react";
 import { getExtensionUrl } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 export default function CTA() {
   const extensionUrl = getExtensionUrl();
+  const t = useTranslations('CTA');
 
   return (
     <section className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-azure to-azure/80 relative overflow-hidden">
@@ -12,10 +14,10 @@ export default function CTA() {
       <div className="max-w-[896px] mx-auto relative z-10">
         <div className="text-center mb-6 sm:mb-8">
           <h2 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-5xl text-white mb-3 sm:mb-4">
-            Klaar om je netwerk te versterken?
+            {t('title')}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-white/80 max-w-[672px] mx-auto px-4 sm:px-0">
-            Voeg Rolodink vandaag gratis toe en onthoud morgen waarom elke connectie werkt. Geen creditcard nodig, geen limits, alleen persoonlijke netwerk-management.
+            {t('description')}
           </p>
         </div>
 
@@ -27,13 +29,13 @@ export default function CTA() {
             className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors items-center justify-center gap-2"
           >
             <Chrome className="h-4 w-4" />
-            Add to Chrome - Gratis
+            {t('addToChrome')}
           </a>
           <a
             href="#features"
             className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors items-center justify-center gap-2"
           >
-            Bekijk demo
+            {t('viewDemo')}
             <ArrowRight className="h-4 w-4" />
           </a>
         </div>
@@ -41,15 +43,15 @@ export default function CTA() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-white/70 text-xs sm:text-sm flex-wrap">
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 flex-shrink-0 text-gold" />
-            <span>Gratis te gebruiken</span>
+            <span>{t('badges.free')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 flex-shrink-0 text-gold" />
-            <span>Privacy gegarandeerd</span>
+            <span>{t('badges.privacy')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 flex-shrink-0 text-gold" />
-            <span>Installatie in 30 seconden</span>
+            <span>{t('badges.install')}</span>
           </div>
         </div>
       </div>

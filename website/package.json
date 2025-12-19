@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "lint": "next lint",
     "start": "next start",
     "clean": "rm -rf .next"
@@ -28,6 +28,7 @@
     "merge2": "^1.4.1",
     "micromatch": "^4.0.5",
     "next": "^16.0.10",
+    "next-intl": "^4.6.1",
     "next-seo": "^6.6.0",
     "object-hash": "^3.0.0",
     "postcss-js": "^4.0.1",

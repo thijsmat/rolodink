@@ -1,8 +1,10 @@
 import { Chrome, Star } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
 import { getExtensionUrl } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 export default function Hero() {
+  const t = useTranslations('Hero');
   const extensionUrl = getExtensionUrl();
 
   return (
@@ -13,19 +15,16 @@ export default function Hero() {
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-gold/20 bg-gold/10 self-start">
               <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0"></div>
               <span className="text-xs sm:text-sm text-gold">
-                Gratis Chrome extensie
+                {t('badge')}
               </span>
             </div>
 
             <h1 className="font-playfair font-semibold text-3xl sm:text-4xl lg:text-[60px] leading-tight sm:leading-[1.2] lg:leading-[75px] text-azure">
-              Van de achterkant van een visitekaartje naar de toekomst van
-              netwerken
+              {t('title')}
             </h1>
 
             <p className="text-base sm:text-lg lg:text-xl leading-relaxed sm:leading-[1.6] lg:leading-[32.5px] text-grey">
-              Rolodink brengt de persoonlijke touch van business cards naar
-              LinkedIn. Voeg moeiteloos persoonlijke notities toe aan elk
-              contact en onthoud waarom jullie connectie waardevol is.
+              {t('subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -69,7 +68,7 @@ export default function Hero() {
                   ))}
                 </div>
                 <span className="text-xs sm:text-sm text-grey">
-                  Vertrouwd door professionals
+                  {t('trustedBy')}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -98,17 +97,16 @@ export default function Hero() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-azure text-sm sm:text-base truncate">
-                      Jan de Vries
+                      {t('demoCard.name')}
                     </h3>
                     <p className="text-xs sm:text-sm text-grey truncate">
-                      Product Manager @ TechCorp
+                      {t('demoCard.role')}
                     </p>
                   </div>
                 </div>
                 <div className="bg-background border border-gold/20 rounded-lg sm:rounded-xl p-3 sm:p-4 relative z-10">
                   <p className="text-xs sm:text-sm text-grey italic leading-relaxed">
-                    "Ontmoet op Networking Event Amsterdam. Geïnteresseerd in AI
-                    voor recruitment. Stuur artikel over ChatGPT."
+                    "{t('demoCard.note')}"
                   </p>
                 </div>
               </div>

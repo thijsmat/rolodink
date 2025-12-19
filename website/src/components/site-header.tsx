@@ -1,9 +1,8 @@
 "use client";
 
-import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Menu, Moon, Sun } from 'lucide-react'
+import { Menu, Moon, Sun, Globe } from 'lucide-react'
 import { cn, getExtensionUrl } from '@/lib/utils'
 import {
   NavigationMenu,
@@ -19,19 +18,25 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { useTranslations, useLocale } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/navigation';
 
 const EXTENSION_URL = getExtensionUrl();
-
-const navLinks = [
-  { href: "/features", label: "Features" },
-  { href: "/testimonials", label: "Testimonials" },
-  { href: "/help", label: "FAQ" },
-];
 
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const t = useTranslations('Header');
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/features", label: t('nav.features') },
+    { href: "/testimonials", label: t('nav.testimonials') },
+    { href: "/help", label: t('nav.faq') },
+  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,6 +51,11 @@ export function SiteHeader() {
     setIsDark(newDark);
     localStorage.setItem('theme', newDark ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', newDark);
+  };
+
+  const toggleLanguage = () => {
+    const nextLocale = locale === 'nl' ? 'en' : 'nl';
+    router.replace(pathname, { locale: nextLocale });
   };
 
   if (!isMounted) return null;
@@ -69,21 +79,32 @@ export function SiteHeader() {
             {navLinks.map((link) => (
               <NavigationMenuItem key={link.href}>
                 <NavigationMenuLink
-                  href={link.href}
+                  asChild
                   className={cn(
                     navigationMenuTriggerStyle(),
                     "text-sm text-azure hover:text-azure/80 bg-transparent hover:bg-azure/5"
                   )}
                 >
-                  {link.label}
+                  <Link href={link.href}>
+                    {link.label}
+                  </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             ))}
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Right: Theme Toggle + CTA + Mobile Menu */}
+        {/* Right: Theme Toggle + Language Toggle + CTA + Mobile Menu */}
         <div className="flex items-center justify-end gap-3">
+          {/* Language Toggle Button */}
+          <button
+            onClick={toggleLanguage}
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-azure/5 transition-colors duration-200 ease-out font-medium text-xs text-azure"
+            aria-label="Switch language"
+          >
+            {locale === 'nl' ? 'EN' : 'NL'}
+          </button>
+
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -103,7 +124,7 @@ export function SiteHeader() {
             className="hidden md:inline-flex h-9 px-4 bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg"
           >
             <Link href="/download">
-              Gratis Installeren - 30 seconden
+              {t('cta')}
             </Link>
           </Button>
 
@@ -122,21 +143,31 @@ export function SiteHeader() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <div className="flex flex-col space-y-4 mt-8">
                 {navLinks.map((link) => (
-                  <a
+                  <Link
                     key={link.href}
                     href={link.href}
                     className="text-sm text-azure hover:text-azure/80 transition-colors duration-200 ease-out py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 ))}
+                <button
+                  onClick={() => {
+                    toggleLanguage();
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-sm text-azure hover:text-azure/80 transition-colors duration-200 ease-out py-2 text-left flex items-center gap-2"
+                >
+                  <Globe className="h-4 w-4" />
+                  Switch to {locale === 'nl' ? 'English' : 'Dutch'}
+                </button>
                 <Button
                   asChild
                   className="w-full bg-azure hover:bg-azure/90 text-white text-sm font-medium rounded-lg mt-4"
                 >
                   <Link href="/download" onClick={() => setIsMenuOpen(false)}>
-                    Gratis Installeren - 30 seconden
+                    {t('cta')}
                   </Link>
                 </Button>
               </div>

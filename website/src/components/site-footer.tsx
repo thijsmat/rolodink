@@ -1,8 +1,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { Twitter, Linkedin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function SiteFooter() {
+  const t = useTranslations('Footer');
+
   return (
     <footer className="w-full bg-background border-t border-azure/10">
       <div className="max-w-[1136px] mx-auto px-8 py-16">
@@ -19,7 +22,7 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="text-sm text-grey leading-relaxed max-w-xs">
-              Breng de persoonlijke touch van business cards naar de digitale wereld. Onthoud waarom elke connectie waardevol is met Rolodink voor LinkedIn.
+              {t('description')}
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-4 mt-6">
@@ -57,38 +60,38 @@ export function SiteFooter() {
 
           {/* Product Column */}
           <div>
-            <h3 className="text-sm font-semibold text-azure mb-4">Product</h3>
+            <h3 className="text-sm font-semibold text-azure mb-4">{t('sections.product')}</h3>
             <nav className="space-y-3">
               <Link href="/features" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Features
+                {t('links.features')}
               </Link>
               <Link href="/download" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Download
+                {t('links.download')}
               </Link>
               <Link href="/changelog" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Changelog
+                {t('links.changelog')}
               </Link>
             </nav>
           </div>
 
           {/* Support Column */}
           <div>
-            <h3 className="text-sm font-semibold text-azure mb-4">Support</h3>
+            <h3 className="text-sm font-semibold text-azure mb-4">{t('sections.support')}</h3>
             <nav className="space-y-3">
               <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                FAQ
+                {t('links.faq')}
               </Link>
               <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Help Center
+                {t('links.helpCenter')}
               </Link>
               <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Contact
+                {t('links.contact')}
               </Link>
               <Link href="/privacy" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Privacy Policy
+                {t('links.privacy')}
               </Link>
               <Link href="/security" as="/security" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                Security
+                {t('links.security')}
               </Link>
             </nav>
           </div>
@@ -103,17 +106,17 @@ export function SiteFooter() {
         {/* Bottom Section: Copyright + Legal */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-sm text-grey">
-            © {new Date().getFullYear()} Rolodink. Alle rechten voorbehouden.
+            © {new Date().getFullYear()} Rolodink. {t('copyright')}
           </p>
           <nav className="flex items-center gap-6">
             <Link href="/terms" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-              Terms of Service
+              {t('links.terms')}
             </Link>
             <Link href="/privacy" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-              Privacy Policy
+              {t('links.privacy')}
             </Link>
             <Link href="/disclaimer" className="text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-              Disclaimer
+              {t('links.disclaimer')}
             </Link>
           </nav>
         </div>
