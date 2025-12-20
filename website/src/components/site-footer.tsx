@@ -1,5 +1,7 @@
+"use client";
+
 import * as React from "react";
-import Link from "next/link";
+import { Link } from '@/navigation';
 import { Twitter, Linkedin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -90,7 +92,7 @@ export function SiteFooter() {
               <Link href="/privacy" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.privacy')}
               </Link>
-              <Link href="/security" as="/security" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+              <Link href="/security" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.security')}
               </Link>
             </nav>
