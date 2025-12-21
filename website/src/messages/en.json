@@ -8,6 +8,11 @@
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
             "note": "Met at Networking Event Amsterdam. Interested in AI for recruitment. Send article about ChatGPT."
+        },
+        "cta": {
+            "addToChrome": "Add to Chrome",
+            "addToEdge": "Add to Edge",
+            "addToFirefox": "Add to Firefox"
         }
     },
     "Features": {
@@ -39,6 +44,130 @@
                 "description": "Filter and search through your notes to quickly find what is important. Smart organization for effective network management."
             }
         }
+    },
+    "FeaturesPage": {
+        "hero": {
+            "title": "All Tools for a Better Network",
+            "description": "Rolodink is more than just a note-taking app. It's a complete toolkit to deepen your professional relationships and achieve your networking goals."
+        },
+        "features": [
+            {
+                "title": "Remember what matters",
+                "description": "That moment when you connected, the project they were working on, their passion for sailboat restoration.",
+                "benefits": [
+                    "Automatic profile recognition",
+                    "Personal notes per contact",
+                    "Search your network"
+                ]
+            },
+            {
+                "title": "The details that make the difference",
+                "description": "Their dog is named Max, they're moving to Berlin, their startup is still looking for a CTO.",
+                "benefits": [
+                    "Contextual notes",
+                    "Conversation history",
+                    "Follow-up reminders"
+                ]
+            },
+            {
+                "title": "Natural follow-up",
+                "description": "'Hi Tom, how's the new office in Amsterdam? And did you find that lead developer yet?'",
+                "benefits": [
+                    "Automatic reminders",
+                    "Follow-up templates",
+                    "Set priorities"
+                ]
+            },
+            {
+                "title": "Structured data",
+                "description": "Organize your network with tags, companies, and topics — just so you can find it quickly.",
+                "benefits": [
+                    "Categorize contacts",
+                    "Store company information",
+                    "Search and filter"
+                ]
+            },
+            {
+                "title": "Privacy-first",
+                "description": "Your data stays yours. No ads, no reselling — just safe and transparent.",
+                "benefits": [
+                    "Secure storage",
+                    "No tracking in the extension",
+                    "Full control"
+                ]
+            },
+            {
+                "title": "Quick integration",
+                "description": "Works directly in LinkedIn. No extra apps, no hassle — you can get started right away.",
+                "benefits": [
+                    "One-click installation",
+                    "Immediately available",
+                    "No training needed"
+                ]
+            }
+        ],
+        "stats": {
+            "title": "Why professionals choose Rolodink",
+            "focus": "Focus on LinkedIn",
+            "followUp": "Better Follow-up",
+            "installTime": "Installation time"
+        },
+        "cta": {
+            "title": "Ready to get started?",
+            "description": "Install Rolodink today and transform your LinkedIn network.",
+            "button": "Add to Chrome - Free",
+            "demo": "Watch demo"
+        }
+    },
+    "DownloadPage": {
+        "title": "Get Started Today",
+        "description": "Install the free Chrome Extension and transform how you manage your LinkedIn network. Bring the personal touch of business cards back to your digital network.",
+        "chrome": "Chrome Web Store",
+        "edge": "Microsoft Edge Add-ons",
+        "firefox": "Firefox Add-ons",
+        "github": "GitHub Release",
+        "githubSub": "Download .zip & source",
+        "version": "Version 1.0.9 • Free",
+        "footer": "No credit card required • 30 second installation"
+    },
+    "HelpPage": {
+        "title": "Help & Frequently Asked Questions",
+        "description": "Find answers to the most common questions here. Don't see your question? Feel free to reach out.",
+        "faq": [
+            {
+                "question": "How do I install Rolodink?",
+                "answer": "Rolodink is a Chrome Extension. You can add it with one click from the Chrome Web Store. After installation, it's immediately active on the LinkedIn website. Make sure to refresh the page if you don't see the sidebar right away."
+            },
+            {
+                "question": "Is Rolodink really free?",
+                "answer": "Yes, the core functionality of Rolodink is completely free. We want everyone to have the opportunity to better manage their network. In the future, there may be premium features for power users, but the basics will remain free."
+            },
+            {
+                "question": "Where are my notes stored?",
+                "answer": "Your notes are securely stored in the cloud, linked to your account. They are private and only visible to you. We take privacy very seriously and never sell your data. Read our Privacy Policy for more details."
+            },
+            {
+                "question": "Does Rolodink also work on the mobile LinkedIn app?",
+                "answer": "Currently, Rolodink only works as a Chrome Extension on desktop computers. A mobile solution is on our roadmap for the future."
+            },
+            {
+                "question": "I don't see the Rolodink sidebar on LinkedIn. What now?",
+                "answer": "Try refreshing the LinkedIn page. If that doesn't work, check if the extension is enabled via the puzzle piece icon in your Chrome toolbar. Contact us if the problem persists."
+            },
+            {
+                "question": "Can I export my data?",
+                "answer": "This functionality is currently under development. We understand the importance of data ownership and are working on an option to export all your notes and contact information."
+            }
+        ],
+        "cta": {
+            "title": "Still have questions?",
+            "description": "The best way to understand Rolodink is to try it yourself.",
+            "button": "Try it Free"
+        }
+    },
+    "TestimonialsPage": {
+        "title": "What users are saying",
+        "description": "Discover how professionals from different sectors use Rolodink to manage their relationships."
     },
     "Testimonials": {
         "title": "How professionals use Rolodink",

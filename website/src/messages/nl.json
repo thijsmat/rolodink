@@ -8,6 +8,11 @@
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
             "note": "Ontmoet op Networking Event Amsterdam. Geïnteresseerd in AI voor recruitment. Stuur artikel over ChatGPT."
+        },
+        "cta": {
+            "addToChrome": "Toevoegen aan Chrome",
+            "addToEdge": "Toevoegen aan Edge",
+            "addToFirefox": "Toevoegen aan Firefox"
         }
     },
     "Features": {
@@ -39,6 +44,130 @@
                 "description": "Filter en zoek door je notities om snel te vinden wat belangrijk is. Slimme organisatie voor effectief netwerkbeheer."
             }
         }
+    },
+    "FeaturesPage": {
+        "hero": {
+            "title": "Alle Tools voor een Beter Netwerk",
+            "description": "Rolodink is meer dan alleen een notitie-app. Het is een complete toolkit om je professionele relaties te verdiepen en je netwerkdoelen te bereiken."
+        },
+        "features": [
+            {
+                "title": "Onthoud wat telt",
+                "description": "Dat moment waarop jullie connecteerden, het project waar ze mee bezig waren, hun passie voor zeilboot restauratie.",
+                "benefits": [
+                    "Automatische profielherkenning",
+                    "Persoonlijke notities per contact",
+                    "Zoeken in je netwerk"
+                ]
+            },
+            {
+                "title": "De details die het verschil maken",
+                "description": "Hun hond heet Max, ze verhuizen naar Berlijn, hun startup zoekt nog een CTO.",
+                "benefits": [
+                    "Contextuele notities",
+                    "Gespreksgeschiedenis",
+                    "Follow-up herinneringen"
+                ]
+            },
+            {
+                "title": "Natuurlijke follow-up",
+                "description": "'Hoi Tom, hoe bevalt het nieuwe kantoor in Amsterdam? En heb je die lead developer al gevonden?'",
+                "benefits": [
+                    "Automatische herinneringen",
+                    "Follow-up templates",
+                    "Prioriteit instellen"
+                ]
+            },
+            {
+                "title": "Gestructureerde data",
+                "description": "Orden je netwerk met tags, bedrijven en topics — gewoon zodat jij het snel terugvindt.",
+                "benefits": [
+                    "Categoriseren van contacten",
+                    "Bedrijfsinformatie opslaan",
+                    "Zoeken en filteren"
+                ]
+            },
+            {
+                "title": "Privacy-first",
+                "description": "Jouw data blijft van jou. Geen advertenties, geen doorverkoop — gewoon veilig en transparant.",
+                "benefits": [
+                    "Beveiligde opslag",
+                    "Geen tracking in de extensie",
+                    "Volledige controle"
+                ]
+            },
+            {
+                "title": "Snelle integratie",
+                "description": "Werkt direct in LinkedIn. Geen extra apps, geen gedoe — je kunt meteen aan de slag.",
+                "benefits": [
+                    "One-click installatie",
+                    "Direct beschikbaar",
+                    "Geen training nodig"
+                ]
+            }
+        ],
+        "stats": {
+            "title": "Waarom professionals kiezen voor Rolodink",
+            "focus": "Focus op LinkedIn",
+            "followUp": "Betere Follow-up",
+            "installTime": "Installatietijd"
+        },
+        "cta": {
+            "title": "Klaar om te beginnen?",
+            "description": "Installeer Rolodink vandaag nog en transformeer je LinkedIn netwerk.",
+            "button": "Toevoegen aan Chrome - Gratis",
+            "demo": "Bekijk demo"
+        }
+    },
+    "DownloadPage": {
+        "title": "Begin Vandaag Nog",
+        "description": "Installeer de gratis Chrome Extensie en transformeer hoe je je LinkedIn netwerk beheert. Breng de persoonlijke touch van visitekaartjes terug naar je digitale netwerk.",
+        "chrome": "Chrome Web Store",
+        "edge": "Microsoft Edge Add-ons",
+        "firefox": "Firefox Add-ons",
+        "github": "GitHub Release",
+        "githubSub": "Download .zip & source",
+        "version": "Versie 1.0.9 • Gratis",
+        "footer": "Geen creditcard vereist • 30 seconden installatie"
+    },
+    "HelpPage": {
+        "title": "Hulp & Veelgestelde Vragen",
+        "description": "Vind hier de antwoorden op de meest voorkomende vragen. Staat je vraag er niet bij? Neem gerust contact op.",
+        "faq": [
+            {
+                "question": "Hoe installeer ik Rolodink?",
+                "answer": "Rolodink is een Chrome Extensie. Je kunt het met één klik toevoegen vanuit de Chrome Web Store. Na de installatie is het direct actief op de LinkedIn website. Zorg ervoor dat je de pagina ververst als je de zijbalk niet direct ziet."
+            },
+            {
+                "question": "Is Rolodink echt gratis?",
+                "answer": "Ja, de kernfunctionaliteit van Rolodink is volledig gratis. We willen dat iedereen de mogelijkheid heeft om zijn netwerk beter te beheren. In de toekomst kunnen er premium features komen voor power-users, maar de basis blijft gratis."
+            },
+            {
+                "question": "Waar worden mijn notities opgeslagen?",
+                "answer": "Je notities worden veilig opgeslagen in de cloud, gekoppeld aan jouw account. Ze zijn privé en alleen voor jou zichtbaar. We nemen privacy zeer serieus en verkopen je data nooit. Lees onze Privacy Policy voor meer details."
+            },
+            {
+                "question": "Werkt Rolodink ook op de mobiele LinkedIn app?",
+                "answer": "Momenteel werkt Rolodink alleen als Chrome Extensie op desktop computers. Een mobiele oplossing staat op onze roadmap voor de toekomst."
+            },
+            {
+                "question": "Ik zie de Rolodink zijbalk niet op LinkedIn. Wat nu?",
+                "answer": "Probeer de LinkedIn pagina te verversen. Als dat niet werkt, controleer dan of de extensie is ingeschakeld via het puzzelstuk-icoon in je Chrome-werkbalk. Neem contact op als het probleem aanhoudt."
+            },
+            {
+                "question": "Kan ik mijn data exporteren?",
+                "answer": "Deze functionaliteit is momenteel in ontwikkeling. We begrijpen het belang van data-eigendom en werken aan een optie om al je notities en contactgegevens te kunnen exporteren."
+            }
+        ],
+        "cta": {
+            "title": "Nog steeds vragen?",
+            "description": "De beste manier om Rolodink te begrijpen is door het zelf te proberen.",
+            "button": "Probeer het Gratis"
+        }
+    },
+    "TestimonialsPage": {
+        "title": "Wat gebruikers zeggen",
+        "description": "Ontdek hoe professionals uit verschillende sectoren Rolodink gebruiken om hun relaties te beheren."
     },
     "Testimonials": {
         "title": "Zo gebruiken professionals Rolodink",

@@ -35,7 +35,7 @@ export default function Hero() {
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
                 <Chrome className="h-4 w-4" />
-                Add to Chrome
+                {t('cta.addToChrome')}
               </a>
               <a
                 href="https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf"
@@ -44,7 +44,7 @@ export default function Hero() {
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
                 <Edge className="h-4 w-4" />
-                Add to Edge
+                {t('cta.addToEdge')}
               </a>
               <a
                 href="https://addons.mozilla.org/addon/rolodink/"
@@ -53,7 +53,7 @@ export default function Hero() {
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
               >
                 <Firefox className="h-4 w-4" />
-                Add to Firefox
+                {t('cta.addToFirefox')}
               </a>
             </div>
 

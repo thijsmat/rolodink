@@ -1,24 +1,24 @@
+"use client";
+
 import { SiteFooter } from "@/components/site-footer";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { testimonials, getNoteColorClass, getNoteTextClass } from "@/lib/testimonials-data";
-
-export const metadata = {
-    title: "Testimonials - Rolodink",
-    description: "Ontdek hoe professionals Rolodink gebruiken om hun netwerk te versterken.",
-};
+import { useTranslations } from 'next-intl';
 
 export default function TestimonialsPage() {
+    const t = useTranslations('TestimonialsPage');
+
     return (
         <>
             <main className="flex-1 pt-16">
                 {/* Page Header */}
                 <section className="container mx-auto max-w-4xl py-16 text-center md:py-24">
                     <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
-                        Wat gebruikers zeggen
+                        {t('title')}
                     </h1>
                     <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
-                        Ontdek hoe professionals uit verschillende sectoren Rolodink gebruiken om hun relaties te beheren.
+                        {t('description')}
                     </p>
                 </section>
 
