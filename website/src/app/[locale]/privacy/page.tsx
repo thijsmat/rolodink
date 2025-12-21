@@ -1,28 +1,42 @@
-import { SiteFooter } from "@/components/site-footer";
-import { pageSEO } from "@/lib/seo";
+"use client";
 
-export const metadata = {
-  title: pageSEO.privacy.title,
-  description: pageSEO.privacy.description,
-};
+import { SiteFooter } from "@/components/site-footer";
+import { useTranslations } from 'next-intl';
 
 export default function PrivacyPage() {
+  const t = useTranslations('PrivacyPage');
+
+  // Use Dutch locale formatting for consistency if current locale is Dutch, else standard
+  // Or just display the string. We will just use the string for now.
   const lastUpdated = new Date().toLocaleDateString("en-GB", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
+  const notice = t('notice');
+
   return (
     <>
       <main className="flex-1 pt-16">
         <section className="container py-16 md:py-24 lg:py-32">
           <div className="mx-auto max-w-3xl">
+            {notice && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      {notice}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl mb-4">
-              Privacy Policy
+              {t('title')}
             </h1>
             <p className="text-lg text-grey mb-16">
-              Last updated: {lastUpdated}
+              {t('lastUpdated')}: {lastUpdated}
             </p>
 
             <div
@@ -40,7 +54,7 @@ export default function PrivacyPage() {
                 website and LinkedIn CRM extension (collectively, the
                 &ldquo;Service&rdquo;).
               </p>
-
+              {/* Keep the rest of the file content same as original but viewed in step 1400 */}
               <h2>2. What Data Do We Collect?</h2>
               <p>We collect the following types of information:</p>
               <ul>

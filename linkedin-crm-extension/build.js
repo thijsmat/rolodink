@@ -15,6 +15,11 @@ async function build() {
   console.log(`==> Building UI for ${target}...`);
   execSync('npm run build', { cwd: uiDir, stdio: 'inherit' });
 
+  if (target === 'firefox') {
+    console.log('==> Running Firefox specific post-build steps...');
+    execSync('npm run postbuild:firefox', { cwd: uiDir, stdio: 'inherit' });
+  }
+
   if (!(await fs.pathExists(uiBuildDir))) {
     throw new Error(`UI build output not found at ${uiBuildDir}. Did Vite finish successfully?`);
   }

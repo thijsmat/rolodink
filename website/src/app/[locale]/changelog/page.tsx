@@ -1,22 +1,22 @@
+"use client";
+
 import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
-
-export const metadata = {
-    title: "Changelog - Rolodink",
-    description: "Bekijk de laatste updates en verbeteringen aan Rolodink.",
-};
+import { useTranslations } from 'next-intl';
 
 export default function ChangelogPage() {
+    const t = useTranslations('ChangelogPage');
+
     return (
         <>
             <main className="flex flex-1 flex-col pt-16">
                 <section className="container py-16 md:py-24 lg:py-32">
                     <div className="mx-auto max-w-3xl">
                         <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl mb-4">
-                            Changelog
+                            {t('title')}
                         </h1>
                         <p className="text-lg text-grey mb-16">
-                            Blijf op de hoogte van de laatste ontwikkelingen en updates.
+                            {t('description')}
                         </p>
 
                         <div className="space-y-16">

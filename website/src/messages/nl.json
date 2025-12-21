@@ -205,6 +205,26 @@
         "content": "Rolodink is een onafhankelijk product en is niet gelieerd aan, goedgekeurd door, of op enige wijze verbonden met LinkedIn Corporation of Rolodex Corporation. LinkedIn is een handelsmerk van LinkedIn Corporation. Rolodex is een handelsmerk van Newell Brands. Rolodink is een samentrekking van 'Rolodex' en 'LinkedIn' die onze functionaliteit beschrijft, maar impliceert geen officiële relatie met deze merken.",
         "links": "Bekijk ook ons <privacy>Privacybeleid</privacy> en onze <terms>Voorwaarden</terms>."
     },
+    "ChangelogPage": {
+        "title": "Changelog",
+        "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
+        "version": "Versie"
+    },
+    "PrivacyPage": {
+        "title": "Privacybeleid",
+        "lastUpdated": "Laatst bijgewerkt",
+        "notice": "Dit document is momenteel alleen beschikbaar in het Engels."
+    },
+    "TermsPage": {
+        "title": "Gebruiksvoorwaarden",
+        "lastUpdated": "Laatst bijgewerkt",
+        "notice": ""
+    },
+    "SecurityPage": {
+        "title": "Beveiliging",
+        "lastUpdated": "Laatst bijgewerkt",
+        "notice": ""
+    },
     "Testimonials": {
         "title": "Zo gebruiken professionals Rolodink",
         "subtitle": "Ontdek hoe anderen hun netwerk versterken met persoonlijke notities.",

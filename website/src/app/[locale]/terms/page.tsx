@@ -1,12 +1,12 @@
-import { SiteFooter } from "@/components/site-footer";
-import { pageSEO } from "@/lib/seo";
+"use client";
 
-export const metadata = {
-  title: pageSEO.terms.title,
-  description: pageSEO.terms.description,
-};
+import { SiteFooter } from "@/components/site-footer";
+import { useTranslations } from 'next-intl';
 
 export default function TermsPage() {
+  const t = useTranslations('TermsPage');
+  const notice = t('notice');
+
   const lastUpdated = new Date().toLocaleDateString("nl-NL", {
     year: "numeric",
     month: "long",
@@ -18,11 +18,22 @@ export default function TermsPage() {
       <main className="flex-1 pt-16">
         <section className="container py-16 md:py-24 lg:py-32">
           <div className="mx-auto max-w-3xl">
+            {notice && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      {notice}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl mb-4">
-              Gebruiksvoorwaarden
+              {t('title')}
             </h1>
             <p className="text-lg text-grey mb-16">
-              Laatst bijgewerkt: {lastUpdated}
+              {t('lastUpdated')}: {lastUpdated}
             </p>
 
             <div
