@@ -169,6 +169,42 @@
         "title": "What users are saying",
         "description": "Discover how professionals from different sectors use Rolodink to manage their relationships."
     },
+    "HowItWorksPage": {
+        "hero": {
+            "title": "From Chaos to Connection in 4 Steps",
+            "description": "Rolodink is designed to fit seamlessly into your workflow. No complicated software, just a simple tool that does what it needs to do."
+        },
+        "stepLabel": "Step",
+        "steps": [
+            {
+                "title": "Install the Extension",
+                "description": "Add Rolodink to your Chrome browser with one click from the Web Store. Installation takes less than 30 seconds."
+            },
+            {
+                "title": "Open a LinkedIn Profile",
+                "description": "Navigate to one of your connection's profiles. Rolodink automatically appears on the side of the page."
+            },
+            {
+                "title": "Add Your Notes",
+                "description": "Note where you met someone, what you talked about, or whatever you want to remember. Your notes are 100% private."
+            },
+            {
+                "title": "Find Everything Instantly",
+                "description": "Use the search bar in the extension to search your network based on the content of your notes and tags."
+            }
+        ],
+        "cta": {
+            "title": "Ready to organize your network?",
+            "description": "It takes less than a minute to get started.",
+            "button": "Add to Chrome - Free"
+        }
+    },
+    "DisclaimerPage": {
+        "title": "Disclaimer",
+        "lastUpdated": "Last updated",
+        "content": "Rolodink is an independent product and is not affiliated with, endorsed by, or in any way connected to LinkedIn Corporation or Rolodex Corporation. LinkedIn is a trademark of LinkedIn Corporation. Rolodex is a trademark of Newell Brands. Rolodink is a blend of 'Rolodex' and 'LinkedIn' describing our functionality, but implies no official relationship with these brands.",
+        "links": "Check also our <privacy>Privacy Policy</privacy> and our <terms>Terms</terms>."
+    },
     "Testimonials": {
         "title": "How professionals use Rolodink",
         "subtitle": "Discover how others strengthen their network with personal notes.",

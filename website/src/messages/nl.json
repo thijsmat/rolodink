@@ -169,6 +169,42 @@
         "title": "Wat gebruikers zeggen",
         "description": "Ontdek hoe professionals uit verschillende sectoren Rolodink gebruiken om hun relaties te beheren."
     },
+    "HowItWorksPage": {
+        "hero": {
+            "title": "Van Chaos naar Connectie in 4 Stappen",
+            "description": "Rolodink is ontworpen om naadloos in je workflow te passen. Geen ingewikkelde software, gewoon een simpele tool die doet wat het moet doen."
+        },
+        "stepLabel": "Stap",
+        "steps": [
+            {
+                "title": "Installeer de Extensie",
+                "description": "Voeg Rolodink met één klik toe aan je Chrome browser vanuit de Web Store. De installatie duurt minder dan 30 seconden."
+            },
+            {
+                "title": "Open een LinkedIn Profiel",
+                "description": "Navigeer naar het profiel van een van je connecties. Rolodink verschijnt automatisch aan de zijkant van de pagina."
+            },
+            {
+                "title": "Voeg je Notities Toe",
+                "description": "Noteer waar je iemand hebt ontmoet, waarover jullie spraken, of wat je ook maar wilt onthouden. Jouw notities zijn 100% privé."
+            },
+            {
+                "title": "Vind Alles Direct Terug",
+                "description": "Gebruik de zoekbalk in de extensie om je netwerk te doorzoeken op basis van de inhoud van je notities en tags."
+            }
+        ],
+        "cta": {
+            "title": "Klaar om je netwerk te organiseren?",
+            "description": "Het kost minder dan een minuut om te beginnen.",
+            "button": "Toevoegen aan Chrome - Gratis"
+        }
+    },
+    "DisclaimerPage": {
+        "title": "Disclaimer",
+        "lastUpdated": "Laatst bijgewerkt",
+        "content": "Rolodink is een onafhankelijk product en is niet gelieerd aan, goedgekeurd door, of op enige wijze verbonden met LinkedIn Corporation of Rolodex Corporation. LinkedIn is een handelsmerk van LinkedIn Corporation. Rolodex is een handelsmerk van Newell Brands. Rolodink is een samentrekking van 'Rolodex' en 'LinkedIn' die onze functionaliteit beschrijft, maar impliceert geen officiële relatie met deze merken.",
+        "links": "Bekijk ook ons <privacy>Privacybeleid</privacy> en onze <terms>Voorwaarden</terms>."
+    },
     "Testimonials": {
         "title": "Zo gebruiken professionals Rolodink",
         "subtitle": "Ontdek hoe anderen hun netwerk versterken met persoonlijke notities.",
