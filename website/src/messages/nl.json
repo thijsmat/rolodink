@@ -209,7 +209,107 @@
     "ChangelogPage": {
         "title": "Changelog",
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
-        "version": "Versie"
+        "version": "Versie",
+        "releases": [
+            {
+                "version": "1.0.10",
+                "date": "22 December 2025",
+                "sections": [
+                    {
+                        "title": "Edge Ondersteuning",
+                        "items": [
+                            "Rolodink is nu beschikbaar in de Microsoft Edge Add-ons store.",
+                            "Volledige synchronisatie van notities tussen Chrome en Edge."
+                        ]
+                    },
+                    {
+                        "title": "Verbeterde Performance",
+                        "items": [
+                            "Snellere laadtijden bij het openen van profielen.",
+                            "Geoptimaliseerd geheugengebruik."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.9",
+                "date": "27 November 2025",
+                "sections": [
+                    {
+                        "title": "Firefox Ondersteuning",
+                        "items": [
+                            "Volledige release voor Mozilla Firefox.",
+                            "Alle functionaliteiten nu beschikbaar voor Firefox gebruikers."
+                        ]
+                    },
+                    {
+                        "title": "Bug Fixes",
+                        "items": [
+                            "Kleine verbeteringen in de gebruikersinterface.",
+                            "Stabiliteitsupdates voor betrouwbare data-opslag."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.8",
+                "date": "25 November 2025",
+                "sections": [
+                    {
+                        "title": "Cross-Browser Support",
+                        "items": [
+                            "Volledige ondersteuning voor Firefox (Manifest V2).",
+                            "Volledige ondersteuning voor Microsoft Edge.",
+                            "Uniform buildsysteem voor Chrome, Firefox en Edge."
+                        ]
+                    },
+                    {
+                        "title": "Background Authentication",
+                        "items": [
+                            "Authenticatie verplaatst naar persistent background service worker.",
+                            "Opgelost: Authenticatie faalde als popup werd gesloten.",
+                            "Verbeterde sessiedetectie voor naadloze login."
+                        ]
+                    },
+                    {
+                        "title": "Bug Fixes",
+                        "items": [
+                            "Opgelost: Infinite reload loop in bepaalde situaties.",
+                            "Verbeterde stabiliteit van het buildsysteem."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.3",
+                "date": "29 Oktober 2025",
+                "sections": [
+                    {
+                        "title": "Chrome Web Store Release",
+                        "items": [
+                            "Succesvolle publicatie in de Chrome Web Store.",
+                            "Geoptimaliseerde permissies (alleen strikt noodzakelijke).",
+                            "Verbeterde validatie tijdens het buildproces."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.0",
+                "date": "September 2025",
+                "sections": [
+                    {
+                        "title": "Initial Release",
+                        "items": [
+                            "Eerste publieke versie van Rolodink.",
+                            "Notities toevoegen aan LinkedIn profielen.",
+                            "End-to-end encryptie voor notities.",
+                            "Veilige data-opslag met Supabase."
+                        ]
+                    }
+                ]
+            }
+        ]
     },
     "PrivacyPage": {
         "title": "Privacybeleid",

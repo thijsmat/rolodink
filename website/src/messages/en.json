@@ -209,7 +209,107 @@
     "ChangelogPage": {
         "title": "Changelog",
         "description": "Stay up to date with the latest developments and updates.",
-        "version": "Version"
+        "version": "Version",
+        "releases": [
+            {
+                "version": "1.0.10",
+                "date": "December 22, 2025",
+                "sections": [
+                    {
+                        "title": "Edge Support",
+                        "items": [
+                            "Rolodink is now available in the Microsoft Edge Add-ons store.",
+                            "Full note synchronization between Chrome and Edge."
+                        ]
+                    },
+                    {
+                        "title": "Improved Performance",
+                        "items": [
+                            "Faster load times when opening profiles.",
+                            "Optimized memory usage."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.9",
+                "date": "November 27, 2025",
+                "sections": [
+                    {
+                        "title": "Firefox Support",
+                        "items": [
+                            "Full release for Mozilla Firefox.",
+                            "All features now available for Firefox users."
+                        ]
+                    },
+                    {
+                        "title": "Bug Fixes",
+                        "items": [
+                            "Minor improvements to the user interface.",
+                            "Stability updates for reliable data storage."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.8",
+                "date": "November 25, 2025",
+                "sections": [
+                    {
+                        "title": "Cross-Browser Support",
+                        "items": [
+                            "Full support for Firefox (Manifest V2).",
+                            "Full support for Microsoft Edge.",
+                            "Unified build system for Chrome, Firefox, and Edge."
+                        ]
+                    },
+                    {
+                        "title": "Background Authentication",
+                        "items": [
+                            "Authentication moved to persistent background service worker.",
+                            "Fixed: Authentication failed if popup was closed.",
+                            "Improved session detection for seamless login."
+                        ]
+                    },
+                    {
+                        "title": "Bug Fixes",
+                        "items": [
+                            "Fixed: Infinite reload loop in certain situations.",
+                            "Improved build system stability."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.3",
+                "date": "October 29, 2025",
+                "sections": [
+                    {
+                        "title": "Chrome Web Store Release",
+                        "items": [
+                            "Successful publication in the Chrome Web Store.",
+                            "Optimized permissions (strictly necessary only).",
+                            "Improved validation during the build process."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.0.0",
+                "date": "September 2025",
+                "sections": [
+                    {
+                        "title": "Initial Release",
+                        "items": [
+                            "First public version of Rolodink.",
+                            "Add notes to LinkedIn profiles.",
+                            "End-to-end encryption for notes.",
+                            "Secure data storage with Supabase."
+                        ]
+                    }
+                ]
+            }
+        ]
     },
     "PrivacyPage": {
         "title": "Privacy Policy",
