@@ -1,3 +1,4 @@
+import './polyfill'; // MUST BE FIRST
 import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
@@ -29,7 +30,7 @@ async function logToStorage(message: string, data?: any) {
 // Wrap in IIFE to avoid top-level await issues in some environments
 (async () => {
     try {
-        await logToStorage('Background script loaded (v1.0.9-lazy)');
+        await logToStorage('Background script loaded (v1.0.10)');
     } catch (e) {
         console.error('Failed to log startup:', e);
     }
