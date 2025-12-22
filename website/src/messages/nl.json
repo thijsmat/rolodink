@@ -1,9 +1,9 @@
 {
     "Hero": {
-        "badge": "Gratis Chrome extensie",
-        "title": "Van de achterkant van een visitekaartje naar de toekomst van netwerken",
-        "subtitle": "Rolodink brengt de persoonlijke touch van business cards naar LinkedIn. Voeg moeiteloos persoonlijke notities toe aan elk contact en onthoud waarom jullie connectie waardevol is.",
-        "trustedBy": "Vertrouwd door professionals",
+        "badge": "Browserextensie voor LinkedIn – Werkt in Chrome, Edge & Brave",
+        "title": "Maak van elke LinkedIn connectie een waardevolle relatie",
+        "subtitle": "Rolodink is de slimme notitielaag voor LinkedIn. Voeg persoonlijke notities toe, onthoud details en bouw een sterker netwerk, direct vanuit je browser.",
+        "trustedBy": "4.9/5 - Vertrouwd door professionals",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -20,8 +20,8 @@
         "description": "Alles wat je nodig hebt om je professionele netwerk effectief te beheren en betekenisvolle relaties op te bouwen.",
         "items": {
             "organize": {
-                "title": "Contacten organiseren & onthouden",
-                "description": "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom je contact hebt."
+                "title": "Connecties organiseren & onthouden",
+                "description": "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom de connectie belangrijk is."
             },
             "details": {
                 "title": "Belangrijke details onthouden",
@@ -82,7 +82,7 @@
                 "title": "Gestructureerde data",
                 "description": "Orden je netwerk met tags, bedrijven en topics — gewoon zodat jij het snel terugvindt.",
                 "benefits": [
-                    "Categoriseren van contacten",
+                    "Categoriseren van connecties",
                     "Bedrijfsinformatie opslaan",
                     "Zoeken en filteren"
                 ]
@@ -128,6 +128,7 @@
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
         "version": "Versie 1.0.9 • Gratis",
+        "versionLatest": "Versie 1.0.10 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -301,6 +302,10 @@
                 "question": "Zien anderen mijn notities op LinkedIn?",
                 "answer": "Nee, je notities zijn volledig privé en alleen zichtbaar voor jou."
             },
+            "browser": {
+                "question": "Werkt dit in mijn browser?",
+                "answer": "Rolodink werkt in alle Chromium-gebaseerde browsers, waaronder Google Chrome, Microsoft Edge, Brave en Opera. Ook is er een Firefox versie beschikbaar."
+            },
             "legal": {
                 "question": "Voldoet Rolodink aan privacy- en veiligheidswetten?",
                 "answer": "Ja, Rolodink voldoet aan GDPR, AVG, en alle relevante privacywetgeving. Je data wordt nooit gedeeld met derden."
@@ -351,8 +356,8 @@
         "copyright": "Alle rechten voorbehouden."
     },
     "Metadata": {
-        "title": "Rolodink - Nooit meer vergeten wie je kent op LinkedIn",
-        "description": "Stop met vergeten wie je connecties zijn. Rolodink legt een slimme notitielaag over LinkedIn zodat je altijd direct context hebt bij elk gesprek."
+        "title": "Rolodink - De slimme notitielaag voor je LinkedIn netwerk",
+        "description": "Vergeet nooit meer wie je kent. Rolodink helpt je persoonlijke notities en context toe te voegen aan elke LinkedIn connectie. Veilig en gratis."
     },
     "CookieBanner": {
         "message": "Wij gebruiken cookies om de site goed te laten werken en voor anonieme statistieken.",

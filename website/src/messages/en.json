@@ -1,9 +1,9 @@
 {
     "Hero": {
-        "badge": "Free Chrome extension",
-        "title": "From the back of a business card to the future of networking",
-        "subtitle": "Rolodink brings the personal touch of business cards to LinkedIn. Effortlessly add personal notes to every contact and remember why your connection is valuable.",
-        "trustedBy": "Trusted by professionals",
+        "badge": "Browser extension for LinkedIn – Works in Chrome, Edge & Brave",
+        "title": "Turn every LinkedIn connection into a meaningful relationship",
+        "subtitle": "Rolodink is the smart note-taking layer for LinkedIn. Add personal notes, remember details, and build a stronger network, directly from your browser.",
+        "trustedBy": "4.9/5 - Trusted by professionals",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -20,8 +20,8 @@
         "description": "Everything you need to effectively manage your professional network and build meaningful relationships.",
         "items": {
             "organize": {
-                "title": "Organize & remember contacts",
-                "description": "Organize all your LinkedIn connections with personal notes and context. Never forget who someone is or why you are in contact."
+                "title": "Organize & remember connections",
+                "description": "Organize all your LinkedIn connections with personal notes and context. Never forget who someone is or why the connection matters."
             },
             "details": {
                 "title": "Remember important details",
@@ -37,7 +37,7 @@
             },
             "quickAdd": {
                 "title": "Quick add with one click",
-                "description": "Add notes with one click from any LinkedIn profile. Quick access to all your contact information when you need it."
+                "description": "Add notes with one click from any LinkedIn profile. Quick access to all your connection information when you need it."
             },
             "search": {
                 "title": "Smart search & filter",
@@ -82,7 +82,7 @@
                 "title": "Structured data",
                 "description": "Organize your network with tags, companies, and topics — just so you can find it quickly.",
                 "benefits": [
-                    "Categorize contacts",
+                    "Categorize connections",
                     "Store company information",
                     "Search and filter"
                 ]
@@ -128,6 +128,7 @@
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
         "version": "Version 1.0.9 • Free",
+        "versionLatest": "Version 1.0.10 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -301,6 +302,10 @@
                 "question": "Do others see my notes on LinkedIn?",
                 "answer": "No, your notes are completely private and only visible to you."
             },
+            "browser": {
+                "question": "Does this work in my browser?",
+                "answer": "Rolodink works in all Chromium-based browsers, including Google Chrome, Microsoft Edge, Brave, and Opera. A Firefox version is also available."
+            },
             "legal": {
                 "question": "Does Rolodink comply with privacy laws?",
                 "answer": "Yes, Rolodink complies with GDPR and all relevant privacy legislation. Your data is never shared with third parties."
@@ -351,8 +356,8 @@
         "copyright": "All rights reserved."
     },
     "Metadata": {
-        "title": "Rolodink - Never forget who you know on LinkedIn",
-        "description": "Stop forgetting who your connections are. Rolodink adds a smart note layer over LinkedIn so you always have immediate context for every conversation."
+        "title": "Rolodink - The smart note-taking layer for your LinkedIn network",
+        "description": "Never forget who you know. Rolodink helps you add personal notes and context to every LinkedIn connection. Secure and free."
     },
     "CookieBanner": {
         "message": "We use cookies to ensure the site functions properly and for anonymous statistics.",
