@@ -40,7 +40,7 @@ export default function DownloadPage() {
                   <Edge className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">{t('edge')}</span>
-                    <span className="text-xs font-normal opacity-90">{t('versionLatest')}</span>
+                    <span className="text-xs font-normal opacity-90">{t('version')}</span>
                   </div>
                 </a>
               </Button>
@@ -51,7 +51,7 @@ export default function DownloadPage() {
                   <Firefox className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">{t('firefox')}</span>
-                    <span className="text-xs font-normal opacity-90">{t('versionLatest')}</span>
+                    <span className="text-xs font-normal opacity-90">{t('version')}</span>
                   </div>
                 </a>
               </Button>
