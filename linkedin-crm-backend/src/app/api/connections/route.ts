@@ -6,6 +6,7 @@ import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
 import { unstable_cache } from 'next/cache';
 import { revalidateTag } from 'next/cache';
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     // Handle specific P2002 error with custom Dutch message for this route
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
       return NextResponse.json(
         { error: 'Connectie bestaat al voor deze URL.' },
         { status: 409, headers: corsHeaders }
