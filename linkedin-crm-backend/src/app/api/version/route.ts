@@ -27,20 +27,20 @@ export async function GET(request: NextRequest) {
     // Get current version from query parameter with validation
     const { searchParams } = new URL(request.url);
     const currentVersion = searchParams.get('version');
-    
+
     // Validate version format if provided
     if (currentVersion && !/^\d+\.\d+\.\d+$/.test(currentVersion)) {
       return NextResponse.json(
         { error: 'Invalid version format. Expected format: x.y.z' },
-        { 
+        {
           status: 400,
           headers: corsHeaders,
         }
       );
     }
-    
+
     // Define latest version info
-    const latestVersion = '1.0.0';
+    const latestVersion = '1.0.10';
     const versionInfo = {
       latest: latestVersion,
       current: currentVersion,
@@ -58,28 +58,28 @@ export async function GET(request: NextRequest) {
       // Determine update type based on version comparison
       const currentParts = currentVersion.split('.').map(Number);
       const latestParts = latestVersion.split('.').map(Number);
-      
+
       // Validate that we have exactly 3 version parts
       if (currentParts.length !== 3 || latestParts.length !== 3) {
         return NextResponse.json(
           { error: 'Invalid version format' },
-          { 
+          {
             status: 400,
             headers: corsHeaders,
           }
         );
       }
-      
+
       // Check if latest version is actually newer than current version
       const isLatestNewer = (
         latestParts[0] > currentParts[0] ||
         (latestParts[0] === currentParts[0] && latestParts[1] > currentParts[1]) ||
         (latestParts[0] === currentParts[0] && latestParts[1] === currentParts[1] && latestParts[2] > currentParts[2])
       );
-      
+
       if (isLatestNewer) {
         versionInfo.updateAvailable = true;
-        
+
         // Semantic versioning hierarchy: major > minor > patch
         if (latestParts[0] > currentParts[0]) {
           versionInfo.updateType = 'major';
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
         versionInfo.releaseNotes = 'Je gebruikt al de nieuwste versie!';
         console.log(`Current version ${currentVersion} is newer than or equal to latest version ${latestVersion}`);
       }
-      
+
       // Add version-specific features and fixes
       if (versionInfo.updateType === 'major' || versionInfo.updateType === 'minor') {
         versionInfo.features = [
@@ -109,29 +109,31 @@ export async function GET(request: NextRequest) {
           'Automatische update notificaties'
         ];
       }
-      
+
       if (versionInfo.updateType === 'patch') {
         versionInfo.bugFixes = [
-          'Performance verbeteringen',
-          'Stabiliteit fixes',
-          'UI/UX verbeteringen'
+          'Fixed: "Not logged in" message appearing incorrectly',
+          'Fixed: Context field now correctly recognizes authenticated users',
+          'Fixed: Duplicate conditional branches',
+          'Fixed: Missing accessible label on toggle switch',
+          'Updated: Button text from "Add to CRM" to "Add to Rldnk"'
         ];
       }
-      
+
       // Set download URL with comprehensive validation
       const configuredUrl = process.env.EXTENSION_DOWNLOAD_URL;
       const defaultUrl = 'https://github.com/thijsmat/linkedin-crm-backend/releases/latest';
-      
+
       // Validate and sanitize download URL
       const validateDownloadUrl = (url: string): string => {
         try {
           const parsedUrl = new URL(url);
-          
+
           // Security checks
           if (parsedUrl.protocol !== 'https:') {
             throw new Error('Only HTTPS URLs are allowed');
           }
-          
+
           // Allow only trusted domains
           const allowedDomains = [
             'github.com',
@@ -139,16 +141,16 @@ export async function GET(request: NextRequest) {
             'vercel.app',
             'linkedin.com'
           ];
-          
+
           const hostname = parsedUrl.hostname.toLowerCase();
-          const isAllowed = allowedDomains.some(domain => 
+          const isAllowed = allowedDomains.some(domain =>
             hostname === domain || hostname.endsWith('.' + domain)
           );
-          
+
           if (!isAllowed) {
             throw new Error(`Domain ${hostname} is not in allowed list`);
           }
-          
+
           return url;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -156,14 +158,14 @@ export async function GET(request: NextRequest) {
           return defaultUrl;
         }
       };
-      
+
       // Validate default URL first
       const validatedDefaultUrl = validateDownloadUrl(defaultUrl);
-      
+
       if (configuredUrl) {
         const validatedUrl = validateDownloadUrl(configuredUrl);
         versionInfo.downloadUrl = validatedUrl;
-        
+
         if (validatedUrl === configuredUrl) {
           console.log('Using configured download URL:', configuredUrl);
         } else {
@@ -187,7 +189,7 @@ export async function GET(request: NextRequest) {
     console.error('Version check error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { 
+      {
         status: 500,
         headers: buildCorsHeaders(request),
       }
