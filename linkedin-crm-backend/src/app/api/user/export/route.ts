@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
-import type { Connection } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+// Connection type from Prisma
+type Connection = Prisma.ConnectionGetPayload<object>;
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: buildCorsHeaders(request) });
