@@ -3,10 +3,18 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
-import { Prisma } from '@prisma/client';
-
-// Connection type from Prisma
-type Connection = Prisma.ConnectionGetPayload<object>;
+// Connection type defined inline to avoid Prisma client generation issues
+interface Connection {
+  id: string;
+  name: string;
+  linkedInUrl: string;
+  ownerId: string;
+  notes: string | null;
+  meetingPlace: string | null;
+  userCompanyAtTheTime: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: buildCorsHeaders(request) });
