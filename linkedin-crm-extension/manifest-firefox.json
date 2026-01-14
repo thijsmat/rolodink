@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Rolodink",
+  "name": "__MSG_appName__",
   "version": "1.0.10",
-  "description": "Rolodink: your note layer on top of LinkedIn, your modern rolodex.",
+  "description": "__MSG_appDescription__",
   "default_locale": "en",
   "privacy_policy_url": "https://rolodink.app/privacy",
   "permissions": [

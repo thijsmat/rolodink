@@ -13,9 +13,11 @@ import { HelpView } from './components/HelpView';
 import { UpdateNotification } from './components/UpdateNotification';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
+import { useExtensionTranslation } from './hooks/useExtensionTranslation';
 
 function Content() {
   const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, isHelpView, showListView, hideListView, showSettingsView, hideSettingsView, showHelpView, hideHelpView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData, clearError } = useConnection();
+  const { t } = useExtensionTranslation();
 
   // Global keyboard shortcuts for navigation
   useEffect(() => {
@@ -49,7 +51,7 @@ function Content() {
   }, [isLoggedIn, isListView, connection, showListView, hideListView, handleLogout]);
 
   const renderContent = () => {
-    if (isLoading) return <p className={styles.loading}>CRM-data wordt geladen...</p>;
+    if (isLoading) return <p className={styles.loading}>{t('loading')}</p>;
     if (!isLoggedIn) return <LoginView />;
     if (error) {
       const isProfilePageWarning = error === INVALID_PROFILE_PAGE_ERROR;
@@ -94,7 +96,7 @@ function Content() {
     if (isListView) {
       return (
         <div>
-          <h2 className={styles.title}>Alle Connecties</h2>
+          <h2 className={styles.title}>{t('feature_view_connections')}</h2>
           <AllConnectionsView />
         </div>
       );
@@ -113,7 +115,7 @@ function Content() {
       <div>
         {connection ? <ConnectionView /> : (
           <>
-            <h2 className={styles.title}>Nieuwe Connectie</h2>
+            <h2 className={styles.title}>{t('new_connection_title')}</h2>
             <ConnectionForm />
           </>
         )}
@@ -127,29 +129,29 @@ function Content() {
       <UpdateNotification />
 
       <div className={styles.header}>
-        <h1 className={styles.mainTitle}>Rolodink *</h1>
+        <h1 className={styles.mainTitle}>{t('appName')}</h1>
         <div className={styles.headerActions}>
           {isLoggedIn && !isListView && !isSettingsView && (
-            <button onClick={showListView} className={styles.compactButton}>Toon alle connecties</button>
+            <button onClick={showListView} className={styles.compactButton}>{t('show_all_connections_button')}</button>
           )}
           {isLoggedIn && !isListView && !isSettingsView && (
-            <button onClick={showSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>⚙️ Instellingen</button>
+            <button onClick={showSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>⚙️ {t('settings_button')}</button>
           )}
           {isLoggedIn && isListView && (
-            <button onClick={hideListView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+            <button onClick={hideListView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>{t('back_to_context_button')}</button>
           )}
           {isLoggedIn && isSettingsView && (
-            <button onClick={hideSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+            <button onClick={hideSettingsView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>{t('back_to_context_button')}</button>
           )}
           {isLoggedIn && isHelpView && (
-            <button onClick={hideHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>Terug naar context</button>
+            <button onClick={hideHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>{t('back_to_context_button')}</button>
           )}
           {isLoggedIn && !isHelpView && (
-            <button onClick={showHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>❓ Help</button>
+            <button onClick={showHelpView} className={`${styles.compactButton} ${styles.buttonSecondary}`}>❓ {t('help_button')}</button>
           )}
           {isLoggedIn && (
             <button onClick={handleLogout} className={`${styles.compactButton} ${styles.buttonSecondary}`}>
-              Logout
+              {t('logout_button')}
             </button>
           )}
         </div>

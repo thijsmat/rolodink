@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import styles from './ConnectionForm.module.css';
 import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 import { SkeletonForm } from './Skeleton';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {
   initialData?: ConnectionFormData;
@@ -11,6 +12,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   isSubmitting?: boolean;
   submitText?: string;
 }) {
+  const { t } = useExtensionTranslation();
   const { handleCreateConnection } = useConnection();
   const [meetingPlace, setMeetingPlace] = useState('');
   const [userCompany, setUserCompany] = useState('');
@@ -46,7 +48,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         event.preventDefault();
         onCancel();
       }
-      
+
       if (event.key === 'Enter' && !isSubmitting) {
         event.preventDefault();
         if (formRef.current) {
@@ -77,12 +79,12 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>
-          {isEditMode ? 'Connectie Bewerken' : 'Nieuwe Connectie'}
+          {isEditMode ? t('connection_form_edit_title') : t('connection_form_new_title')}
         </h1>
         <p className={styles.subtitle}>
-          {isEditMode 
-            ? 'Wijzig de details van deze connectie' 
-            : 'Voeg extra informatie toe aan deze connectie'
+          {isEditMode
+            ? t('connection_form_edit_subtitle')
+            : t('connection_form_new_subtitle')
           }
         </p>
       </div>
@@ -96,13 +98,13 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
               <div className={styles.formSection}>
                 <div className={styles.sectionHeader}>
                   <span className={styles.sectionIcon}>📍</span>
-                  <h2 className={styles.sectionTitle}>Ontmoetingsdetails</h2>
+                  <h2 className={styles.sectionTitle}>{t('section_meeting_details')}</h2>
                 </div>
-                
+
                 <div className={styles.formGroup}>
                   <label htmlFor="meetingPlace" className={styles.label}>
                     <span className={styles.labelIcon}>📍</span>
-                    Waar hebben jullie elkaar ontmoet?
+                    {t('label_meeting_place')}
                   </label>
                   <input
                     id="meetingPlace"
@@ -110,17 +112,17 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                     value={meetingPlace}
                     onChange={(e) => setMeetingPlace(e.target.value)}
                     className={styles.input}
-                    placeholder="Bijv. LinkedIn event, conferentie, via-via..."
+                    placeholder={t('placeholder_meeting_place')}
                   />
                   <div className={styles.helpText}>
-                    Dit helpt je later te herinneren waar je deze persoon hebt leren kennen
+                    {t('help_meeting_place')}
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label htmlFor="userCompany" className={styles.label}>
                     <span className={styles.labelIcon}>🏢</span>
-                    Mijn bedrijf destijds
+                    {t('label_user_company')}
                   </label>
                   <input
                     id="userCompany"
@@ -128,10 +130,10 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                     value={userCompany}
                     onChange={(e) => setUserCompany(e.target.value)}
                     className={styles.input}
-                    placeholder="Bijv. Acme Corp, Freelancer, Student..."
+                    placeholder={t('placeholder_user_company')}
                   />
                   <div className={styles.helpText}>
-                    Waar werkte je toen je deze persoon ontmoette?
+                    {t('help_user_company')}
                   </div>
                 </div>
               </div>
@@ -139,28 +141,26 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
               <div className={styles.formSection}>
                 <div className={styles.sectionHeader}>
                   <span className={styles.sectionIcon}>📝</span>
-                  <h2 className={styles.sectionTitle}>Notities</h2>
+                  <h2 className={styles.sectionTitle}>{t('section_notes')}</h2>
                 </div>
-                
+
                 <div className={styles.formGroup}>
                   <label htmlFor="notes" className={styles.label}>
                     <span className={styles.labelIcon}>💭</span>
-                    Extra informatie
+                    {t('label_notes')}
                   </label>
                   <textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className={`${styles.input} ${styles.textarea}`}
-                    placeholder="Voeg hier extra notities toe over deze persoon, jullie gesprek, of andere relevante informatie..."
+                    placeholder={t('placeholder_notes')}
                     maxLength={maxNotesLength}
                   />
-                  <div className={`${styles.characterCount} ${
-                    notesLength > maxNotesLength * 0.9 ? styles.characterCountWarning : ''
-                  } ${
-                    notesLength >= maxNotesLength ? styles.characterCountError : ''
-                  }`}>
-                    {notesLength}/{maxNotesLength} karakters
+                  <div className={`${styles.characterCount} ${notesLength > maxNotesLength * 0.9 ? styles.characterCountWarning : ''
+                    } ${notesLength >= maxNotesLength ? styles.characterCountError : ''
+                    }`}>
+                    {t('chars_remaining', [notesLength.toString(), maxNotesLength.toString()])}
                   </div>
                 </div>
               </div>
@@ -168,20 +168,20 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
               <div className={styles.tips}>
                 <div className={styles.tipsHeader}>
                   <span className={styles.tipsIcon}>💡</span>
-                  <span className={styles.tipsTitle}>Tips voor goede notities</span>
+                  <span className={styles.tipsTitle}>{t('tips_title')}</span>
                 </div>
                 <div className={styles.tipsList}>
                   <div className={styles.tip}>
                     <span className={styles.tipIcon}>•</span>
-                    <span>Noteer wat jullie bespraken of waar jullie over spraken</span>
+                    <span>{t('tip_1')}</span>
                   </div>
                   <div className={styles.tip}>
                     <span className={styles.tipIcon}>•</span>
-                    <span>Voeg contactgegevens toe die je later nodig hebt</span>
+                    <span>{t('tip_2')}</span>
                   </div>
                   <div className={styles.tip}>
                     <span className={styles.tipIcon}>•</span>
-                    <span>Noteer follow-up acties of beloftes</span>
+                    <span>{t('tip_3')}</span>
                   </div>
                 </div>
               </div>
@@ -195,12 +195,12 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                   {isSubmitting ? (
                     <>
                       <span className={styles.buttonIcon}>⏳</span>
-                      <span>Bezig...</span>
+                      <span>{t('button_saving')}</span>
                     </>
                   ) : (
                     <>
                       <span className={styles.buttonIcon}>💾</span>
-                      <span>{submitText || (isEditMode ? 'Wijzigingen Opslaan' : 'Connectie Opslaan')}</span>
+                      <span>{submitText || (isEditMode ? t('button_save_changes') : t('button_save_connection'))}</span>
                     </>
                   )}
                 </button>
@@ -212,7 +212,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                     disabled={isSubmitting}
                   >
                     <span className={styles.buttonIcon}>❌</span>
-                    <span>Annuleren</span>
+                    <span>{t('cancel_button')}</span>
                   </button>
                 )}
               </div>

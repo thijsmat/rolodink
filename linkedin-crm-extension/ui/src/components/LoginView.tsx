@@ -16,10 +16,10 @@ import { API_BASE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
 import { getBrowserAPI } from '../utils/browser';
 
 import { supabase } from '../services/supabase';
-import { useTranslation } from '../hooks/useTranslation';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function LoginView() {
-  const { t } = useTranslation();
+  const { t } = useExtensionTranslation();
   const { handleLoginSuccess, isInitializing, refreshSession } = useConnection();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

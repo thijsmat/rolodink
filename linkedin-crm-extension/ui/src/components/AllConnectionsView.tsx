@@ -2,8 +2,10 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function AllConnectionsView() {
+  const { t } = useExtensionTranslation();
   const { allConnections, selectConnection, isLoading, showSettingsView } = useConnection();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -27,7 +29,7 @@ export function AllConnectionsView() {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
-      
+
       // Escape to clear search
       if (event.key === 'Escape' && searchQuery) {
         event.preventDefault();
@@ -43,16 +45,16 @@ export function AllConnectionsView() {
   // Helper function to highlight search terms
   const highlightText = useCallback((text: string, query: string) => {
     if (!query.trim() || !text) return text;
-    
+
     // Escape special regex characters
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedQuery})`, 'gi');
     const parts = text.split(regex);
-    
+
     // Check if any part matches the query (case-insensitive)
     const isMatch = (part: string) => part.toLowerCase() === query.toLowerCase();
-    
-    return parts.map((part, index) => 
+
+    return parts.map((part, index) =>
       isMatch(part) ? (
         <mark key={index} className={styles.searchHighlight}>{part}</mark>
       ) : part
@@ -67,7 +69,7 @@ export function AllConnectionsView() {
     // Apply search filter with debounced query
     if (debouncedSearchQuery.trim()) {
       const query = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter(conn => 
+      filtered = filtered.filter(conn =>
         conn.name.toLowerCase().includes(query) ||
         (conn.meetingPlace && conn.meetingPlace.toLowerCase().includes(query)) ||
         (conn.userCompanyAtTheTime && conn.userCompanyAtTheTime.toLowerCase().includes(query)) ||
@@ -100,10 +102,10 @@ export function AllConnectionsView() {
 
   const getConnectionStats = () => {
     if (!allConnections) return { total: 0, withNotes: 0 };
-    
+
     const total = allConnections.length;
     const withNotes = allConnections.filter(conn => conn.notes && conn.notes.trim().length > 0).length;
-    
+
     return { total, withNotes };
   };
 
@@ -120,7 +122,7 @@ export function AllConnectionsView() {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Zoek in connecties... (Ctrl+F)"
+                placeholder={t('search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
@@ -129,7 +131,7 @@ export function AllConnectionsView() {
                 <button
                   onClick={() => setSearchQuery('')}
                   className={styles.clearSearchButton}
-                  title="Zoekopdracht wissen"
+                  title={t('clear_search_title')}
                 >
                   ✕
                 </button>
@@ -140,9 +142,9 @@ export function AllConnectionsView() {
         <div className={styles.content}>
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>👥</div>
-            <h3 className={styles.emptyTitle}>Nog geen connecties</h3>
+            <h3 className={styles.emptyTitle}>{t('empty_list_title')}</h3>
             <p className={styles.emptyDescription}>
-              Voeg je eerste LinkedIn connectie toe door op de "Voeg toe aan CRM" knop te klikken op een LinkedIn profiel.
+              {t('empty_list_desc')}
             </p>
           </div>
         </div>
@@ -158,7 +160,7 @@ export function AllConnectionsView() {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Zoek in connecties... (Ctrl+F)"
+              placeholder={t('search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
@@ -167,7 +169,7 @@ export function AllConnectionsView() {
               <button
                 onClick={() => setSearchQuery('')}
                 className={styles.clearSearchButton}
-                title="Zoekopdracht wissen"
+                title={t('clear_search_title')}
               >
                 ✕
               </button>
@@ -175,7 +177,7 @@ export function AllConnectionsView() {
           </div>
           {debouncedSearchQuery && (
             <div className={styles.searchInfo}>
-              {filteredConnections.length} resultaat{filteredConnections.length !== 1 ? 'en' : ''} voor "{debouncedSearchQuery}"
+              {t('search_results_count', [filteredConnections.length.toString(), debouncedSearchQuery])}
             </div>
           )}
         </div>
@@ -198,26 +200,26 @@ export function AllConnectionsView() {
                 className={`${styles.filterTab} ${filter === 'all' ? styles.filterTabActive : ''}`}
                 onClick={() => setFilter('all')}
               >
-                Alle
+                {t('filter_all')}
               </button>
               <button
                 className={`${styles.filterTab} ${filter === 'withNotes' ? styles.filterTabActive : ''}`}
                 onClick={() => setFilter('withNotes')}
               >
-                Met notities
+                {t('filter_with_notes')}
               </button>
               <button
                 className={`${styles.filterTab} ${filter === 'recent' ? styles.filterTabActive : ''}`}
                 onClick={() => setFilter('recent')}
               >
-                Recent
+                {t('filter_recent')}
               </button>
             </div>
-            
-            <button 
-              onClick={showSettingsView} 
+
+            <button
+              onClick={showSettingsView}
               className={styles.settingsButton}
-              title="Open instellingen"
+              title={t('open_settings_title')}
             >
               ⚙️
             </button>
@@ -227,23 +229,23 @@ export function AllConnectionsView() {
 
       <div className={styles.content}>
         {isLoading ? (
-          <div className={styles.loading}>Bezig met laden…</div>
+          <div className={styles.loading}>{t('loading_connections')}</div>
         ) : filteredConnections.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🔍</div>
-            <h3 className={styles.emptyTitle}>Geen resultaten</h3>
+            <h3 className={styles.emptyTitle}>{t('empty_search_title')}</h3>
             <p className={styles.emptyDescription}>
-              {debouncedSearchQuery 
-                ? `Geen connecties gevonden voor "${debouncedSearchQuery}"`
-                : 'Geen connecties in deze categorie'
+              {debouncedSearchQuery
+                ? t('empty_search_desc_query', [debouncedSearchQuery])
+                : t('empty_search_desc_category')
               }
             </p>
           </div>
         ) : (
           <div className={styles.connectionsList}>
             {filteredConnections.map((conn) => (
-              <div 
-                key={conn.id || conn.linkedInUrl} 
+              <div
+                key={conn.id || conn.linkedInUrl}
                 className={styles.connectionItem}
                 onClick={() => selectConnection(conn)}
               >
@@ -254,7 +256,7 @@ export function AllConnectionsView() {
                   </h3>
                   {conn.linkedInUrl && (
                     <button
-                      title="Open LinkedIn-profiel"
+                      title={t('open_linkedin_profile_title')}
                       className={styles.linkedinLink}
                       onClick={async (e) => {
                         e.stopPropagation();
@@ -274,7 +276,7 @@ export function AllConnectionsView() {
                   {conn.meetingPlace && (
                     <div className={styles.detailRow}>
                       <span className={styles.detailIcon}>📍</span>
-                      <span className={styles.detailLabel}>Ontmoet op:</span>
+                      <span className={styles.detailLabel}>{t('label_met_at')}</span>
                       <span className={styles.detailValue}>{highlightText(conn.meetingPlace, debouncedSearchQuery)}</span>
                     </div>
                   )}
@@ -282,7 +284,7 @@ export function AllConnectionsView() {
                   {conn.userCompanyAtTheTime && (
                     <div className={styles.detailRow}>
                       <span className={styles.detailIcon}>🏢</span>
-                      <span className={styles.detailLabel}>Mijn bedrijf:</span>
+                      <span className={styles.detailLabel}>{t('label_my_company')}</span>
                       <span className={styles.detailValue}>{highlightText(conn.userCompanyAtTheTime, debouncedSearchQuery)}</span>
                     </div>
                   )}

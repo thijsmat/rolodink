@@ -2,6 +2,7 @@
 import { type ReactNode } from 'react';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
 import styles from './ErrorMessage.module.css';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 interface ErrorMessageProps {
   error: string;
@@ -15,10 +16,10 @@ interface ErrorMessageProps {
   variant?: 'default' | 'profileHint';
 }
 
-export function ErrorMessage({ 
-  error, 
-  onRetry, 
-  onDismiss, 
+export function ErrorMessage({
+  error,
+  onRetry,
+  onDismiss,
   type = 'error',
   showRetry = false,
   showDismiss = true,
@@ -26,6 +27,8 @@ export function ErrorMessage({
   retryLabel,
   variant = 'default',
 }: ErrorMessageProps) {
+  const { t } = useExtensionTranslation();
+
   const getErrorIcon = () => {
     switch (type) {
       case 'warning': return '⚠️';
@@ -37,19 +40,19 @@ export function ErrorMessage({
   const getErrorMessage = (error: string): string => {
     // Map technical errors to user-friendly messages
     const errorMap: Record<string, string> = {
-      'Failed to fetch': 'Geen internetverbinding. Controleer je wifi of mobiele data.',
-      'Network request failed': 'Verbindingsprobleem. Controleer je internetverbinding.',
-      '401': 'Je sessie is verlopen. Log opnieuw in.',
-      '403': 'Je hebt geen toegang tot deze functie.',
-      '404': 'De gevraagde informatie kon niet worden gevonden.',
-      '500': 'Er is een serverprobleem. Probeer het later opnieuw.',
-      'Unauthorized': 'Je sessie is verlopen. Log opnieuw in.',
-      'Forbidden': 'Je hebt geen toegang tot deze functie.',
-      'Not Found': 'De gevraagde informatie kon niet worden gevonden.',
-      'Internal Server Error': 'Er is een serverprobleem. Probeer het later opnieuw.',
-      'Connection ID is missing': 'Er is een probleem met deze connectie. Probeer de pagina te vernieuwen.',
-      'Connectie bestaat al voor deze URL': 'Deze LinkedIn connectie is al toegevoegd aan Rolodink.',
-      [INVALID_PROFILE_PAGE_ERROR]: "Rolodink werkt op LinkedIn profielpagina's",
+      'Failed to fetch': t('error_network'),
+      'Network request failed': t('error_request_failed'),
+      '401': t('error_401'),
+      '403': t('error_403'),
+      '404': t('error_404'),
+      '500': t('error_500'),
+      'Unauthorized': t('error_unauthorized'),
+      'Forbidden': t('error_forbidden'),
+      'Not Found': t('error_not_found'),
+      'Internal Server Error': t('error_internal_server'),
+      'Connection ID is missing': t('error_missing_id'),
+      'Connectie bestaat al voor deze URL': t('error_duplicate'),
+      [INVALID_PROFILE_PAGE_ERROR]: t('error_invalid_page'),
     };
 
     // Check for exact matches first
@@ -86,28 +89,28 @@ export function ErrorMessage({
           )}
           {shouldShowTechnicalDetails && (
             <details className={styles.technicalDetails}>
-              <summary>Technische details</summary>
+              <summary>{t('technical_details')}</summary>
               <code>{error}</code>
             </details>
           )}
         </div>
       </div>
-      
+
       <div className={styles.errorActions}>
         {showRetry && onRetry && (
-          <button 
-            onClick={onRetry} 
+          <button
+            onClick={onRetry}
             className={`${styles.button} ${styles.retryButton}`}
-            title={retryLabel ?? 'Probeer opnieuw'}
+            title={retryLabel ?? t('retry_button_title')}
           >
-            {retryLabel ?? '🔄 Opnieuw'}
+            {retryLabel ?? t('retry_button_label')}
           </button>
         )}
         {showDismiss && onDismiss && (
-          <button 
-            onClick={onDismiss} 
+          <button
+            onClick={onDismiss}
             className={`${styles.button} ${styles.dismissButton}`}
-            title="Sluiten"
+            title={t('dismiss_button_title')}
           >
             ✕
           </button>
@@ -120,7 +123,7 @@ export function ErrorMessage({
 // Specific error components for common scenarios
 export function NetworkError({ onRetry, onDismiss }: { onRetry?: () => void; onDismiss?: () => void }) {
   return (
-    <ErrorMessage 
+    <ErrorMessage
       error="Network request failed"
       onRetry={onRetry}
       onDismiss={onDismiss}
@@ -132,7 +135,7 @@ export function NetworkError({ onRetry, onDismiss }: { onRetry?: () => void; onD
 
 export function AuthError({ onDismiss }: { onDismiss?: () => void }) {
   return (
-    <ErrorMessage 
+    <ErrorMessage
       error="401"
       onDismiss={onDismiss}
       type="warning"
@@ -143,7 +146,7 @@ export function AuthError({ onDismiss }: { onDismiss?: () => void }) {
 
 export function OfflineError({ onRetry, onDismiss }: { onRetry?: () => void; onDismiss?: () => void }) {
   return (
-    <ErrorMessage 
+    <ErrorMessage
       error="Failed to fetch"
       onRetry={onRetry}
       onDismiss={onDismiss}

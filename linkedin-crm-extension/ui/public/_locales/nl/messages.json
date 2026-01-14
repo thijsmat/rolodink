@@ -2,6 +2,9 @@
     "appName": {
         "message": "Rolodink"
     },
+    "appDescription": {
+        "message": "Rolodink: je notitielaag bovenop LinkedIn, je moderne rolodex."
+    },
     "loading": {
         "message": "Laden..."
     },
@@ -12,7 +15,7 @@
         "message": "E-mailadres"
     },
     "email_placeholder": {
-        "message": "je@email.com"
+        "message": "jouw@email.com"
     },
     "password_label": {
         "message": "Wachtwoord"
@@ -39,25 +42,25 @@
         "message": "Wat kun je doen?"
     },
     "feature_add_profiles": {
-        "message": "Voeg LinkedIn profielen toe aan Rolodink"
+        "message": "LinkedIn profielen toevoegen aan Rolodink"
     },
     "feature_save_notes": {
-        "message": "Bewaar notities en ontmoetingsdetails"
+        "message": "Notities en ontmoetingsdetails opslaan"
     },
     "feature_view_connections": {
-        "message": "Bekijk al je connecties overzichtelijk"
+        "message": "Al je connecties overzichtelijk bekijken"
     },
     "msg_enter_email_password": {
-        "message": "Vul e-mail en wachtwoord in."
+        "message": "Vul e-mailadres en wachtwoord in."
     },
     "msg_logging_in": {
-        "message": "Bezig met inloggen..."
+        "message": "Inloggen..."
     },
     "msg_registering": {
-        "message": "Bezig met registreren..."
+        "message": "Registreren..."
     },
     "msg_account_created": {
-        "message": "Account aangemaakt! Check je e-mail voor bevestiging."
+        "message": "Account aangemaakt! Controleer je e-mail voor bevestiging."
     },
     "msg_failed_suffix": {
         "message": " mislukt."
@@ -66,18 +69,610 @@
         "message": "Supabase configuratie ontbreekt."
     },
     "msg_linkedin_login_progress": {
-        "message": "Bezig met LinkedIn login..."
+        "message": "Inloggen met LinkedIn..."
     },
     "msg_no_auth_url": {
         "message": "Geen auth URL ontvangen"
     },
     "msg_auth_background_processing": {
-        "message": "Authenticatie wordt verwerkt in de achtergrond..."
+        "message": "Authenticatie wordt in de achtergrond verwerkt..."
     },
     "msg_linkedin_login_failed": {
         "message": "LinkedIn login mislukt."
     },
     "msg_unknown_error": {
         "message": "Onbekende fout"
+    },
+    "new_connection_title": {
+        "message": "Nieuwe Connectie"
+    },
+    "show_all_connections_button": {
+        "message": "Toon alle connecties"
+    },
+    "settings_button": {
+        "message": "Instellingen"
+    },
+    "back_to_context_button": {
+        "message": "Terug naar context"
+    },
+    "help_button": {
+        "message": "Help"
+    },
+    "logout_button": {
+        "message": "Uitloggen"
+    },
+    "settings_title": {
+        "message": "Instellingen"
+    },
+    "settings_subtitle": {
+        "message": "Beheer je account en gegevens"
+    },
+    "data_management": {
+        "message": "Gegevensbeheer"
+    },
+    "clean_names_title": {
+        "message": "Profielnamen opschonen"
+    },
+    "clean_names_description": {
+        "message": "Verwijder notificatie-aantallen zoals \"(1)\" of \"(2)\" uit profielnamen in je connecties."
+    },
+    "clean_names_button": {
+        "message": "🧹 Opschonen"
+    },
+    "cleaning_button": {
+        "message": "Bezig..."
+    },
+    "profile_context_field_title": {
+        "message": "Profiel Notitieveld"
+    },
+    "profile_context_field_description": {
+        "message": "Toon een notitieveld op LinkedIn profielen van je connecties."
+    },
+    "context_field_aria_label": {
+        "message": "Schakel profiel notitieveld in of uit"
+    },
+    "account_section_title": {
+        "message": "Account"
+    },
+    "change_password_title": {
+        "message": "Wachtwoord wijzigen"
+    },
+    "change_password_description": {
+        "message": "Wijzig je wachtwoord voor extra beveiliging."
+    },
+    "change_password_button": {
+        "message": "🔒 Wijzigen"
+    },
+    "current_password_label": {
+        "message": "Huidige wachtwoord"
+    },
+    "current_password_placeholder": {
+        "message": "Huidige wachtwoord"
+    },
+    "new_password_label": {
+        "message": "Nieuw wachtwoord"
+    },
+    "new_password_placeholder": {
+        "message": "Minimaal 6 tekens"
+    },
+    "confirm_password_label": {
+        "message": "Bevestig nieuw wachtwoord"
+    },
+    "confirm_password_placeholder": {
+        "message": "Herhaal nieuw wachtwoord"
+    },
+    "cancel_button": {
+        "message": "Annuleren"
+    },
+    "submit_change_password_button": {
+        "message": "Wijzigen"
+    },
+    "processing_button": {
+        "message": "Bezig..."
+    },
+    "privacy_gdpr_title": {
+        "message": "Privacy & GDPR"
+    },
+    "export_data_title": {
+        "message": "Exporteer mijn data"
+    },
+    "export_data_description": {
+        "message": "Download een volledig overzicht van al je connecties en notities als JSON bestand."
+    },
+    "export_data_button": {
+        "message": "📊 Exporteer data"
+    },
+    "exporting_button": {
+        "message": "⏳ Exporteren..."
+    },
+    "delete_account_title": {
+        "message": "Verwijder mijn account"
+    },
+    "delete_account_description": {
+        "message": "Permanent verwijderen van je account en alle gerelateerde gegevens. Deze actie kan niet ongedaan worden gemaakt."
+    },
+    "delete_account_button": {
+        "message": "🗑️ Verwijder account"
+    },
+    "deleting_button": {
+        "message": "⏳ Verwijderen..."
+    },
+    "privacy_policy_title": {
+        "message": "Privacybeleid"
+    },
+    "privacy_policy_description": {
+        "message": "Lees ons privacybeleid om te begrijpen hoe we je gegevens beschermen en gebruiken."
+    },
+    "coming_soon_button": {
+        "message": "📄 Binnenkort beschikbaar"
+    },
+    "updates_section_title": {
+        "message": "Updates"
+    },
+    "current_version_title": {
+        "message": "Huidige versie"
+    },
+    "current_version_description": {
+        "message": "Je gebruikt versie $VERSION$ van de Rolodink extensie.",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            }
+        }
+    },
+    "check_updates_title": {
+        "message": "Controleer op updates"
+    },
+    "check_updates_description": {
+        "message": "Controleer handmatig of er een nieuwe versie beschikbaar is."
+    },
+    "check_updates_button": {
+        "message": "🔄 Controleer updates"
+    },
+    "checking_button": {
+        "message": "⏳ Controleren..."
+    },
+    "update_available_label": {
+        "message": "→ $VERSION$ beschikbaar",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            }
+        }
+    },
+    "new_features_label": {
+        "message": "Nieuwe functies:"
+    },
+    "update_type_major": {
+        "message": "🚀 Nieuwe hoofdversie"
+    },
+    "update_type_minor": {
+        "message": "✨ Nieuwe functies"
+    },
+    "update_type_patch": {
+        "message": "🔧 Verbeteringen"
+    },
+    "msg_not_logged_in_clean": {
+        "message": "Niet ingelogd. Log in om op te schonen."
+    },
+    "msg_clean_failed": {
+        "message": "Opschonen mislukt. Probeer later opnieuw."
+    },
+    "msg_clean_success": {
+        "message": "Namen opgeschoond: $COUNT$ bijgewerkt.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_clean_error_network": {
+        "message": "Kon niet opschonen. Controleer je internetverbinding."
+    },
+    "msg_password_mismatch": {
+        "message": "Nieuwe wachtwoorden komen niet overeen."
+    },
+    "msg_password_too_short": {
+        "message": "Nieuw wachtwoord moet minimaal 6 tekens lang zijn."
+    },
+    "msg_not_logged_in_password": {
+        "message": "Niet ingelogd of sessie onvolledig. Log opnieuw in om je wachtwoord te wijzigen."
+    },
+    "msg_current_password_incorrect": {
+        "message": "Huidig wachtwoord is onjuist of sessie is verlopen."
+    },
+    "msg_password_change_failed": {
+        "message": "Wachtwoord wijzigen mislukt: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_password_change_success": {
+        "message": "Wachtwoord succesvol gewijzigd."
+    },
+    "msg_password_change_error_network": {
+        "message": "Kon wachtwoord niet wijzigen. Controleer je internetverbinding."
+    },
+    "msg_not_logged_in_export": {
+        "message": "Niet ingelogd. Log in om data te exporteren."
+    },
+    "msg_export_failed": {
+        "message": "Export mislukt. Probeer later opnieuw."
+    },
+    "msg_export_success": {
+        "message": "Data succesvol geëxporteerd!"
+    },
+    "msg_export_error_network": {
+        "message": "Kon data niet exporteren. Controleer je internetverbinding."
+    },
+    "msg_delete_warning": {
+        "message": "WAARSCHUWING: Dit zal je account en alle gegevens permanent verwijderen!\n\nDit omvat:\n• Alle connecties en notities\n• Je account informatie\n• Alle gerelateerde data\n\nDeze actie kan NIET ongedaan worden gemaakt!\n\nTyp \"VERWIJDER\" om te bevestigen:"
+    },
+    "msg_delete_prompt": {
+        "message": "Typ \"VERWIJDER\" om je account permanent te verwijderen:"
+    },
+    "msg_delete_cancelled": {
+        "message": "Account verwijdering geannuleerd."
+    },
+    "msg_not_logged_in_delete": {
+        "message": "Niet ingelogd. Log in om account te verwijderen."
+    },
+    "msg_delete_failed": {
+        "message": "Account verwijdering mislukt. Probeer later opnieuw."
+    },
+    "msg_delete_success": {
+        "message": "Account succesvol verwijderd. $COUNT$ connecties verwijderd.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_delete_error_network": {
+        "message": "Kon account niet verwijderen. Controleer je internetverbinding."
+    },
+    "connection_form_edit_title": {
+        "message": "Connectie Bewerken"
+    },
+    "connection_form_new_title": {
+        "message": "Nieuwe Connectie"
+    },
+    "connection_form_edit_subtitle": {
+        "message": "Wijzig de details van deze connectie"
+    },
+    "connection_form_new_subtitle": {
+        "message": "Voeg extra informatie toe aan deze connectie"
+    },
+    "section_meeting_details": {
+        "message": "Ontmoetingsdetails"
+    },
+    "label_meeting_place": {
+        "message": "Waar hebben jullie elkaar ontmoet?"
+    },
+    "placeholder_meeting_place": {
+        "message": "Bijv. LinkedIn event, conferentie, via-via..."
+    },
+    "help_meeting_place": {
+        "message": "Dit helpt je later te herinneren waar je deze persoon hebt leren kennen"
+    },
+    "label_user_company": {
+        "message": "Mijn bedrijf destijds"
+    },
+    "placeholder_user_company": {
+        "message": "Bijv. Acme Corp, Freelancer, Student..."
+    },
+    "help_user_company": {
+        "message": "Waar werkte je toen je deze persoon ontmoette?"
+    },
+    "section_notes": {
+        "message": "Notities"
+    },
+    "label_notes": {
+        "message": "Extra informatie"
+    },
+    "placeholder_notes": {
+        "message": "Voeg hier extra notities toe over deze persoon, jullie gesprek, of andere relevante informatie..."
+    },
+    "chars_remaining": {
+        "message": "$CURRENT$/$MAX$ karakters",
+        "placeholders": {
+            "current": {
+                "content": "$1"
+            },
+            "max": {
+                "content": "$2"
+            }
+        }
+    },
+    "tips_title": {
+        "message": "Tips voor goede notities"
+    },
+    "tip_1": {
+        "message": "Noteer wat jullie bespraken of waar jullie over spraken"
+    },
+    "tip_2": {
+        "message": "Voeg contactgegevens toe die je later nodig hebt"
+    },
+    "tip_3": {
+        "message": "Noteer follow-up acties of beloftes"
+    },
+    "button_saving": {
+        "message": "Bezig..."
+    },
+    "button_save_changes": {
+        "message": "Wijzigingen Opslaan"
+    },
+    "button_save_connection": {
+        "message": "Connectie Opslaan"
+    },
+    "search_placeholder": {
+        "message": "Zoek in connecties... (Ctrl+F)"
+    },
+    "clear_search_title": {
+        "message": "Zoekopdracht wissen"
+    },
+    "search_results_count": {
+        "message": "$COUNT$ resultaat resultaten voor \"$QUERY$\"",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "query": {
+                "content": "$2"
+            }
+        }
+    },
+    "filter_all": {
+        "message": "Alle"
+    },
+    "filter_with_notes": {
+        "message": "Met notities"
+    },
+    "filter_recent": {
+        "message": "Recent"
+    },
+    "open_settings_title": {
+        "message": "Open instellingen"
+    },
+    "loading_connections": {
+        "message": "Bezig met laden..."
+    },
+    "empty_search_title": {
+        "message": "Geen resultaten"
+    },
+    "empty_search_desc_query": {
+        "message": "Geen connecties gevonden voor \"$QUERY$\"",
+        "placeholders": {
+            "query": {
+                "content": "$1"
+            }
+        }
+    },
+    "empty_search_desc_category": {
+        "message": "Geen connecties in deze categorie"
+    },
+    "open_linkedin_profile_title": {
+        "message": "Open LinkedIn-profiel"
+    },
+    "label_met_at": {
+        "message": "Ontmoet op:"
+    },
+    "label_my_company": {
+        "message": "Mijn bedrijf:"
+    },
+    "empty_list_title": {
+        "message": "Nog geen connecties"
+    },
+    "empty_list_desc": {
+        "message": "Voeg je eerste LinkedIn connectie toe door op de \"Voeg toe aan CRM\" knop te klikken op een LinkedIn profiel."
+    },
+    "technical_details": {
+        "message": "Technische details"
+    },
+    "retry_button_title": {
+        "message": "Probeer opnieuw"
+    },
+    "retry_button_label": {
+        "message": "🔄 Opnieuw"
+    },
+    "dismiss_button_title": {
+        "message": "Sluiten"
+    },
+    "error_network": {
+        "message": "Geen internetverbinding. Controleer je wifi of mobiele data."
+    },
+    "error_request_failed": {
+        "message": "Verbindingsprobleem. Controleer je internetverbinding."
+    },
+    "error_401": {
+        "message": "Je sessie is verlopen. Log opnieuw in."
+    },
+    "error_403": {
+        "message": "Je hebt geen toegang tot deze functie."
+    },
+    "error_404": {
+        "message": "De gevraagde informatie kon niet worden gevonden."
+    },
+    "error_500": {
+        "message": "Er is een serverprobleem. Probeer het later opnieuw."
+    },
+    "error_unauthorized": {
+        "message": "Je sessie is verlopen. Log opnieuw in."
+    },
+    "error_forbidden": {
+        "message": "Je hebt geen toegang tot deze functie."
+    },
+    "error_not_found": {
+        "message": "De gevraagde informatie kon niet worden gevonden."
+    },
+    "error_internal_server": {
+        "message": "Er is een serverprobleem. Probeer het later opnieuw."
+    },
+    "error_missing_id": {
+        "message": "Er is een probleem met deze connectie. Probeer de pagina te vernieuwen."
+    },
+    "error_duplicate": {
+        "message": "Deze LinkedIn connectie is al toegevoegd aan Rolodink."
+    },
+    "error_invalid_page": {
+        "message": "Rolodink werkt op LinkedIn profielpagina's"
+    },
+    "help_title": {
+        "message": "Rolodink Help"
+    },
+    "help_subtitle": {
+        "message": "Alles wat je moet weten over de Rolodink extensie"
+    },
+    "section_what_is_title": {
+        "message": "🎯 Wat is Rolodink?"
+    },
+    "section_what_is_p1": {
+        "message": "Rolodink is een Chrome extensie die je helpt om je LinkedIn connecties beter te beheren. In plaats van verloren te gaan in een lange lijst van connecties, kun je nu gemakkelijk notities toevoegen, contactmomenten bijhouden en je netwerk effectief onderhouden."
+    },
+    "section_what_is_why_bold": {
+        "message": "Waarom Rolodink?"
+    },
+    "section_what_is_p2": {
+        "message": "LinkedIn heeft geweldige tools voor netwerken, maar geen ingebouwde CRM-functionaliteit. Deze extensie vult die leemte op door je te helpen om waardevolle informatie over je connecties op te slaan en te beheren."
+    },
+    "section_how_works_title": {
+        "message": "🚀 Hoe werkt het?"
+    },
+    "step_1_title": {
+        "message": "Voeg connecties toe"
+    },
+    "step_1_desc": {
+        "message": "Ga naar een LinkedIn profiel en klik op de \"Voeg toe aan CRM\" knop die automatisch verschijnt."
+    },
+    "step_2_title": {
+        "message": "Voeg details toe"
+    },
+    "step_2_desc": {
+        "message": "Geef aan waar je deze persoon hebt ontmoet en voeg notities toe over jullie gesprek."
+    },
+    "step_3_title": {
+        "message": "Beheer je netwerk"
+    },
+    "step_3_desc": {
+        "message": "Bekijk alle connecties, zoek door notities en houd je netwerk up-to-date."
+    },
+    "section_features_title": {
+        "message": "✨ Functies overzicht"
+    },
+    "feature_notes_title": {
+        "message": "Notities bijhouden"
+    },
+    "feature_notes_desc": {
+        "message": "Voeg persoonlijke notities toe over gesprekken, afspraken en follow-ups."
+    },
+    "feature_location_title": {
+        "message": "Ontmoetingslocatie"
+    },
+    "feature_location_desc": {
+        "message": "Houd bij waar je elke connectie hebt ontmoet (conferentie, event, etc.)."
+    },
+    "feature_company_title": {
+        "message": "Bedrijfscontext"
+    },
+    "feature_company_desc": {
+        "message": "Noteer bij welk bedrijf je werkte toen je deze persoon ontmoette."
+    },
+    "feature_search_title": {
+        "message": "Slim zoeken"
+    },
+    "feature_search_desc": {
+        "message": "Zoek snel door al je connecties en notities met de ingebouwde zoekfunctie."
+    },
+    "feature_filter_title": {
+        "message": "Filtering"
+    },
+    "feature_filter_desc": {
+        "message": "Filter connecties op notities, recente toevoegingen en meer."
+    },
+    "feature_settings_title": {
+        "message": "Instellingen"
+    },
+    "feature_settings_desc": {
+        "message": "Beheer je account, wijzig je wachtwoord en gebruik extra tools."
+    },
+    "section_tips_title": {
+        "message": "💡 Tips & Tricks"
+    },
+    "tip_effective_title": {
+        "message": "Effectieve notities"
+    },
+    "tip_effective_desc": {
+        "message": "Noteer concrete details: wat jullie bespraken, follow-up acties, en contactgegevens die je later nodig hebt."
+    },
+    "tip_update_title": {
+        "message": "Regelmatig bijwerken"
+    },
+    "tip_update_desc": {
+        "message": "Voeg notities toe direct na een ontmoeting terwijl de details nog vers zijn in je geheugen."
+    },
+    "tip_quality_title": {
+        "message": "Focus op kwaliteit"
+    },
+    "tip_quality_desc": {
+        "message": "Het is beter om een kleiner netwerk te hebben met rijke informatie dan veel connecties zonder context."
+    },
+    "tip_followup_title": {
+        "message": "Follow-up plannen"
+    },
+    "tip_followup_desc": {
+        "message": "Gebruik je notities om follow-up gesprekken te plannen en je netwerk warm te houden."
+    },
+    "section_faq_title": {
+        "message": "🔧 Problemen oplossen"
+    },
+    "faq_button_title": {
+        "message": "De \"Voeg toe aan CRM\" knop verschijnt niet"
+    },
+    "faq_button_desc": {
+        "message": "Zorg ervoor dat je ingelogd bent in de extensie en dat je op een LinkedIn profielpagina bent. Ververs de pagina als de knop niet verschijnt."
+    },
+    "faq_export_title": {
+        "message": "Kan ik mijn data exporteren?"
+    },
+    "faq_export_desc": {
+        "message": "Ja, de export functionaliteit is beschikbaar in de instellingen. Je kunt je connecties exporteren naar CSV of Excel."
+    },
+    "faq_security_title": {
+        "message": "Is mijn data veilig?"
+    },
+    "faq_security_desc": {
+        "message": "Absoluut. Alle data wordt veilig opgeslagen en versleuteld. Je hebt volledige controle over je eigen informatie."
+    },
+    "faq_multiple_title": {
+        "message": "Kan ik de extensie op meerdere computers gebruiken?"
+    },
+    "faq_multiple_desc": {
+        "message": "Ja, je kunt inloggen op verschillende computers en hebt overal toegang tot je connecties en notities."
+    },
+    "section_contact_title": {
+        "message": "📞 Contact & Support"
+    },
+    "contact_intro": {
+        "message": "Heb je vragen of problemen met de Rolodink extensie? We helpen je graag!"
+    },
+    "contact_email_title": {
+        "message": "E-mail Support"
+    },
+    "contact_email_desc": {
+        "message": "Stuur een e-mail naar support@linkedincrm.com"
+    },
+    "contact_bug_title": {
+        "message": "Bug Reports"
+    },
+    "contact_bug_desc": {
+        "message": "Rapporteer problemen via GitHub Issues"
+    },
+    "contact_feature_title": {
+        "message": "Feature Requests"
+    },
+    "contact_feature_desc": {
+        "message": "Heb je ideeën voor nieuwe functies? We horen ze graag!"
     }
 }

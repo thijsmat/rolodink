@@ -2,6 +2,9 @@
     "appName": {
         "message": "Rolodink"
     },
+    "appDescription": {
+        "message": "Rolodink: your note layer on top of LinkedIn, your modern rolodex."
+    },
     "loading": {
         "message": "Loading..."
     },
@@ -79,5 +82,597 @@
     },
     "msg_unknown_error": {
         "message": "Unknown error"
+    },
+    "new_connection_title": {
+        "message": "New Connection"
+    },
+    "show_all_connections_button": {
+        "message": "Show All Connections"
+    },
+    "settings_button": {
+        "message": "Settings"
+    },
+    "back_to_context_button": {
+        "message": "Back to Context"
+    },
+    "help_button": {
+        "message": "Help"
+    },
+    "logout_button": {
+        "message": "Logout"
+    },
+    "settings_title": {
+        "message": "Settings"
+    },
+    "settings_subtitle": {
+        "message": "Manage your account and data"
+    },
+    "data_management": {
+        "message": "Data Management"
+    },
+    "clean_names_title": {
+        "message": "Clean Profile Names"
+    },
+    "clean_names_description": {
+        "message": "Remove notification counts like \"(1)\" or \"(2)\" from profile names in your connections."
+    },
+    "clean_names_button": {
+        "message": "🧹 Clean Names"
+    },
+    "cleaning_button": {
+        "message": "Cleaning..."
+    },
+    "profile_context_field_title": {
+        "message": "Profile Context Field"
+    },
+    "profile_context_field_description": {
+        "message": "Show a note field on LinkedIn profiles of your connections."
+    },
+    "context_field_aria_label": {
+        "message": "Toggle profile context field"
+    },
+    "account_section_title": {
+        "message": "Account"
+    },
+    "change_password_title": {
+        "message": "Change Password"
+    },
+    "change_password_description": {
+        "message": "Change your password for extra security."
+    },
+    "change_password_button": {
+        "message": "🔒 Change"
+    },
+    "current_password_label": {
+        "message": "Current Password"
+    },
+    "current_password_placeholder": {
+        "message": "Current password"
+    },
+    "new_password_label": {
+        "message": "New Password"
+    },
+    "new_password_placeholder": {
+        "message": "At least 6 characters"
+    },
+    "confirm_password_label": {
+        "message": "Confirm New Password"
+    },
+    "confirm_password_placeholder": {
+        "message": "Repeat new password"
+    },
+    "cancel_button": {
+        "message": "Cancel"
+    },
+    "submit_change_password_button": {
+        "message": "Change"
+    },
+    "processing_button": {
+        "message": "Processing..."
+    },
+    "privacy_gdpr_title": {
+        "message": "Privacy & GDPR"
+    },
+    "export_data_title": {
+        "message": "Export My Data"
+    },
+    "export_data_description": {
+        "message": "Download a complete overview of all your connections and notes as a JSON file."
+    },
+    "export_data_button": {
+        "message": "📊 Export Data"
+    },
+    "exporting_button": {
+        "message": "⏳ Exporting..."
+    },
+    "delete_account_title": {
+        "message": "Delete My Account"
+    },
+    "delete_account_description": {
+        "message": "Permanently delete your account and all related data. This action cannot be undone."
+    },
+    "delete_account_button": {
+        "message": "🗑️ Delete Account"
+    },
+    "deleting_button": {
+        "message": "⏳ Deleting..."
+    },
+    "privacy_policy_title": {
+        "message": "Privacy Policy"
+    },
+    "privacy_policy_description": {
+        "message": "Read our privacy policy to understand how we protect and use your data."
+    },
+    "coming_soon_button": {
+        "message": "📄 Coming Soon"
+    },
+    "updates_section_title": {
+        "message": "Updates"
+    },
+    "current_version_title": {
+        "message": "Current Version"
+    },
+    "current_version_description": {
+        "message": "You are using version $VERSION$ of the Rolodink extension.",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            }
+        }
+    },
+    "check_updates_title": {
+        "message": "Check for Updates"
+    },
+    "check_updates_description": {
+        "message": "Manually check if a new version is available."
+    },
+    "check_updates_button": {
+        "message": "🔄 Check Updates"
+    },
+    "checking_button": {
+        "message": "⏳ Checking..."
+    },
+    "update_available_label": {
+        "message": "→ $VERSION$ available",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            }
+        }
+    },
+    "new_features_label": {
+        "message": "New features:"
+    },
+    "update_type_major": {
+        "message": "🚀 New Major Version"
+    },
+    "update_type_minor": {
+        "message": "✨ New Features"
+    },
+    "update_type_patch": {
+        "message": "🔧 Improvements"
+    },
+    "msg_not_logged_in_clean": {
+        "message": "Not logged in. Log in to clean names."
+    },
+    "msg_clean_failed": {
+        "message": "Cleaning failed. Please try again later."
+    },
+    "msg_clean_success": {
+        "message": "Names cleaned: $COUNT$ updated.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_clean_error_network": {
+        "message": "Could not clean. Check your internet connection."
+    },
+    "msg_password_mismatch": {
+        "message": "New passwords do not match."
+    },
+    "msg_password_too_short": {
+        "message": "New password must be at least 6 characters long."
+    },
+    "msg_not_logged_in_password": {
+        "message": "Not logged in or session incomplete. Please log in again to change your password."
+    },
+    "msg_current_password_incorrect": {
+        "message": "Current password is incorrect or session expired."
+    },
+    "msg_password_change_failed": {
+        "message": "Failed to change password: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_password_change_success": {
+        "message": "Password changed successfully."
+    },
+    "msg_password_change_error_network": {
+        "message": "Could not change password. Check your internet connection."
+    },
+    "msg_not_logged_in_export": {
+        "message": "Not logged in. Log in to export data."
+    },
+    "msg_export_failed": {
+        "message": "Export failed. Please try again later."
+    },
+    "msg_export_success": {
+        "message": "Data exported successfully!"
+    },
+    "msg_export_error_network": {
+        "message": "Could not export data. Check your internet connection."
+    },
+    "msg_delete_warning": {
+        "message": "WARNING: This will permanently delete your account and all data!\n\nThis includes:\n• All connections and notes\n• Your account information\n• All related data\n\nThis action cannot be undone!\n\nType \"DELETE\" to confirm:"
+    },
+    "msg_delete_prompt": {
+        "message": "Type \"DELETE\" to permanently delete your account:"
+    },
+    "msg_delete_cancelled": {
+        "message": "Account deletion cancelled."
+    },
+    "msg_not_logged_in_delete": {
+        "message": "Not logged in. Log in to delete account."
+    },
+    "msg_delete_failed": {
+        "message": "Account deletion failed. Please try again later."
+    },
+    "msg_delete_success": {
+        "message": "Account successfully deleted. $COUNT$ connections removed.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_delete_error_network": {
+        "message": "Could not delete account. Check your internet connection."
+    },
+    "connection_form_edit_title": {
+        "message": "Edit Connection"
+    },
+    "connection_form_new_title": {
+        "message": "New Connection"
+    },
+    "connection_form_edit_subtitle": {
+        "message": "Edit the details of this connection"
+    },
+    "connection_form_new_subtitle": {
+        "message": "Add extra information to this connection"
+    },
+    "section_meeting_details": {
+        "message": "Meeting Details"
+    },
+    "label_meeting_place": {
+        "message": "Where did you meet?"
+    },
+    "placeholder_meeting_place": {
+        "message": "E.g. LinkedIn event, conference, referral..."
+    },
+    "help_meeting_place": {
+        "message": "This helps you recall where you met this person later"
+    },
+    "label_user_company": {
+        "message": "My company at the time"
+    },
+    "placeholder_user_company": {
+        "message": "E.g. Acme Corp, Freelancer, Student..."
+    },
+    "help_user_company": {
+        "message": "Where did you work when you met this person?"
+    },
+    "section_notes": {
+        "message": "Notes"
+    },
+    "label_notes": {
+        "message": "Extra information"
+    },
+    "placeholder_notes": {
+        "message": "Add extra notes about this person, your conversation, or other relevant information here..."
+    },
+    "chars_remaining": {
+        "message": "$CURRENT$/$MAX$ characters",
+        "placeholders": {
+            "current": {
+                "content": "$1"
+            },
+            "max": {
+                "content": "$2"
+            }
+        }
+    },
+    "tips_title": {
+        "message": "Tips for good notes"
+    },
+    "tip_1": {
+        "message": "Note what you discussed or what you talked about"
+    },
+    "tip_2": {
+        "message": "Add contact details you might need later"
+    },
+    "tip_3": {
+        "message": "Note follow-up actions or promises"
+    },
+    "button_saving": {
+        "message": "Saving..."
+    },
+    "button_save_changes": {
+        "message": "Save Changes"
+    },
+    "button_save_connection": {
+        "message": "Save Connection"
+    },
+    "search_placeholder": {
+        "message": "Search connections... (Ctrl+F)"
+    },
+    "clear_search_title": {
+        "message": "Clear search"
+    },
+    "search_results_count": {
+        "message": "$COUNT$ result(s) for \"$QUERY$\"",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "query": {
+                "content": "$2"
+            }
+        }
+    },
+    "filter_all": {
+        "message": "All"
+    },
+    "filter_with_notes": {
+        "message": "With notes"
+    },
+    "filter_recent": {
+        "message": "Recent"
+    },
+    "open_settings_title": {
+        "message": "Open settings"
+    },
+    "loading_connections": {
+        "message": "Loading connections..."
+    },
+    "empty_search_title": {
+        "message": "No results"
+    },
+    "empty_search_desc_query": {
+        "message": "No connections found for \"$QUERY$\"",
+        "placeholders": {
+            "query": {
+                "content": "$1"
+            }
+        }
+    },
+    "empty_search_desc_category": {
+        "message": "No connections in this category"
+    },
+    "open_linkedin_profile_title": {
+        "message": "Open LinkedIn profile"
+    },
+    "label_met_at": {
+        "message": "Met at:"
+    },
+    "label_my_company": {
+        "message": "My company:"
+    },
+    "empty_list_title": {
+        "message": "No connections yet"
+    },
+    "empty_list_desc": {
+        "message": "Add your first LinkedIn connection by clicking the \"Add to CRM\" button on a LinkedIn profile."
+    },
+    "technical_details": {
+        "message": "Technical details"
+    },
+    "retry_button_title": {
+        "message": "Try again"
+    },
+    "retry_button_label": {
+        "message": "🔄 Retry"
+    },
+    "dismiss_button_title": {
+        "message": "Close"
+    },
+    "error_network": {
+        "message": "No internet connection. Check your WiFi or mobile data."
+    },
+    "error_request_failed": {
+        "message": "Connection problem. Check your internet connection."
+    },
+    "error_401": {
+        "message": "Your session has expired. Please log in again."
+    },
+    "error_403": {
+        "message": "You do not have access to this feature."
+    },
+    "error_404": {
+        "message": "The requested information could not be found."
+    },
+    "error_500": {
+        "message": "There is a server problem. Please try again later."
+    },
+    "error_unauthorized": {
+        "message": "Your session has expired. Please log in again."
+    },
+    "error_forbidden": {
+        "message": "You do not have access to this feature."
+    },
+    "error_not_found": {
+        "message": "The requested information could not be found."
+    },
+    "error_internal_server": {
+        "message": "There is a server problem. Please try again later."
+    },
+    "error_missing_id": {
+        "message": "There is a problem with this connection. Try refreshing the page."
+    },
+    "error_duplicate": {
+        "message": "This LinkedIn connection has already been added to Rolodink."
+    },
+    "error_invalid_page": {
+        "message": "Rolodink works on LinkedIn profile pages"
+    },
+    "help_title": {
+        "message": "Rolodink Help"
+    },
+    "help_subtitle": {
+        "message": "Everything you need to know about the Rolodink extension"
+    },
+    "section_what_is_title": {
+        "message": "🎯 What is Rolodink?"
+    },
+    "section_what_is_p1": {
+        "message": "Rolodink is a Chrome extension that helps you manage your LinkedIn connections better. Instead of getting lost in a long list of connections, you can now easily add notes, track contact moments, and maintain your network effectively."
+    },
+    "section_what_is_why_bold": {
+        "message": "Why Rolodink?"
+    },
+    "section_what_is_p2": {
+        "message": "LinkedIn has great tools for networking, but no built-in CRM functionality. This extension fills that gap by helping you store and manage valuable information about your connections."
+    },
+    "section_how_works_title": {
+        "message": "🚀 How does it work?"
+    },
+    "step_1_title": {
+        "message": "Add connections"
+    },
+    "step_1_desc": {
+        "message": "Go to a LinkedIn profile and click the \"Add to CRM\" button that appears automatically."
+    },
+    "step_2_title": {
+        "message": "Add details"
+    },
+    "step_2_desc": {
+        "message": "Indicate where you met this person and add notes about your conversation."
+    },
+    "step_3_title": {
+        "message": "Manage your network"
+    },
+    "step_3_desc": {
+        "message": "View all connections, search through notes, and keep your network up-to-date."
+    },
+    "section_features_title": {
+        "message": "✨ Features overview"
+    },
+    "feature_notes_title": {
+        "message": "Keep notes"
+    },
+    "feature_notes_desc": {
+        "message": "Add personal notes about conversations, appointments, and follow-ups."
+    },
+    "feature_location_title": {
+        "message": "Meeting location"
+    },
+    "feature_location_desc": {
+        "message": "Track where you met each connection (conference, event, etc.)."
+    },
+    "feature_company_title": {
+        "message": "Company context"
+    },
+    "feature_company_desc": {
+        "message": "Note which company you worked at when you met this person."
+    },
+    "feature_search_title": {
+        "message": "Smart search"
+    },
+    "feature_search_desc": {
+        "message": "Quickly search through all your connections and notes with the built-in search function."
+    },
+    "feature_filter_title": {
+        "message": "Filtering"
+    },
+    "feature_filter_desc": {
+        "message": "Filter connections by notes, recent additions, and more."
+    },
+    "feature_settings_title": {
+        "message": "Settings"
+    },
+    "feature_settings_desc": {
+        "message": "Manage your account, change your password, and use extra tools."
+    },
+    "section_tips_title": {
+        "message": "💡 Tips & Tricks"
+    },
+    "tip_effective_title": {
+        "message": "Effective notes"
+    },
+    "tip_effective_desc": {
+        "message": "Note concrete details: what you discussed, follow-up actions, and contact details you might need later."
+    },
+    "tip_update_title": {
+        "message": "Update regularly"
+    },
+    "tip_update_desc": {
+        "message": "Add notes immediately after a meeting while the details are still fresh in your memory."
+    },
+    "tip_quality_title": {
+        "message": "Focus on quality"
+    },
+    "tip_quality_desc": {
+        "message": "It's better to have a smaller network with rich information than many connections without context."
+    },
+    "tip_followup_title": {
+        "message": "Plan follow-up"
+    },
+    "tip_followup_desc": {
+        "message": "Use your notes to plan follow-up conversations and keep your network warm."
+    },
+    "section_faq_title": {
+        "message": "🔧 Troubleshooting"
+    },
+    "faq_button_title": {
+        "message": "The \"Add to CRM\" button doesn't appear"
+    },
+    "faq_button_desc": {
+        "message": "Make sure you are logged in to the extension and that you are on a LinkedIn profile page. Refresh the page if the button doesn't appear."
+    },
+    "faq_export_title": {
+        "message": "Can I export my data?"
+    },
+    "faq_export_desc": {
+        "message": "Yes, the export functionality is available in the settings. You can export your connections to CSV or Excel."
+    },
+    "faq_security_title": {
+        "message": "Is my data safe?"
+    },
+    "faq_security_desc": {
+        "message": "Absolutely. All data is stored securely and encrypted. You have full control over your own information."
+    },
+    "faq_multiple_title": {
+        "message": "Can I use the extension on multiple computers?"
+    },
+    "faq_multiple_desc": {
+        "message": "Yes, you can log in on different computers and have access to your connections and notes everywhere."
+    },
+    "section_contact_title": {
+        "message": "📞 Contact & Support"
+    },
+    "contact_intro": {
+        "message": "Do you have questions or problems with the Rolodink extension? We are happy to help!"
+    },
+    "contact_email_title": {
+        "message": "Email Support"
+    },
+    "contact_email_desc": {
+        "message": "Send an email to support@linkedincrm.com"
+    },
+    "contact_bug_title": {
+        "message": "Bug Reports"
+    },
+    "contact_bug_desc": {
+        "message": "Report problems via GitHub Issues"
+    },
+    "contact_feature_title": {
+        "message": "Feature Requests"
+    },
+    "contact_feature_desc": {
+        "message": "Do you have ideas for new features? We'd love to hear them!"
     }
 }

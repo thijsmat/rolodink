@@ -5,9 +5,11 @@ import { useConnection } from '../context/ConnectionContext';
 import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
+  const { t } = useExtensionTranslation();
   const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -46,7 +48,7 @@ export function SettingsView() {
       setIsCleaning(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        setToastMessage('Niet ingelogd. Log in om op te schonen.');
+        setToastMessage(t('msg_not_logged_in_clean'));
         return;
       }
       const supabaseAccessToken = session.access_token;
@@ -60,18 +62,18 @@ export function SettingsView() {
       });
 
       if (!resp.ok) {
-        setToastMessage('Opschonen mislukt. Probeer later opnieuw.');
+        setToastMessage(t('msg_clean_failed'));
         return;
       }
 
       const data = await resp.json().catch(() => null);
       const updated = data?.updatedCount ?? 0;
-      setToastMessage(`Namen opgeschoond: ${updated} bijgewerkt.`);
+      setToastMessage(t('msg_clean_success', [updated]));
 
       // Refresh list silently
       await fetchAllConnections();
     } catch (e) {
-      setToastMessage('Kon niet opschonen. Controleer je internetverbinding.');
+      setToastMessage(t('msg_clean_error_network'));
     } finally {
       setIsCleaning(false);
     }
@@ -81,12 +83,12 @@ export function SettingsView() {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setToastMessage('Nieuwe wachtwoorden komen niet overeen.');
+      setToastMessage(t('msg_password_mismatch'));
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setToastMessage('Nieuw wachtwoord moet minimaal 6 tekens lang zijn.');
+      setToastMessage(t('msg_password_too_short'));
       return;
     }
 
@@ -96,7 +98,7 @@ export function SettingsView() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
-        setToastMessage('Niet ingelogd of sessie onvolledig. Log opnieuw in om je wachtwoord te wijzigen.');
+        setToastMessage(t('msg_not_logged_in_password'));
         return;
       }
       const supabaseAccessToken = session.access_token;
@@ -110,7 +112,7 @@ export function SettingsView() {
       });
 
       if (!testResponse.ok) {
-        setToastMessage('Huidig wachtwoord is onjuist of sessie is verlopen.');
+        setToastMessage(t('msg_current_password_incorrect'));
         return;
       }
 
@@ -119,17 +121,17 @@ export function SettingsView() {
       });
 
       if (error) {
-        setToastMessage(`Wachtwoord wijzigen mislukt: ${error.message}`);
+        setToastMessage(t('msg_password_change_failed', [error.message]));
         return;
       }
 
       // Tokens are automatically persisted by the client
 
-      setToastMessage('Wachtwoord succesvol gewijzigd.');
+      setToastMessage(t('msg_password_change_success'));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
     } catch (e) {
-      setToastMessage('Kon wachtwoord niet wijzigen. Controleer je internetverbinding.');
+      setToastMessage(t('msg_password_change_error_network'));
     } finally {
       setIsChangingPassword(false);
     }
@@ -145,7 +147,7 @@ export function SettingsView() {
       setIsExporting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        setToastMessage('Niet ingelogd. Log in om data te exporteren.');
+        setToastMessage(t('msg_not_logged_in_export'));
         return;
       }
       const supabaseAccessToken = session.access_token;
@@ -158,7 +160,7 @@ export function SettingsView() {
       });
 
       if (!response.ok) {
-        setToastMessage('Export mislukt. Probeer later opnieuw.');
+        setToastMessage(t('msg_export_failed'));
         return;
       }
 
@@ -183,30 +185,22 @@ export function SettingsView() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      setToastMessage('Data succesvol geëxporteerd!');
+      setToastMessage(t('msg_export_success'));
     } catch (e) {
-      setToastMessage('Kon data niet exporteren. Controleer je internetverbinding.');
+      setToastMessage(t('msg_export_error_network'));
     } finally {
       setIsExporting(false);
     }
   }, [setToastMessage]);
 
   const handleDeleteAccount = useCallback(async () => {
-    const confirmed = window.confirm(
-      'WAARSCHUWING: Dit zal je account en alle gegevens permanent verwijderen!\n\n' +
-      'Dit omvat:\n' +
-      '• Alle connecties en notities\n' +
-      '• Je account informatie\n' +
-      '• Alle gerelateerde data\n\n' +
-      'Deze actie kan NIET ongedaan worden gemaakt!\n\n' +
-      'Typ "VERWIJDER" om te bevestigen:'
-    );
+    const confirmed = window.confirm(t('msg_delete_warning'));
 
     if (!confirmed) return;
 
-    const verification = prompt('Typ "VERWIJDER" om je account permanent te verwijderen:');
+    const verification = prompt(t('msg_delete_prompt'));
     if (verification !== 'VERWIJDER') {
-      setToastMessage('Account verwijdering geannuleerd.');
+      setToastMessage(t('msg_delete_cancelled'));
       return;
     }
 
@@ -215,7 +209,7 @@ export function SettingsView() {
       setIsDeleting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        setToastMessage('Niet ingelogd. Log in om account te verwijderen.');
+        setToastMessage(t('msg_not_logged_in_delete'));
         return;
       }
       const supabaseAccessToken = session.access_token;
@@ -228,12 +222,12 @@ export function SettingsView() {
       });
 
       if (!response.ok) {
-        setToastMessage('Account verwijdering mislukt. Probeer later opnieuw.');
+        setToastMessage(t('msg_delete_failed'));
         return;
       }
 
       const data = await response.json();
-      setToastMessage(`Account succesvol verwijderd. ${data.deletedConnections} connecties verwijderd.`);
+      setToastMessage(t('msg_delete_success', [data.deletedConnections]));
 
       // Log user out after successful deletion
       setTimeout(() => {
@@ -241,7 +235,7 @@ export function SettingsView() {
       }, 2000);
 
     } catch (e) {
-      setToastMessage('Kon account niet verwijderen. Controleer je internetverbinding.');
+      setToastMessage(t('msg_delete_error_network'));
     } finally {
       setIsDeleting(false);
     }
@@ -250,19 +244,19 @@ export function SettingsView() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Instellingen</h2>
-        <p className={styles.subtitle}>Beheer je account en gegevens</p>
+        <h2 className={styles.title}>{t('settings_title')}</h2>
+        <p className={styles.subtitle}>{t('settings_subtitle')}</p>
       </div>
 
       <div className={styles.content}>
         {/* Data Management Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Gegevensbeheer</h3>
+          <h3 className={styles.sectionTitle}>{t('data_management')}</h3>
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Profielnamen opschonen</h4>
+              <h4 className={styles.settingName}>{t('clean_names_title')}</h4>
               <p className={styles.settingDescription}>
-                Verwijder notificatie-aantallen zoals "(1)" of "(2)" uit profielnamen in je connecties.
+                {t('clean_names_description')}
               </p>
             </div>
             <button
@@ -270,18 +264,18 @@ export function SettingsView() {
               onClick={handleCleanNames}
               disabled={isCleaning}
             >
-              {isCleaning ? 'Bezig...' : '🧹 Opschonen'}
+              {isCleaning ? t('cleaning_button') : t('clean_names_button')}
             </button>
           </div>
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Profiel Notitieveld</h4>
+              <h4 className={styles.settingName}>{t('profile_context_field_title')}</h4>
               <p className={styles.settingDescription}>
-                Toon een notitieveld op LinkedIn profielen van je connecties.
+                {t('profile_context_field_description')}
               </p>
             </div>
-            <label className={styles.toggleSwitch} aria-label="Schakel profiel notitieveld in of uit">
+            <label className={styles.toggleSwitch} aria-label={t('context_field_aria_label')}>
               <input
                 type="checkbox"
                 checked={contextFieldEnabled}
@@ -294,30 +288,30 @@ export function SettingsView() {
 
         {/* Account Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Account</h3>
+          <h3 className={styles.sectionTitle}>{t('account_section_title')}</h3>
 
           {!showPasswordForm ? (
             <div className={styles.settingItem}>
               <div className={styles.settingInfo}>
-                <h4 className={styles.settingName}>Wachtwoord wijzigen</h4>
+                <h4 className={styles.settingName}>{t('change_password_title')}</h4>
                 <p className={styles.settingDescription}>
-                  Wijzig je wachtwoord voor extra beveiliging.
+                  {t('change_password_description')}
                 </p>
               </div>
               <button
                 className={styles.actionButton}
                 onClick={() => setShowPasswordForm(true)}
               >
-                🔒 Wijzigen
+                {t('change_password_button')}
               </button>
             </div>
           ) : (
             <form className={styles.passwordForm} onSubmit={handlePasswordChange}>
-              <h4 className={styles.formTitle}>Wachtwoord wijzigen</h4>
+              <h4 className={styles.formTitle}>{t('change_password_title')}</h4>
 
               <div className={styles.inputGroup}>
                 <label htmlFor="currentPassword" className={styles.label}>
-                  Huidige wachtwoord
+                  {t('current_password_label')}
                 </label>
                 <input
                   id="currentPassword"
@@ -325,14 +319,14 @@ export function SettingsView() {
                   value={passwordData.currentPassword}
                   onChange={handleInputChange('currentPassword')}
                   className={styles.input}
-                  placeholder="Huidige wachtwoord"
+                  placeholder={t('current_password_placeholder')}
                   required
                 />
               </div>
 
               <div className={styles.inputGroup}>
                 <label htmlFor="newPassword" className={styles.label}>
-                  Nieuw wachtwoord
+                  {t('new_password_label')}
                 </label>
                 <input
                   id="newPassword"
@@ -340,7 +334,7 @@ export function SettingsView() {
                   value={passwordData.newPassword}
                   onChange={handleInputChange('newPassword')}
                   className={styles.input}
-                  placeholder="Minimaal 6 tekens"
+                  placeholder={t('new_password_placeholder')}
                   required
                   minLength={6}
                 />
@@ -348,7 +342,7 @@ export function SettingsView() {
 
               <div className={styles.inputGroup}>
                 <label htmlFor="confirmPassword" className={styles.label}>
-                  Bevestig nieuw wachtwoord
+                  {t('confirm_password_label')}
                 </label>
                 <input
                   id="confirmPassword"
@@ -356,7 +350,7 @@ export function SettingsView() {
                   value={passwordData.confirmPassword}
                   onChange={handleInputChange('confirmPassword')}
                   className={styles.input}
-                  placeholder="Herhaal nieuw wachtwoord"
+                  placeholder={t('confirm_password_placeholder')}
                   required
                 />
               </div>
@@ -370,14 +364,14 @@ export function SettingsView() {
                     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
                   }}
                 >
-                  Annuleren
+                  {t('cancel_button')}
                 </button>
                 <button
                   type="submit"
                   className={styles.submitButton}
                   disabled={isChangingPassword}
                 >
-                  {isChangingPassword ? 'Bezig...' : 'Wijzigen'}
+                  {isChangingPassword ? t('processing_button') : t('submit_change_password_button')}
                 </button>
               </div>
             </form>
@@ -386,13 +380,13 @@ export function SettingsView() {
 
         {/* GDPR Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Privacy & GDPR</h3>
+          <h3 className={styles.sectionTitle}>{t('privacy_gdpr_title')}</h3>
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Exporteer mijn data</h4>
+              <h4 className={styles.settingName}>{t('export_data_title')}</h4>
               <p className={styles.settingDescription}>
-                Download een volledig overzicht van al je connecties en notities als JSON bestand.
+                {t('export_data_description')}
               </p>
             </div>
             <button
@@ -400,15 +394,15 @@ export function SettingsView() {
               onClick={handleExportData}
               disabled={isExporting}
             >
-              {isExporting ? '⏳ Exporteren...' : '📊 Exporteer data'}
+              {isExporting ? t('exporting_button') : t('export_data_button')}
             </button>
           </div>
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Verwijder mijn account</h4>
+              <h4 className={styles.settingName}>{t('delete_account_title')}</h4>
               <p className={styles.settingDescription}>
-                Permanent verwijderen van je account en alle gerelateerde gegevens. Deze actie kan niet ongedaan worden gemaakt.
+                {t('delete_account_description')}
               </p>
             </div>
             <button
@@ -416,43 +410,43 @@ export function SettingsView() {
               onClick={handleDeleteAccount}
               disabled={isDeleting}
             >
-              {isDeleting ? '⏳ Verwijderen...' : '🗑️ Verwijder account'}
+              {isDeleting ? t('deleting_button') : t('delete_account_button')}
             </button>
           </div>
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Privacybeleid</h4>
+              <h4 className={styles.settingName}>{t('privacy_policy_title')}</h4>
               <p className={styles.settingDescription}>
-                Lees ons privacybeleid om te begrijpen hoe we je gegevens beschermen en gebruiken.
+                {t('privacy_policy_description')}
               </p>
             </div>
             <button
               className={styles.disabledButton}
               disabled
-              title="Binnenkort beschikbaar"
+              title={t('coming_soon_button')}
             >
-              📄 Binnenkort beschikbaar
+              {t('coming_soon_button')}
             </button>
           </div>
         </div>
 
         {/* Update Information Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Updates</h3>
+          <h3 className={styles.sectionTitle}>{t('updates_section_title')}</h3>
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Huidige versie</h4>
+              <h4 className={styles.settingName}>{t('current_version_title')}</h4>
               <p className={styles.settingDescription}>
-                Je gebruikt versie {getCurrentVersion()} van de Rolodink extensie.
+                {t('current_version_description', [getCurrentVersion()])}
               </p>
             </div>
             <div className={styles.versionInfo}>
               <span className={styles.currentVersion}>{getCurrentVersion()}</span>
               {versionInfo?.updateAvailable && (
                 <span className={styles.updateAvailable}>
-                  → {versionInfo.latest} beschikbaar
+                  {t('update_available_label', [versionInfo.latest])}
                 </span>
               )}
             </div>
@@ -460,9 +454,9 @@ export function SettingsView() {
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>Controleer op updates</h4>
+              <h4 className={styles.settingName}>{t('check_updates_title')}</h4>
               <p className={styles.settingDescription}>
-                Controleer handmatig of er een nieuwe versie beschikbaar is.
+                {t('check_updates_description')}
               </p>
             </div>
             <button
@@ -470,21 +464,21 @@ export function SettingsView() {
               onClick={checkForUpdates}
               disabled={isCheckingForUpdates}
             >
-              {isCheckingForUpdates ? '⏳ Controleren...' : '🔄 Controleer updates'}
+              {isCheckingForUpdates ? t('checking_button') : t('check_updates_button')}
             </button>
           </div>
 
           {versionInfo?.updateAvailable && (
             <div className={styles.updateInfo}>
               <div className={styles.updateType}>
-                {versionInfo.updateType === 'major' && '🚀 Nieuwe hoofdversie'}
-                {versionInfo.updateType === 'minor' && '✨ Nieuwe functies'}
-                {versionInfo.updateType === 'patch' && '🔧 Verbeteringen'}
+                {versionInfo.updateType === 'major' && t('update_type_major')}
+                {versionInfo.updateType === 'minor' && t('update_type_minor')}
+                {versionInfo.updateType === 'patch' && t('update_type_patch')}
               </div>
               <p className={styles.updateDescription}>{versionInfo.releaseNotes}</p>
               {versionInfo.features.length > 0 && (
                 <div className={styles.updateFeatures}>
-                  <strong>Nieuwe functies:</strong>
+                  <strong>{t('new_features_label')}</strong>
                   <ul>
                     {versionInfo.features.slice(0, 3).map((feature, index) => (
                       <li key={index}>{feature}</li>
