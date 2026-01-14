@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   publish-firefox:
     runs-on: ubuntu-latest
@@ -24,6 +27,12 @@ jobs:
           gh release download ${{ github.event.release.tag_name }} -p "Rolodink-firefox-*.zip"
           echo "zip_file=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_OUTPUT
 
+      - name: Unzip Artifact
+        run: |
+          unzip ${{ steps.download_artifact.outputs.zip_file }} -d firefox-source
+          echo "source_dir=firefox-source" >> $GITHUB_OUTPUT
+        id: unzip_artifact
+
       - name: Install web-ext
         run: npm install -g web-ext
 
@@ -34,6 +43,6 @@ jobs:
         run: |
           web-ext sign \
             --channel listed \
-            --source-dir ${{ steps.download_artifact.outputs.zip_file }} \
+            --source-dir ${{ steps.unzip_artifact.outputs.source_dir }} \
             --api-key $WEB_EXT_API_KEY \
             --api-secret $WEB_EXT_API_SECRET
