@@ -30,7 +30,7 @@ async function logToStorage(message: string, data?: any) {
 // Wrap in IIFE to avoid top-level await issues in some environments
 (async () => {
     try {
-        await logToStorage('Background script loaded (v1.0.10)');
+        await logToStorage('Background script loaded (v1.1.1)');
     } catch (e) {
         console.error('Failed to log startup:', e);
     }

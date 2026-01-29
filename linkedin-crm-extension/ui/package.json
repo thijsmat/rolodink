@@ -1,12 +1,12 @@
 {
   "name": "rolodink-extension-ui",
   "private": true,
-  "version": "1.0.10",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit --project tsconfig.app.json",
-    "build": "tsc --project tsconfig.app.json && vite build && node build-background.cjs",
+    "build": "tsc --project tsconfig.app.json && vite build && node build-background.cjs && node copy-assets.cjs",
     "postbuild:firefox": "node firefox-postbuild.cjs",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 20",
     "preview": "vite preview",
