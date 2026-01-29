@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.0.10 • Free",
+        "version": "Version 1.1.1 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -135,8 +135,8 @@
         "description": "Find answers to the most common questions here. Don't see your question? Feel free to reach out.",
         "faq": [
             {
-                "question": "How do I install Rolodink?",
-                "answer": "Rolodink is a Chrome Extension. You can add it with one click from the Chrome Web Store. After installation, it's immediately active on the LinkedIn website. Make sure to refresh the page if you don't see the sidebar right away."
+                "question": "How do my notes get secured?",
+                "answer": "Your notes are securely stored with encryption and are only visible to you. We take privacy very seriously and never sell your data. Read our Privacy Policy for more details."
             },
             {
                 "question": "Is Rolodink really free?",
@@ -210,6 +210,20 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.1.1",
+                "date": "January 29, 2026",
+                "sections": [
+                    {
+                        "title": "Refinements & Fixes",
+                        "items": [
+                            "Updated contact information.",
+                            "Stability improvements for backend connections.",
+                            "General performance optimizations."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.0.10",
                 "date": "December 22, 2025",

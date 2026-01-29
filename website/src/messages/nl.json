@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.0.10 • Gratis",
+        "version": "Versie 1.1.1 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -210,6 +210,20 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.1.1",
+                "date": "29 Januari 2026",
+                "sections": [
+                    {
+                        "title": "Verbeteringen & Fixes",
+                        "items": [
+                            "Contactinformatie bijgewerkt.",
+                            "Stabiliteitsverbeteringen voor backend connecties.",
+                            "Algemene performance optimalisaties."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.0.10",
                 "date": "22 December 2025",
