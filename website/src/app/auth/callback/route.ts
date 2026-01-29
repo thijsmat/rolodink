@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
   const cookieStore = await cookies()
   const supabase = createRouteHandlerClient({
-    cookies: () => cookieStore,
+    cookies: () => Promise.resolve(cookieStore),
   })
 
   if (tokenHash && otpType) {
