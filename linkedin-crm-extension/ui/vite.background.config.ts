@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
                 entry: path.resolve(__dirname, 'src/background/main.ts'),
                 name: 'background',
                 fileName: () => 'background.js',
-                formats: ['es'],
+                formats: ['iife'],
             },
             rollupOptions: {
                 output: {

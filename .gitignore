@@ -79,3 +79,4 @@ web-ext-artifacts/
 dist-*/
 dist/
 *.zip
+*.tar.gz
