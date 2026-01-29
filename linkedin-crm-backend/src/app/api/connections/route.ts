@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
+    revalidateTag(`connections-${user.id}`);
 
     return NextResponse.json(newConnection, { status: 201, headers: corsHeaders });
 
@@ -309,7 +309,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
     // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
+    revalidateTag(`connections-${user.id}`);
 
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });
 

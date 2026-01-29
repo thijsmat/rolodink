@@ -141,7 +141,7 @@ export async function DELETE(
       );
     }
     // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
+    revalidateTag(`connections-${user.id}`);
 
     return NextResponse.json(
       { message: 'Connection deleted' },
