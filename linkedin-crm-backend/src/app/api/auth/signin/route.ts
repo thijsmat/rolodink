@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Use validated data
     const { email, password } = validation.data;
 
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data.session) {

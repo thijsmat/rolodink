@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Use validated data
     const { email, password } = validation.data;
 
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const emailRedirectTo =
       process.env.EMAIL_CONFIRMATION_REDIRECT_TO ?? 'https://rolodink.app/auth/callback';
     const { data, error } = await supabase.auth.signUp({

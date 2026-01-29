@@ -27,13 +27,13 @@ export async function DELETE(request: NextRequest) {
   const corsHeaders = buildCorsHeaders(request);
 
   try {
-    
+
     // Authenticate user
     const { user, error: authError } = await getUserFromRequest(request);
     if (authError || !user) {
       return NextResponse.json(
         { error: authError || 'Unauthorized' },
-        { 
+        {
           status: 401,
           headers: corsHeaders,
         }
@@ -53,7 +53,7 @@ export async function DELETE(request: NextRequest) {
     if (!dbUser) {
       return NextResponse.json(
         { error: 'User not found' },
-        { 
+        {
           status: 404,
           headers: corsHeaders,
         }
@@ -86,9 +86,9 @@ export async function DELETE(request: NextRequest) {
 
       // Delete user from Supabase Auth (requires admin privileges)
       try {
-        const supabase = createSupabaseServerClient();
+        const supabase = await createSupabaseServerClient();
         const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-        
+
         if (authError) {
           console.error(`Failed to delete user from Supabase Auth: ${authError.message}`);
           // Don't fail the entire operation if Auth deletion fails
@@ -108,12 +108,12 @@ export async function DELETE(request: NextRequest) {
 
     // Return success response
     return NextResponse.json(
-      { 
+      {
         message: 'Account and all associated data have been permanently deleted',
         deletedAt: new Date().toISOString(),
         deletedConnections: dbUser.connections.length,
       },
-      { 
+      {
         status: 200,
         headers: corsHeaders,
       }
@@ -123,7 +123,7 @@ export async function DELETE(request: NextRequest) {
     console.error('Account deletion error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { 
+      {
         status: 500,
         headers: buildCorsHeaders(request),
       }
