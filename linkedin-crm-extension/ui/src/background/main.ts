@@ -180,7 +180,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
             const locale = uiLang.startsWith('nl') ? 'nl' : 'en';
 
             // Website URL
-            const websiteUrl = 'https://rolodink.app';
+            const websiteUrl = import.meta.env.VITE_WEBSITE_URL || 'https://rolodink.app';
             const onboardingUrl = `${websiteUrl}/${locale}/onboarding`;
 
             console.log(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);

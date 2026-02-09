@@ -39,7 +39,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         if (error) {
           throw error
         }
-        window.location.href = next || SUCCESS_REDIRECTS.login
+        window.location.href = (next && next.startsWith('/') && !next.startsWith('//')) ? next : SUCCESS_REDIRECTS.login
         return
       }
 
@@ -56,7 +56,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       }
 
       if (data.session) {
-        window.location.href = next || SUCCESS_REDIRECTS.signup
+        window.location.href = (next && next.startsWith('/') && !next.startsWith('//')) ? next : SUCCESS_REDIRECTS.signup
       } else {
         setMessage({
           type: 'success',

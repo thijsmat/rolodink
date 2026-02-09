@@ -7,11 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pin, UserPlus } from "lucide-react";
 import { useTranslations } from 'next-intl';
 import { Link } from "@/navigation";
-import { getExtensionUrl } from "@/lib/utils";
+import Image from 'next/image';
 
 export default function OnboardingPage() {
     const t = useTranslations('OnboardingPage');
-    const extensionUrl = getExtensionUrl();
 
     return (
         <>
@@ -47,10 +46,12 @@ export default function OnboardingPage() {
                                 </p>
                                 {/* Visual Aid */}
                                 <div className="w-full aspect-video relative bg-white/50 rounded-lg overflow-hidden border border-azure/10 mb-4">
-                                    <img
+                                    <Image
                                         src="/images/pin-extension-instruction.png"
                                         alt="Instruction on how to pin the Rolodink extension"
-                                        className="object-contain w-full h-full"
+                                        className="object-contain"
+                                        fill
+                                        priority
                                     />
                                 </div>
                             </CardContent>

@@ -77,18 +77,11 @@ export async function GET(request: Request) {
   // Determine success path
   let successPath = intent === 'signup' ? '/download?signup=confirmed' : '/download'
 
-  if (next) {
-    // Decode next param just in case, though strictly not needed if we trust it's a path
-    try {
-      // Simple security check: prevent open redirects to other domains
-      // Ensure it starts with / and doesn't contain protocol
-      if (next.startsWith('/') && !next.startsWith('//')) {
-        successPath = next
-      }
-    } catch (e) {
-      // invalid next URL, fallback to default
-      console.warn('Invalid NEXT redirect URL', next)
-    }
+  if (next && next.startsWith('/') && !next.startsWith('//')) {
+    successPath = next
+  } else if (next) {
+    // Invalid next URL, fallback to default
+    console.warn('Invalid NEXT redirect URL', next)
   }
 
   return NextResponse.redirect(new URL(successPath, requestUrl.origin))
