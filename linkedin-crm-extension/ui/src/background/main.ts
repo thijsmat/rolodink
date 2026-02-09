@@ -173,7 +173,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
 
 // Handle installation
 if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
-    chrome.runtime.onInstalled.addListener((details) => {
+    chrome.runtime.onInstalled.addListener(async (details) => {
         if (details.reason === 'install') {
             // Get user locale
             const uiLang = chrome.i18n.getUILanguage() || 'en';
@@ -183,7 +183,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
             const websiteUrl = import.meta.env.VITE_WEBSITE_URL || 'https://rolodink.app';
             const onboardingUrl = `${websiteUrl}/${locale}/onboarding`;
 
-            console.log(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);
+            await logToStorage(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);
             chrome.tabs.create({ url: onboardingUrl });
         }
     });

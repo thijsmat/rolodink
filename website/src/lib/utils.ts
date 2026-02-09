@@ -26,3 +26,27 @@ export function extractOAuthError(
   }
   return null;
 }
+
+/**
+ * Validates a redirect URL to prevent open redirect vulnerabilities.
+ * Ensures the path starts with / but not // or /\ (Safari bypass).
+ */
+export function getSafeRedirect(
+  next: string | null | undefined,
+  fallback: string
+): string {
+  if (
+    next &&
+    next.startsWith('/') &&
+    !next.startsWith('//') &&
+    !next.startsWith('/\\')
+  ) {
+    return next;
+  }
+
+  if (next) {
+    console.warn('Invalid "next" redirect URL detected:', next);
+  }
+
+  return fallback;
+}

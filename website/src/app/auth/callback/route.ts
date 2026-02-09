@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getSafeRedirect } from '@/lib/utils'
 
 const DEFAULT_ERROR_MESSAGE = 'LinkedIn sign in failed. Please try again.'
 const VERIFY_TYPES = ['email', 'recovery', 'invite', 'email_change'] as const
@@ -77,12 +78,7 @@ export async function GET(request: Request) {
   // Determine success path
   let successPath = intent === 'signup' ? '/download?signup=confirmed' : '/download'
 
-  if (next && next.startsWith('/') && !next.startsWith('//')) {
-    successPath = next
-  } else if (next) {
-    // Invalid next URL, fallback to default
-    console.warn('Invalid NEXT redirect URL', next)
-  }
+  successPath = getSafeRedirect(next, successPath)
 
   return NextResponse.redirect(new URL(successPath, requestUrl.origin))
 }

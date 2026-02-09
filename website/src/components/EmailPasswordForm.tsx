@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { getSafeRedirect } from '@/lib/utils'
 
 type EmailPasswordFormProps = {
   mode: 'login' | 'signup'
@@ -39,7 +40,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         if (error) {
           throw error
         }
-        window.location.href = (next && next.startsWith('/') && !next.startsWith('//')) ? next : SUCCESS_REDIRECTS.login
+        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.login)
         return
       }
 
@@ -56,7 +57,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       }
 
       if (data.session) {
-        window.location.href = (next && next.startsWith('/') && !next.startsWith('//')) ? next : SUCCESS_REDIRECTS.signup
+        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.signup)
       } else {
         setMessage({
           type: 'success',
