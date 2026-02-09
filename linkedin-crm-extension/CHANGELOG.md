@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.1.4] - 2026-02-09
+
+### Added
+- **Onboarding Flow**
+  - New onboarding page to assist users in pinning the extension.
+  - Onboarding success page with clear "Get Started" instructions.
+  - Added automatic detects for EN/NL locales.
+- **Security Hardening**
+  - Fixed high-severity open redirect vulnerabilities in Auth flow.
+  - Implemented logic to prevent Safari-specific redirect bypasses.
+- **Visual Enhancements**
+  - Centered hero and features sections on the onboarding page for better readability.
+
+### Fixed
+- **Release Versioning**: Unified version to 1.1.4 across all extension manifests to resolve Firefox conflict.
+- **Redirects**: Fixed inconsistent redirects after login/signup by supporting the `next` query parameter.
+
+---
 
 ### Planned
 - Search and filter functionality in All Connections view
