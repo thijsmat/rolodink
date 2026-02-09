@@ -170,3 +170,21 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
         }
     });
 }
+
+// Handle installation
+if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
+    chrome.runtime.onInstalled.addListener(async (details) => {
+        if (details.reason === 'install') {
+            // Get user locale
+            const uiLang = chrome.i18n.getUILanguage() || 'en';
+            const locale = uiLang.startsWith('nl') ? 'nl' : 'en';
+
+            // Website URL
+            const websiteUrl = import.meta.env.VITE_WEBSITE_URL || 'https://rolodink.app';
+            const onboardingUrl = `${websiteUrl}/${locale}/onboarding`;
+
+            await logToStorage(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);
+            chrome.tabs.create({ url: onboardingUrl });
+        }
+    });
+}

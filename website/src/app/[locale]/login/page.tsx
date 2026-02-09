@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { AuthLayout, extractOAuthError } from '@/components/auth-layout'
+import { AuthLayout } from '@/components/auth-layout'
+import { extractOAuthError } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Log in',
@@ -11,12 +12,14 @@ export const dynamic = 'force-dynamic'
 type LoginPageProps = {
   searchParams: Promise<{
     oauth_error?: string | string[]
+    next?: string
   }>
 }
 
 export default async function LoginPage(props: Readonly<LoginPageProps>) {
   const searchParams = await props.searchParams
   const oauthError = extractOAuthError(searchParams?.oauth_error)
+  const next = searchParams?.next
 
   return (
     <AuthLayout
@@ -27,8 +30,9 @@ export default async function LoginPage(props: Readonly<LoginPageProps>) {
       alternateLink={{
         text: 'New to Rolodink?',
         linkText: 'Create an account',
-        href: '/signup',
+        href: `/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`,
       }}
+      next={next}
     />
   )
 }

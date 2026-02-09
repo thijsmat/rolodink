@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getSafeRedirect } from '@/lib/utils'
 
 const DEFAULT_ERROR_MESSAGE = 'LinkedIn sign in failed. Please try again.'
 const VERIFY_TYPES = ['email', 'recovery', 'invite', 'email_change'] as const
@@ -33,9 +34,12 @@ export async function GET(request: Request) {
     return null
   })()
 
+  const next = requestUrl.searchParams.get('next')
+
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
     const destination = new URL(intent === 'signup' ? '/signup' : '/login', requestUrl.origin)
     destination.searchParams.set('oauth_error', message)
+    if (next) destination.searchParams.set('next', next)
     return NextResponse.redirect(destination)
   }
 
@@ -48,6 +52,7 @@ export async function GET(request: Request) {
     cookies: () => Promise.resolve(cookieStore),
   })
 
+  // Handle email confirmation (signup flow with OTP)
   if (tokenHash && otpType) {
     const { error: verifyError } = await supabase.auth.verifyOtp({
       type: otpType,
@@ -58,23 +63,23 @@ export async function GET(request: Request) {
       console.error('Supabase email confirmation failed', verifyError)
       return redirectWithError('Email confirmation failed. Please try again.')
     }
+  } else if (code) {
+    // Handle OAuth code exchange
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    const successPath = intent === 'signup' ? '/download?signup=confirmed' : '/download'
-    return NextResponse.redirect(new URL(successPath, requestUrl.origin))
-  }
-
-  if (!code) {
+    if (exchangeError) {
+      console.error('LinkedIn OAuth exchange failed', exchangeError)
+      return redirectWithError()
+    }
+  } else {
     return redirectWithError()
   }
 
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+  // Determine success path
+  let successPath = intent === 'signup' ? '/download?signup=confirmed' : '/download'
 
-  if (exchangeError) {
-    console.error('LinkedIn OAuth exchange failed', exchangeError)
-    return redirectWithError()
-  }
+  successPath = getSafeRedirect(next, successPath)
 
-  const successPath = intent === 'signup' ? '/download?signup=confirmed' : '/download'
   return NextResponse.redirect(new URL(successPath, requestUrl.origin))
 }
 

@@ -337,6 +337,15 @@
             }
         ]
     },
+    "OnboardingSuccessPage": {
+        "title": "Je bent er helemaal klaar voor!",
+        "description": "Je account is actief. Open de extensie om te beginnen met het organiseren van je netwerk.",
+        "instruction": {
+            "title": "Open Rolodink",
+            "step": "Klik op het Rolodink icoon in je browser werkbalk.",
+            "tip": "Zie je het icoon niet? Klik eerst op het puzzelstukje 🧩."
+        }
+    },
     "PrivacyPage": {
         "title": "Privacybeleid",
         "lastUpdated": "Laatst bijgewerkt",
@@ -489,5 +498,23 @@
         "message": "Wij gebruiken cookies om de site goed te laten werken en voor anonieme statistieken.",
         "accept": "Accepteren",
         "decline": "Weigeren"
+    },
+    "OnboardingPage": {
+        "title": "Welkom bij Rolodink",
+        "intro": "Jouw LinkedIn, maar dan georganiseerd.",
+        "steps": {
+            "pin": {
+                "title": "Pin de Extensie",
+                "description": "Klik op het puzzelstukje in je werkbalk en pin Rolodink voor snelle toegang."
+            },
+            "login": {
+                "title": "Maak je account aan",
+                "description": "Meld je aan om notities op te slaan en je LinkedIn netwerk te organiseren."
+            }
+        },
+        "cta": {
+            "signup": "Maak Gratis Account",
+            "login": "Ik heb al een account"
+        }
     }
 }

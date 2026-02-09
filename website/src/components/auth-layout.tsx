@@ -14,6 +14,7 @@ type AuthLayoutProps = {
         linkText: string;
         href: string;
     };
+    next?: string;
 };
 
 export function AuthLayout({
@@ -22,6 +23,7 @@ export function AuthLayout({
     subtitle,
     oauthError,
     alternateLink,
+    next,
 }: AuthLayoutProps) {
     return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
@@ -37,7 +39,7 @@ export function AuthLayout({
                     </div>
                 ) : null}
 
-                <LinkedInSignInButton intent={mode} />
+                <LinkedInSignInButton intent={mode} next={next} />
 
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -48,7 +50,7 @@ export function AuthLayout({
                     </div>
                 </div>
 
-                <EmailPasswordForm mode={mode} />
+                <EmailPasswordForm mode={mode} next={next} />
 
                 <p className="text-center text-sm text-muted-foreground">
                     {alternateLink.text}{' '}
@@ -61,17 +63,3 @@ export function AuthLayout({
     );
 }
 
-/**
- * Utility function to extract OAuth error from search params
- */
-export function extractOAuthError(
-    oauthErrorParam: string | string[] | undefined
-): string | null {
-    if (typeof oauthErrorParam === 'string') {
-        return oauthErrorParam;
-    }
-    if (Array.isArray(oauthErrorParam) && oauthErrorParam.length > 0) {
-        return oauthErrorParam[0];
-    }
-    return null;
-}

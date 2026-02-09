@@ -5,9 +5,11 @@ import { FormEvent, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { getSafeRedirect } from '@/lib/utils'
 
 type EmailPasswordFormProps = {
   mode: 'login' | 'signup'
+  next?: string
 }
 
 const SUCCESS_REDIRECTS: Record<EmailPasswordFormProps['mode'], string> = {
@@ -20,7 +22,7 @@ type MessageState = {
   text: string
 }
 
-export function EmailPasswordForm({ mode }: EmailPasswordFormProps) {
+export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
   const supabase = useMemo(() => createClientComponentClient(), [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,7 +40,7 @@ export function EmailPasswordForm({ mode }: EmailPasswordFormProps) {
         if (error) {
           throw error
         }
-        window.location.href = SUCCESS_REDIRECTS.login
+        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.login)
         return
       }
 
@@ -46,7 +48,7 @@ export function EmailPasswordForm({ mode }: EmailPasswordFormProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup${next ? `&next=${encodeURIComponent(next)}` : ''}`,
         },
       })
 
@@ -55,7 +57,7 @@ export function EmailPasswordForm({ mode }: EmailPasswordFormProps) {
       }
 
       if (data.session) {
-        window.location.href = SUCCESS_REDIRECTS.signup
+        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.signup)
       } else {
         setMessage({
           type: 'success',
