@@ -16,7 +16,7 @@ export default function OnboardingPage() {
         <>
             <main className="flex-1 pt-16">
                 {/* Hero Section */}
-                <section className="container max-w-4xl py-16 text-center md:py-24 lg:py-32">
+                <section className="container mx-auto max-w-4xl py-16 text-center md:py-24 lg:py-32">
                     <Badge className="mb-4 bg-azure/10 text-azure hover:bg-azure/20 border-azure/20">
                         {t('title')}
                     </Badge>
@@ -26,7 +26,7 @@ export default function OnboardingPage() {
                 </section>
 
                 {/* Steps Section */}
-                <section className="container max-w-5xl pb-16 md:pb-24 lg:pb-32">
+                <section className="container mx-auto max-w-5xl pb-16 md:pb-24 lg:pb-32">
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
 
                         {/* Step 1: Pin Extension */}
