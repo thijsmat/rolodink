@@ -3,10 +3,17 @@
 ## Quick Reference
 
 ### Version Bump
-Update version in these 3 files:
+Update version in these 5 files:
 - `linkedin-crm-extension/manifest.json`
 - `linkedin-crm-extension/manifest-firefox.json`
+- `linkedin-crm-extension/package.json`
 - `linkedin-crm-extension/ui/package.json`
+- `website/package.json`
+
+**Automation**:
+```bash
+./scripts/bump-version.sh X.Y.Z
+```
 
 ### Build Commands
 ```bash
@@ -100,10 +107,8 @@ gh release delete-asset ext-v${VERSION} [duplicate-filename] --yes
 
 ### 2. Version Bump
 ```bash
-# Update version in 3 files
-# - linkedin-crm-extension/manifest.json
-# - linkedin-crm-extension/manifest-firefox.json  
-# - linkedin-crm-extension/ui/package.json
+# Run the automation script
+./scripts/bump-version.sh ${VERSION}
 
 # Update CHANGELOG.md
 # Add new section for this version
