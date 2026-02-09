@@ -337,6 +337,15 @@
             }
         ]
     },
+    "OnboardingSuccessPage": {
+        "title": "You're all set!",
+        "description": "Your account is active. To start organizing your network, simply open the extension.",
+        "instruction": {
+            "title": "Open Rolodink",
+            "step": "Click the Rolodink icon in your browser's toolbar.",
+            "tip": "Don't see the icon? Click the puzzle piece icon 🧩 first."
+        }
+    },
     "PrivacyPage": {
         "title": "Privacy Policy",
         "lastUpdated": "Last updated",
@@ -489,5 +498,23 @@
         "message": "We use cookies to ensure the site functions properly and for anonymous statistics.",
         "accept": "Accept",
         "decline": "Decline"
+    },
+    "OnboardingPage": {
+        "title": "Welcome to Rolodink",
+        "intro": "Your LinkedIn, but organized.",
+        "steps": {
+            "pin": {
+                "title": "Pin the Extension",
+                "description": "Click the puzzle piece icon in your toolbar and pin Rolodink for easy access."
+            },
+            "login": {
+                "title": "Create your Account",
+                "description": "Sign up to start saving notes and organizing your LinkedIn network."
+            }
+        },
+        "cta": {
+            "signup": "Create Free Account",
+            "login": "I already have an account"
+        }
     }
 }

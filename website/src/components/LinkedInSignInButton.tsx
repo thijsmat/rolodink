@@ -5,14 +5,16 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 type LinkedInSignInButtonProps = {
   intent?: 'login' | 'signup'
+  next?: string
 }
 
-export default function LinkedInSignInButton({ intent = 'login' }: LinkedInSignInButtonProps) {
+export default function LinkedInSignInButton({ intent = 'login', next }: LinkedInSignInButtonProps) {
   const supabase = useMemo(() => createClientComponentClient(), [])
 
   const handleSignIn = async () => {
     const redirectUrl = new URL('/auth/callback', window.location.origin)
     redirectUrl.searchParams.set('intent', intent)
+    if (next) redirectUrl.searchParams.set('next', next)
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'linkedin_oidc',
