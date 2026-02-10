@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabase } from '@/lib/supabase'
 
 type LinkedInSignInButtonProps = {
   intent?: 'login' | 'signup'
@@ -9,7 +8,6 @@ type LinkedInSignInButtonProps = {
 }
 
 export default function LinkedInSignInButton({ intent = 'login', next }: LinkedInSignInButtonProps) {
-  const supabase = useMemo(() => createClientComponentClient(), [])
 
   const handleSignIn = async () => {
     const redirectUrl = new URL('/auth/callback', window.location.origin)

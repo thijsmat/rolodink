@@ -1,7 +1,7 @@
 'use client'
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { FormEvent, useMemo, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { FormEvent, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,6 @@ type MessageState = {
 }
 
 export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
-  const supabase = useMemo(() => createClientComponentClient(), [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<MessageState | null>(null)

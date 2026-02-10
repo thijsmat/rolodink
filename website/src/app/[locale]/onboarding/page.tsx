@@ -8,15 +8,14 @@ import { Pin, UserPlus } from "lucide-react";
 import NextImage from "next/image";
 import { useTranslations } from 'next-intl';
 import { Link } from "@/navigation";
-import { useEffect, useState, useMemo } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import LinkedInSignInButton from "@/components/LinkedInSignInButton";
 import { EmailPasswordForm } from "@/components/EmailPasswordForm";
 import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
     const t = useTranslations('OnboardingPage');
-    const supabase = useMemo(() => createClientComponentClient(), []);
     const [session, setSession] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
