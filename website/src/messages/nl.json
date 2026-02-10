@@ -514,7 +514,9 @@
         },
         "cta": {
             "signup": "Maak Gratis Account",
-            "login": "Ik heb al een account"
+            "login": "Ik heb al een account",
+            "toggleSignup": "Registreren",
+            "toggleLogin": "Inloggen"
         }
     }
 }

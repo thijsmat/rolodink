@@ -41,16 +41,18 @@ export function useAuthLogic() {
         setUser(null);
     }, []);
 
+    const refreshSession = useCallback(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+    }, []);
+
     return {
         session,
         user,
         isInitializing,
         signOut,
         // Helper to manually trigger a session check if needed (e.g. after login)
-        refreshSession: async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setUser(session?.user ?? null);
-        }
+        refreshSession
     };
 }

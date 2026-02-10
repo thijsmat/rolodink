@@ -5,12 +5,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pin, UserPlus } from "lucide-react";
+import NextImage from "next/image";
 import { useTranslations } from 'next-intl';
 import { Link } from "@/navigation";
-import Image from 'next/image';
+import { useEffect, useState, useMemo } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import LinkedInSignInButton from "@/components/LinkedInSignInButton";
+import { EmailPasswordForm } from "@/components/EmailPasswordForm";
+import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
     const t = useTranslations('OnboardingPage');
+    const supabase = useMemo(() => createClientComponentClient(), []);
+    const [session, setSession] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
+
+    useEffect(() => {
+        const getSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setSession(session);
+            setIsLoading(false);
+        };
+        getSession();
+    }, [supabase]);
 
     return (
         <>
@@ -46,18 +64,19 @@ export default function OnboardingPage() {
                                 </p>
                                 {/* Visual Aid */}
                                 <div className="w-full aspect-video relative bg-white/50 rounded-lg overflow-hidden border border-azure/10 mb-4">
-                                    <Image
+                                    <NextImage
                                         src="/images/pin-extension-instruction.png"
                                         alt="Instruction on how to pin the Rolodink extension"
                                         className="object-contain"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                                         priority
                                     />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Step 2: Create Account */}
+                        {/* Step 2: Create Account / Auth */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-azure/50 to-transparent" />
                             <CardHeader>
@@ -68,21 +87,69 @@ export default function OnboardingPage() {
                                     {t('steps.login.title')}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="flex flex-1 flex-col items-center justify-between">
+                            <CardContent className="flex flex-1 flex-col items-center">
                                 <p className="mb-8 text-grey max-w-md mx-auto">
                                     {t('steps.login.description')}
                                 </p>
-                                <div className="flex flex-col gap-4 w-full max-w-xs">
-                                    <Button asChild size="lg" className="w-full">
-                                        <Link href="/signup?next=/onboarding/success">
-                                            {t('cta.signup')}
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" asChild size="sm" className="w-full text-grey hover:text-azure">
-                                        <Link href="/login?next=/onboarding/success">
-                                            {t('cta.login')}
-                                        </Link>
-                                    </Button>
+
+                                <div className="w-full max-w-sm space-y-6">
+                                    {isLoading ? (
+                                        <div className="flex justify-center py-8">
+                                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-azure border-t-transparent" />
+                                        </div>
+                                    ) : session ? (
+                                        <div className="space-y-4 py-4">
+                                            <p className="text-sm text-azure font-medium">
+                                                Welcome back! You are already signed in.
+                                            </p>
+                                            <Button asChild size="lg" className="w-full">
+                                                <Link href="/onboarding/success">
+                                                    Continue to next step
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Auth Mode Toggle */}
+                                            <div className="flex p-1 bg-azure/5 rounded-lg mb-4">
+                                                <button
+                                                    onClick={() => setAuthMode('signup')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-sm font-medium rounded-md transition-all",
+                                                        authMode === 'signup'
+                                                            ? "bg-white text-azure shadow-sm border border-azure/10"
+                                                            : "text-grey hover:text-azure"
+                                                    )}
+                                                >
+                                                    {t('cta.toggleSignup')}
+                                                </button>
+                                                <button
+                                                    onClick={() => setAuthMode('login')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-sm font-medium rounded-md transition-all",
+                                                        authMode === 'login'
+                                                            ? "bg-white text-azure shadow-sm border border-azure/10"
+                                                            : "text-grey hover:text-azure"
+                                                    )}
+                                                >
+                                                    {t('cta.toggleLogin')}
+                                                </button>
+                                            </div>
+
+                                            <LinkedInSignInButton intent={authMode} next="/onboarding/success" />
+
+                                            <div className="relative">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <span className="w-full border-t border-gray-200" />
+                                                </div>
+                                                <div className="relative flex justify-center text-xs uppercase tracking-wide text-muted-foreground">
+                                                    <span className="bg-white px-2">Or with email</span>
+                                                </div>
+                                            </div>
+
+                                            <EmailPasswordForm mode={authMode} next="/onboarding/success" />
+                                        </>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

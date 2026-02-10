@@ -35,6 +35,12 @@
     "or": {
         "message": "or"
     },
+    "toggle_signin": {
+        "message": "Log In"
+    },
+    "toggle_signup": {
+        "message": "Sign Up"
+    },
     "login_linkedin_button": {
         "message": "Log in with LinkedIn"
     },

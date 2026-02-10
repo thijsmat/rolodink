@@ -35,6 +35,12 @@
     "or": {
         "message": "of"
     },
+    "toggle_signin": {
+        "message": "Inloggen"
+    },
+    "toggle_signup": {
+        "message": "Registreren"
+    },
     "login_linkedin_button": {
         "message": "Inloggen met LinkedIn"
     },

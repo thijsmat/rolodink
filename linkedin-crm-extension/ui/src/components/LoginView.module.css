@@ -10,36 +10,17 @@
 
 .header {
   text-align: center;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
-.logo {
-  width: 48px;
-  height: 48px;
-  background: var(--linkedin-blue);
-  border-radius: var(--radius-lg);
-  margin: 0 auto var(--space-4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-xl);
-}
 
-.title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin: 0;
-  line-height: var(--line-height-tight);
-}
 
 .subtitle {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-top: var(--space-2);
   line-height: var(--line-height-normal);
+  max-width: 280px;
+  margin: 0 auto;
 }
 
 .form {
@@ -84,8 +65,40 @@
 
 .buttonGroup {
   display: flex;
+  flex-direction: column;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+.toggleContainer {
+  display: flex;
+  padding: 4px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-4);
+}
+
+.toggleButton {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-normal);
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.toggleButtonActive {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+}
+
+.toggleButton:hover:not(.toggleButtonActive) {
+  color: var(--text-primary);
 }
 
 .button {

@@ -514,7 +514,9 @@
         },
         "cta": {
             "signup": "Create Free Account",
-            "login": "I already have an account"
+            "login": "I already have an account",
+            "toggleSignup": "Sign Up",
+            "toggleLogin": "Log In"
         }
     }
 }

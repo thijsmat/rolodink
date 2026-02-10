@@ -1,3 +1,4 @@
+import NextImage from "next/image";
 import { Chrome, Star } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
 import { getExtensionUrl } from "@/lib/utils";
@@ -86,9 +87,11 @@ export default function Hero() {
             <div className="relative w-full">
               <div className="w-full bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl p-4 sm:p-8 flex flex-col gap-4 sm:gap-6 relative rotate-1 sm:rotate-2">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/5 to-gold/0"></div>
-                <img
+                <NextImage
                   src="/images/business-card-networking.jpg"
                   alt="Business Card Networking"
+                  width={536}
+                  height={256}
                   className="w-full h-40 sm:h-48 lg:h-64 object-cover rounded-lg sm:rounded-2xl relative z-10"
                 />
                 <div className="flex items-start gap-2 sm:gap-3 relative z-10">

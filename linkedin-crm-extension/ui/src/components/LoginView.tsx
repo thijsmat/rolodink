@@ -26,7 +26,7 @@ export function LoginView() {
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const lastAuthIntentRef = useRef<'signin' | 'signup'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const edgePointerHandledRef = useRef(false);
 
   const isEdgeBrowser = useMemo(() => {
@@ -91,7 +91,6 @@ export function LoginView() {
   }, [handleAuth]);
 
   const createClickHandler = useCallback((type: 'signin' | 'signup') => (event?: MouseEvent<HTMLButtonElement>) => {
-    lastAuthIntentRef.current = type;
     if (isEdgeBrowser) {
       if (edgePointerHandledRef.current) {
         edgePointerHandledRef.current = false;
@@ -100,15 +99,11 @@ export function LoginView() {
         return;
       }
     }
-    // If it's the submit button (signin), let the form submit handler handle it?
-    // Or just trigger auth directly.
-    // The original code triggered auth directly.
     triggerAuth(type, event);
   }, [isEdgeBrowser, triggerAuth]);
 
   const createPointerHandler = useCallback((type: 'signin' | 'signup') => (event: PointerEvent<HTMLButtonElement>) => {
     if (!isEdgeBrowser) return;
-    lastAuthIntentRef.current = type;
     edgePointerHandledRef.current = true;
     event.preventDefault();
     event.stopPropagation();
@@ -117,9 +112,8 @@ export function LoginView() {
 
   const handleFormSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Default to signin on enter key
-    handleAuth('signin').catch(console.error);
-  }, [handleAuth]);
+    handleAuth(authMode).catch(console.error);
+  }, [handleAuth, authMode]);
 
   const handleLinkedInLogin = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -155,7 +149,7 @@ export function LoginView() {
       setMessage(e instanceof Error ? e.message : t('msg_linkedin_login_failed'));
       setIsLoading(false);
     }
-  }, [handleLoginSuccess, t]);
+  }, [handleLoginSuccess, refreshSession, t]);
 
   if (isInitializing) {
     return (
@@ -171,11 +165,44 @@ export function LoginView() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.logo}>in</div>
-        <h1 className={styles.title}>{t('appName')}</h1>
         <p className={styles.subtitle}>
           {t('subtitle')}
         </p>
+      </div>
+
+      <div className={styles.toggleContainer}>
+        <button
+          type="button"
+          onClick={() => setAuthMode('signin')}
+          className={`${styles.toggleButton} ${authMode === 'signin' ? styles.toggleButtonActive : ''}`}
+          disabled={isLoading}
+        >
+          {t('toggle_signin')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setAuthMode('signup')}
+          className={`${styles.toggleButton} ${authMode === 'signup' ? styles.toggleButtonActive : ''}`}
+          disabled={isLoading}
+        >
+          {t('toggle_signup')}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleLinkedInLogin}
+        className={`${styles.button} ${styles.buttonLinkedIn}`}
+        disabled={isLoading}
+      >
+        <svg className={styles.linkedinIcon} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
+        </svg>
+        {t('login_linkedin_button')}
+      </button>
+
+      <div className={styles.divider}>
+        <span>{t('or')}</span>
       </div>
 
       <form className={styles.form} onSubmit={handleFormSubmit}>
@@ -218,39 +245,14 @@ export function LoginView() {
         <div className={styles.buttonGroup}>
           <button
             type="submit"
-            onClick={createClickHandler('signin')}
-            onPointerDown={isEdgeBrowser ? createPointerHandler('signin') : undefined}
+            onClick={createClickHandler(authMode)}
+            onPointerDown={isEdgeBrowser ? createPointerHandler(authMode) : undefined}
             className={`${styles.button} ${styles.buttonPrimary}`}
             disabled={isLoading}
           >
-            {isLoading ? t('processing') : t('login_button')}
-          </button>
-          <button
-            type="button"
-            onClick={createClickHandler('signup')}
-            onPointerDown={isEdgeBrowser ? createPointerHandler('signup') : undefined}
-            className={`${styles.button} ${styles.buttonSecondary}`}
-            disabled={isLoading}
-          >
-            {t('register_button')}
+            {isLoading ? t('processing') : (authMode === 'signin' ? t('login_button') : t('register_button'))}
           </button>
         </div>
-
-        <div className={styles.divider}>
-          <span>{t('or')}</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleLinkedInLogin}
-          className={`${styles.button} ${styles.buttonLinkedIn}`}
-          disabled={isLoading}
-        >
-          <svg className={styles.linkedinIcon} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
-          </svg>
-          {t('login_linkedin_button')}
-        </button>
       </form>
 
       {message && (
