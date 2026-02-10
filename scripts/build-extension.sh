@@ -82,6 +82,16 @@ if [ -d "$TMP_DIR/ui/dist/_locales" ]; then
   cp -r "$TMP_DIR/ui/dist/_locales" "$TMP_DIR/_locales"
 fi
 
+# Move background.js to root (required by manifest)
+if [ -f "$TMP_DIR/ui/dist/background.js" ]; then
+  mv "$TMP_DIR/ui/dist/background.js" "$TMP_DIR/background.js"
+fi
+
+# Copy assets folder if it exists in ui/dist
+if [ -d "$TMP_DIR/ui/dist/assets" ]; then
+  cp -r "$TMP_DIR/ui/dist/assets" "$TMP_DIR/assets"
+fi
+
 # Remove Firefox manifest from Chrome/Edge builds
 if [ "$TARGET" = "chrome" ] || [ "$TARGET" = "edge" ]; then
   rm -f "$TMP_DIR/manifest-firefox.json" || true

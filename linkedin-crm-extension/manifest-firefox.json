@@ -60,7 +60,8 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "rolodink@rolodink.app",
-      "strict_min_version": "115.0"
+      "strict_min_version": "115.0",
+      "data_collection_permissions": false
     }
   }
 }
