@@ -1,3 +1,14 @@
+## v1.1.6 (2026-02-10) - Auth Hardening
+
+### Security
+- Clean up access token from storage on sign-out to prevent stale token leakage
+- Increase minimum password length from 6 to 8 characters (OWASP compliance)
+- Add warning log when OAuth redirect lacks a refresh token
+
+### Improvements
+- Remove unnecessary `syncConfig()` that wrote build-time constants to mutable storage
+- Add TODO for persistent rate limiter (Upstash Redis / Vercel KV) on serverless
+
 ## v1.1.5 (2026-02-10) - Hotfix
 
 ### Bug Fixes
