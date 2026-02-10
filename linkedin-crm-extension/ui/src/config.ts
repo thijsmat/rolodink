@@ -21,31 +21,4 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-import { getBrowserAPI } from './utils/browser';
 
-async function syncConfig() {
-  try {
-    const browserAPI = getBrowserAPI();
-    if (!browserAPI?.storage?.local) {
-      return;
-    }
-
-    const result = await browserAPI.storage.local.get(['apiBaseUrl', 'supabaseUrl']);
-
-    const updates: Record<string, string> = {};
-    if (result.apiBaseUrl !== API_BASE_URL) {
-      updates.apiBaseUrl = API_BASE_URL;
-    }
-    if (result.supabaseUrl !== SUPABASE_URL) {
-      updates.supabaseUrl = SUPABASE_URL;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      await browserAPI.storage.local.set(updates);
-    }
-  } catch (error) {
-    console.warn('Unable to sync config to storage:', error);
-  }
-}
-
-void syncConfig();

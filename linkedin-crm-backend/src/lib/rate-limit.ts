@@ -12,6 +12,9 @@ interface RateLimitStore {
 }
 
 // In-memory store (use Redis in production for distributed systems)
+// TODO: Replace with a persistent store (e.g. Upstash Redis, Vercel KV) for reliable
+// rate limiting across serverless function instances. The in-memory store resets on
+// cold starts, which weakens protection in Vercel's serverless environment.
 const store: RateLimitStore = {};
 
 // Cleanup expired entries every hour

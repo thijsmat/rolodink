@@ -87,7 +87,12 @@ export const chromeStorageAdapter: SupportedStorage = {
         const storage = getStorage();
         if (!storage) return;
         try {
-            await storage.remove(key);
+            // Also clean up the synced access token when the Supabase session key is removed
+            if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                await storage.remove([key, 'supabaseAccessToken']);
+            } else {
+                await storage.remove(key);
+            }
         } catch (error) {
             console.error('Error removing item from storage:', error);
         }

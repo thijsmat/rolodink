@@ -128,6 +128,11 @@ async function handleAuth() {
         }
 
         // 4. Store session
+        if (!refreshToken) {
+            console.warn('[Rolodink] OAuth redirect did not include a refresh_token. Session will not be refreshable and will expire.');
+            await logToStorage('Warning: No refresh_token in OAuth response');
+        }
+
         const sessionData = {
             access_token: accessToken,
             refresh_token: refreshToken || '',
