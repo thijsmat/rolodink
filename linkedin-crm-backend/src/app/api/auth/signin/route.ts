@@ -8,7 +8,7 @@ import { z } from 'zod';
 // Validation schema for signin
 const signInSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export async function OPTIONS(request: NextRequest) {
