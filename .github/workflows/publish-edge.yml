@@ -19,8 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-Edge-*.zip"
-          echo "zip_file=$(ls Rolodink-Edge-*.zip)" >> $GITHUB_OUTPUT
+          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-edge-*.zip"
+          echo "zip_file=$(ls Rolodink-edge-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Edge Add-ons Store
         uses: wdzeng/edge-addon@v1

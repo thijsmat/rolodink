@@ -24,8 +24,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-Firefox-*.zip"
-          echo "zip_file=$(ls Rolodink-Firefox-*.zip)" >> $GITHUB_OUTPUT
+          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-firefox-*.zip"
+          echo "zip_file=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Unzip Artifact
         run: |

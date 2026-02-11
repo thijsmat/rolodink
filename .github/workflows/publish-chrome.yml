@@ -19,8 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-Chrome-*.zip"
-          echo "zip_file=$(ls Rolodink-Chrome-*.zip)" >> $GITHUB_OUTPUT
+          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-chrome-*.zip"
+          echo "zip_file=$(ls Rolodink-chrome-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Chrome Web Store
         uses: mobilefirstllc/cws-publish@latest
