@@ -1,4 +1,11 @@
-# Rolodink v1.1.7
+# Rolodink Release Notes
+
+## [1.1.9] - 2026-02-12
+### Fixed
+- Firefox Manifest validation error: Added mandatory `data_collection_permissions` field.
+- Refined versioning for clean release cycle.
+
+## [1.1.8] - 2026-02-12
 
 ## Highlights
 - **Auth Hardening**: Implemented critical security improvements to strengthen user authentication and state management.
