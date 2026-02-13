@@ -421,13 +421,14 @@ export function SettingsView() {
                 {t('privacy_policy_description')}
               </p>
             </div>
-            <button
-              className={styles.disabledButton}
-              disabled
-              title={t('coming_soon_button')}
+            <a
+              href={`https://rolodink.app/${(typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : 'nl').split('-')[0]}/privacy`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.actionButton}
             >
-              {t('coming_soon_button')}
-            </button>
+              {t('privacy_policy_button')}
+            </a>
           </div>
         </div>
 

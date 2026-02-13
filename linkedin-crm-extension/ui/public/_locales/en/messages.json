@@ -209,8 +209,8 @@
     "privacy_policy_description": {
         "message": "Read our privacy policy to understand how we protect and use your data."
     },
-    "coming_soon_button": {
-        "message": "📄 Coming Soon"
+    "privacy_policy_button": {
+        "message": "📄 View Privacy Policy"
     },
     "updates_section_title": {
         "message": "Updates"

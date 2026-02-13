@@ -209,8 +209,8 @@
     "privacy_policy_description": {
         "message": "Lees ons privacybeleid om te begrijpen hoe we je gegevens beschermen en gebruiken."
     },
-    "coming_soon_button": {
-        "message": "📄 Binnenkort beschikbaar"
+    "privacy_policy_button": {
+        "message": "📄 Privacybeleid bekijken"
     },
     "updates_section_title": {
         "message": "Updates"
