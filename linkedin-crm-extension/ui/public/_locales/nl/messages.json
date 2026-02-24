@@ -680,5 +680,32 @@
     },
     "contact_feature_desc": {
         "message": "Heb je ideeën voor nieuwe functies? We horen ze graag!"
+    },
+    "security_encryption_title": {
+        "message": "Beveiliging & Versleuteling"
+    },
+    "passphrase_title": {
+        "message": "Versleutelingswachtwoord"
+    },
+    "passphrase_description": {
+        "message": "Voer je wachtwoord in om je notities te versleutelen. LET OP: Raak je dit kwijt, dan kun je je versleutelde notities niet meer lezen!"
+    },
+    "passphrase_label": {
+        "message": "Wachtwoord"
+    },
+    "passphrase_placeholder": {
+        "message": "Voer je veilige wachtwoord in"
+    },
+    "passphrase_save_button": {
+        "message": "Opslaan voor sessie"
+    },
+    "msg_passphrase_saved": {
+        "message": "Wachtwoord veilig opgeslagen voor deze sessie."
+    },
+    "msg_passphrase_error": {
+        "message": "Wachtwoord opslaan mislukt."
+    },
+    "gdpr_opt_in_label": {
+        "message": "Ja, houd me af en toe op de hoogte van belangrijke Rolodink updates en nieuwe functies."
     }
 }

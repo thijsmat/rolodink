@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
 import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
+import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
 
 // 1. Immediate Alive Check
 console.log('Background script loading (restored)...');
@@ -164,14 +165,66 @@ async function handleAuth() {
     }
 }
 
-// Listen for messages
+// Luister naar berichten van de UI en content scripts
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (message.type === 'START_AUTH') {
             handleAuth()
                 .then(() => sendResponse({ success: true }))
                 .catch((error) => sendResponse({ success: false, error: error.message }));
-            return true; // Keep channel open
+            return true; // Houd kanaal open voor async response
+        }
+
+        // Sla het wachtwoord op in de sessie (wordt gewist bij browserherstart)
+        if (message.type === 'SET_PASSPHRASE') {
+            chrome.storage.session.set({ rolodink_passphrase: message.passphrase })
+                .then(() => sendResponse({ success: true }))
+                .catch((error: Error) => sendResponse({ success: false, error: error.message }));
+            return true;
+        }
+
+        // Controleer of er een wachtwoord actief is in deze sessie
+        if (message.type === 'CHECK_PASSPHRASE') {
+            chrome.storage.session.get('rolodink_passphrase')
+                .then((session: Record<string, unknown>) => sendResponse({ active: !!session.rolodink_passphrase }))
+                .catch(() => sendResponse({ active: false }));
+            return true;
+        }
+
+        // Versleutel een stuk tekst met de opgeslagen sessiesleutel
+        if (message.type === 'ENCRYPT_TEXT') {
+            (async () => {
+                try {
+                    const session = await chrome.storage.session.get('rolodink_passphrase');
+                    if (!session.rolodink_passphrase) {
+                        throw new Error('Wachtwoord niet ingesteld in sessie');
+                    }
+                    const key = await getPasswordKey(session.rolodink_passphrase);
+                    const ciphertext = await encryptText(message.text, key);
+                    sendResponse({ success: true, ciphertext });
+                } catch (error: any) {
+                    sendResponse({ success: false, error: error.message });
+                }
+            })();
+            return true;
+        }
+
+        // Ontsleutel een Base64 ciphertext met de opgeslagen sessiesleutel
+        if (message.type === 'DECRYPT_TEXT') {
+            (async () => {
+                try {
+                    const session = await chrome.storage.session.get('rolodink_passphrase');
+                    if (!session.rolodink_passphrase) {
+                        throw new Error('Wachtwoord niet ingesteld in sessie');
+                    }
+                    const key = await getPasswordKey(session.rolodink_passphrase);
+                    const plaintext = await decryptText(message.ciphertext, key);
+                    sendResponse({ success: true, plaintext });
+                } catch (error: any) {
+                    sendResponse({ success: false, error: error.message });
+                }
+            })();
+            return true;
         }
     });
 }

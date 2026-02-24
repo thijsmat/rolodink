@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pin, UserPlus } from "lucide-react";
+import { Pin, UserPlus, Lock } from "lucide-react";
 import NextImage from "next/image";
 import { useTranslations } from 'next-intl';
 import { Link } from "@/navigation";
@@ -43,8 +43,8 @@ export default function OnboardingPage() {
                 </section>
 
                 {/* Steps Section */}
-                <section className="container mx-auto max-w-5xl pb-16 md:pb-24 lg:pb-32">
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <section className="container mx-auto max-w-6xl pb-16 md:pb-24 lg:pb-32">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
 
                         {/* Step 1: Pin Extension */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
@@ -153,9 +153,27 @@ export default function OnboardingPage() {
                             </CardContent>
                         </Card>
 
+                        {/* Step 3: Secure Vault */}
+                        <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent" />
+                            <CardHeader>
+                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600">
+                                    <Lock className="h-8 w-8" />
+                                </div>
+                                <CardTitle className="font-playfair text-2xl text-azure">
+                                    {t('steps.vault.title')}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-1 flex-col items-center justify-start">
+                                <p className="mb-8 text-grey max-w-md mx-auto">
+                                    {t('steps.vault.description')}
+                                </p>
+                            </CardContent>
+                        </Card>
+
                     </div>
                 </section>
-            </main>
+            </main >
             <SiteFooter />
         </>
     );

@@ -510,6 +510,10 @@
             "login": {
                 "title": "Maak je account aan",
                 "description": "Meld je aan om notities op te slaan en je LinkedIn netwerk te organiseren."
+            },
+            "vault": {
+                "title": "Stel je veilige kluis in",
+                "description": "Jouw data is van jou. Rolodink beveiligt je privégegevens met end-to-end encryptie, zodat zelfs wij niet mee kunnen lezen. Kies een sterk wachtwoord om je kluis te vergrendelen."
             }
         },
         "cta": {

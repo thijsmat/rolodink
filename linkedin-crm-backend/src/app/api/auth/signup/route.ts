@@ -9,6 +9,7 @@ import { z } from 'zod';
 const signUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  receivesUpdates: z.boolean().optional().default(false),
 });
 
 export async function OPTIONS(request: NextRequest) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use validated data
-    const { email, password } = validation.data;
+    const { email, password, receivesUpdates } = validation.data;
 
     const supabase = await createSupabaseServerClient();
     const emailRedirectTo =
@@ -57,6 +58,9 @@ export async function POST(request: NextRequest) {
       password,
       options: {
         emailRedirectTo,
+        data: {
+          receives_updates: receivesUpdates,
+        },
       },
     });
 

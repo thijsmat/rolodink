@@ -1,0 +1,205 @@
+publish-firefox	UNKNOWN STEP	﻿2026-01-29T12:27:03.2144760Z Current runner version: '2.331.0'
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2181133Z ##[group]Runner Image Provisioner
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2182455Z Hosted Compute Agent
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2183622Z Version: 20260123.484
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2185124Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2186222Z Build Date: 2026-01-23T19:41:17Z
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2187493Z Worker ID: {866c71f4-f1fc-4a8d-8a68-eb812f6376f1}
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2188694Z Azure Region: eastus2
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2189538Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2192269Z ##[group]Operating System
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2193287Z Ubuntu
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2194863Z 24.04.3
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2195694Z LTS
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2196503Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2197456Z ##[group]Runner Image
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2198455Z Image: ubuntu-24.04
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2199514Z Version: 20260126.10.1
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2201555Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260126.10/images/ubuntu/Ubuntu2404-Readme.md
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2203972Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260126.10
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2205806Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2207568Z ##[group]GITHUB_TOKEN Permissions
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2210816Z Contents: read
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2211762Z Metadata: read
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2212706Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2216094Z Secret source: Actions
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2217173Z Prepare workflow directory
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2704955Z Prepare all required actions
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.2764508Z Getting action download info
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.6152492Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.7268326Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:03.9336896Z Complete job name: publish-firefox
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0117100Z ##[group]Run actions/checkout@v4
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0118082Z with:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0118554Z   repository: thijsmat/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0119381Z   token: ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0119812Z   ssh-strict: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0120243Z   ssh-user: git
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0120685Z   persist-credentials: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0121184Z   clean: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0121627Z   sparse-checkout-cone-mode: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0122178Z   fetch-depth: 1
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0122744Z   fetch-tags: false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0123198Z   show-progress: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0123661Z   lfs: false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0124077Z   submodules: false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0124682Z   set-safe-directory: true
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.0125447Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1284775Z Syncing repository: thijsmat/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1286965Z ##[group]Getting Git version info
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1287723Z Working directory is '/home/runner/work/rolodink/rolodink'
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1288930Z [command]/usr/bin/git version
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1351255Z git version 2.52.0
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1378382Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1394494Z Temporarily overriding HOME='/home/runner/work/_temp/bcd972ec-4870-423c-b284-19c382f12250' before making global git config changes
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1396049Z Adding repository directory to the temporary git global config as a safe directory
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1400797Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rolodink/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1443895Z Deleting the contents of '/home/runner/work/rolodink/rolodink'
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1448078Z ##[group]Initializing the repository
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1452522Z [command]/usr/bin/git init /home/runner/work/rolodink/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1555834Z hint: Using 'master' as the name for the initial branch. This default branch name
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1557638Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1559494Z hint: to use in all of your new repositories, which will suppress this warning,
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1560474Z hint: call:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1561237Z hint:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1562202Z hint: 	git config --global init.defaultBranch <name>
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1562886Z hint:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1563521Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1565301Z hint: 'development'. The just-created branch can be renamed via this command:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1566239Z hint:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1566675Z hint: 	git branch -m <name>
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1567201Z hint:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1567882Z hint: Disable this message with "git config set advice.defaultBranchName false"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1568995Z Initialized empty Git repository in /home/runner/work/rolodink/rolodink/.git/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1572163Z [command]/usr/bin/git remote add origin https://github.com/thijsmat/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1611152Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1612022Z ##[group]Disabling automatic garbage collection
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1615828Z [command]/usr/bin/git config --local gc.auto 0
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1649389Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1650236Z ##[group]Setting up auth
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1657240Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.1692085Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2041432Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2074927Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2325667Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2372400Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2637213Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2681918Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2683188Z ##[group]Fetching the repository
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.2695048Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3f2faa17bfa6e58f41b605fce1b0ae618be87130:refs/tags/ext-v1.1.2
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7414517Z From https://github.com/thijsmat/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7417454Z  * [new ref]         3f2faa17bfa6e58f41b605fce1b0ae618be87130 -> ext-v1.1.2
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7446741Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7448101Z ##[group]Determining the checkout info
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7449305Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7455319Z [command]/usr/bin/git sparse-checkout disable
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7503173Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7534859Z ##[group]Checking out the ref
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.7539308Z [command]/usr/bin/git checkout --progress --force refs/tags/ext-v1.1.2
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8097993Z Note: switching to 'refs/tags/ext-v1.1.2'.
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8099154Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8099932Z You are in 'detached HEAD' state. You can look around, make experimental
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8101771Z changes and commit them, and you can discard any commits you make in this
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8104558Z state without impacting any branches by switching back to a branch.
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8106269Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8107330Z If you want to create a new branch to retain commits you create, you may
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8109796Z do so (now or later) by using -c with the switch command. Example:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8111206Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8111912Z   git switch -c <new-branch-name>
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8112967Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8113581Z Or undo this operation with:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8114733Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8115197Z   git switch -
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8115917Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8117618Z Turn off this advice by setting config variable advice.detachedHead to false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8119341Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8120685Z HEAD is now at 3f2faa1 chore: bump version to 1.1.2 and inject secrets in release workflow
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8126460Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8164826Z [command]/usr/bin/git log -1 --format=%H
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8193131Z 3f2faa17bfa6e58f41b605fce1b0ae618be87130
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8545169Z ##[group]Run actions/setup-node@v4
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8546374Z with:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8547201Z   node-version: 20
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8548138Z   always-auth: false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8549093Z   check-latest: false
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8550354Z   token: ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:04.8551166Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.0435234Z Found in cache @ /opt/hostedtoolcache/node/20.20.0/x64
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.0441531Z ##[group]Environment details
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.3846261Z node: v20.20.0
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.3847792Z npm: 10.8.2
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.3848932Z yarn: 1.22.22
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.3851230Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4046058Z ##[group]Run gh release download ext-v1.1.2 -p "Rolodink-firefox-*.zip"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4048182Z [36;1mgh release download ext-v1.1.2 -p "Rolodink-firefox-*.zip"[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4050116Z [36;1mecho "zip_file=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_OUTPUT[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4101635Z shell: /usr/bin/bash -e {0}
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4102795Z env:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4104179Z   GITHUB_TOKEN: ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.4105657Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9824013Z ##[group]Run unzip Rolodink-firefox-v1.1.2.zip -d firefox-source
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9826000Z [36;1munzip Rolodink-firefox-v1.1.2.zip -d firefox-source[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9827615Z [36;1mecho "source_dir=firefox-source" >> $GITHUB_OUTPUT[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9864601Z shell: /usr/bin/bash -e {0}
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9865569Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9966439Z Archive:  Rolodink-firefox-v1.1.2.zip
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9968029Z    creating: firefox-source/_locales/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9969618Z    creating: firefox-source/_locales/en/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9971121Z   inflating: firefox-source/_locales/en/messages.json  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9972590Z    creating: firefox-source/_locales/nl/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9974032Z   inflating: firefox-source/_locales/nl/messages.json  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9975656Z    creating: firefox-source/assets/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9976997Z   inflating: firefox-source/assets/index-B6NCOd-Z.css  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:05.9996292Z   inflating: firefox-source/assets/index-DFl9k4Zr.js  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0005993Z   inflating: firefox-source/background.js  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0007724Z   inflating: firefox-source/content.js  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0009216Z   inflating: firefox-source/icon.png  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0010609Z    creating: firefox-source/icons/
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0012305Z   inflating: firefox-source/icons/icon128.png  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0014419Z   inflating: firefox-source/icons/icon16.png  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0016161Z   inflating: firefox-source/icons/icon32.png  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0017545Z   inflating: firefox-source/icons/icon48.png  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0019026Z   inflating: firefox-source/index.html  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0020946Z   inflating: firefox-source/manifest.json  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0022860Z   inflating: firefox-source/vite.svg  
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0087088Z ##[group]Run npm install -g web-ext
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0088218Z [36;1mnpm install -g web-ext[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0125214Z shell: /usr/bin/bash -e {0}
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:06.0126176Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:14.3720378Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5640643Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5641578Z added 325 packages in 9s
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5642015Z 
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5642417Z 96 packages are looking for funding
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5643056Z   run `npm fund` for details
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5919523Z ##[group]Run web-ext sign \
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5919868Z [36;1mweb-ext sign \[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5920342Z [36;1m  --channel listed \[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5920603Z [36;1m  --source-dir firefox-source \[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5920899Z [36;1m  --api-key $WEB_EXT_API_KEY \[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5921199Z [36;1m  --api-secret $WEB_EXT_API_SECRET[0m
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5957445Z shell: /usr/bin/bash -e {0}
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5957756Z env:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5958508Z   WEB_EXT_API_KEY: ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5958976Z   WEB_EXT_API_SECRET: ***
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.5959215Z ##[endgroup]
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:15.9676129Z Building web extension from firefox-source
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:16.7128791Z Waiting for validation...
+publish-firefox	UNKNOWN STEP	2026-01-29T12:27:27.3925175Z Waiting for approval...
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.2212615Z Signed xpi downloaded: ./web-ext-artifacts/rolodink-1.1.2.xpi
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.2394757Z Post job cleanup.
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.4241811Z Post job cleanup.
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5252067Z [command]/usr/bin/git version
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5301197Z git version 2.52.0
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5353452Z Temporarily overriding HOME='/home/runner/work/_temp/a49a4d2b-34e4-4375-b298-d7ac2180e5bf' before making global git config changes
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5355457Z Adding repository directory to the temporary git global config as a safe directory
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5370315Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rolodink/rolodink
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5415142Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5455386Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5707107Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5734709Z http.https://github.com/.extraheader
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5749775Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.5785894Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.6031145Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.6068223Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish-firefox	UNKNOWN STEP	2026-01-29T12:31:00.6431179Z Cleaning up orphan processes

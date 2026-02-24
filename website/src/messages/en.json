@@ -510,6 +510,10 @@
             "login": {
                 "title": "Create your Account",
                 "description": "Sign up to start saving notes and organizing your LinkedIn network."
+            },
+            "vault": {
+                "title": "Set up your secure vault",
+                "description": "Your data is yours. Rolodink secures your private details with end-to-end encryption, so not even we can read them. Choose a strong passphrase to lock your vault."
             }
         },
         "cta": {

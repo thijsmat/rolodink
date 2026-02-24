@@ -1,4 +1,22 @@
+## v1.2.0 (2026-02-24) - E2E Encryption & GDPR Onboarding
+
+### Security
+- Extend AES-GCM end-to-end encryption to cover `email`, `phone`, `meetingPlace`, and `userCompanyAtTheTime` in addition to `notes`
+- Add `SENSITIVE_FIELDS` constant to centralise which fields are encrypted — single source of truth for future extensions
+- Add `CHECK_PASSPHRASE` message handler in background script so UI can detect whether a passphrase is active in the current session
+
+### New Features
+- **Client-side migration tool** in Settings → Security: encrypts all existing plaintext data on-device without server involvement
+- Passphrase-aware button (disabled until a passphrase is stored in session) with progress and result feedback
+- Auth callback route (`/auth/callback`) fully rewritten to use `@supabase/ssr` (`createServerClient`) — fixes email-confirmation link on Next.js 15+/16
+- New success page at `/[locale]/onboarding/success`: 5-step getting-started guide replacing the minimal placeholder
+
+### Backend
+- Add `email` (TEXT, nullable) and `phone` (TEXT, nullable) columns to `Connection` table (Supabase migration)
+- Update Prisma schema and Zod validation schemas (`createConnectionSchema`, `updateConnectionSchema`) with new fields
+
 ## v1.1.6 (2026-02-10) - Auth Hardening
+
 
 ### Security
 - Clean up access token from storage on sign-out to prevent stale token leakage

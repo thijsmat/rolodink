@@ -680,5 +680,32 @@
     },
     "contact_feature_desc": {
         "message": "Do you have ideas for new features? We'd love to hear them!"
+    },
+    "security_encryption_title": {
+        "message": "Security & Encryption"
+    },
+    "passphrase_title": {
+        "message": "Encryption Passphrase"
+    },
+    "passphrase_description": {
+        "message": "Enter your passphrase to encrypt your notes. WARNING: If you lose this, you cannot read your encrypted notes!"
+    },
+    "passphrase_label": {
+        "message": "Passphrase"
+    },
+    "passphrase_placeholder": {
+        "message": "Enter your secure passphrase"
+    },
+    "passphrase_save_button": {
+        "message": "Save for session"
+    },
+    "msg_passphrase_saved": {
+        "message": "Passphrase saved securely for this session."
+    },
+    "msg_passphrase_error": {
+        "message": "Failed to save passphrase."
+    },
+    "gdpr_opt_in_label": {
+        "message": "Yes, occasionally keep me informed about important Rolodink updates and new features."
     }
 }
