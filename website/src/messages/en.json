@@ -338,12 +338,42 @@
         ]
     },
     "OnboardingSuccessPage": {
-        "title": "You're all set!",
-        "description": "Your account is active. To start organizing your network, simply open the extension.",
-        "instruction": {
-            "title": "Open Rolodink",
-            "step": "Click the Rolodink icon in your browser's toolbar.",
-            "tip": "Don't see the icon? Click the puzzle piece icon 🧩 first."
+        "hero": {
+            "title": "Your account is confirmed! 🎉",
+            "subtitle": "Welcome to Rolodink. Follow the steps below to add your first connection in 5 minutes."
+        },
+        "steps": {
+            "step1": {
+                "title": "Open a LinkedIn profile",
+                "descStart": "Go to a LinkedIn profile, for example:",
+                "descEnd": ". Rolodink automatically appears as a sidebar."
+            },
+            "step2": {
+                "title": "Add a connection",
+                "description": "Click \"Add connection\" in the Rolodink sidebar. Enter where you met someone, what company they were at, and any other context."
+            },
+            "step3": {
+                "title": "Write a note",
+                "description": "Add a personal note, such as: \"Met at Tech Meetup Amsterdam. Interested in AI and open-source. Follow up about collaboration.\" Your notes are 100% private."
+            },
+            "step4": {
+                "title": "Set up your secure vault (optional)",
+                "description": "Go to Settings → Security in the extension and set a passphrase. This encrypts all your notes so not even we can read them."
+            },
+            "step5": {
+                "title": "Search and find",
+                "description": "Use the search function in the extension (click the list icon) to search through all your connections. You can instantly find who you met and when."
+            }
+        },
+        "tips": {
+            "title": "💡 Useful tips",
+            "tip1": "Don't see Rolodink? Click the puzzle piece in your toolbar and pin the extension.",
+            "tip2": "Refresh the LinkedIn page after installation if the sidebar doesn't appear.",
+            "tip3": "Rolodink works on any LinkedIn profile — even in search results and network overviews."
+        },
+        "cta": {
+            "questions": "Questions? Check our <helpLink>Help page</helpLink> or contact us.",
+            "button": "Go to LinkedIn →"
         }
     },
     "PrivacyPage": {
@@ -510,6 +540,10 @@
             "login": {
                 "title": "Create your Account",
                 "description": "Sign up to start saving notes and organizing your LinkedIn network."
+            },
+            "vault": {
+                "title": "Set up your secure vault",
+                "description": "Your data is yours. Rolodink secures your private details with end-to-end encryption, so not even we can read them. Choose a strong passphrase to lock your vault."
             }
         },
         "cta": {

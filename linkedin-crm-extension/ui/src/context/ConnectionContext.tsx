@@ -11,13 +11,19 @@ export type Connection = {
   meetingPlace?: string | null;
   userCompanyAtTheTime?: string | null;
   notes?: string | null;
+  email?: string | null;
+  phone?: string | null;
   linkedInUrl?: string;
+  is_encrypted?: boolean;
 };
 
 export type ConnectionFormData = {
   meetingPlace?: string;
   userCompanyAtTheTime?: string;
   notes?: string;
+  email?: string;
+  phone?: string;
+  is_encrypted?: boolean;
 };
 
 type ConnectionContextState = {
@@ -48,6 +54,8 @@ type ConnectionContextState = {
   handleDelete: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;
+  handleSignupSuccess: () => void;
+  isNewUser: boolean;
   cleanAllNames: () => Promise<void>;
   clearError: () => void;
   refreshSession: () => Promise<void>;
@@ -60,6 +68,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isListView, setIsListView] = useState<boolean>(false);
   const [isSettingsView, setIsSettingsView] = useState<boolean>(false);
   const [isHelpView, setIsHelpView] = useState<boolean>(false);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   // Hooks
   const { session, user, isInitializing, signOut, refreshSession } = useAuthLogic();
@@ -89,6 +98,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     refreshSession(); // Ensure auth state is up to date
     setToastMessage('Succesvol ingelogd.');
     fetchData();
+  }, [fetchData, refreshSession, setToastMessage]);
+
+  const handleSignupSuccess = useCallback(() => {
+    refreshSession();
+    setToastMessage('Account aangemaakt! Stel je wachtwoordzin in om je data te beveiligen.');
+    fetchData();
+    setIsNewUser(true);
+    setIsSettingsView(true);
+    setIsListView(false);
   }, [fetchData, refreshSession, setToastMessage]);
 
   const handleLogout = async () => {
@@ -163,6 +181,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleDelete,
     handleLogout,
     handleLoginSuccess,
+    handleSignupSuccess,
+    isNewUser,
     cleanAllNames,
     clearError,
     refreshSession,
@@ -194,6 +214,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleDelete,
     handleLogout,
     handleLoginSuccess,
+    handleSignupSuccess,
+    isNewUser,
     cleanAllNames,
     clearError,
     refreshSession,

@@ -27,6 +27,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<MessageState | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [receivesUpdates, setReceivesUpdates] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -48,6 +49,9 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup${next ? `&next=${encodeURIComponent(next)}` : ''}`,
+          data: {
+            receives_updates: receivesUpdates,
+          },
         },
       })
 
@@ -109,6 +113,22 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
           {message.text}
         </p>
       ) : null}
+
+      {mode === 'signup' && (
+        <div className="flex items-start gap-3 py-1">
+          <input
+            id="receives-updates"
+            type="checkbox"
+            checked={receivesUpdates}
+            onChange={(e) => setReceivesUpdates(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-azure accent-azure cursor-pointer"
+            disabled={isSubmitting}
+          />
+          <label htmlFor="receives-updates" className="text-sm text-muted-foreground leading-snug cursor-pointer">
+            Yes, occasionally keep me informed about important Rolodink updates and new features.
+          </label>
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Sign up'}

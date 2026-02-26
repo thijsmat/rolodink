@@ -20,13 +20,14 @@ import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function LoginView() {
   const { t } = useExtensionTranslation();
-  const { handleLoginSuccess, isInitializing, refreshSession } = useConnection();
+  const { handleLoginSuccess, handleSignupSuccess, isInitializing, refreshSession } = useConnection();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [receivesUpdates, setReceivesUpdates] = useState(false);
   const edgePointerHandledRef = useRef(false);
 
   const isEdgeBrowser = useMemo(() => {
@@ -61,14 +62,21 @@ export function LoginView() {
     setIsError(false);
 
     try {
-      const data = await callAuth(type, { email, password });
+      const payload = type === 'signup'
+        ? { email, password, receivesUpdates }
+        : { email, password };
+      const data = await callAuth(type, payload);
       if (data.session?.access_token) {
         const { error } = await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token || '',
         });
         if (error) throw error;
-        handleLoginSuccess();
+        if (type === 'signup') {
+          handleSignupSuccess();
+        } else {
+          handleLoginSuccess();
+        }
       } else {
         setIsError(false);
         setMessage(t('msg_account_created'));
@@ -241,6 +249,22 @@ export function LoginView() {
             autoComplete="current-password"
           />
         </div>
+
+        {authMode === 'signup' && (
+          <div className={styles.formGroup} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: '10px' }}>
+            <input
+              id="receives-updates"
+              type="checkbox"
+              checked={receivesUpdates}
+              onChange={(e) => setReceivesUpdates(e.target.checked)}
+              style={{ marginTop: '3px', flexShrink: 0 }}
+              disabled={isLoading}
+            />
+            <label htmlFor="receives-updates" className={styles.label} style={{ fontWeight: 'normal', cursor: 'pointer', margin: 0 }}>
+              {t('gdpr_opt_in_label')}
+            </label>
+          </div>
+        )}
 
         <div className={styles.buttonGroup}>
           <button

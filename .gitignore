@@ -80,3 +80,4 @@ dist-*/
 dist/
 *.zip
 *.tar.gz
+firefox_success_log.txt

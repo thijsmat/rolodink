@@ -18,6 +18,8 @@ const createConnectionSchema = z.object({
   meetingPlace: z.string().optional(),
   notes: z.string().optional(),
   userCompanyAtTheTime: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 // Validation schema for updating a connection (all fields optional)
@@ -27,6 +29,8 @@ const updateConnectionSchema = z.object({
   meetingPlace: z.string().optional(),
   notes: z.string().optional(),
   userCompanyAtTheTime: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 // Function to clean notification counts from profile names
@@ -179,7 +183,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use validated data
-    const { name, url, meetingPlace, notes, userCompanyAtTheTime } = validation.data;
+    const { name, url, meetingPlace, notes, userCompanyAtTheTime, email, phone } = validation.data;
 
     const normalizedUrl = normalizeLinkedInUrl(url);
     const cleanedName = cleanProfileName(name);
@@ -191,6 +195,8 @@ export async function POST(request: NextRequest) {
         meetingPlace,
         notes,
         userCompanyAtTheTime,
+        email,
+        phone,
         ownerId: user.id,
       },
     });

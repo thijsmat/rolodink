@@ -37,6 +37,79 @@ const getTabs = () => {
     return null;
 };
 
+const getRuntime = () => {
+    if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser.runtime;
+    }
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome.runtime;
+    }
+    return null;
+};
+
+// All privacy-sensitive fields that should be encrypted at rest.
+const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
+type SensitiveField = typeof SENSITIVE_FIELDS[number];
+
+/** Encrypt a single text value via the background script. Returns original value if no passphrase is set. */
+async function encryptFieldIfPassphrase(value: string | null | undefined): Promise<string | null | undefined> {
+    if (!value) return value;
+    const runtime = getRuntime();
+    if (!runtime) return value;
+
+    try {
+        const response = await runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
+        if (response?.success) {
+            return response.ciphertext;
+        }
+    } catch (e) {
+        console.warn('[Encryption] Failed to encrypt field:', e);
+    }
+    return value;
+}
+
+/** Encrypt all sensitive fields in a form data object before sending to the API. */
+async function encryptFormData<T extends Partial<Record<SensitiveField, string | null | undefined>>>(
+    data: T
+): Promise<T> {
+    const encrypted = { ...data };
+    for (const field of SENSITIVE_FIELDS) {
+        if (field in encrypted && encrypted[field]) {
+            (encrypted as Record<string, string | null | undefined>)[field] =
+                await encryptFieldIfPassphrase(encrypted[field]);
+        }
+    }
+    return encrypted;
+}
+
+/** Decrypt all sensitive fields in a connection. */
+async function decryptConnections(connections: Connection[]): Promise<Connection[]> {
+    const runtime = getRuntime();
+    if (!runtime) return connections;
+
+    const promises = connections.map(async (conn) => {
+        const decrypted: Connection = { ...conn };
+
+        for (const field of SENSITIVE_FIELDS) {
+            const raw = (conn as Record<string, unknown>)[field];
+            if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
+                try {
+                    const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
+                    (decrypted as Record<string, unknown>)[field] = response?.success
+                        ? response.plaintext
+                        : '🔒 [Encrypted - Passphrase Required]';
+                } catch (e) {
+                    console.warn(`[Decryption] Failed for field '${field}':`, e);
+                    (decrypted as Record<string, unknown>)[field] = '🔒 [Encrypted - Passphrase Required]';
+                }
+            }
+        }
+
+        return decrypted;
+    });
+    return Promise.all(promises);
+}
+
 function normalizeLinkedInUrl(raw: string): string {
     try {
         const u = new URL(raw);
@@ -49,11 +122,11 @@ function normalizeLinkedInUrl(raw: string): string {
     }
 }
 
-function pickFirstConnection(data: any): Connection | null {
+function pickFirstConnection(data: unknown): Connection | null {
     if (Array.isArray(data)) {
-        return data.length > 0 ? data[0] : null;
+        return data.length > 0 ? (data[0] as Connection) : null;
     }
-    return data;
+    return data as Connection | null;
 }
 
 async function getCurrentTabUrl(): Promise<string | null> {
@@ -80,8 +153,13 @@ async function handleFetchResponse(
     if (response.ok) {
         const data = await response.json();
         const picked = pickFirstConnection(data);
-        setConnection(picked);
-        if (!picked) setAllConnections([]);
+        if (picked) {
+            const decArray = await decryptConnections([picked]);
+            setConnection(decArray[0]);
+        } else {
+            setConnection(null);
+            setAllConnections([]);
+        }
     } else if (response.status === 404) {
         setConnection(null);
     } else if (response.status === 401) {
@@ -144,7 +222,8 @@ export function useConnectionLogic(user: User | null) {
         try {
             const cachedConnections = await loadCachedConnections();
             if (cachedConnections.length > 0) {
-                setAllConnections(cachedConnections);
+                const decryptedConnections = await decryptConnections(cachedConnections);
+                setAllConnections(decryptedConnections);
             }
             setIsInitialized(true);
         } catch (error) {
@@ -237,12 +316,9 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
 
             const connections = await response.json();
-            setAllConnections(connections);
-            await saveConnectionsToCache(connections);
-
-            if (silent) {
-                // console.log removed
-            }
+            const decryptedConnections = await decryptConnections(connections);
+            setAllConnections(decryptedConnections);
+            await saveConnectionsToCache(connections); // save raw (encrypted) to cache
         } catch (e) {
             console.error('Fout bij ophalen van alle connecties:', e);
             if (!silent) {
@@ -283,13 +359,23 @@ export function useConnectionLogic(user: User | null) {
             const profileUrl = tabs[0]?.url;
             const profileName = tabs[0]?.title?.split(' | ')[0] || 'Onbekende Naam';
 
+            const encryptedForm = await encryptFormData({
+                meetingPlace: formData.meetingPlace,
+                userCompanyAtTheTime: formData.userCompanyAtTheTime,
+                notes: formData.notes,
+                email: formData.email,
+                phone: formData.phone,
+            });
+
             // Explicitely construct payload to ensure no fields are lost and empty strings are handled
             const payload = {
                 name: profileName,
                 url: profileUrl,
-                meetingPlace: formData.meetingPlace || undefined,
-                userCompanyAtTheTime: formData.userCompanyAtTheTime || undefined,
-                notes: formData.notes || undefined
+                meetingPlace: encryptedForm.meetingPlace || undefined,
+                userCompanyAtTheTime: encryptedForm.userCompanyAtTheTime || undefined,
+                notes: encryptedForm.notes || undefined,
+                email: encryptedForm.email || undefined,
+                phone: encryptedForm.phone || undefined,
             };
 
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -302,12 +388,15 @@ export function useConnectionLogic(user: User | null) {
             });
 
             if (!response.ok) throw new Error('Opslaan mislukt');
-            const newConnection = await response.json();
-            setConnection(newConnection);
+            const newConnection: Connection = await response.json();
+            const decArray = await decryptConnections([newConnection]);
+            setConnection(decArray[0]);
 
-            const updatedConnections = [...allConnections, newConnection];
+            const updatedConnections = [...allConnections, decArray[0]];
             setAllConnections(updatedConnections);
-            await saveConnectionsToCache(updatedConnections);
+            // Re-cache encrypted version from response
+            const cachedConnections = await loadCachedConnections();
+            await saveConnectionsToCache([...cachedConnections, newConnection]);
 
             setToastMessage('Connectie opgeslagen.');
         } catch (e) {
@@ -356,11 +445,21 @@ export function useConnectionLogic(user: User | null) {
                 throw new Error('Connection ID ontbreekt.');
             }
 
+            const encryptedForm = await encryptFormData({
+                meetingPlace: formData.meetingPlace,
+                userCompanyAtTheTime: formData.userCompanyAtTheTime,
+                notes: formData.notes,
+                email: formData.email,
+                phone: formData.phone,
+            });
+
             const payload = {
                 id: idToUse,
-                meetingPlace: formData.meetingPlace || null,
-                userCompanyAtTheTime: formData.userCompanyAtTheTime || null,
-                notes: formData.notes || null
+                meetingPlace: encryptedForm.meetingPlace ?? null,
+                userCompanyAtTheTime: encryptedForm.userCompanyAtTheTime ?? null,
+                notes: encryptedForm.notes ?? null,
+                email: encryptedForm.email ?? null,
+                phone: encryptedForm.phone ?? null,
             };
 
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -374,14 +473,19 @@ export function useConnectionLogic(user: User | null) {
 
             if (!response.ok) throw new Error(`Update mislukt`);
 
-            const updated = await response.json();
-            setConnection(updated);
+            const updated: Connection = await response.json();
+            const decArray = await decryptConnections([updated]);
+            setConnection(decArray[0]);
 
             const updatedConnections = allConnections.map(conn =>
-                conn.id === updated.id ? updated : conn
+                conn.id === decArray[0].id ? decArray[0] : conn
             );
             setAllConnections(updatedConnections);
-            await saveConnectionsToCache(updatedConnections);
+
+            // Re-cache raw encrypted connections
+            const cachedConnections = await loadCachedConnections();
+            const newCached = cachedConnections.map((conn: Connection) => conn.id === updated.id ? updated : conn);
+            await saveConnectionsToCache(newCached);
 
             setToastMessage('Connectie bijgewerkt.');
         } catch (e: unknown) {

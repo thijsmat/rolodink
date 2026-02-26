@@ -338,12 +338,42 @@
         ]
     },
     "OnboardingSuccessPage": {
-        "title": "Je bent er helemaal klaar voor!",
-        "description": "Je account is actief. Open de extensie om te beginnen met het organiseren van je netwerk.",
-        "instruction": {
-            "title": "Open Rolodink",
-            "step": "Klik op het Rolodink icoon in je browser werkbalk.",
-            "tip": "Zie je het icoon niet? Klik eerst op het puzzelstukje 🧩."
+        "hero": {
+            "title": "Je account is bevestigd! 🎉",
+            "subtitle": "Welkom bij Rolodink. Volg de stappen hieronder om in 5 minuten je eerste connectie toe te voegen."
+        },
+        "steps": {
+            "step1": {
+                "title": "Open een LinkedIn profiel",
+                "descStart": "Ga naar een LinkedIn profiel, bijvoorbeeld:",
+                "descEnd": ". Rolodink verschijnt automatisch als zijbalk."
+            },
+            "step2": {
+                "title": "Voeg een connectie toe",
+                "description": "Klik op \"Connectie toevoegen\" in de Rolodink zijbalk. Vul in waar je iemand hebt ontmoet, bij welk bedrijf je was, en eventuele andere context."
+            },
+            "step3": {
+                "title": "Schrijf een notitie",
+                "description": "Voeg een persoonlijke notitie toe, zoals: \"Ontmoet op Tech Meetup Amsterdam. Interesse in AI en open-source. Opvolgen over samenwerking.\" Jouw notities zijn 100% privé."
+            },
+            "step4": {
+                "title": "Stel je veilige kluis in (optioneel)",
+                "description": "Ga naar Instellingen → Beveiliging in de extensie en stel een wachtwoordzin in. Dit versleutelt al je notities zodat zelfs wij ze niet kunnen lezen."
+            },
+            "step5": {
+                "title": "Zoek en vind",
+                "description": "Gebruik de zoekfunctie in de extensie (klik op het lijstje-icoon) om al je connecties door te zoeken. Zo vind je direct terug wie je wanneer hebt ontmoet."
+            }
+        },
+        "tips": {
+            "title": "💡 Handige tips",
+            "tip1": "Zie je Rolodink niet? Klik op het puzzelstukje in je werkbalk en pin de extensie.",
+            "tip2": "Ververs de LinkedIn pagina na installatie als de zijbalk niet verschijnt.",
+            "tip3": "Rolodink werkt op elk LinkedIn profiel — ook bij zoekopdrachten en netwerk-overzichten."
+        },
+        "cta": {
+            "questions": "Vragen? Bekijk onze <helpLink>Help pagina</helpLink> of neem contact op.",
+            "button": "Ga naar LinkedIn →"
         }
     },
     "PrivacyPage": {
@@ -510,6 +540,10 @@
             "login": {
                 "title": "Maak je account aan",
                 "description": "Meld je aan om notities op te slaan en je LinkedIn netwerk te organiseren."
+            },
+            "vault": {
+                "title": "Stel je veilige kluis in",
+                "description": "Jouw data is van jou. Rolodink beveiligt je privégegevens met end-to-end encryptie, zodat zelfs wij niet mee kunnen lezen. Kies een sterk wachtwoord om je kluis te vergrendelen."
             }
         },
         "cta": {

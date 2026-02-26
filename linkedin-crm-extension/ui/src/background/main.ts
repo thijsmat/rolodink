@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
 import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
+import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
 
 // 1. Immediate Alive Check
 console.log('Background script loading (restored)...');
@@ -157,21 +158,98 @@ async function handleAuth() {
         await logToStorage('Auth flow completed successfully');
         return { success: true };
 
-    } catch (error: any) {
-        await logToStorage('Background auth failed', { error: error.message || error });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        await logToStorage('Background auth failed', { error: errorMessage });
         console.error('Background auth failed:', error);
         throw error;
     }
 }
 
-// Listen for messages
+let cachedCryptoKey: CryptoKey | null = null;
+
+async function getDerivedKey(passphrase?: string, salt?: string): Promise<CryptoKey> {
+    if (cachedCryptoKey) return cachedCryptoKey;
+
+    if (passphrase && salt) {
+        cachedCryptoKey = await getPasswordKey(passphrase, salt);
+        return cachedCryptoKey;
+    }
+
+    const session = await chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt']);
+    if (!session || !session.rolodink_passphrase || !session.rolodink_salt) {
+        throw new Error('Sessie niet geconfigureerd voor encryptie');
+    }
+
+    cachedCryptoKey = await getPasswordKey(session.rolodink_passphrase, session.rolodink_salt);
+    return cachedCryptoKey;
+}
+
+// Luister naar berichten van de UI en content scripts
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (message.type === 'START_AUTH') {
             handleAuth()
                 .then(() => sendResponse({ success: true }))
                 .catch((error) => sendResponse({ success: false, error: error.message }));
-            return true; // Keep channel open
+            return true; // Houd kanaal open voor async response
+        }
+
+        // Sla het wachtwoord en de salt op in de sessie
+        if (message.type === 'SET_PASSPHRASE') {
+            chrome.storage.session.set({
+                rolodink_passphrase: message.passphrase,
+                rolodink_salt: message.salt
+            })
+                .then(async () => {
+                    // pre-derive for faster operations later
+                    try {
+                        await getDerivedKey(message.passphrase, message.salt);
+                    } catch (e) {
+                        console.error('Failed to pre-derive key during setup:', e);
+                    }
+                    sendResponse({ success: true });
+                })
+                .catch((error: Error) => sendResponse({ success: false, error: error.message }));
+            return true;
+        }
+
+        // Controleer of er een wachtwoord actief is in deze sessie
+        if (message.type === 'CHECK_PASSPHRASE') {
+            chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt'])
+                .then((session: Record<string, unknown>) => sendResponse({ active: !!session.rolodink_passphrase && !!session.rolodink_salt }))
+                .catch(() => sendResponse({ active: false }));
+            return true;
+        }
+
+        // Versleutel een stuk tekst met de opgeslagen sessiesleutel
+        if (message.type === 'ENCRYPT_TEXT') {
+            (async () => {
+                try {
+                    const key = await getDerivedKey();
+                    const ciphertext = await encryptText(message.text, key);
+                    sendResponse({ success: true, ciphertext });
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown encryption error';
+                    sendResponse({ success: false, error: errorMessage });
+                }
+            })();
+            return true;
+        }
+
+        // Ontsleutel een Base64 ciphertext met de opgeslagen sessiesleutel
+        if (message.type === 'DECRYPT_TEXT') {
+            (async () => {
+                try {
+                    const key = await getDerivedKey();
+                    const plaintext = await decryptText(message.ciphertext, key);
+                    sendResponse({ success: true, plaintext });
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown decryption error';
+                    sendResponse({ success: false, error: errorMessage });
+                }
+            })();
+            return true;
         }
     });
 }

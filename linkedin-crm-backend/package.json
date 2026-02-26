@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^5.22.0",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.44.4",
     "autoprefixer": "^10.4.19",
@@ -37,7 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint-config-next": "^16.0.11",
-    "prisma": "^5.17.0",
+    "prisma": "^5.22.0",
     "tsx": "^4.7.0"
   }
 }

@@ -6,15 +6,57 @@ import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
+
+const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
+
+async function fetchPendingConnections(token: string): Promise<Record<string, string | null>[]> {
+  const resp = await fetch(`${API_BASE_URL}/api/connections`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!resp.ok) throw new Error('Kon connecties niet ophalen.');
+  return await resp.json();
+}
+
+async function processConnectionEncryption(conn: Record<string, string | null>): Promise<Record<string, string>> {
+  const updates: Record<string, string> = {};
+  for (const field of SENSITIVE_FIELDS) {
+    const value = conn[field];
+    if (typeof value === 'string' && value.length > 0 && !value.startsWith('rolodink-enc:')) {
+      const encResp = await globalThis.chrome.runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
+      if (encResp?.success) {
+        updates[field] = encResp.ciphertext;
+      } else {
+        throw new Error('Encryption failed');
+      }
+    }
+  }
+  return updates;
+}
+
+async function updateConnectionOnServer(connId: string, updates: Record<string, string>, token: string): Promise<void> {
+  const patchResp = await fetch(`${API_BASE_URL}/api/connections`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id: connId, ...updates }),
+  });
+  if (!patchResp.ok) throw new Error('PATCH failed');
+}
 
 export function SettingsView() {
-  const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
+  const { setToastMessage, fetchAllConnections, handleLogout, isNewUser } = useConnection();
   const { t } = useExtensionTranslation();
   const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<string | null>(null);
+  const [passphraseActive, setPassphraseActive] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -22,8 +64,10 @@ export function SettingsView() {
   });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [contextFieldEnabled, setContextFieldEnabled] = useState(true);
+  const [passphrase, setPassphrase] = useState('');
+  const [isSavingPassphrase, setIsSavingPassphrase] = useState(false);
 
-  // Load initial setting
+  // Load initial settings and check if a passphrase is active
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.get('contextFieldEnabled', (result) => {
@@ -31,6 +75,14 @@ export function SettingsView() {
           setContextFieldEnabled(result.contextFieldEnabled);
         }
       });
+    }
+    // Check if a passphrase is currently set in the session
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'CHECK_PASSPHRASE' })
+        .then((res: { active?: boolean } | undefined) => {
+          setPassphraseActive(res?.active === true);
+        })
+        .catch(() => setPassphraseActive(false));
     }
   }, []);
 
@@ -44,7 +96,6 @@ export function SettingsView() {
 
   const handleCleanNames = useCallback(async () => {
     try {
-      setIsCleaning(true);
       setIsCleaning(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -79,6 +130,138 @@ export function SettingsView() {
     }
   }, [fetchAllConnections, setToastMessage]);
 
+  const handleSavePassphrase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passphrase.trim()) return;
+
+    try {
+      setIsSavingPassphrase(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const token = session.access_token;
+      let salt = '';
+
+      // API_BASE_URL is imported from '../config'
+      const API_KEY_ENDPOINT = `${API_BASE_URL}/api/user/key`;
+
+      const getResp = await fetch(API_KEY_ENDPOINT, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (getResp.ok) {
+        const userKey: { salt: string, encrypted_key: string } = await getResp.json();
+        salt = userKey.salt;
+
+        try {
+          const key = await getPasswordKey(passphrase, salt);
+          const verifyText = await decryptText(userKey.encrypted_key, key);
+          if (verifyText !== 'rolodink-verify') {
+            throw new Error('Onjuist wachtwoord.');
+          }
+        } catch (err) {
+          console.error('Passphrase verification failed:', err);
+          setToastMessage(t('msg_passphrase_error')); // Of een specifieke "Onjuist wachtwoord" melding
+          setIsSavingPassphrase(false);
+          return;
+        }
+      } else if (getResp.status === 404) {
+        salt = crypto.randomUUID();
+        const key = await getPasswordKey(passphrase, salt);
+        const encrypted_key = await encryptText('rolodink-verify', key);
+
+        const postResp = await fetch(API_KEY_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ salt, encrypted_key })
+        });
+
+        if (!postResp.ok) throw new Error('Failed to save key to server');
+      } else {
+        throw new Error('Server error');
+      }
+
+      const response = await chrome.runtime.sendMessage({
+        type: 'SET_PASSPHRASE',
+        passphrase: passphrase,
+        salt: salt
+      });
+
+      if (response && response.success) {
+        setPassphraseActive(true);
+        setToastMessage(t('msg_passphrase_saved'));
+        setPassphrase('');
+      } else {
+        const errorMsg = response?.error || t('msg_passphrase_error');
+        setToastMessage(errorMsg);
+      }
+    } catch (e) {
+      console.error(e);
+      setToastMessage(t('msg_passphrase_error'));
+    } finally {
+      setIsSavingPassphrase(false);
+    }
+  };
+
+  const handleMigration = async () => {
+    if (!passphraseActive) {
+      setToastMessage('⚠️ Stel eerst een wachtwoordzin in voordat je migreert.');
+      return;
+    }
+
+    const confirmed = globalThis.confirm(
+      'Dit versleutelt alle bestaande leesbare tekst in je privacyvelden. Doorgaan?'
+    );
+    if (!confirmed) return;
+
+    setIsMigrating(true);
+    setMigrateResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setToastMessage('Niet ingelogd.');
+        return;
+      }
+      const token = session.access_token;
+
+      // Fetch all connections
+      const connections = await fetchPendingConnections(token);
+
+      let migratedCount = 0;
+      const errors: string[] = [];
+
+      for (const conn of connections) {
+        try {
+          const updates = await processConnectionEncryption(conn);
+          if (Object.keys(updates).length > 0) {
+            await updateConnectionOnServer(conn.id as string, updates, token);
+            migratedCount++;
+          }
+        } catch (err) {
+          console.error(`Failed to migrate connection ${conn.id}:`, err);
+          errors.push(conn.id as string);
+        }
+      }
+
+      const resultMsg = errors.length > 0
+        ? `✅ ${migratedCount} profiel(en) versleuteld. ❌ ${errors.length} fout(en).`
+        : `✅ ${migratedCount} profiel(en) succesvol versleuteld!`;
+      setMigrateResult(resultMsg);
+      setToastMessage(resultMsg);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Onbekende fout';
+      setMigrateResult(`❌ Migratie mislukt: ${msg}`);
+      setToastMessage(`Migratie mislukt: ${msg}`);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   const handlePasswordChange = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -93,7 +276,6 @@ export function SettingsView() {
     }
 
     try {
-      setIsChangingPassword(true);
       setIsChangingPassword(true);
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -144,7 +326,6 @@ export function SettingsView() {
   const handleExportData = useCallback(async () => {
     try {
       setIsExporting(true);
-      setIsExporting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         setToastMessage(t('msg_not_logged_in_export'));
@@ -176,14 +357,14 @@ export function SettingsView() {
 
       // Create blob and download
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      globalThis.URL.revokeObjectURL(url);
 
       setToastMessage(t('msg_export_success'));
     } catch (e) {
@@ -194,7 +375,7 @@ export function SettingsView() {
   }, [setToastMessage]);
 
   const handleDeleteAccount = useCallback(async () => {
-    const confirmed = window.confirm(t('msg_delete_warning'));
+    const confirmed = globalThis.confirm(t('msg_delete_warning'));
 
     if (!confirmed) return;
 
@@ -205,7 +386,6 @@ export function SettingsView() {
     }
 
     try {
-      setIsDeleting(true);
       setIsDeleting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -283,6 +463,88 @@ export function SettingsView() {
               />
               <span className={styles.slider}></span>
             </label>
+          </div>
+        </div>
+
+        {/* Security Section */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t('security_encryption_title')}</h3>
+
+          {isNewUser && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #86efac',
+              borderRadius: '8px',
+              padding: '14px 16px',
+              marginBottom: '4px',
+              color: '#166534',
+              fontSize: '13px',
+              lineHeight: '1.5',
+            }}>
+              👋 <strong>Welkom bij Rolodink!</strong> Om je netwerk veilig te houden, maken we gebruik van een versleutelde kluis. Stel hieronder je eenmalige wachtwoordzin in.
+            </div>
+          )}
+
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>{t('passphrase_title')}</h4>
+              <p className={styles.settingDescription}>
+                {t('passphrase_description')}
+              </p>
+            </div>
+          </div>
+
+          <form className={styles.passwordForm} onSubmit={handleSavePassphrase}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="passphrase" className={styles.label}>
+                {t('passphrase_label')}
+              </label>
+              <input
+                id="passphrase"
+                type="password"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                className={styles.input}
+                placeholder={t('passphrase_placeholder')}
+                required
+              />
+            </div>
+
+            <div className={styles.formActions} style={{ justifyContent: 'flex-start', marginTop: '12px' }}>
+              <button
+                type="submit"
+                className={styles.actionButton}
+                disabled={isSavingPassphrase || !passphrase.trim()}
+              >
+                {isSavingPassphrase ? t('processing_button') : t('passphrase_save_button')}
+              </button>
+            </div>
+          </form>
+
+          {/* Migration subsection */}
+          <div className={styles.passwordForm} style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h4 className={styles.formTitle} style={{ margin: 0 }}>🔄 Migreer bestaande data</h4>
+              <p className={styles.settingDescription}>
+                Versleutel alle nog leesbare tekst in je privacyvelden (notities, locatie, e-mail, telefoon). Stel eerst een wachtwoordzin in.
+              </p>
+            </div>
+
+            <button
+              className={styles.actionButton}
+              style={{ alignSelf: 'flex-start' }}
+              onClick={handleMigration}
+              disabled={isMigrating || !passphraseActive}
+              title={!passphraseActive ? 'Stel eerst een wachtwoordzin in' : undefined}
+            >
+              {isMigrating ? '⏳ Bezig…' : '🔒 Migreer naar veilige kluis'}
+            </button>
+
+            {migrateResult && (
+              <span style={{ marginTop: '8px', fontWeight: 600, color: migrateResult.includes('❌') ? '#dc3545' : '#057642' }}>
+                {migrateResult}
+              </span>
+            )}
           </div>
         </div>
 
