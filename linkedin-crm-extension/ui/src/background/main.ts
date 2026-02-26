@@ -165,6 +165,25 @@ async function handleAuth() {
     }
 }
 
+let cachedCryptoKey: CryptoKey | null = null;
+
+async function getDerivedKey(passphrase?: string, salt?: string): Promise<CryptoKey> {
+    if (cachedCryptoKey) return cachedCryptoKey;
+
+    if (passphrase && salt) {
+        cachedCryptoKey = await getPasswordKey(passphrase, salt);
+        return cachedCryptoKey;
+    }
+
+    const session = await chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt']);
+    if (!session.rolodink_passphrase || !session.rolodink_salt) {
+        throw new Error('Sessie niet geconfigureerd voor encryptie');
+    }
+
+    cachedCryptoKey = await getPasswordKey(session.rolodink_passphrase, session.rolodink_salt);
+    return cachedCryptoKey;
+}
+
 // Luister naar berichten van de UI en content scripts
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -175,18 +194,27 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
             return true; // Houd kanaal open voor async response
         }
 
-        // Sla het wachtwoord op in de sessie (wordt gewist bij browserherstart)
+        // Sla het wachtwoord en de salt op in de sessie
         if (message.type === 'SET_PASSPHRASE') {
-            chrome.storage.session.set({ rolodink_passphrase: message.passphrase })
-                .then(() => sendResponse({ success: true }))
+            chrome.storage.session.set({
+                rolodink_passphrase: message.passphrase,
+                rolodink_salt: message.salt
+            })
+                .then(async () => {
+                    // pre-derive for faster operations later
+                    try {
+                        await getDerivedKey(message.passphrase, message.salt);
+                    } catch (e) { }
+                    sendResponse({ success: true });
+                })
                 .catch((error: Error) => sendResponse({ success: false, error: error.message }));
             return true;
         }
 
         // Controleer of er een wachtwoord actief is in deze sessie
         if (message.type === 'CHECK_PASSPHRASE') {
-            chrome.storage.session.get('rolodink_passphrase')
-                .then((session: Record<string, unknown>) => sendResponse({ active: !!session.rolodink_passphrase }))
+            chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt'])
+                .then((session: Record<string, unknown>) => sendResponse({ active: !!session.rolodink_passphrase && !!session.rolodink_salt }))
                 .catch(() => sendResponse({ active: false }));
             return true;
         }
@@ -195,11 +223,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
         if (message.type === 'ENCRYPT_TEXT') {
             (async () => {
                 try {
-                    const session = await chrome.storage.session.get('rolodink_passphrase');
-                    if (!session.rolodink_passphrase) {
-                        throw new Error('Wachtwoord niet ingesteld in sessie');
-                    }
-                    const key = await getPasswordKey(session.rolodink_passphrase);
+                    const key = await getDerivedKey();
                     const ciphertext = await encryptText(message.text, key);
                     sendResponse({ success: true, ciphertext });
                 } catch (error: any) {
@@ -213,11 +237,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
         if (message.type === 'DECRYPT_TEXT') {
             (async () => {
                 try {
-                    const session = await chrome.storage.session.get('rolodink_passphrase');
-                    if (!session.rolodink_passphrase) {
-                        throw new Error('Wachtwoord niet ingesteld in sessie');
-                    }
-                    const key = await getPasswordKey(session.rolodink_passphrase);
+                    const key = await getDerivedKey();
                     const plaintext = await decryptText(message.ciphertext, key);
                     sendResponse({ success: true, plaintext });
                 } catch (error: any) {

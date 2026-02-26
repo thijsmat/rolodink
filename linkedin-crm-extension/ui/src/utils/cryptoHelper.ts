@@ -21,9 +21,10 @@ export const getEncoder = (): TextEncoder => {
  * Deze sleutel wordt later gebruikt om een AES-GCM sleutel af te leiden.
  * 
  * @param password Het wachtwoord van de gebruiker.
+ * @param salt De unieke salt van de gebruiker.
  * @returns Een asynchrone CryptoKey.
  */
-export const getPasswordKey = async (password: string): Promise<CryptoKey> => {
+export const getPasswordKey = async (password: string, salt: string): Promise<CryptoKey> => {
     const enc = getEncoder();
     const keyMaterial = await window.crypto.subtle.importKey(
         'raw',
@@ -36,7 +37,7 @@ export const getPasswordKey = async (password: string): Promise<CryptoKey> => {
     return window.crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt: enc.encode('rolodink-salt-constant'), // In een ideale wereld is dit uniek per gebruiker, maar we houden het nu simpel
+            salt: enc.encode(salt),
             iterations: 100000,
             hash: 'SHA-256',
         },
@@ -46,6 +47,25 @@ export const getPasswordKey = async (password: string): Promise<CryptoKey> => {
         ['encrypt', 'decrypt']
     );
 };
+
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
 
 /**
  * Versleutelt tekst met AES-GCM.
@@ -75,8 +95,8 @@ export const encryptText = async (text: string, secretKey: CryptoKey): Promise<s
     combined.set(iv);
     combined.set(new Uint8Array(encryptedContent), iv.length);
 
-    // Zet om naar Base64
-    const base64Data = btoa(String.fromCharCode(...combined));
+    // Zet om naar Base64 met een veilige loop
+    const base64Data = uint8ArrayToBase64(combined);
     return ENCRYPTION_PREFIX + base64Data;
 };
 
@@ -93,12 +113,7 @@ export const decryptText = async (prefixedBase64String: string, secretKey: Crypt
     }
 
     const base64String = prefixedBase64String.slice(ENCRYPTION_PREFIX.length);
-
-    const combined = new Uint8Array(
-        atob(base64String)
-            .split('')
-            .map((char) => char.charCodeAt(0))
-    );
+    const combined = base64ToUint8Array(base64String);
 
     // Haal de IV (eerste 12 bytes) en de ciphertext uit de array
     const iv = combined.slice(0, 12);

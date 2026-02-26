@@ -82,19 +82,17 @@ async function encryptFormData<T extends Partial<Record<SensitiveField, string |
     return encrypted;
 }
 
-/** Decrypt all sensitive fields in a connection. Sets is_encrypted flag if any field was encrypted. */
+/** Decrypt all sensitive fields in a connection. */
 async function decryptConnections(connections: Connection[]): Promise<Connection[]> {
     const runtime = getRuntime();
     if (!runtime) return connections;
 
     const promises = connections.map(async (conn) => {
-        let hasEncrypted = false;
         const decrypted: Connection = { ...conn };
 
         for (const field of SENSITIVE_FIELDS) {
             const raw = (conn as Record<string, unknown>)[field];
             if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
-                hasEncrypted = true;
                 try {
                     const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
                     (decrypted as Record<string, unknown>)[field] = (response && response.success)
@@ -107,7 +105,6 @@ async function decryptConnections(connections: Connection[]): Promise<Connection
             }
         }
 
-        if (hasEncrypted) decrypted.is_encrypted = true;
         return decrypted;
     });
     return Promise.all(promises);

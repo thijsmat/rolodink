@@ -6,6 +6,7 @@ import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout, isNewUser } = useConnection();
@@ -98,9 +99,58 @@ export function SettingsView() {
 
     try {
       setIsSavingPassphrase(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const token = session.access_token;
+      let salt = '';
+
+      // API_BASE_URL is imported from '../config'
+      const API_KEY_ENDPOINT = `${API_BASE_URL}/api/user/key`;
+
+      const getResp = await fetch(API_KEY_ENDPOINT, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (getResp.ok) {
+        const userKey = await getResp.json();
+        salt = userKey.salt;
+
+        try {
+          const key = await getPasswordKey(passphrase, salt);
+          const verifyText = await decryptText(userKey.encrypted_key, key);
+          if (verifyText !== 'rolodink-verify') {
+            throw new Error('Onjuist wachtwoord.');
+          }
+        } catch (err) {
+          setToastMessage(t('msg_passphrase_error')); // Of een specifieke "Onjuist wachtwoord" melding
+          setIsSavingPassphrase(false);
+          return;
+        }
+      } else if (getResp.status === 404) {
+        salt = crypto.randomUUID();
+        const key = await getPasswordKey(passphrase, salt);
+        const encrypted_key = await encryptText('rolodink-verify', key);
+
+        const postResp = await fetch(API_KEY_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ salt, encrypted_key })
+        });
+
+        if (!postResp.ok) throw new Error('Failed to save key to server');
+      } else {
+        throw new Error('Server error');
+      }
+
       const response = await chrome.runtime.sendMessage({
         type: 'SET_PASSPHRASE',
-        passphrase: passphrase
+        passphrase: passphrase,
+        salt: salt
       });
 
       if (response && response.success) {
@@ -112,6 +162,7 @@ export function SettingsView() {
         setToastMessage(errorMsg);
       }
     } catch (e) {
+      console.error(e);
       setToastMessage(t('msg_passphrase_error'));
     } finally {
       setIsSavingPassphrase(false);
@@ -163,8 +214,9 @@ export function SettingsView() {
               if (encResp?.success) {
                 updates[field] = encResp.ciphertext;
               }
-            } catch {
-              // Silently skip fields that fail
+            } catch (err) {
+              console.error(`Failed to encrypt field '${field}' for connection ${conn.id}:`, err);
+              errors.push(conn.id as string);
             }
           }
         }

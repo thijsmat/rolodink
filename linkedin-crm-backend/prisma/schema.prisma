@@ -421,7 +421,6 @@ model Note {
   connectionId String
   connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
-  is_encrypted Boolean    @default(false)
 
   @@index([connectionId])
   @@schema("public")
