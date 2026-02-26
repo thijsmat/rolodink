@@ -158,8 +158,9 @@ async function handleAuth() {
         await logToStorage('Auth flow completed successfully');
         return { success: true };
 
-    } catch (error: any) {
-        await logToStorage('Background auth failed', { error: error.message || error });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        await logToStorage('Background auth failed', { error: errorMessage });
         console.error('Background auth failed:', error);
         throw error;
     }
@@ -176,7 +177,7 @@ async function getDerivedKey(passphrase?: string, salt?: string): Promise<Crypto
     }
 
     const session = await chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt']);
-    if (!session.rolodink_passphrase || !session.rolodink_salt) {
+    if (!session || !session.rolodink_passphrase || !session.rolodink_salt) {
         throw new Error('Sessie niet geconfigureerd voor encryptie');
     }
 
@@ -204,7 +205,9 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
                     // pre-derive for faster operations later
                     try {
                         await getDerivedKey(message.passphrase, message.salt);
-                    } catch (e) { }
+                    } catch (e) {
+                        console.error('Failed to pre-derive key during setup:', e);
+                    }
                     sendResponse({ success: true });
                 })
                 .catch((error: Error) => sendResponse({ success: false, error: error.message }));
@@ -226,8 +229,9 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
                     const key = await getDerivedKey();
                     const ciphertext = await encryptText(message.text, key);
                     sendResponse({ success: true, ciphertext });
-                } catch (error: any) {
-                    sendResponse({ success: false, error: error.message });
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown encryption error';
+                    sendResponse({ success: false, error: errorMessage });
                 }
             })();
             return true;
@@ -240,8 +244,9 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
                     const key = await getDerivedKey();
                     const plaintext = await decryptText(message.ciphertext, key);
                     sendResponse({ success: true, plaintext });
-                } catch (error: any) {
-                    sendResponse({ success: false, error: error.message });
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown decryption error';
+                    sendResponse({ success: false, error: errorMessage });
                 }
             })();
             return true;

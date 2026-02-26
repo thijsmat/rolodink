@@ -122,11 +122,11 @@ function normalizeLinkedInUrl(raw: string): string {
     }
 }
 
-function pickFirstConnection(data: any): Connection | null {
+function pickFirstConnection(data: unknown): Connection | null {
     if (Array.isArray(data)) {
-        return data.length > 0 ? data[0] : null;
+        return data.length > 0 ? (data[0] as Connection) : null;
     }
-    return data;
+    return data as Connection | null;
 }
 
 async function getCurrentTabUrl(): Promise<string | null> {
@@ -388,7 +388,7 @@ export function useConnectionLogic(user: User | null) {
             });
 
             if (!response.ok) throw new Error('Opslaan mislukt');
-            const newConnection = await response.json();
+            const newConnection: Connection = await response.json();
             const decArray = await decryptConnections([newConnection]);
             setConnection(decArray[0]);
 
@@ -473,7 +473,7 @@ export function useConnectionLogic(user: User | null) {
 
             if (!response.ok) throw new Error(`Update mislukt`);
 
-            const updated = await response.json();
+            const updated: Connection = await response.json();
             const decArray = await decryptConnections([updated]);
             setConnection(decArray[0]);
 

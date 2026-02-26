@@ -59,7 +59,6 @@ export function SettingsView() {
   const handleCleanNames = useCallback(async () => {
     try {
       setIsCleaning(true);
-      setIsCleaning(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         setToastMessage(t('msg_not_logged_in_clean'));
@@ -114,7 +113,7 @@ export function SettingsView() {
       });
 
       if (getResp.ok) {
-        const userKey = await getResp.json();
+        const userKey: { salt: string, encrypted_key: string } = await getResp.json();
         salt = userKey.salt;
 
         try {
@@ -124,6 +123,7 @@ export function SettingsView() {
             throw new Error('Onjuist wachtwoord.');
           }
         } catch (err) {
+          console.error('Passphrase verification failed:', err);
           setToastMessage(t('msg_passphrase_error')); // Of een specifieke "Onjuist wachtwoord" melding
           setIsSavingPassphrase(false);
           return;
@@ -236,7 +236,8 @@ export function SettingsView() {
             } else {
               errors.push(conn.id as string);
             }
-          } catch {
+          } catch (err) {
+            console.error(`Failed to migrate connection ${conn.id}:`, err);
             errors.push(conn.id as string);
           }
         }
@@ -270,7 +271,6 @@ export function SettingsView() {
     }
 
     try {
-      setIsChangingPassword(true);
       setIsChangingPassword(true);
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -320,7 +320,6 @@ export function SettingsView() {
 
   const handleExportData = useCallback(async () => {
     try {
-      setIsExporting(true);
       setIsExporting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -382,7 +381,6 @@ export function SettingsView() {
     }
 
     try {
-      setIsDeleting(true);
       setIsDeleting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
