@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next')
 
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
-    const destination = new URL(intent === 'signup' ? '/nl/onboarding' : '/nl/onboarding', requestUrl.origin)
+    const destination = new URL(intent === 'signup' ? '/nl/signup' : '/nl/login', requestUrl.origin)
     destination.searchParams.set('error', message)
     if (next) destination.searchParams.set('next', next)
     return NextResponse.redirect(destination)
@@ -49,16 +49,16 @@ export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     {
       cookies: {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: any[]) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }: any) =>
               cookieStore.set(name, value, options)
             )
           } catch {

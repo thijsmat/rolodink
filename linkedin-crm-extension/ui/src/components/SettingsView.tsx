@@ -8,6 +8,44 @@ import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
 
+const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
+
+async function fetchPendingConnections(token: string): Promise<Record<string, string | null>[]> {
+  const resp = await fetch(`${API_BASE_URL}/api/connections`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!resp.ok) throw new Error('Kon connecties niet ophalen.');
+  return await resp.json();
+}
+
+async function processConnectionEncryption(conn: Record<string, string | null>): Promise<Record<string, string>> {
+  const updates: Record<string, string> = {};
+  for (const field of SENSITIVE_FIELDS) {
+    const value = conn[field];
+    if (typeof value === 'string' && value.length > 0 && !value.startsWith('rolodink-enc:')) {
+      const encResp = await globalThis.chrome.runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
+      if (encResp?.success) {
+        updates[field] = encResp.ciphertext;
+      } else {
+        throw new Error('Encryption failed');
+      }
+    }
+  }
+  return updates;
+}
+
+async function updateConnectionOnServer(connId: string, updates: Record<string, string>, token: string): Promise<void> {
+  const patchResp = await fetch(`${API_BASE_URL}/api/connections`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id: connId, ...updates }),
+  });
+  if (!patchResp.ok) throw new Error('PATCH failed');
+}
+
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout, isNewUser } = useConnection();
   const { t } = useExtensionTranslation();
@@ -169,15 +207,13 @@ export function SettingsView() {
     }
   };
 
-  const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
-
   const handleMigration = async () => {
     if (!passphraseActive) {
       setToastMessage('⚠️ Stel eerst een wachtwoordzin in voordat je migreert.');
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = globalThis.confirm(
       'Dit versleutelt alle bestaande leesbare tekst in je privacyvelden. Doorgaan?'
     );
     if (!confirmed) return;
@@ -194,52 +230,21 @@ export function SettingsView() {
       const token = session.access_token;
 
       // Fetch all connections
-      const resp = await fetch(`${API_BASE_URL}/api/connections`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!resp.ok) throw new Error('Kon connecties niet ophalen.');
-      const connections: Record<string, string | null>[] = await resp.json();
+      const connections = await fetchPendingConnections(token);
 
       let migratedCount = 0;
       const errors: string[] = [];
 
       for (const conn of connections) {
-        const updates: Record<string, string> = {};
-
-        for (const field of SENSITIVE_FIELDS) {
-          const value = conn[field];
-          if (typeof value === 'string' && value.length > 0 && !value.startsWith('rolodink-enc:')) {
-            try {
-              const encResp = await chrome.runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
-              if (encResp?.success) {
-                updates[field] = encResp.ciphertext;
-              }
-            } catch (err) {
-              console.error(`Failed to encrypt field '${field}' for connection ${conn.id}:`, err);
-              errors.push(conn.id as string);
-            }
+        try {
+          const updates = await processConnectionEncryption(conn);
+          if (Object.keys(updates).length > 0) {
+            await updateConnectionOnServer(conn.id as string, updates, token);
+            migratedCount++;
           }
-        }
-
-        if (Object.keys(updates).length > 0) {
-          try {
-            const patchResp = await fetch(`${API_BASE_URL}/api/connections`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ id: conn.id, ...updates }),
-            });
-            if (patchResp.ok) {
-              migratedCount++;
-            } else {
-              errors.push(conn.id as string);
-            }
-          } catch (err) {
-            console.error(`Failed to migrate connection ${conn.id}:`, err);
-            errors.push(conn.id as string);
-          }
+        } catch (err) {
+          console.error(`Failed to migrate connection ${conn.id}:`, err);
+          errors.push(conn.id as string);
         }
       }
 
@@ -352,14 +357,14 @@ export function SettingsView() {
 
       // Create blob and download
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      globalThis.URL.revokeObjectURL(url);
 
       setToastMessage(t('msg_export_success'));
     } catch (e) {
@@ -370,7 +375,7 @@ export function SettingsView() {
   }, [setToastMessage]);
 
   const handleDeleteAccount = useCallback(async () => {
-    const confirmed = window.confirm(t('msg_delete_warning'));
+    const confirmed = globalThis.confirm(t('msg_delete_warning'));
 
     if (!confirmed) return;
 

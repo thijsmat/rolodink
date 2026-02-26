@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import styles from './SecurityBanner.module.css';
 
 interface SecurityBannerProps {
-    onGoToSettings: () => void;
+    readonly onGoToSettings: () => void;
 }
 
 export function SecurityBanner({ onGoToSettings }: SecurityBannerProps) {

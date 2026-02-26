@@ -59,7 +59,7 @@ async function encryptFieldIfPassphrase(value: string | null | undefined): Promi
 
     try {
         const response = await runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
-        if (response && response.success) {
+        if (response?.success) {
             return response.ciphertext;
         }
     } catch (e) {
@@ -95,7 +95,7 @@ async function decryptConnections(connections: Connection[]): Promise<Connection
             if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
                 try {
                     const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
-                    (decrypted as Record<string, unknown>)[field] = (response && response.success)
+                    (decrypted as Record<string, unknown>)[field] = response?.success
                         ? response.plaintext
                         : '🔒 [Encrypted - Passphrase Required]';
                 } catch (e) {

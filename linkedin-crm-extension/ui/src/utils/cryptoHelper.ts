@@ -26,7 +26,7 @@ export const getEncoder = (): TextEncoder => {
  */
 export const getPasswordKey = async (password: string, salt: string): Promise<CryptoKey> => {
     const enc = getEncoder();
-    const keyMaterial = await window.crypto.subtle.importKey(
+    const keyMaterial = await globalThis.crypto.subtle.importKey(
         'raw',
         enc.encode(password),
         'PBKDF2',
@@ -34,7 +34,7 @@ export const getPasswordKey = async (password: string, salt: string): Promise<Cr
         ['deriveBits', 'deriveKey']
     );
 
-    return window.crypto.subtle.deriveKey(
+    return globalThis.crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
             salt: enc.encode(salt),
@@ -52,7 +52,7 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
     let binary = '';
     const len = bytes.byteLength;
     for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
+        binary += String.fromCodePoint(bytes[i]);
     }
     return btoa(binary);
 }
@@ -62,7 +62,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
     const len = binary.length;
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) {
-        bytes[i] = binary.charCodeAt(i);
+        bytes[i] = binary.codePointAt(i) ?? 0;
     }
     return bytes;
 }
@@ -78,10 +78,10 @@ function base64ToUint8Array(base64: string): Uint8Array {
  */
 export const encryptText = async (text: string, secretKey: CryptoKey): Promise<string> => {
     const enc = getEncoder();
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
     const encodedText = enc.encode(text);
 
-    const encryptedContent = await window.crypto.subtle.encrypt(
+    const encryptedContent = await globalThis.crypto.subtle.encrypt(
         {
             name: 'AES-GCM',
             iv: iv,
@@ -119,7 +119,7 @@ export const decryptText = async (prefixedBase64String: string, secretKey: Crypt
     const iv = combined.slice(0, 12);
     const data = combined.slice(12);
 
-    const decryptedContent = await window.crypto.subtle.decrypt(
+    const decryptedContent = await globalThis.crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
             iv: iv,

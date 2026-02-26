@@ -6,6 +6,12 @@ import { CheckCircle2, MousePointerClick, UserPlus, StickyNote, Search, Lock } f
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+const renderHelpLink = (chunks: React.ReactNode) => (
+    <Link href="/nl/help" className="text-azure underline underline-offset-2 hover:text-azure/80">
+        {chunks}
+    </Link>
+);
+
 export default function OnboardingSuccessPage() {
     const t = useTranslations("OnboardingSuccessPage");
 
@@ -92,11 +98,11 @@ export default function OnboardingSuccessPage() {
                 {/* Steps */}
                 <section className="container max-w-3xl mx-auto pb-12">
                     <div className="flex flex-col gap-6">
-                        {steps.map((step, i) => {
+                        {steps.map((step) => {
                             const Icon = step.icon;
                             return (
                                 <div
-                                    key={i}
+                                    key={step.number}
                                     className="flex gap-5 p-6 rounded-2xl border border-azure/10 bg-white shadow-sm hover:shadow-md transition-shadow"
                                 >
                                     <div className={`flex-shrink-0 flex items-start pt-1`}>
@@ -124,8 +130,8 @@ export default function OnboardingSuccessPage() {
                     <div className="rounded-2xl border border-azure/10 bg-azure/3 p-6">
                         <h3 className="font-semibold text-azure text-base mb-4">{t("tips.title")}</h3>
                         <ul className="flex flex-col gap-3">
-                            {tips.map((tip, i) => (
-                                <li key={i} className="flex items-start gap-3 text-sm text-grey">
+                            {tips.map((tip) => (
+                                <li key={tip.text} className="flex items-start gap-3 text-sm text-grey">
                                     <span className="text-base leading-5">{tip.emoji}</span>
                                     <span>{tip.text}</span>
                                 </li>
@@ -138,11 +144,7 @@ export default function OnboardingSuccessPage() {
                 <section className="container max-w-3xl mx-auto pb-24 text-center">
                     <p className="text-grey mb-6 text-sm">
                         {t.rich("cta.questions", {
-                            helpLink: (chunks) => (
-                                <Link href="/nl/help" className="text-azure underline underline-offset-2 hover:text-azure/80">
-                                    {chunks}
-                                </Link>
-                            )
+                            helpLink: renderHelpLink
                         })}
                     </p>
                     <Button asChild size="lg" className="bg-azure hover:bg-azure/90 text-white shadow-lg">
