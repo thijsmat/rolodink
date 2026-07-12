@@ -167,17 +167,35 @@ async function handleAuth() {
 }
 
 const DATA_KEY_STORAGE = 'rolodink_data_key';
+const DATA_KEY_USER_STORAGE = 'rolodink_data_key_user';
 let cachedCryptoKey: CryptoKey | null = null;
+let cachedKeyUserId: string | null = null;
 let keyPromise: Promise<CryptoKey> | null = null;
+let keyPromiseUserId: string | null = null;
 
-async function fetchDataKeyFromServer(): Promise<string> {
-    const supabase = getSupabase();
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    if (!token) {
-        throw new Error('Niet ingelogd: geen sessietoken beschikbaar voor encryptie');
+function getUserIdFromToken(token: string): string | null {
+    try {
+        const payloadB64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(payloadB64));
+        return typeof payload.sub === 'string' ? payload.sub : null;
+    } catch {
+        return null;
     }
+}
 
+async function clearDataKeyCache(): Promise<void> {
+    cachedCryptoKey = null;
+    cachedKeyUserId = null;
+    keyPromise = null;
+    keyPromiseUserId = null;
+    try {
+        await chrome.storage.session.remove([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+    } catch (e) {
+        console.warn('Kon sleutelcache niet wissen:', e);
+    }
+}
+
+async function fetchDataKeyFromServer(token: string): Promise<string> {
     const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
     const response = await fetch(`${apiBase}/api/user/key`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -194,24 +212,46 @@ async function fetchDataKeyFromServer(): Promise<string> {
     return dataKey;
 }
 
+// De sleutelcache is gebonden aan het user-id uit de actieve sessie: na een
+// account-wissel zou hergebruik van de oude sleutel data onleesbaar versleutelen.
 async function getDataKey(): Promise<CryptoKey> {
-    if (cachedCryptoKey) return cachedCryptoKey;
-    if (keyPromise) return keyPromise;
+    const supabase = getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) {
+        await clearDataKeyCache();
+        throw new Error('Niet ingelogd: geen sessietoken beschikbaar voor encryptie');
+    }
+    const userId = session?.user?.id ?? getUserIdFromToken(token);
+    if (!userId) {
+        await clearDataKeyCache();
+        throw new Error('Kon gebruiker niet bepalen voor encryptiesleutel');
+    }
 
+    if (cachedCryptoKey && cachedKeyUserId === userId) return cachedCryptoKey;
+    if (keyPromise && keyPromiseUserId === userId) return keyPromise;
+
+    keyPromiseUserId = userId;
     keyPromise = (async () => {
         try {
-            const stored = await chrome.storage.session.get([DATA_KEY_STORAGE]);
-            let rawKey: string | undefined = stored?.[DATA_KEY_STORAGE];
+            const stored = await chrome.storage.session.get([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+            let rawKey: string | undefined =
+                stored?.[DATA_KEY_USER_STORAGE] === userId ? stored?.[DATA_KEY_STORAGE] : undefined;
 
             if (!rawKey) {
-                rawKey = await fetchDataKeyFromServer();
-                await chrome.storage.session.set({ [DATA_KEY_STORAGE]: rawKey });
+                rawKey = await fetchDataKeyFromServer(token);
+                await chrome.storage.session.set({
+                    [DATA_KEY_STORAGE]: rawKey,
+                    [DATA_KEY_USER_STORAGE]: userId,
+                });
             }
 
             cachedCryptoKey = await importDataKey(rawKey);
+            cachedKeyUserId = userId;
             return cachedCryptoKey;
         } finally {
             keyPromise = null;
+            keyPromiseUserId = null;
         }
     })();
 
@@ -226,6 +266,14 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
                 .then(() => sendResponse({ success: true }))
                 .catch((error) => sendResponse({ success: false, error: error.message }));
             return true; // Houd kanaal open voor async response
+        }
+
+        // Wis de gecachte encryptiesleutel (bij uitloggen)
+        if (message.type === 'CLEAR_KEY_CACHE') {
+            clearDataKeyCache()
+                .then(() => sendResponse({ success: true }))
+                .catch((error: Error) => sendResponse({ success: false, error: error.message }));
+            return true;
         }
 
         // Versleutel een stuk tekst met de opgeslagen sessiesleutel
