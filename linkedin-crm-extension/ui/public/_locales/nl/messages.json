@@ -685,10 +685,10 @@
         "message": "Beveiliging & Versleuteling"
     },
     "passphrase_title": {
-        "message": "Versleutelingswachtwoord"
+        "message": "Automatische versleuteling"
     },
     "passphrase_description": {
-        "message": "Voer je wachtwoord in om je notities te versleutelen. LET OP: Raak je dit kwijt, dan kun je je versleutelde notities niet meer lezen!"
+        "message": "Je privévelden (notities, locatie, bedrijf, e-mail en telefoon) worden automatisch versleuteld en gekoppeld aan je account. Geen instellingen of wachtwoordzin nodig."
     },
     "passphrase_label": {
         "message": "Wachtwoord"

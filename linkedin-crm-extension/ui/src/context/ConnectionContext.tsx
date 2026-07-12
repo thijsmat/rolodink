@@ -102,11 +102,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleSignupSuccess = useCallback(() => {
     refreshSession();
-    setToastMessage('Account aangemaakt! Stel je wachtwoordzin in om je data te beveiligen.');
+    setToastMessage('Je privégegevens worden automatisch versleuteld.');
     fetchData();
     setIsNewUser(true);
-    setIsSettingsView(true);
-    setIsListView(false);
   }, [fetchData, refreshSession, setToastMessage]);
 
   const handleLogout = async () => {

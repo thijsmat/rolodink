@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
 import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
-import { getPasswordKey, encryptText, decryptText } from '../utils/cryptoHelper';
+import { importDataKey, encryptText, decryptText } from '../utils/cryptoHelper';
 
 // 1. Immediate Alive Check
 console.log('Background script loading (restored)...');
@@ -166,22 +166,45 @@ async function handleAuth() {
     }
 }
 
+const DATA_KEY_STORAGE = 'rolodink_data_key';
 let cachedCryptoKey: CryptoKey | null = null;
 
-async function getDerivedKey(passphrase?: string, salt?: string): Promise<CryptoKey> {
+async function fetchDataKeyFromServer(): Promise<string> {
+    const supabase = getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) {
+        throw new Error('Niet ingelogd: geen sessietoken beschikbaar voor encryptie');
+    }
+
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiBase}/api/user/key`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+        throw new Error(`Kon encryptiesleutel niet ophalen (status ${response.status})`);
+    }
+
+    const { data_key: dataKey } = await response.json();
+    if (!dataKey) {
+        throw new Error('Server gaf geen encryptiesleutel terug');
+    }
+
+    return dataKey;
+}
+
+async function getDataKey(): Promise<CryptoKey> {
     if (cachedCryptoKey) return cachedCryptoKey;
 
-    if (passphrase && salt) {
-        cachedCryptoKey = await getPasswordKey(passphrase, salt);
-        return cachedCryptoKey;
+    const stored = await chrome.storage.session.get([DATA_KEY_STORAGE]);
+    let rawKey: string | undefined = stored?.[DATA_KEY_STORAGE];
+
+    if (!rawKey) {
+        rawKey = await fetchDataKeyFromServer();
+        await chrome.storage.session.set({ [DATA_KEY_STORAGE]: rawKey });
     }
 
-    const session = await chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt']);
-    if (!session || !session.rolodink_passphrase || !session.rolodink_salt) {
-        throw new Error('Sessie niet geconfigureerd voor encryptie');
-    }
-
-    cachedCryptoKey = await getPasswordKey(session.rolodink_passphrase, session.rolodink_salt);
+    cachedCryptoKey = await importDataKey(rawKey);
     return cachedCryptoKey;
 }
 
@@ -195,38 +218,11 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
             return true; // Houd kanaal open voor async response
         }
 
-        // Sla het wachtwoord en de salt op in de sessie
-        if (message.type === 'SET_PASSPHRASE') {
-            chrome.storage.session.set({
-                rolodink_passphrase: message.passphrase,
-                rolodink_salt: message.salt
-            })
-                .then(async () => {
-                    // pre-derive for faster operations later
-                    try {
-                        await getDerivedKey(message.passphrase, message.salt);
-                    } catch (e) {
-                        console.error('Failed to pre-derive key during setup:', e);
-                    }
-                    sendResponse({ success: true });
-                })
-                .catch((error: Error) => sendResponse({ success: false, error: error.message }));
-            return true;
-        }
-
-        // Controleer of er een wachtwoord actief is in deze sessie
-        if (message.type === 'CHECK_PASSPHRASE') {
-            chrome.storage.session.get(['rolodink_passphrase', 'rolodink_salt'])
-                .then((session: Record<string, unknown>) => sendResponse({ active: !!session.rolodink_passphrase && !!session.rolodink_salt }))
-                .catch(() => sendResponse({ active: false }));
-            return true;
-        }
-
         // Versleutel een stuk tekst met de opgeslagen sessiesleutel
         if (message.type === 'ENCRYPT_TEXT') {
             (async () => {
                 try {
-                    const key = await getDerivedKey();
+                    const key = await getDataKey();
                     const ciphertext = await encryptText(message.text, key);
                     sendResponse({ success: true, ciphertext });
                 } catch (error: unknown) {
@@ -241,7 +237,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
         if (message.type === 'DECRYPT_TEXT') {
             (async () => {
                 try {
-                    const key = await getDerivedKey();
+                    const key = await getDataKey();
                     const plaintext = await decryptText(message.ciphertext, key);
                     sendResponse({ success: true, plaintext });
                 } catch (error: unknown) {

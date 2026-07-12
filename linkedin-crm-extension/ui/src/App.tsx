@@ -14,7 +14,6 @@ import { UpdateNotification } from './components/UpdateNotification';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
 import { useExtensionTranslation } from './hooks/useExtensionTranslation';
-import { SecurityBanner } from './components/SecurityBanner';
 
 function Content() {
   const { isLoading, isLoggedIn, error, connection, isListView, isSettingsView, isHelpView, showListView, hideListView, showSettingsView, hideSettingsView, showHelpView, hideHelpView, handleLogout, toastMessage, setToastMessage, isOffline, fetchData, clearError } = useConnection();
@@ -157,7 +156,6 @@ function Content() {
           )}
         </div>
       </div>
-      {isLoggedIn && <SecurityBanner onGoToSettings={showSettingsView} />}
       <div className={styles.contentArea}>
         {renderContent()}
       </div>
