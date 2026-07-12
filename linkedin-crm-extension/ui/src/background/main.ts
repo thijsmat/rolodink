@@ -168,6 +168,7 @@ async function handleAuth() {
 
 const DATA_KEY_STORAGE = 'rolodink_data_key';
 let cachedCryptoKey: CryptoKey | null = null;
+let keyPromise: Promise<CryptoKey> | null = null;
 
 async function fetchDataKeyFromServer(): Promise<string> {
     const supabase = getSupabase();
@@ -195,17 +196,26 @@ async function fetchDataKeyFromServer(): Promise<string> {
 
 async function getDataKey(): Promise<CryptoKey> {
     if (cachedCryptoKey) return cachedCryptoKey;
+    if (keyPromise) return keyPromise;
 
-    const stored = await chrome.storage.session.get([DATA_KEY_STORAGE]);
-    let rawKey: string | undefined = stored?.[DATA_KEY_STORAGE];
+    keyPromise = (async () => {
+        try {
+            const stored = await chrome.storage.session.get([DATA_KEY_STORAGE]);
+            let rawKey: string | undefined = stored?.[DATA_KEY_STORAGE];
 
-    if (!rawKey) {
-        rawKey = await fetchDataKeyFromServer();
-        await chrome.storage.session.set({ [DATA_KEY_STORAGE]: rawKey });
-    }
+            if (!rawKey) {
+                rawKey = await fetchDataKeyFromServer();
+                await chrome.storage.session.set({ [DATA_KEY_STORAGE]: rawKey });
+            }
 
-    cachedCryptoKey = await importDataKey(rawKey);
-    return cachedCryptoKey;
+            cachedCryptoKey = await importDataKey(rawKey);
+            return cachedCryptoKey;
+        } finally {
+            keyPromise = null;
+        }
+    })();
+
+    return keyPromise;
 }
 
 // Luister naar berichten van de UI en content scripts

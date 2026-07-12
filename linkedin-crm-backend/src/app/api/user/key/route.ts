@@ -25,6 +25,9 @@ function wrapDataKey(dataKey: Buffer, masterKey: Buffer): string {
 
 function unwrapDataKey(wrapped: string, masterKey: Buffer): Buffer {
     const blob = Buffer.from(wrapped, 'base64');
+    if (blob.length < 28) {
+        throw new Error('Invalid wrapped key length');
+    }
     const iv = blob.subarray(0, 12);
     const authTag = blob.subarray(12, 28);
     const ciphertext = blob.subarray(28);
@@ -54,13 +57,21 @@ export async function GET(request: NextRequest) {
             const dataKey = randomBytes(32);
             const wrappedKey = wrapDataKey(dataKey, masterKey);
 
-            userKey = await prisma.userKey.create({
-                data: {
-                    user_id: user.id,
-                    encrypted_key: wrappedKey,
-                    salt: ENVELOPE_VERSION,
-                }
-            });
+            try {
+                userKey = await prisma.userKey.create({
+                    data: {
+                        user_id: user.id,
+                        encrypted_key: wrappedKey,
+                        salt: ENVELOPE_VERSION,
+                    }
+                });
+            } catch (e) {
+                // Handle concurrent creation race condition
+                userKey = await prisma.userKey.findUnique({
+                    where: { user_id: user.id }
+                });
+                if (!userKey) throw e;
+            }
         }
 
         if (!userKey.encrypted_key || userKey.salt !== ENVELOPE_VERSION) {

@@ -25,11 +25,9 @@ export const getEncoder = (): TextEncoder => {
  */
 export const importDataKey = async (rawBase64: string): Promise<CryptoKey> => {
     const keyBytes = base64ToUint8Array(rawBase64);
-    const keyBuffer = new ArrayBuffer(keyBytes.byteLength);
-    new Uint8Array(keyBuffer).set(keyBytes);
     return globalThis.crypto.subtle.importKey(
         'raw',
-        keyBuffer,
+        keyBytes,
         { name: 'AES-GCM', length: 256 },
         false,
         ['encrypt', 'decrypt']
