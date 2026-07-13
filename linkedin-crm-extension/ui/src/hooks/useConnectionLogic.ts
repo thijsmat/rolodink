@@ -51,21 +51,19 @@ const getRuntime = () => {
 const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
 type SensitiveField = typeof SENSITIVE_FIELDS[number];
 
-/** Encrypt a single text value via the background script. Returns original value if no passphrase is set. */
-async function encryptFieldIfPassphrase(value: string | null | undefined): Promise<string | null | undefined> {
+/** Encrypt a single text value via the background script. Throws on encryption failure. */
+async function encryptField(value: string | null | undefined): Promise<string | null | undefined> {
     if (!value) return value;
     const runtime = getRuntime();
-    if (!runtime) return value;
-
-    try {
-        const response = await runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
-        if (response?.success) {
-            return response.ciphertext;
-        }
-    } catch (e) {
-        console.warn('[Encryption] Failed to encrypt field:', e);
+    if (!runtime) {
+        throw new Error('Runtime API unavailable for encryption');
     }
-    return value;
+
+    const response = await runtime.sendMessage({ type: 'ENCRYPT_TEXT', text: value });
+    if (!response?.success) {
+        throw new Error(response?.error || 'Encryption failed');
+    }
+    return response.ciphertext;
 }
 
 /** Encrypt all sensitive fields in a form data object before sending to the API. */
@@ -76,7 +74,7 @@ async function encryptFormData<T extends Partial<Record<SensitiveField, string |
     for (const field of SENSITIVE_FIELDS) {
         if (field in encrypted && encrypted[field]) {
             (encrypted as Record<string, string | null | undefined>)[field] =
-                await encryptFieldIfPassphrase(encrypted[field]);
+                await encryptField(encrypted[field]);
         }
     }
     return encrypted;

@@ -17,33 +17,21 @@ export const getEncoder = (): TextEncoder => {
 };
 
 /**
- * Zet een wachtwoord (string) om naar een CryptoKey met behulp van PBKDF2.
- * Deze sleutel wordt later gebruikt om een AES-GCM sleutel af te leiden.
- * 
- * @param password Het wachtwoord van de gebruiker.
- * @param salt De unieke salt van de gebruiker.
- * @returns Een asynchrone CryptoKey.
+ * Importeert een raw AES-256 sleutel (ontvangen van de server) als non-extractable CryptoKey.
+ * Deze sleutel kan niet uit de browser worden geëxtraheerd.
+ *
+ * @param rawBase64 Base64-gecodeerde raw 32-byte sleutel van de server.
+ * @returns Een non-extractable CryptoKey voor AES-GCM.
  */
-export const getPasswordKey = async (password: string, salt: string): Promise<CryptoKey> => {
-    const enc = getEncoder();
-    const keyMaterial = await globalThis.crypto.subtle.importKey(
+export const importDataKey = async (rawBase64: string): Promise<CryptoKey> => {
+    const keyBytes = base64ToUint8Array(rawBase64);
+    const keyBuffer = new ArrayBuffer(keyBytes.byteLength);
+    new Uint8Array(keyBuffer).set(keyBytes);
+    return globalThis.crypto.subtle.importKey(
         'raw',
-        enc.encode(password),
-        'PBKDF2',
-        false,
-        ['deriveBits', 'deriveKey']
-    );
-
-    return globalThis.crypto.subtle.deriveKey(
-        {
-            name: 'PBKDF2',
-            salt: enc.encode(salt),
-            iterations: 100000,
-            hash: 'SHA-256',
-        },
-        keyMaterial,
+        keyBuffer,
         { name: 'AES-GCM', length: 256 },
-        true,
+        false,
         ['encrypt', 'decrypt']
     );
 };

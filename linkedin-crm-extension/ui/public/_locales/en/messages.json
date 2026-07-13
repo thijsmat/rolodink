@@ -685,10 +685,10 @@
         "message": "Security & Encryption"
     },
     "passphrase_title": {
-        "message": "Encryption Passphrase"
+        "message": "Automatic encryption"
     },
     "passphrase_description": {
-        "message": "Enter your passphrase to encrypt your notes. WARNING: If you lose this, you cannot read your encrypted notes!"
+        "message": "Your private fields (notes, location, company, email and phone) are automatically encrypted and tied to your account. No setup or passphrase needed."
     },
     "passphrase_label": {
         "message": "Passphrase"

@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useAuthLogic } from '../hooks/useAuthLogic';
 import { useConnectionLogic } from '../hooks/useConnectionLogic';
+import { getBrowserAPI } from '../utils/browser';
 
 export const INVALID_PROFILE_PAGE_ERROR = 'invalid-profile-page';
 
@@ -102,16 +103,19 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleSignupSuccess = useCallback(() => {
     refreshSession();
-    setToastMessage('Account aangemaakt! Stel je wachtwoordzin in om je data te beveiligen.');
+    setToastMessage('Je privégegevens worden automatisch versleuteld.');
     fetchData();
     setIsNewUser(true);
-    setIsSettingsView(true);
-    setIsListView(false);
   }, [fetchData, refreshSession, setToastMessage]);
 
   const handleLogout = async () => {
     await signOut();
     await clearConnectionState();
+    try {
+      await getBrowserAPI()?.runtime?.sendMessage({ type: 'CLEAR_KEY_CACHE' });
+    } catch (e) {
+      console.warn('Kon sleutelcache in background niet wissen:', e);
+    }
     setIsListView(false);
     setToastMessage('Uitgelogd.');
   };
