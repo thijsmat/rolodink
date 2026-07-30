@@ -1,3 +1,25 @@
+## v1.3.0 (2026-07-30) - Server-tied Encryption
+
+### Security
+- Replace passphrase-based encryption with automatic server-tied account encryption: the backend generates a per-user AES-256 data key on first use and wraps it with `ENCRYPTION_MASTER_KEY` (AES-256-GCM envelope encryption); the extension imports it as a non-extractable CryptoKey
+- Fix silent plaintext fallback: encryption failures now abort the save instead of silently storing data unencrypted
+- Bind the background data-key cache to the logged-in user and clear it on logout, so an account switch can never encrypt data with the previous user's key
+- Remove the unused `POST /api/user/key` endpoint that allowed overwriting the wrapped key (which would have made stored data permanently unreadable)
+- Validate that `ENCRYPTION_MASTER_KEY` decodes to exactly 32 bytes so misconfiguration fails loudly
+
+### Changed
+- Remove the entire passphrase setup flow (Settings section, SecurityBanner, `SET_PASSPHRASE`/`CHECK_PASSPHRASE` handlers) — encryption now works automatically after login, no separate passphrase required
+- Update signup messaging: personal data is encrypted automatically
+
+### Backend
+- Add `GET /api/cron/keep-alive` plus a daily Vercel Cron Job (04:23 UTC) that keeps the free-tier Supabase project active through a cheap Supabase REST query, preventing the "Resource provisioning failed" deploy breakage
+
+### Infrastructure
+- Make store publish workflows reliable: wait for release assets (fixes the publish race), migrate Edge publishing to the Partner Center API-key flow (`edge-addon@v2`), pin all third-party actions to commit SHAs, fail fast with clear errors on missing secrets
+- Fix the Trivy security scan (`trivy-action` v0.36.0)
+- Add a manual "Store Credentials Check" workflow that validates Chrome/Edge store credentials without publishing
+- Rewrite `RELEASE_PROCESS.md` around the automated tag → draft → publish flow
+
 ## v1.2.0 (2026-02-24) - E2E Encryption & GDPR Onboarding
 
 ### Security
