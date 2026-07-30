@@ -10,7 +10,8 @@
     "start": "next start",
     "clean": "rm -rf .next",
     "test:api": "tsx scripts/test-api.ts",
-    "test:api:env": "./scripts/test-api-with-env.sh"
+    "test:api:env": "./scripts/test-api-with-env.sh",
+    "audit:notes": "node scripts/audit-encrypted-notes.js"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",

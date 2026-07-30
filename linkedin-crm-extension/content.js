@@ -50,8 +50,8 @@ function sendRuntimeMessage(message) {
 async function encryptNoteText(plaintext) {
     if (!plaintext) return plaintext;
     const response = await sendRuntimeMessage({ type: 'ENCRYPT_TEXT', text: plaintext });
-    if (!response || !response.success || typeof response.ciphertext !== 'string') {
-        throw new Error((response && response.error) || 'Encryption failed');
+    if (!response?.success || typeof response.ciphertext !== 'string') {
+        throw new Error(response?.error || 'Encryption failed');
     }
     return response.ciphertext;
 }
@@ -63,8 +63,8 @@ async function encryptNoteText(plaintext) {
 async function decryptNoteText(value) {
     if (!value || !isEncryptedString(value)) return value || '';
     const response = await sendRuntimeMessage({ type: 'DECRYPT_TEXT', ciphertext: value });
-    if (!response || !response.success || typeof response.plaintext !== 'string') {
-        throw new Error((response && response.error) || 'Decryption failed');
+    if (!response?.success || typeof response.plaintext !== 'string') {
+        throw new Error(response?.error || 'Decryption failed');
     }
     return response.plaintext;
 }
