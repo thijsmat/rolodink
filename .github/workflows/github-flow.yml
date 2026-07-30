@@ -7,6 +7,50 @@ on:
     branches: [ main ]
 
 jobs:
+  # Unit tests across the monorepo workspaces.
+  #
+  # Until this job existed, no workflow in this repository ran a single test:
+  # the other jobs run lint, typecheck and build only. packages/core's 74 tests
+  # - including the fixed ciphertext vector that pins the encryption wire
+  # format - had never been executed by CI, which made them documentation
+  # rather than a gate.
+  #
+  # `turbo run test` runs every workspace that declares a `test` script, so a
+  # new suite is covered the moment it is added and this file needs no change.
+  #
+  # Not covered: linkedin-crm-extension/ui has its own lockfile, is not a
+  # workspace member, and has no test runner yet.
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.9.0'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies (monorepo root)
+      run: npm ci
+
+    # The backend has no test script on main yet - its suite arrives with the
+    # open CORS pull request. Generating the client up front means that suite
+    # runs here the moment it lands, rather than failing on a missing
+    # @prisma/client import. `prisma generate` needs no database and no
+    # DATABASE_URL.
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      working-directory: ./linkedin-crm-backend
+
+    - name: Run tests
+      run: npx turbo run test
+
   # Website Build & Test
   website:
     runs-on: ubuntu-latest
@@ -83,9 +127,11 @@ jobs:
       working-directory: ./linkedin-crm-extension/ui
       continue-on-error: false
       
+    # `--max-warnings 35` in the ui lint script is a ratchet, and it was being
+    # ignored: `continue-on-error: true` here swallowed the failure, so the
+    # budget could be exceeded without CI noticing. Current count is 33.
     - name: Run linting (extension)
       run: npm run lint
-      continue-on-error: true
       working-directory: ./linkedin-crm-extension/ui
       
     - name: Build extension
@@ -181,7 +227,7 @@ jobs:
   # Deploy to Staging (develop branch)
   deploy-staging:
     if: github.ref == 'refs/heads/develop'
-    needs: [website, extension, backend, security]
+    needs: [tests, website, extension, backend, security]
     runs-on: ubuntu-latest
 
     steps:
@@ -195,7 +241,7 @@ jobs:
   # Deploy to Production (main branch)
   deploy-production:
     if: github.ref == 'refs/heads/main'
-    needs: [website, extension, backend, security]
+    needs: [tests, website, extension, backend, security]
     runs-on: ubuntu-latest
     environment: production
     
