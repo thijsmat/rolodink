@@ -16,6 +16,59 @@ async function loadApiBaseUrl() {
     }
 }
 
+// Prefix waarmee versleutelde velden herkenbaar zijn. Moet gelijk blijven aan
+// ui/src/utils/cryptoHelper.ts — anders leest de popup onze notities niet meer.
+const ENCRYPTION_PREFIX = 'rolodink-enc:';
+
+function isEncryptedString(text) {
+    return typeof text === 'string' && text.startsWith(ENCRYPTION_PREFIX);
+}
+
+/**
+ * Het content script draait buiten de extensie-bundle en heeft dus geen toegang
+ * tot de Web Crypto helpers of de datasleutel. Beide gaan daarom via de
+ * background service worker, die de sleutel al gecached heeft.
+ */
+function sendRuntimeMessage(message) {
+    return new Promise((resolve, reject) => {
+        try {
+            chrome.runtime.sendMessage(message, (response) => {
+                const runtimeError = chrome.runtime.lastError;
+                if (runtimeError) {
+                    reject(new Error(runtimeError.message));
+                    return;
+                }
+                resolve(response);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+/** Versleutelt tekst. Gooit een fout als dat niet lukt — nooit stil plaintext opslaan. */
+async function encryptNoteText(plaintext) {
+    if (!plaintext) return plaintext;
+    const response = await sendRuntimeMessage({ type: 'ENCRYPT_TEXT', text: plaintext });
+    if (!response?.success || typeof response.ciphertext !== 'string') {
+        throw new Error(response?.error || 'Encryption failed');
+    }
+    return response.ciphertext;
+}
+
+/**
+ * Ontsleutelt tekst. Waarden zonder prefix zijn legacy plaintext (geschreven door
+ * oudere versies van dit bestand) en worden ongewijzigd teruggegeven.
+ */
+async function decryptNoteText(value) {
+    if (!value || !isEncryptedString(value)) return value || '';
+    const response = await sendRuntimeMessage({ type: 'DECRYPT_TEXT', ciphertext: value });
+    if (!response?.success || typeof response.plaintext !== 'string') {
+        throw new Error(response?.error || 'Decryption failed');
+    }
+    return response.plaintext;
+}
+
 // Function to clean notification counts from profile names
 function cleanProfileName(name) {
     if (!name) return name;
@@ -535,8 +588,18 @@ async function injectContextField() {
                         const conn = Array.isArray(data) ? data[0] : data;
                         if (conn) {
                             connectionId = conn.id;
-                            textarea.value = conn.notes || '';
-                            status.innerText = 'Saved';
+                            try {
+                                textarea.value = await decryptNoteText(conn.notes);
+                                status.innerText = 'Saved';
+                            } catch (decryptError) {
+                                // Kan niet ontsleutelen: toon niets in plaats van de ciphertext,
+                                // en blokkeer opslaan zodat we de bestaande notitie niet overschrijven.
+                                console.error('Error decrypting note:', decryptError);
+                                textarea.value = '';
+                                textarea.disabled = true;
+                                textarea.placeholder = 'Unable to decrypt this note. Open the Rolodink popup to sign in again.';
+                                status.innerText = 'Locked';
+                            }
                         } else {
                             // Connection doesn't exist yet in CRM
                             status.innerText = 'Profile not in CRM';
@@ -582,6 +645,17 @@ async function injectContextField() {
                             return;
                         }
 
+                        // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
+                        // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
+                        let notesPayload;
+                        try {
+                            notesPayload = await encryptNoteText(textarea.value);
+                        } catch (encryptError) {
+                            console.error('Error encrypting note:', encryptError);
+                            status.innerText = 'Save failed';
+                            return;
+                        }
+
                         const resp = await fetch(`${API_BASE_URL}/api/connections`, {
                             method: 'PATCH',
                             headers: {
@@ -590,7 +664,7 @@ async function injectContextField() {
                             },
                             body: JSON.stringify({
                                 id: connectionId,
-                                notes: textarea.value
+                                notes: notesPayload
                             })
                         });
 
