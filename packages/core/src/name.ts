@@ -41,23 +41,32 @@
  * The legacy copies spell these classes with redundant escapes - `[\(\[\{]`
  * where `[([{]` says the same thing. That spelling is not reproduced here, so
  * the fidelity test in `name.test.ts` compares behaviour rather than text: it
- * runs each legacy pattern and its counterpart below over a shared corpus and
+ * runs each legacy pattern and its counterpart here over a shared corpus and
  * requires identical output. Equivalence was also checked separately across
  * ~2100 inputs per pattern before the escapes were dropped.
  *
- * Exported for that test only. Do not use these directly - the fourth carries
- * the `g` flag, so it holds `lastIndex` state between `exec`/`test` calls.
+ * A factory rather than a module-level array, for the same reason all three
+ * legacy copies build this list inside the function: the last pattern carries
+ * the `g` flag, and a shared `g` regex keeps its `lastIndex` between uses. That
+ * is harmless with `String#replace`, which resets it, and a trap for anything
+ * that later reaches for `test()` or `exec()` - those would start mid-string on
+ * every other call. Hoisting it to module scope to save four allocations was an
+ * optimisation that bought nothing and left a hazard behind.
+ *
+ * Exported for the fidelity test only.
  */
-export const COUNTER_PATTERNS: readonly RegExp[] = [
-    // Leading counters: (1) [2] {3}
-    /^[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*/,
-    // Leading numbers like: 1 John, 12· John, 3. John
-    /^[\s\u00A0]*\d+[\s\u00A0]*[.|·•:-]*[\s\u00A0]*/,
-    // Trailing counters at end: John Doe (1)
-    /[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*$/,
-    // Inline counters: John (1) Doe
-    /[\s\u00A0]*[([{]\s*\d+\s*[)\]}][\s\u00A0]*/g,
-];
+export function counterPatterns(): RegExp[] {
+    return [
+        // Leading counters: (1) [2] {3}
+        /^[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*/,
+        // Leading numbers like: 1 John, 12· John, 3. John
+        /^[\s\u00A0]*\d+[\s\u00A0]*[.|·•:-]*[\s\u00A0]*/,
+        // Trailing counters at end: John Doe (1)
+        /[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*$/,
+        // Inline counters: John (1) Doe
+        /[\s\u00A0]*[([{]\s*\d+\s*[)\]}][\s\u00A0]*/g,
+    ];
+}
 
 /**
  * Strips LinkedIn notification counters from a scraped profile name.
@@ -73,7 +82,7 @@ export function cleanProfileName(name: string): string {
     // the name, and every pattern below would otherwise have to handle both.
     let cleaned = name.replace(/\u00A0/g, ' ');
 
-    for (const pattern of COUNTER_PATTERNS) {
+    for (const pattern of counterPatterns()) {
         cleaned = cleaned.replace(pattern, ' ');
     }
 

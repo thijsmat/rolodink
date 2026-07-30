@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { cleanProfileName, COUNTER_PATTERNS } from './name.js';
+import { cleanProfileName, counterPatterns } from './name.js';
 
 const NBSP = '\u00A0';
 
@@ -70,9 +70,10 @@ describe('cleanProfileName', () => {
     });
 
     it('the global inline pattern is not left stateful between calls', () => {
-        // COUNTER_PATTERNS[3] carries the /g flag and is module-level, so it is
-        // shared across calls. String#replace resets lastIndex, but if that
-        // pattern is ever used with .test() or .exec() this test fails first.
+        // The inline pattern carries the /g flag. It is rebuilt per call now,
+        // but this guards the invariant rather than the implementation: if it
+        // ever becomes shared again, the second call here returns a different
+        // result and this fails.
         const input = 'Jan (3) Jansen';
         expect(cleanProfileName(input)).toBe('Jan Jansen');
         expect(cleanProfileName(input)).toBe('Jan Jansen');
@@ -175,11 +176,18 @@ function behaviouralSignature(pattern: RegExp): string {
  * this stops working, the extraction throws rather than silently returning
  * fewer patterns and passing a weaker comparison.
  */
-function extractLegacyPatterns(relativePath: string): RegExp[] {
+/**
+ * The text of a legacy `cleanProfileName`, from its `function` keyword onwards.
+ *
+ * The window is generous rather than exact: every check below looks for a
+ * substring, so overshooting into the next function is harmless while
+ * undershooting would quietly weaken the assertion.
+ */
+function readLegacyFunction(relativePath: string): string {
     const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8');
+    const start = source.indexOf('function cleanProfileName(');
 
-    const functionStart = source.indexOf('function cleanProfileName(');
-    if (functionStart === -1) {
+    if (start === -1) {
         throw new Error(
             `cleanProfileName not found in ${relativePath}. If the copy was removed ` +
                 'because the caller now imports @rolodink/core, delete this fidelity ' +
@@ -187,7 +195,13 @@ function extractLegacyPatterns(relativePath: string): RegExp[] {
         );
     }
 
-    const arrayStart = source.indexOf('[', source.indexOf('patterns', functionStart));
+    return source.slice(start, start + 1500);
+}
+
+function extractLegacyPatterns(relativePath: string): RegExp[] {
+    const source = readLegacyFunction(relativePath);
+
+    const arrayStart = source.indexOf('[', source.indexOf('patterns'));
     const arrayEnd = source.indexOf('];', arrayStart);
     if (arrayStart === -1 || arrayEnd === -1) {
         throw new Error(`Could not locate the patterns array in ${relativePath}`);
@@ -220,25 +234,23 @@ function extractLegacyPatterns(relativePath: string): RegExp[] {
 
 describe('fidelity against the copies this replaces', () => {
     it.each(LEGACY_SOURCES)('%s has four patterns in the same positions', (_label, path) => {
-        expect(extractLegacyPatterns(path)).toHaveLength(COUNTER_PATTERNS.length);
+        expect(extractLegacyPatterns(path)).toHaveLength(counterPatterns().length);
     });
 
     it.each(LEGACY_SOURCES)('%s: every pattern behaves identically to its counterpart', (_label, path) => {
         const legacy = extractLegacyPatterns(path);
+        const ours = counterPatterns();
 
         legacy.forEach((legacyPattern, index) => {
-            const ours = COUNTER_PATTERNS[index] as RegExp;
             // Flags are part of the meaning: dropping /g on the inline pattern
             // would silently stop it removing the second counter in a name.
-            expect(legacyPattern.flags).toBe(ours.flags);
-            expect(behaviouralSignature(legacyPattern)).toBe(behaviouralSignature(ours));
+            expect(legacyPattern.flags).toBe((ours[index] as RegExp).flags);
+            expect(behaviouralSignature(legacyPattern)).toBe(behaviouralSignature(ours[index] as RegExp));
         });
     });
 
     it.each(LEGACY_SOURCES)('%s normalises NBSP and collapses whitespace the same way', (_label, path) => {
-        const source = readFileSync(new URL(path, import.meta.url), 'utf8');
-        const start = source.indexOf('function cleanProfileName(');
-        const body = source.slice(start, start + 1500);
+        const body = readLegacyFunction(path);
 
         // The two operations that bracket the pattern loop. Together with the
         // pattern comparison above, this covers every line of the function that
@@ -251,8 +263,6 @@ describe('fidelity against the copies this replaces', () => {
     it.each(LEGACY_SOURCES)('%s substitutes a space, not an empty string', (_label, path) => {
         // Replacing with '' instead of ' ' would join words together, so this
         // is the one detail in the loop worth checking explicitly.
-        const source = readFileSync(new URL(path, import.meta.url), 'utf8');
-        const start = source.indexOf('function cleanProfileName(');
-        expect(source.slice(start, start + 1500)).toContain("replace(pattern, ' ')");
+        expect(readLegacyFunction(path)).toContain("replace(pattern, ' ')");
     });
 });
