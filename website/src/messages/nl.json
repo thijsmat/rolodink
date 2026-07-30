@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.1.3 • Gratis",
+        "version": "Versie 1.3.0 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -210,6 +210,36 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.0",
+                "date": "30 juli 2026",
+                "sections": [
+                    {
+                        "title": "Automatische Encryptie",
+                        "items": [
+                            "Wachtwoordzin niet meer nodig: je gegevens worden automatisch versleuteld zodra je bent ingelogd.",
+                            "Versleuteling gebeurt met een beveiligde sleutel per account, beheerd door de server.",
+                            "Beveiligingsfix: opslaan kan niet langer stilletjes terugvallen op onversleutelde data.",
+                            "Sleutelbeheer gekoppeld aan je account; bij uitloggen wordt de sleutel gewist."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.2.0",
+                "date": "26 februari 2026",
+                "sections": [
+                    {
+                        "title": "End-to-End Encryptie & Onboarding",
+                        "items": [
+                            "End-to-end encryptie uitgebreid naar e-mail, telefoon, ontmoetingsplek en bedrijf.",
+                            "Migratietool om bestaande gegevens te versleutelen.",
+                            "Vernieuwde onboarding met stap-voor-stap gids.",
+                            "E-mail- en telefoonveld toegevoegd aan connecties."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.1.3",
                 "date": "29 januari 2026",
@@ -357,8 +387,8 @@
                 "description": "Voeg een persoonlijke notitie toe, zoals: \"Ontmoet op Tech Meetup Amsterdam. Interesse in AI en open-source. Opvolgen over samenwerking.\" Jouw notities zijn 100% privé."
             },
             "step4": {
-                "title": "Stel je veilige kluis in (optioneel)",
-                "description": "Ga naar Instellingen → Beveiliging in de extensie en stel een wachtwoordzin in. Dit versleutelt al je notities zodat zelfs wij ze niet kunnen lezen."
+                "title": "Je gegevens zijn automatisch beveiligd",
+                "description": "Je notities en contactgegevens worden automatisch versleuteld zodra je bent ingelogd — je hoeft hier niets voor in te stellen."
             },
             "step5": {
                 "title": "Zoek en vind",
@@ -542,8 +572,8 @@
                 "description": "Meld je aan om notities op te slaan en je LinkedIn netwerk te organiseren."
             },
             "vault": {
-                "title": "Stel je veilige kluis in",
-                "description": "Jouw data is van jou. Rolodink beveiligt je privégegevens met end-to-end encryptie, zodat zelfs wij niet mee kunnen lezen. Kies een sterk wachtwoord om je kluis te vergrendelen."
+                "title": "Automatische encryptie",
+                "description": "Jouw data is van jou. Rolodink versleutelt je privégegevens automatisch zodra je bent ingelogd — zonder aparte wachtwoordzin."
             }
         },
         "cta": {
