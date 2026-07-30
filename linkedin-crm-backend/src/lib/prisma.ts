@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 // Deze 'declare global' voorkomt dat 'hot reloading' 
 // tijdens development honderden nieuwe verbindingen aanmaakt.
 declare global {
-  // eslint-disable-next-line no-var
+   
   var prisma: PrismaClient | undefined;
 }
 

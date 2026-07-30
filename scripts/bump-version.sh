@@ -16,6 +16,7 @@ FILES=(
   "linkedin-crm-extension/manifest-firefox.json"
   "linkedin-crm-extension/package.json"
   "linkedin-crm-extension/ui/package.json"
+  "linkedin-crm-backend/package.json"
   "website/package.json"
 )
 

@@ -28,7 +28,7 @@ jobs:
       run: npm ci
       
     - name: Run linting
-      run: npm run lint || echo "Linting completed with warnings"
+      run: npm run lint
       working-directory: ./website
       
     - name: Run type checking
@@ -84,7 +84,7 @@ jobs:
       continue-on-error: false
       
     - name: Run linting (extension)
-      run: npm run lint || echo "Linting completed with warnings"
+      run: npm run lint
       continue-on-error: true
       working-directory: ./linkedin-crm-extension/ui
       
@@ -139,7 +139,7 @@ jobs:
       working-directory: ./linkedin-crm-backend
       
     - name: Run linting
-      run: npm run lint || echo "Linting completed with warnings"
+      run: npm run lint
       working-directory: ./linkedin-crm-backend
       
     - name: Run type checking
