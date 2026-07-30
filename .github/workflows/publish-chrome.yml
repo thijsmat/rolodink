@@ -14,12 +14,41 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check store credentials
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        run: |
+          missing=""
+          for v in CHROME_CLIENT_ID CHROME_CLIENT_SECRET CHROME_REFRESH_TOKEN CHROME_EXTENSION_ID; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Configure them under Settings > Secrets and variables > Actions before Chrome publishing can work. The extension must already be listed in the Chrome Web Store (first submission is manual)."
+            exit 1
+          fi
+
       - name: Download Chrome Artifact
         id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-chrome-*.zip"
+          # Release assets worden pas na het publiceren van de release geüpload,
+          # dus wachten met retries in plaats van direct falen op de race.
+          for i in $(seq 1 10); do
+            gh release download ${{ github.event.release.tag_name }} -p "Rolodink-chrome-*.zip" --clobber || true
+            if ls Rolodink-chrome-*.zip >/dev/null 2>&1; then
+              break
+            fi
+            echo "Chrome asset not available yet (attempt $i/10), waiting 30s..."
+            sleep 30
+          done
+          if ! ls Rolodink-chrome-*.zip >/dev/null 2>&1; then
+            echo "::error::No Rolodink-chrome-*.zip asset found on release ${{ github.event.release.tag_name }}"
+            exit 1
+          fi
           echo "zip_file=$(ls Rolodink-chrome-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Chrome Web Store
