@@ -387,8 +387,8 @@
                 "description": "Add a personal note, such as: \"Met at Tech Meetup Amsterdam. Interested in AI and open-source. Follow up about collaboration.\" Your notes are 100% private."
             },
             "step4": {
-                "title": "Set up your secure vault (optional)",
-                "description": "Go to Settings → Security in the extension and set a passphrase. This encrypts all your notes so not even we can read them."
+                "title": "Your data is secured automatically",
+                "description": "Your notes and contact details are encrypted automatically once you're signed in — no setup required."
             },
             "step5": {
                 "title": "Search and find",
@@ -572,8 +572,8 @@
                 "description": "Sign up to start saving notes and organizing your LinkedIn network."
             },
             "vault": {
-                "title": "Set up your secure vault",
-                "description": "Your data is yours. Rolodink secures your private details with end-to-end encryption, so not even we can read them. Choose a strong passphrase to lock your vault."
+                "title": "Automatic encryption",
+                "description": "Your data is yours. Rolodink encrypts your private details automatically once you're signed in — no separate passphrase needed."
             }
         },
         "cta": {
