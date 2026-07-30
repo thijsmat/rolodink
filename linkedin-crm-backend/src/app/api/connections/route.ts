@@ -22,15 +22,18 @@ const createConnectionSchema = z.object({
   phone: z.string().optional(),
 });
 
-// Validation schema for updating a connection (all fields optional)
+// Validation schema for updating a connection (all fields optional).
+// The optional fields are .nullable() because clients clear a field by sending
+// null: the extension's own handleUpdate sends `field ?? null`, which this
+// schema used to reject with a 400, so clearing a field was simply broken.
 const updateConnectionSchema = z.object({
   name: z.string().min(1).optional(),
   url: z.string().url().optional(),
-  meetingPlace: z.string().optional(),
-  notes: z.string().optional(),
-  userCompanyAtTheTime: z.string().optional(),
-  email: z.string().optional(),
-  phone: z.string().optional(),
+  meetingPlace: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  userCompanyAtTheTime: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
 });
 
 // Function to clean notification counts from profile names
@@ -89,7 +92,12 @@ export async function GET(request: NextRequest) {
 
     // Haal URL parameter op voor filtering
     const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
+    // Normalize the same way POST does before storing, so a client that leaves
+    // a trailing slash or tracking parameters on the URL still matches. It only
+    // ever widens the set of URLs that hit; the host is preserved, so rows
+    // stored under a localized host such as nl.linkedin.com stay findable.
+    const rawUrl = searchParams.get('url');
+    const url = rawUrl ? normalizeLinkedInUrl(rawUrl) : rawUrl;
 
     // Create cache key based on user ID and optional URL filter
     const cacheKey = url ? `connections-${user.id}-${url}` : `connections-${user.id}`;
