@@ -40,7 +40,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Define latest version info
-    const latestVersion = '1.0.10';
+    // Keep this in sync with the extension manifests on every release, otherwise
+    // the in-extension update notice silently stops firing.
+    const latestVersion = '1.3.1';
     const versionInfo = {
       latest: latestVersion,
       current: currentVersion,
@@ -112,11 +114,9 @@ export async function GET(request: NextRequest) {
 
       if (versionInfo.updateType === 'patch') {
         versionInfo.bugFixes = [
-          'Fixed: "Not logged in" message appearing incorrectly',
-          'Fixed: Context field now correctly recognizes authenticated users',
-          'Fixed: Duplicate conditional branches',
-          'Fixed: Missing accessible label on toggle switch',
-          'Updated: Button text from "Add to CRM" to "Add to Rldnk"'
+          'Fixed: notities in het notitieveld op een profielpagina worden weer versleuteld opgeslagen',
+          'Fixed: dat veld toont je notitie als leesbare tekst in plaats van versleutelde code',
+          'Fixed: een notitie die niet ontsleuteld kan worden, wordt geblokkeerd in plaats van overschreven'
         ];
       }
 
