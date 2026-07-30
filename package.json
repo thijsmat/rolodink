@@ -5,12 +5,15 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
     "clean": "turbo run clean"
   },
   "workspaces": [
     "linkedin-crm-backend",
     "linkedin-crm-extension",
-    "website"
+    "website",
+    "packages/*"
   ],
   "devDependencies": {
     "eslint": "^9",
