@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pin, UserPlus, Lock } from "lucide-react";
 import NextImage from "next/image";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from "@/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
     const t = useTranslations('OnboardingPage');
+    const locale = useLocale();
+    // De auth-flow stuurt `next` uiteindelijk door naar window.location, en
+    // getSafeRedirect geeft het pad ongewijzigd terug. Zonder locale-prefix komt
+    // dat niet langs de next-intl middleware en levert het een 404 op.
+    const successPath = `/${locale}/onboarding/success`;
     const [session, setSession] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
@@ -135,7 +140,7 @@ export default function OnboardingPage() {
                                                 </button>
                                             </div>
 
-                                            <LinkedInSignInButton intent={authMode} next="/onboarding/success" />
+                                            <LinkedInSignInButton intent={authMode} next={successPath} />
 
                                             <div className="relative">
                                                 <div className="absolute inset-0 flex items-center">
@@ -146,7 +151,7 @@ export default function OnboardingPage() {
                                                 </div>
                                             </div>
 
-                                            <EmailPasswordForm mode={authMode} next="/onboarding/success" />
+                                            <EmailPasswordForm mode={authMode} next={successPath} />
                                         </>
                                     )}
                                 </div>

@@ -31,6 +31,19 @@
   margin: 0;
 }
 
+/* Naam van de connectie die bewerkt wordt. Nadrukkelijker dan de subtitle die hij
+   vervangt, want dit is de enige plek waar je ziet wiens gegevens je aanpast. */
+.connectionName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--linkedin-blue);
+  line-height: var(--line-height-normal);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .content {
   flex: 1;
   padding: var(--space-4) var(--space-5);

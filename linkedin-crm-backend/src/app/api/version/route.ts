@@ -112,11 +112,12 @@ export async function GET(request: NextRequest) {
         ];
       }
 
+      // Houd deze regels kort: de popup is ~500px hoog en toont ze ongekort,
+      // dus lange zinnen duwen de rest van de interface buiten beeld.
       if (versionInfo.updateType === 'patch') {
         versionInfo.bugFixes = [
-          'Fixed: notities in het notitieveld op een profielpagina worden weer versleuteld opgeslagen',
-          'Fixed: dat veld toont je notitie als leesbare tekst in plaats van versleutelde code',
-          'Fixed: een notitie die niet ontsleuteld kan worden, wordt geblokkeerd in plaats van overschreven'
+          'Notities worden weer versleuteld opgeslagen',
+          'Notitieveld toont leesbare tekst'
         ];
       }
 
