@@ -6,14 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-# Least privilege by default. Every other workflow in this repository already
-# declares this at the top level; github-flow.yml was the one that did not, so
-# its jobs ran with whatever the repository default grants. None of them writes
-# to GitHub - they install, lint, typecheck, test and build. The `security` job
-# overrides this with the `security-events: write` it needs to upload SARIF.
-permissions:
-  contents: read
-
 jobs:
   # Unit tests across the monorepo workspaces.
   #
@@ -29,6 +21,8 @@ jobs:
   # Not covered: linkedin-crm-extension/ui has its own lockfile, is not a
   # workspace member, and has no test runner yet.
   tests:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:
@@ -44,23 +38,33 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
 
+    # --ignore-scripts: a dependency's install hook runs arbitrary code with
+    # the job's token and cache. Nothing here needs one, so they stay off. The
+    # other jobs in this file still install without it; changing them belongs
+    # with whoever verifies their builds still work.
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
 
-    # The backend has no test script on main yet - its suite arrives with the
-    # open CORS pull request. Generating the client up front means that suite
-    # runs here the moment it lands, rather than failing on a missing
-    # @prisma/client import. `prisma generate` needs no database and no
-    # DATABASE_URL.
+    # The backend generates its Prisma Client from a postinstall hook, which
+    # --ignore-scripts just suppressed, so it is generated explicitly here.
+    # `prisma generate` needs no database and no DATABASE_URL.
+    #
+    # `npm run` rather than `npx`: npx will fetch a package from the registry
+    # when it is not installed locally, which turns a typo or a deleted
+    # dependency into remote code execution at whatever version resolves today.
+    # `npm run` only ever executes the binary the lockfile pinned.
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: npm run prisma:generate
       working-directory: ./linkedin-crm-backend
 
+    # Root script, which is `turbo run test`. Same reasoning as above.
     - name: Run tests
-      run: npx turbo run test
+      run: npm test
 
   # Website Build & Test
   website:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     
     steps:
@@ -101,6 +105,8 @@ jobs:
 
   # Extension Build & Test
   extension:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     
     steps:
@@ -160,6 +166,8 @@ jobs:
 
   # Backend Build & Test
   backend:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: 'https://dummy.supabase.co'
@@ -234,6 +242,8 @@ jobs:
 
   # Deploy to Staging (develop branch)
   deploy-staging:
+    permissions:
+      contents: read
     if: github.ref == 'refs/heads/develop'
     needs: [tests, website, extension, backend, security]
     runs-on: ubuntu-latest
@@ -248,6 +258,8 @@ jobs:
 
   # Deploy to Production (main branch)
   deploy-production:
+    permissions:
+      contents: read
     if: github.ref == 'refs/heads/main'
     needs: [tests, website, extension, backend, security]
     runs-on: ubuntu-latest

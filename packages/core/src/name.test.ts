@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { cleanProfileName, counterPatterns } from './name.js';
+import { cleanProfileName } from './name.js';
 
 const NBSP = '\u00A0';
 
@@ -111,16 +111,26 @@ describe('cleanProfileName: known defects, pinned deliberately', () => {
  * only safe if the move is exact, so rather than claiming the copies match,
  * this reads them off disk and checks them.
  *
- * The comparison is behavioural, not textual: each legacy regex literal is
- * rebuilt and run over a shared corpus alongside the pattern in the same
- * position here, and the outputs must be identical. Textual comparison was the
- * obvious approach and the wrong one - the legacy copies spell their character
- * classes with redundant escapes (`[\(\[\{]` for `[([{]`), so an exact string
- * match would report a difference where there is none, and reproducing that
- * spelling here just to make the strings line up is not worth it.
+ * The comparison is end-to-end, and deliberately so. Two earlier versions of
+ * this check were narrower and both were wrong:
  *
- * No code is duplicated into this file and nothing from those sources is
- * executed as code - only the regex literals are rebuilt.
+ *  - Comparing the regex *text* fails on spelling. The legacy copies write
+ *    their character classes with redundant escapes (`[\(\[\{]` for `[([{]`),
+ *    which is a difference that does not exist in behaviour.
+ *  - Comparing each pattern's behaviour *individually* over-constrains. Two of
+ *    the patterns here dropped a redundant leading `\s*` to remove super-linear
+ *    backtracking; per-pattern they now differ from the legacy ones, while the
+ *    function's output is unchanged, because every substitution inserts a space
+ *    and the final collapse-and-trim absorbs it.
+ *
+ * What callers depend on is the output of `cleanProfileName`, so that is what
+ * is compared: the legacy patterns are extracted, run through the legacy
+ * algorithm, and the result must equal ours for every probe. The algorithm is
+ * reconstructed rather than assumed - the structural assertions below pin the
+ * three operations that surround the pattern loop in each legacy copy.
+ *
+ * Nothing from those sources is executed as code; only the regex literals are
+ * rebuilt.
  *
  * These copies are scheduled for deletion (the extension bundles core, then the
  * backend imports it). When the last one goes, this block fails with a clear
@@ -133,39 +143,55 @@ const LEGACY_SOURCES = [
 ] as const;
 
 /**
- * Inputs the patterns are compared over.
+ * Inputs the two implementations are compared over.
  *
- * Built by pairing every character the four classes mention, so a class that
- * gained or lost a member shows up as a behavioural difference rather than
- * slipping past a hand-picked list.
+ * Built by combining every character the four patterns mention, so a class that
+ * gained or lost a member shows up as a difference rather than slipping past a
+ * hand-picked list.
  */
 const PROBES: string[] = (() => {
-    const chars = ['(', ')', '[', ']', '{', '}', '.', '|', '·', '•', ':', '-', '0', '5', '12', ' ', NBSP, 'a', 'Z', '\t', ''];
-    const probes: string[] = [];
-    for (const a of chars) {
-        for (const b of chars) {
-            probes.push(a + b, a + 'Jan' + b, `(3)${a}Jan${b}`, `${a}3${b}Jan`);
+    const atoms = ['(', ')', '[', ']', '{', '}', '(3)', '[12]', '{7}', '( 3 )', '.', '|', '·', '•', ':', '-',
+        '0', '5', '12', ' ', NBSP, '  ', '\t', 'Jan', 'Jansen', ''];
+    const probes = new Set<string>();
+    for (const a of atoms) {
+        for (const b of atoms) {
+            for (const middle of ['', ' ', 'Jan', '(1)']) probes.add(a + middle + b);
         }
     }
-    return probes.concat([
+    for (const realistic of [
         '(3) Jan Jansen',
+        'Jan Jansen (3)',
+        'Jan (3) Jansen',
+        '(3) Jan Jansen (3)',
+        `${NBSP}(3)${NBSP}Jan${NBSP}Jansen${NBSP}`,
         '50 Cent',
-        '1 | Jan',
-        'Jan (3) Doe',
-        `12${NBSP}· Jan`,
-        'Jan Doe (1)',
-        '[2] X',
-        '{9}Y',
-        '',
+        '3 Doors Down',
+        '112',
+        '1 | Jan Jansen',
+        'Jan Jansen 3rd',
+        '(1)(2)(3)',
+        'Jan (1) (2) Doe',
+        '(12) Jan (3) Jansen (4)',
+        'Jan   Jansen',
         '   ',
-    ]);
+        '',
+    ]) probes.add(realistic);
+    return [...probes];
 })();
 
-/** How a pattern behaves, reduced to a single comparable string. */
-function behaviouralSignature(pattern: RegExp): string {
-    // A fresh RegExp per probe: the inline pattern carries /g, and reusing one
-    // instance across .replace calls would make the result order-dependent.
-    return PROBES.map((probe) => probe.replace(new RegExp(pattern.source, pattern.flags), ' ')).join('');
+/**
+ * The legacy algorithm, driven by patterns lifted from a legacy file.
+ *
+ * The three operations around the loop - NBSP normalisation, substituting a
+ * space rather than an empty string, and the closing collapse-and-trim - are
+ * each asserted to exist in every legacy source further down, so this is a
+ * reconstruction of those files rather than a guess at them.
+ */
+function legacyCleanProfileName(patterns: RegExp[], name: string): string {
+    if (!name) return name;
+    let cleaned = name.replace(/\u00A0/g, ' ');
+    for (const pattern of patterns) cleaned = cleaned.replace(pattern, ' ');
+    return cleaned.replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -233,28 +259,25 @@ function extractLegacyPatterns(relativePath: string): RegExp[] {
 }
 
 describe('fidelity against the copies this replaces', () => {
-    it.each(LEGACY_SOURCES)('%s has four patterns in the same positions', (_label, path) => {
-        expect(extractLegacyPatterns(path)).toHaveLength(counterPatterns().length);
+    it.each(LEGACY_SOURCES)('%s still declares four patterns', (_label, path) => {
+        // The reconstruction below depends on the shape; if a copy grows or
+        // loses a pattern, the extraction is no longer modelling it.
+        expect(extractLegacyPatterns(path)).toHaveLength(4);
     });
 
-    it.each(LEGACY_SOURCES)('%s: every pattern behaves identically to its counterpart', (_label, path) => {
-        const legacy = extractLegacyPatterns(path);
-        const ours = counterPatterns();
+    it.each(LEGACY_SOURCES)('%s produces identical output for every probe', (_label, path) => {
+        const legacyPatterns = extractLegacyPatterns(path);
 
-        legacy.forEach((legacyPattern, index) => {
-            // Flags are part of the meaning: dropping /g on the inline pattern
-            // would silently stop it removing the second counter in a name.
-            expect(legacyPattern.flags).toBe((ours[index] as RegExp).flags);
-            expect(behaviouralSignature(legacyPattern)).toBe(behaviouralSignature(ours[index] as RegExp));
-        });
+        for (const probe of PROBES) {
+            expect(legacyCleanProfileName(legacyPatterns, probe)).toBe(cleanProfileName(probe));
+        }
     });
 
     it.each(LEGACY_SOURCES)('%s normalises NBSP and collapses whitespace the same way', (_label, path) => {
         const body = readLegacyFunction(path);
 
-        // The two operations that bracket the pattern loop. Together with the
-        // pattern comparison above, this covers every line of the function that
-        // affects the result.
+        // The operations bracketing the pattern loop. These are what make the
+        // reconstruction in legacyCleanProfileName faithful rather than assumed.
         expect(body).toContain(String.raw`replace(/\u00A0/g, ' ')`);
         expect(body).toContain(String.raw`replace(/\s+/g, ' ')`);
         expect(body).toContain('.trim()');
