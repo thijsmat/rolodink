@@ -13,7 +13,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   submitText?: string;
 }) {
   const { t } = useExtensionTranslation();
-  const { handleCreateConnection } = useConnection();
+  const { handleCreateConnection, connection } = useConnection();
   const [meetingPlace, setMeetingPlace] = useState('');
   const [userCompany, setUserCompany] = useState('');
   const [notes, setNotes] = useState('');
@@ -81,12 +81,18 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         <h1 className={styles.title}>
           {isEditMode ? t('connection_form_edit_title') : t('connection_form_new_title')}
         </h1>
-        <p className={styles.subtitle}>
-          {isEditMode
-            ? t('connection_form_edit_subtitle')
-            : t('connection_form_new_subtitle')
-          }
-        </p>
+        {/* Zonder de naam weet je bij het bewerken niet wiens gegevens je aanpast.
+            De naam staat alleen in de context, niet in de formulierdata. */}
+        {isEditMode && connection?.name ? (
+          <p className={styles.connectionName}>{connection.name}</p>
+        ) : (
+          <p className={styles.subtitle}>
+            {isEditMode
+              ? t('connection_form_edit_subtitle')
+              : t('connection_form_new_subtitle')
+            }
+          </p>
+        )}
       </div>
 
       <div className={styles.content}>

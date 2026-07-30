@@ -77,6 +77,12 @@
 
 .updateContent {
   margin-bottom: var(--space-4);
+  /* De inhoud komt van de server en kan willekeurig lang zijn. Begrens hem, zodat
+     de melding nooit de rest van de popup (~500px hoog) uit beeld duwt; kop en
+     knoppen blijven zo altijd zichtbaar. */
+  max-height: 132px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .updateDescription {

@@ -113,12 +113,9 @@ function Content() {
     // Contextual view: either a specific connection or new connection form
     return (
       <div>
-        {connection ? <ConnectionView /> : (
-          <>
-            <h2 className={styles.title}>{t('new_connection_title')}</h2>
-            <ConnectionForm />
-          </>
-        )}
+        {/* ConnectionForm rendert zijn eigen kop, in beide modi. Een extra kop
+            hier leverde bij een nieuwe connectie twee keer "Nieuwe Connectie" op. */}
+        {connection ? <ConnectionView /> : <ConnectionForm />}
       </div>
     );
   };
