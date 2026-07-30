@@ -12,21 +12,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Check store credentials
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: |
+          missing=""
+          for v in EDGE_PRODUCT_ID EDGE_CLIENT_ID EDGE_API_KEY; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Configure them under Settings > Secrets and variables > Actions before Edge publishing can work. The product must already exist in Partner Center (first submission is manual); the API key comes from Partner Center > Publish API."
+            exit 1
+          fi
 
       - name: Download Edge Artifact
         id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-edge-*.zip"
+          # Release assets worden pas na het publiceren van de release geüpload,
+          # dus wachten met retries in plaats van direct falen op de race.
+          for i in $(seq 1 10); do
+            gh release download "$RELEASE_TAG" -p "Rolodink-edge-*.zip" --clobber || true
+            if ls Rolodink-edge-*.zip >/dev/null 2>&1; then
+              break
+            fi
+            echo "Edge asset not available yet (attempt $i/10), waiting 30s..."
+            sleep 30
+          done
+          if ! ls Rolodink-edge-*.zip >/dev/null 2>&1; then
+            echo "::error::No Rolodink-edge-*.zip asset found on release $RELEASE_TAG"
+            exit 1
+          fi
           echo "zip_file=$(ls Rolodink-edge-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Edge Add-ons Store
-        uses: wdzeng/edge-addon@v1
+        uses: wdzeng/edge-addon@9881f57720358040d079eaa06a4596dc9c273eb6 # v2.1.1
         with:
           product-id: ${{ secrets.EDGE_PRODUCT_ID }}
           client-id: ${{ secrets.EDGE_CLIENT_ID }}
-          client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
-          access-token-url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
+          api-key: ${{ secrets.EDGE_API_KEY }}
           zip-path: ${{ steps.download_artifact.outputs.zip_file }}

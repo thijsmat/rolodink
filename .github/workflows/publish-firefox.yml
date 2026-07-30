@@ -12,37 +12,64 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20'
+
+      - name: Check store credentials
+        env:
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          missing=""
+          for v in FIREFOX_JWT_ISSUER FIREFOX_JWT_SECRET; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Configure them under Settings > Secrets and variables > Actions before Firefox publishing can work."
+            exit 1
+          fi
 
       - name: Download Firefox Artifact
         id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-firefox-*.zip"
+          # Release assets worden pas na het publiceren van de release geüpload,
+          # dus wachten met retries in plaats van direct falen op de race.
+          for i in $(seq 1 10); do
+            gh release download "$RELEASE_TAG" -p "Rolodink-firefox-*.zip" --clobber || true
+            if ls Rolodink-firefox-*.zip >/dev/null 2>&1; then
+              break
+            fi
+            echo "Firefox asset not available yet (attempt $i/10), waiting 30s..."
+            sleep 30
+          done
+          if ! ls Rolodink-firefox-*.zip >/dev/null 2>&1; then
+            echo "::error::No Rolodink-firefox-*.zip asset found on release $RELEASE_TAG"
+            exit 1
+          fi
           echo "zip_file=$(ls Rolodink-firefox-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Unzip Artifact
-        run: |
-          unzip ${{ steps.download_artifact.outputs.zip_file }} -d firefox-source
-          echo "source_dir=firefox-source" >> $GITHUB_OUTPUT
-        id: unzip_artifact
+        env:
+          ZIP_FILE: ${{ steps.download_artifact.outputs.zip_file }}
+        run: unzip "$ZIP_FILE" -d firefox-source
 
       - name: Install web-ext
         run: npm install -g web-ext
 
       - name: Publish to Mozilla Add-ons
+        # web-ext leest WEB_EXT_API_KEY/WEB_EXT_API_SECRET zelf uit de omgeving;
+        # secrets niet als CLI-argumenten doorgeven (zichtbaar in proceslijst).
         env:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
         run: |
           web-ext sign \
             --channel listed \
-            --source-dir ${{ steps.unzip_artifact.outputs.source_dir }} \
-            --api-key $WEB_EXT_API_KEY \
-            --api-secret $WEB_EXT_API_SECRET
+            --source-dir firefox-source

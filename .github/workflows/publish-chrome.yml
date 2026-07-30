@@ -12,18 +12,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Check store credentials
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+        run: |
+          missing=""
+          for v in CHROME_CLIENT_ID CHROME_CLIENT_SECRET CHROME_REFRESH_TOKEN CHROME_EXTENSION_ID; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Configure them under Settings > Secrets and variables > Actions before Chrome publishing can work. The extension must already be listed in the Chrome Web Store (first submission is manual)."
+            exit 1
+          fi
 
       - name: Download Chrome Artifact
         id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p "Rolodink-chrome-*.zip"
+          # Release assets worden pas na het publiceren van de release geüpload,
+          # dus wachten met retries in plaats van direct falen op de race.
+          for i in $(seq 1 10); do
+            gh release download "$RELEASE_TAG" -p "Rolodink-chrome-*.zip" --clobber || true
+            if ls Rolodink-chrome-*.zip >/dev/null 2>&1; then
+              break
+            fi
+            echo "Chrome asset not available yet (attempt $i/10), waiting 30s..."
+            sleep 30
+          done
+          if ! ls Rolodink-chrome-*.zip >/dev/null 2>&1; then
+            echo "::error::No Rolodink-chrome-*.zip asset found on release $RELEASE_TAG"
+            exit 1
+          fi
           echo "zip_file=$(ls Rolodink-chrome-*.zip)" >> $GITHUB_OUTPUT
 
       - name: Publish to Chrome Web Store
-        uses: mobilefirstllc/cws-publish@latest
+        uses: mobilefirstllc/cws-publish@569e87bc9a54ad7712ba6dc154a110d88af63b85 # 2.1.1
         with:
           action: 'publish'
           client_id: ${{ secrets.CHROME_CLIENT_ID }}
