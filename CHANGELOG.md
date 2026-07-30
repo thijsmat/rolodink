@@ -1,3 +1,19 @@
+## v1.3.1 (2026-07-30) - Note Encryption Fix
+
+### Fixed
+- Fix a data-loss bug in the inline note card on LinkedIn profile pages: it read and wrote `Connection.notes` in plaintext while the popup encrypted the same field. An encrypted note therefore rendered as literal `rolodink-enc:...` in the textarea, and the 1-second autosave persisted that string plus any typed text back unencrypted — leaving a value that still carried the prefix but could no longer be decrypted, making the note permanently unreadable
+- Route the inline card through the `ENCRYPT_TEXT` / `DECRYPT_TEXT` background handlers, so it reads and writes with the same encryption as the popup
+- Leave notes written by earlier versions (stored without the prefix) readable, and encrypt them on their next edit
+- Disable the textarea with an explanation when a note cannot be decrypted, so an unreadable note is never overwritten by the autosave
+
+### Backend
+- Extract the wrapped-data-key envelope format into `src/lib/envelope.ts`, now the single implementation shared by `GET /api/user/key` and the maintenance scripts
+- Add `npm run audit:notes`, a read-only script that classifies every encrypted field as empty, legacy plaintext, decryptable or corrupt, so the extent of any existing damage can be measured
+
+### Notes
+- Firefox is unaffected: `content-firefox.js` does not include the inline note card
+- This release cannot repair notes that were already corrupted — where plaintext was appended to ciphertext the original text is gone
+
 ## v1.3.0 (2026-07-30) - Server-tied Encryption
 
 ### Security
