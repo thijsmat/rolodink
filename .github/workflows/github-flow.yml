@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least privilege by default. Every other workflow in this repository already
+# declares this at the top level; github-flow.yml was the one that did not, so
+# its jobs ran with whatever the repository default grants. None of them writes
+# to GitHub - they install, lint, typecheck, test and build. The `security` job
+# overrides this with the `security-events: write` it needs to upload SARIF.
+permissions:
+  contents: read
+
 jobs:
   # Unit tests across the monorepo workspaces.
   #
