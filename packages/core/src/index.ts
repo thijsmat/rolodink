@@ -26,6 +26,8 @@ export {
     isSameProfile,
 } from './url.js';
 
+export { cleanProfileName, COUNTER_PATTERN_SOURCES } from './name.js';
+
 export {
     RolodinkClient,
     RolodinkApiError,
