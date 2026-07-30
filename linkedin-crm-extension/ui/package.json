@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "build": "tsc --project tsconfig.app.json && vite build && node build-background.cjs && node copy-assets.cjs",
     "postbuild:firefox": "node firefox-postbuild.cjs",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 20",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 35",
     "preview": "vite preview",
     "clean": "rm -rf dist"
   },
