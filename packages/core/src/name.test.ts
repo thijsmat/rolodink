@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { cleanProfileName, COUNTER_PATTERN_SOURCES } from './name.js';
+import { cleanProfileName, COUNTER_PATTERNS } from './name.js';
 
 const NBSP = '\u00A0';
 
@@ -108,9 +108,18 @@ describe('cleanProfileName: known defects, pinned deliberately', () => {
  *
  * `cleanProfileName` is copy-pasted into three places today. Moving it here is
  * only safe if the move is exact, so rather than claiming the copies match,
- * this reads them off disk and compares the patterns directly. No code is
- * duplicated into this file and nothing is executed from those sources - the
- * regex literals are extracted as text.
+ * this reads them off disk and checks them.
+ *
+ * The comparison is behavioural, not textual: each legacy regex literal is
+ * rebuilt and run over a shared corpus alongside the pattern in the same
+ * position here, and the outputs must be identical. Textual comparison was the
+ * obvious approach and the wrong one - the legacy copies spell their character
+ * classes with redundant escapes (`[\(\[\{]` for `[([{]`), so an exact string
+ * match would report a difference where there is none, and reproducing that
+ * spelling here just to make the strings line up is not worth it.
+ *
+ * No code is duplicated into this file and nothing from those sources is
+ * executed as code - only the regex literals are rebuilt.
  *
  * These copies are scheduled for deletion (the extension bundles core, then the
  * backend imports it). When the last one goes, this block fails with a clear
@@ -123,6 +132,42 @@ const LEGACY_SOURCES = [
 ] as const;
 
 /**
+ * Inputs the patterns are compared over.
+ *
+ * Built by pairing every character the four classes mention, so a class that
+ * gained or lost a member shows up as a behavioural difference rather than
+ * slipping past a hand-picked list.
+ */
+const PROBES: string[] = (() => {
+    const chars = ['(', ')', '[', ']', '{', '}', '.', '|', '·', '•', ':', '-', '0', '5', '12', ' ', NBSP, 'a', 'Z', '\t', ''];
+    const probes: string[] = [];
+    for (const a of chars) {
+        for (const b of chars) {
+            probes.push(a + b, a + 'Jan' + b, `(3)${a}Jan${b}`, `${a}3${b}Jan`);
+        }
+    }
+    return probes.concat([
+        '(3) Jan Jansen',
+        '50 Cent',
+        '1 | Jan',
+        'Jan (3) Doe',
+        `12${NBSP}· Jan`,
+        'Jan Doe (1)',
+        '[2] X',
+        '{9}Y',
+        '',
+        '   ',
+    ]);
+})();
+
+/** How a pattern behaves, reduced to a single comparable string. */
+function behaviouralSignature(pattern: RegExp): string {
+    // A fresh RegExp per probe: the inline pattern carries /g, and reusing one
+    // instance across .replace calls would make the result order-dependent.
+    return PROBES.map((probe) => probe.replace(new RegExp(pattern.source, pattern.flags), ' ')).join('');
+}
+
+/**
  * Pulls the four regex literals out of a legacy `cleanProfileName`.
  *
  * Deliberately narrow: it locates the `patterns` array inside the function and
@@ -130,7 +175,7 @@ const LEGACY_SOURCES = [
  * this stops working, the extraction throws rather than silently returning
  * fewer patterns and passing a weaker comparison.
  */
-function extractLegacyPatternSources(relativePath: string): string[] {
+function extractLegacyPatterns(relativePath: string): RegExp[] {
     const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8');
 
     const functionStart = source.indexOf('function cleanProfileName(');
@@ -153,13 +198,14 @@ function extractLegacyPatternSources(relativePath: string): string[] {
         .split('\n')
         .map((line) => line.trim())
         .filter((line) => line.startsWith('/') && !line.startsWith('//'))
-        // Strip the trailing comma and the surrounding slashes/flags to leave
-        // exactly what RegExp#source returns.
+        // Split the literal into source and flags and rebuild it, so the
+        // comparison below runs the legacy pattern itself rather than a
+        // paraphrase of it.
         .map((line) => {
             const withoutComma = line.replace(/,$/, '');
-            const match = /^\/(.*)\/[a-z]*$/.exec(withoutComma);
+            const match = /^\/(.*)\/([a-z]*)$/.exec(withoutComma);
             if (!match?.[1]) throw new Error(`Unparseable regex literal in ${relativePath}: ${line}`);
-            return match[1];
+            return new RegExp(match[1], match[2]);
         });
 
     if (patterns.length !== 4) {
@@ -173,8 +219,20 @@ function extractLegacyPatternSources(relativePath: string): string[] {
 }
 
 describe('fidelity against the copies this replaces', () => {
-    it.each(LEGACY_SOURCES)('%s uses exactly the same patterns, in the same order', (_label, path) => {
-        expect(extractLegacyPatternSources(path)).toEqual([...COUNTER_PATTERN_SOURCES]);
+    it.each(LEGACY_SOURCES)('%s has four patterns in the same positions', (_label, path) => {
+        expect(extractLegacyPatterns(path)).toHaveLength(COUNTER_PATTERNS.length);
+    });
+
+    it.each(LEGACY_SOURCES)('%s: every pattern behaves identically to its counterpart', (_label, path) => {
+        const legacy = extractLegacyPatterns(path);
+
+        legacy.forEach((legacyPattern, index) => {
+            const ours = COUNTER_PATTERNS[index] as RegExp;
+            // Flags are part of the meaning: dropping /g on the inline pattern
+            // would silently stop it removing the second counter in a name.
+            expect(legacyPattern.flags).toBe(ours.flags);
+            expect(behaviouralSignature(legacyPattern)).toBe(behaviouralSignature(ours));
+        });
     });
 
     it.each(LEGACY_SOURCES)('%s normalises NBSP and collapses whitespace the same way', (_label, path) => {

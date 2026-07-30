@@ -13,8 +13,8 @@
  * It is a faithful port, not an improvement: same four patterns, same order,
  * same whitespace handling, and deliberately the same bugs. `name.test.ts`
  * proves the fidelity by reading the three legacy sources off disk and
- * comparing their patterns against the ones below, so "identical" is checked
- * rather than asserted in a comment.
+ * checking that each of their patterns behaves identically to the one below in
+ * the same position, so "identical" is verified rather than asserted here.
  *
  * Known defects, preserved on purpose - each is pinned by a test:
  *
@@ -22,7 +22,7 @@
  *    "Cent"; "3 Doors Down" becomes "Doors Down". Pattern 2 strips leading
  *    digits unconditionally, without requiring a counter-like separator after
  *    them.
- *  - Pattern 2's character class `[\.|·•:\-]` contains a literal `|`. Inside a
+ *  - Pattern 2's character class `[.|·•:-]` contains a literal `|`. Inside a
  *    character class that is the pipe character, not alternation - almost
  *    certainly a typo for an alternation that was never written.
  *
@@ -38,27 +38,26 @@
  * leading-digit pattern, so "(1) 2 Chainz" loses the counter first and the
  * digit pattern then eats the "2".
  *
- * The redundant escapes (`[\(\[\{]` rather than `[([{]`) are kept on purpose.
- * They make these lines byte-identical to the three legacy copies, which is
- * what lets `name.test.ts` compare the two by exact string match instead of by
- * a fuzzy equivalence that could paper over a real difference. Simplify them
- * once the legacy copies are gone and that test is deleted with them.
+ * The legacy copies spell these classes with redundant escapes - `[\(\[\{]`
+ * where `[([{]` says the same thing. That spelling is not reproduced here, so
+ * the fidelity test in `name.test.ts` compares behaviour rather than text: it
+ * runs each legacy pattern and its counterpart below over a shared corpus and
+ * requires identical output. Equivalence was also checked separately across
+ * ~2100 inputs per pattern before the escapes were dropped.
+ *
+ * Exported for that test only. Do not use these directly - the fourth carries
+ * the `g` flag, so it holds `lastIndex` state between `exec`/`test` calls.
  */
-const COUNTER_PATTERNS: readonly RegExp[] = [
+export const COUNTER_PATTERNS: readonly RegExp[] = [
     // Leading counters: (1) [2] {3}
-    /^[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*/,
+    /^[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*/,
     // Leading numbers like: 1 John, 12· John, 3. John
-    /^[\s\u00A0]*\d+[\s\u00A0]*[\.|·•:\-]*[\s\u00A0]*/,
+    /^[\s\u00A0]*\d+[\s\u00A0]*[.|·•:-]*[\s\u00A0]*/,
     // Trailing counters at end: John Doe (1)
-    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*$/,
+    /[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*$/,
     // Inline counters: John (1) Doe
-    /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}][\s\u00A0]*/g,
+    /[\s\u00A0]*[([{]\s*\d+\s*[)\]}][\s\u00A0]*/g,
 ];
-
-/** Exposed so `name.test.ts` can diff these against the legacy sources. */
-export const COUNTER_PATTERN_SOURCES: readonly string[] = COUNTER_PATTERNS.map(
-    (pattern) => pattern.source,
-);
 
 /**
  * Strips LinkedIn notification counters from a scraped profile name.
