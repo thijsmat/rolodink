@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.1.3 • Free",
+        "version": "Version 1.3.0 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -210,6 +210,36 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.0",
+                "date": "July 30, 2026",
+                "sections": [
+                    {
+                        "title": "Automatic Encryption",
+                        "items": [
+                            "No more passphrase: your data is encrypted automatically once you're signed in.",
+                            "Encryption uses a secure per-account key managed by the server.",
+                            "Security fix: saving can no longer silently fall back to unencrypted data.",
+                            "Key management is tied to your account; the key is cleared on logout."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.2.0",
+                "date": "February 26, 2026",
+                "sections": [
+                    {
+                        "title": "End-to-End Encryption & Onboarding",
+                        "items": [
+                            "End-to-end encryption extended to email, phone, meeting place and company.",
+                            "Migration tool to encrypt existing data.",
+                            "Redesigned onboarding with a step-by-step guide.",
+                            "Email and phone fields added to connections."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.1.3",
                 "date": "January 29, 2026",

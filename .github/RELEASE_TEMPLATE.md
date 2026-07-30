@@ -31,8 +31,9 @@
    *Note: This installation is temporary and will be removed when you restart Firefox.*
 
 ## 🏪 Store Links
-- **Chrome Web Store**: [Download](https://chromewebstore.google.com/detail/rolodink/...) (Coming Soon)
-- **Microsoft Edge Add-ons**: [Download](https://microsoftedge.microsoft.com/addons/...) (Coming Soon)
-- **Firefox Add-ons**: [Download](https://addons.mozilla.org/...) (Coming Soon)
+The easiest way to install Rolodink is through your browser's store:
+- **Chrome Web Store**: [Install Rolodink](https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc)
+- **Microsoft Edge Add-ons**: [Install Rolodink](https://microsoftedge.microsoft.com/addons/detail/rolodink/ihcocnphebdemiipmoedinojihpbcmmf)
+- **Firefox Add-ons**: [Install Rolodink](https://addons.mozilla.org/en-US/firefox/addon/rolodink/)
 
 

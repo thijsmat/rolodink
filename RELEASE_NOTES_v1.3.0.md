@@ -23,7 +23,12 @@
 - Bestaande gebruikers hoeven niets te doen: na inloggen wordt de serversleutel automatisch opgehaald; plaintext-data wordt bij de eerstvolgende bewerking versleuteld opgeslagen
 - Data die met een oude wachtwoordzin was versleuteld kan door v1.3.0 niet worden ontsleuteld — verwijder die records of voer de gegevens opnieuw in
 
-## 📥 Installation
+## 🏪 Installeren via de stores (aanbevolen)
+- **Chrome Web Store**: [Install Rolodink](https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc)
+- **Microsoft Edge Add-ons**: [Install Rolodink](https://microsoftedge.microsoft.com/addons/detail/rolodink/ihcocnphebdemiipmoedinojihpbcmmf)
+- **Firefox Add-ons**: [Install Rolodink](https://addons.mozilla.org/en-US/firefox/addon/rolodink/)
+
+## 📥 Manual Installation
 
 ### Google Chrome
 1. Download `Rolodink-chrome-v1.3.0.zip` from the Assets section below.
