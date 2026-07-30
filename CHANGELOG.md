@@ -1,14 +1,22 @@
-## v1.3.1 (2026-07-30) - Note Encryption Fix & Popup Polish
+## v1.3.2 (2026-07-30) - Popup Polish
+
+### Fixed
+- Show the connection's name when editing a connection: the form only received the editable fields, so its header could not say whose details were being changed
+- Stop rendering "Nieuwe Connectie" twice — the surrounding view added a heading above a form that already renders its own
+- Bound the update notice's content with a scroll, so a long release-notes list from the server can no longer push the rest of the popup out of view
+- Fix a 404 on `/onboarding/success`: the onboarding page passed a path without a locale prefix into the auth redirect, which the next-intl middleware does not match
+
+### Notes
+- Found while verifying v1.3.1 in a browser; the note-encryption fix itself is unchanged
+- Edge is still on v1.3.0: the v1.3.1 publish uploaded and validated but could not be published while the v1.3.0 submission was in review
+
+## v1.3.1 (2026-07-30) - Note Encryption Fix
 
 ### Fixed
 - Fix a data-loss bug in the inline note card on LinkedIn profile pages: it read and wrote `Connection.notes` in plaintext while the popup encrypted the same field. An encrypted note therefore rendered as literal `rolodink-enc:...` in the textarea, and the 1-second autosave persisted that string plus any typed text back unencrypted — leaving a value that still carried the prefix but could no longer be decrypted, making the note permanently unreadable
 - Route the inline card through the `ENCRYPT_TEXT` / `DECRYPT_TEXT` background handlers, so it reads and writes with the same encryption as the popup
 - Leave notes written by earlier versions (stored without the prefix) readable, and encrypt them on their next edit
 - Disable the textarea with an explanation when a note cannot be decrypted, so an unreadable note is never overwritten by the autosave
-- Show the connection's name when editing a connection: the form only received the editable fields, so its header could not say whose details were being changed
-- Stop rendering "Nieuwe Connectie" twice — the surrounding view added a heading above a form that already renders its own
-- Bound the update notice's content with a scroll, so a long release-notes list from the server can no longer push the rest of the popup out of view
-- Fix a 404 on `/onboarding/success`: the onboarding page passed a path without a locale prefix into the auth redirect, which the next-intl middleware does not match
 
 ### Backend
 - Extract the wrapped-data-key envelope format into `src/lib/envelope.ts`, now the single implementation shared by `GET /api/user/key` and the maintenance scripts

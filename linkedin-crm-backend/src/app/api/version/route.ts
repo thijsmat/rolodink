@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     // Define latest version info
     // Keep this in sync with the extension manifests on every release, otherwise
     // the in-extension update notice silently stops firing.
-    const latestVersion = '1.3.1';
+    const latestVersion = '1.3.2';
     const versionInfo = {
       latest: latestVersion,
       current: currentVersion,
