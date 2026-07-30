@@ -11,6 +11,14 @@
 - Notities uit oudere versies (opgeslagen zonder prefix) blijven leesbaar en worden bij de eerstvolgende bewerking versleuteld
 - Versleutelen dat mislukt breekt het opslaan af in plaats van terug te vallen op platte tekst
 
+### Interface
+- Bij het bewerken van een connectie zie je nu wiens gegevens je aanpast — de naam stond nergens in beeld
+- "Nieuwe Connectie" stond er twee keer boven; dat is er nog één
+- De update-melding kan de rest van de popup niet meer uit beeld duwen
+
+### Website
+- `/onboarding/success` gaf een 404 na het aanmelden; het pad kreeg geen taalprefix mee
+
 ### Backend
 - Het envelope-formaat voor de verpakte datasleutel staat nu één keer in `src/lib/envelope.ts`, gedeeld door `GET /api/user/key` en de onderhoudsscripts
 - Nieuw: `npm run audit:notes`, een read-only script dat elk versleuteld veld indeelt als leeg, oude platte tekst, ontsleutelbaar of beschadigd

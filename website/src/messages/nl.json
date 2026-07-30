@@ -222,6 +222,15 @@
                             "Kan een notitie niet ontsleuteld worden, dan wordt het veld geblokkeerd in plaats van overschreven.",
                             "Notities uit oudere versies blijven gewoon leesbaar en worden bij de eerstvolgende bewerking versleuteld."
                         ]
+                    },
+                    {
+                        "title": "Interface",
+                        "items": [
+                            "Bij het bewerken van een connectie zie je nu wiens gegevens je aanpast.",
+                            "\"Nieuwe Connectie\" stond er twee keer boven; dat is er nog één.",
+                            "De update-melding duwt de rest van de popup niet meer uit beeld.",
+                            "Na het aanmelden kom je weer op de juiste pagina uit in plaats van op een 404."
+                        ]
                     }
                 ]
             },

@@ -222,6 +222,15 @@
                             "If a note cannot be decrypted, the field is locked rather than overwritten.",
                             "Notes from older versions stay readable and are encrypted on their next edit."
                         ]
+                    },
+                    {
+                        "title": "Interface",
+                        "items": [
+                            "Editing a connection now shows whose details you are changing.",
+                            "\"New Connection\" appeared twice; now it appears once.",
+                            "The update notice no longer pushes the rest of the popup out of view.",
+                            "Signing up lands on the right page again instead of a 404."
+                        ]
                     }
                 ]
             },
