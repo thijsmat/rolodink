@@ -67,6 +67,56 @@ describe('legacyNormalizeLinkedInUrl', () => {
     });
 });
 
+/**
+ * The regression guard for the lookup path.
+ *
+ * `GET /api/connections?url=` is an exact string match and the server does not
+ * normalize the parameter, so a lookup only hits a stored row if it sends the
+ * string that was stored. Rows were written by the legacy normalizer, which
+ * preserves the host. Switching the extension to the canonical form would make
+ * every non-`www` row unfindable: the button would stop saying "Already added",
+ * the note card would claim the profile is not in the CRM, and a note typed
+ * into it could not be saved.
+ *
+ * These tests exist so that switch cannot happen quietly.
+ */
+describe('legacy and canonical normalisation differ on host, deliberately', () => {
+    it.each([
+        ['localized', 'https://nl.linkedin.com/in/jan-jansen'],
+        ['bare', 'https://linkedin.com/in/jan-jansen'],
+        ['mobile', 'https://m.linkedin.com/in/jan-jansen'],
+        ['German', 'https://de.linkedin.com/in/jan-jansen'],
+    ])('canonical rewrites the %s host to www, legacy leaves it alone', (_label, input) => {
+        expect(normalizeLinkedInUrl(input)).toBe(CANONICAL);
+        expect(legacyNormalizeLinkedInUrl(input)).toBe(input);
+        // The two forms must actually differ, otherwise this test would still
+        // pass after someone made legacy canonicalise the host too.
+        expect(legacyNormalizeLinkedInUrl(input)).not.toBe(normalizeLinkedInUrl(input));
+    });
+
+    it('agrees with canonical only when the host is already www', () => {
+        expect(legacyNormalizeLinkedInUrl(CANONICAL)).toBe(normalizeLinkedInUrl(CANONICAL));
+    });
+
+    it('legacy keeps profile subpaths, canonical strips them to the slug', () => {
+        // A row stored from a subpage keeps the subpage in its URL, so the
+        // legacy form has to reproduce that too.
+        const subpage = 'https://www.linkedin.com/in/jan-jansen/details/experience';
+        expect(legacyNormalizeLinkedInUrl(subpage)).toBe(subpage);
+        expect(normalizeLinkedInUrl(subpage)).toBe(CANONICAL);
+    });
+
+    it('offers both forms as lookup candidates when they differ', () => {
+        const candidates = buildLookupCandidates('https://nl.linkedin.com/in/jan-jansen?utm_source=share');
+        expect(candidates).toContain(CANONICAL);
+        expect(candidates).toContain('https://nl.linkedin.com/in/jan-jansen');
+    });
+
+    it('offers a single candidate when the two forms coincide', () => {
+        expect(buildLookupCandidates(CANONICAL)).toEqual([CANONICAL]);
+    });
+});
+
 describe('buildLookupCandidates', () => {
     it('offers one candidate when both normalizers agree', () => {
         expect(buildLookupCandidates(CANONICAL)).toEqual([CANONICAL]);
