@@ -53,18 +53,19 @@
  * every other call. Hoisting it to module scope to save four allocations was an
  * optimisation that bought nothing and left a hazard behind.
  *
- * Exported for the fidelity test only.
+ * Not exported: the fidelity test compares whole-function output, not
+ * individual patterns.
  */
-export function counterPatterns(): RegExp[] {
+function counterPatterns(): RegExp[] {
     return [
         // Leading counters: (1) [2] {3}
         /^[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*/,
         // Leading numbers like: 1 John, 12· John, 3. John
         /^[\s\u00A0]*\d+[\s\u00A0]*[.|·•:-]*[\s\u00A0]*/,
         // Trailing counters at end: John Doe (1)
-        /[\s\u00A0]*[([{]\s*\d+\s*[)\]}]\s*$/,
+        /[([{]\s*\d+\s*[)\]}]\s*$/,
         // Inline counters: John (1) Doe
-        /[\s\u00A0]*[([{]\s*\d+\s*[)\]}][\s\u00A0]*/g,
+        /[([{]\s*\d+\s*[)\]}]/g,
     ];
 }
 
@@ -80,7 +81,7 @@ export function cleanProfileName(name: string): string {
 
     // Non-breaking spaces first: LinkedIn emits them between the counter and
     // the name, and every pattern below would otherwise have to handle both.
-    let cleaned = name.replace(/\u00A0/g, ' ');
+    let cleaned = name.replaceAll('\u00A0', ' ');
 
     for (const pattern of counterPatterns()) {
         cleaned = cleaned.replace(pattern, ' ');

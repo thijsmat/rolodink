@@ -12,7 +12,8 @@
     "test:api": "tsx scripts/test-api.ts",
     "test:api:env": "./scripts/test-api-with-env.sh",
     "audit:notes": "tsx scripts/audit-encrypted-notes.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
