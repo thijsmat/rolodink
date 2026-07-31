@@ -16,6 +16,20 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* @rolodink/core is source-only TypeScript in the monorepo, reached by
+       path rather than by dependency - `ui` has its own lockfile and is not a
+       workspace member. Mirrors the resolve.alias in vite.config.ts and
+       vite.background.config.ts; all three must agree.
+
+       No baseUrl needed: relative paths are allowed under moduleResolution
+       "bundler". `include` deliberately stays ["src"] - TypeScript pulls the
+       target in through module resolution, whereas adding packages/core/src to
+       include would also drag in its *.test.ts files, which need vitest types
+       that ui does not have. */
+    "paths": {
+      "@rolodink/core": ["../../packages/core/src/index.ts"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
