@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
 import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
-import { importDataKey, encryptText, decryptText } from '../utils/cryptoHelper';
+import { importDataKey, encryptText, decryptText } from '@rolodink/core';
 
 // 1. Immediate Alive Check
 console.log('Background script loading (restored)...');

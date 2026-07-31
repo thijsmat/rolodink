@@ -17,7 +17,11 @@ async function loadApiBaseUrl() {
 }
 
 // Prefix waarmee versleutelde velden herkenbaar zijn. Moet gelijk blijven aan
-// ui/src/utils/cryptoHelper.ts — anders leest de popup onze notities niet meer.
+// packages/core/src/crypto.ts — anders leest de popup onze notities niet meer.
+// (Stond hier eerder als ui/src/utils/cryptoHelper.ts; dat bestand is opgegaan
+// in @rolodink/core. Dit script is nog een los bestand zonder imports, dus de
+// constante staat hier nog een keer — die duplicatie verdwijnt zodra het
+// content script gebundeld wordt.)
 const ENCRYPTION_PREFIX = 'rolodink-enc:';
 
 function isEncryptedString(text) {

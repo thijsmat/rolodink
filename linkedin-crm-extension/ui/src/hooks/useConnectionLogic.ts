@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
+import { SENSITIVE_FIELDS } from '@rolodink/core';
+import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
@@ -47,9 +49,12 @@ const getRuntime = () => {
     return null;
 };
 
-// All privacy-sensitive fields that should be encrypted at rest.
-const SENSITIVE_FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone'] as const;
-type SensitiveField = typeof SENSITIVE_FIELDS[number];
+// SENSITIVE_FIELDS and SensitiveField now come from @rolodink/core, so the
+// extension and the backend cannot drift on which fields are encrypted at rest.
+// The encrypt/decrypt helpers below are still local: they differ from core's
+// encryptSensitiveFields/decryptSensitiveFields in how they report a failed
+// decryption (a visible sentinel here, null plus onError there), and that is a
+// user-facing choice to settle in its own change.
 
 /** Encrypt a single text value via the background script. Throws on encryption failure. */
 async function encryptField(value: string | null | undefined): Promise<string | null | undefined> {
