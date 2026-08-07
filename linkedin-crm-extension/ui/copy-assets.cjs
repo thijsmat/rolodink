@@ -4,9 +4,12 @@ const path = require('path');
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.resolve(__dirname, 'dist');
 
+// content.js staat hier bewust NIET in. Het wordt door build-content.cjs als
+// bundle in dist/ gezet; toen de ruwe bron nog in de extensieroot lag,
+// overschreef deze kopieerstap hem stilletjes — de build slaagde, de zip was
+// geldig, en het content script was toch de oude. Voeg hem niet terug toe.
 const assetsToCopy = [
     { src: 'manifest.json', dest: 'manifest.json' },
-    { src: 'content.js', dest: 'content.js' },
     { src: 'icon.png', dest: 'icon.png' },
     { src: 'icons', dest: 'icons' }
 ];

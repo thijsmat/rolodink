@@ -5,10 +5,10 @@
  * a contact's name. Left alone, a contact gets stored as "(3) Jan Jansen" and
  * that count is frozen into the database forever.
  *
- * Three copies of this function exist today - `linkedin-crm-extension/content.js`,
- * `content-firefox.js` and the backend's `connections/route.ts` - and not one of
- * them is covered by a test. This is the single implementation they will all
- * collapse onto.
+ * This is the single implementation the legacy copies collapse onto. The
+ * bundled content script imports it since PR 4; `content-firefox.js` and the
+ * backend's `connections/route.ts` still carry their own copies, guarded by
+ * the fidelity check in name.test.ts until they migrate too.
  *
  * It is a faithful port, not an improvement: same four patterns, same order,
  * same whitespace handling, and deliberately the same bugs. `name.test.ts`

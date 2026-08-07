@@ -132,7 +132,7 @@ https://chromewebstore.google.com/detail/rolodink/[extension-id]
 ```
 linkedin-crm-extension/
 ├── manifest.json              # Extension manifest (v3)
-├── content.js                 # LinkedIn page injection
+├── ui/src/content/main.js     # LinkedIn page injection (bundled to dist/content.js)
 ├── icon.png                   # Extension icon
 ├── icons/                     # Icon sizes (16, 32, 48, 128)
 ├── ui/                        # React popup application

@@ -107,7 +107,7 @@ describe('cleanProfileName: known defects, pinned deliberately', () => {
 /**
  * Fidelity check against the implementations this one replaces.
  *
- * `cleanProfileName` is copy-pasted into three places today. Moving it here is
+ * `cleanProfileName` is copy-pasted into the remaining legacy sources below. Moving it here is
  * only safe if the move is exact, so rather than claiming the copies match,
  * this reads them off disk and checks them.
  *
@@ -136,8 +136,11 @@ describe('cleanProfileName: known defects, pinned deliberately', () => {
  * backend imports it). When the last one goes, this block fails with a clear
  * message: that is the signal to delete it, not to repair it.
  */
+// content.js is gone from this list: the bundled content script imports
+// cleanProfileName from this package (PR 4), so there is no copy left to
+// compare against. The remaining two disappear with the Firefox unification
+// and the backend import; when the last one goes, delete this block.
 const LEGACY_SOURCES = [
-    ['content.js', '../../../linkedin-crm-extension/content.js'],
     ['content-firefox.js', '../../../linkedin-crm-extension/content-firefox.js'],
     ['backend connections route', '../../../linkedin-crm-backend/src/app/api/connections/route.ts'],
 ] as const;
