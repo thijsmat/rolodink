@@ -151,7 +151,7 @@ jobs:
     - name: Build extension
       run: npm run build
       working-directory: ./linkedin-crm-extension/ui
-      
+
     - name: Validate extension
       run: |
         if [ ! -f "linkedin-crm-extension/manifest.json" ]; then
@@ -163,6 +163,35 @@ jobs:
           exit 1
         fi
         echo "Extension build successful"
+
+    # No separate install for build.js: linkedin-crm-extension is a workspace
+    # member, so its fs-extra and archiver come in with the root `npm ci` at
+    # the top of this job and resolve up the directory tree. A `npm install`
+    # here would be both redundant and unlocked (Sonar S8543/S6505).
+
+    # Package with the REAL release script and prove the content script in the
+    # package is the Vite bundle, not the raw source. This guards the failure
+    # mode that used to be invisible: a copy step silently replacing the bundle
+    # after the build, leaving a green build with the old content script in the
+    # zip. Packaging previously only ever ran on an ext-v* tag, so a broken
+    # package surfaced at the worst possible moment - during a release.
+    - name: Package extension (chrome) and verify the content script bundle
+      working-directory: ./linkedin-crm-extension
+      run: |
+        node build.js chrome
+        CONTENT=../dist/tmp/chrome/content.js
+        test -f "$CONTENT" || { echo "content.js missing from package"; exit 1; }
+        SIZE=$(stat -c%s "$CONTENT")
+        if [ "$SIZE" -lt 2048 ]; then
+          echo "content.js suspiciously small ($SIZE bytes) - not a real bundle"
+          exit 1
+        fi
+        grep -q "rolodink-enc:" "$CONTENT" || { echo "encryption prefix missing - wrong file in package"; exit 1; }
+        if grep -q "@rolodink/core" "$CONTENT"; then
+          echo "content.js still contains an unbundled import - this is the raw source, not the bundle"
+          exit 1
+        fi
+        echo "content.js is the bundle ($SIZE bytes)"
 
   # Backend Build & Test
   backend:

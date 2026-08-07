@@ -86,7 +86,7 @@ Process:
 1. **Build UI** — runs `npm run build` in `ui/` (popup, background worker, asset copy)
 2. **Flatten** — copies `ui/dist/` contents to the package root, so
    `index.html`, `assets/` and `background.js` sit next to `manifest.json`
-3. **Copy extension assets** — `manifest.json`, `content.js`, `icon.png`, `icons/`
+3. **Copy extension assets** — `manifest.json`, `icon.png`, `icons/` (content.js is already in `ui/dist/`, bundled from `ui/src/content/main.js`)
 4. **Create ZIP** — `../dist/Rolodink-<target>-v<version>.zip`
 
 ```bash
@@ -128,7 +128,7 @@ rolodink-v1.0.3-chrome.zip
 │   ├── icon32.png        ✅ Settings icon 32x32
 │   ├── icon48.png        ✅ Extension management 48x48
 │   └── icon128.png       ✅ Chrome Web Store 128x128
-├── content.js            ✅ LinkedIn profile injection
+├── content.js            ✅ LinkedIn profile injection (bundled from ui/src/content/)
 └── ui/
     └── dist/
         ├── index.html    ✅ Popup HTML

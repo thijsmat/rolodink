@@ -55,8 +55,14 @@ function readManifest() {
   }
 }
 
-// Check if file exists
+// Check if file exists.
+// content.js is geen bronbestand in de extensieroot meer: het wordt door
+// ui/build-content.cjs gebundeld naar ui/dist/. Dit script valideert dus de
+// build-uitvoer voor dat bestand — draai `npm run build` in ui/ eerst.
 function fileExists(relativePath) {
+  if (relativePath === 'content.js') {
+    return fs.existsSync(path.join(EXTENSION_ROOT, 'ui', 'dist', relativePath));
+  }
   const fullPath = path.join(EXTENSION_ROOT, relativePath);
   return fs.existsSync(fullPath);
 }
@@ -167,7 +173,8 @@ function checkPermissions(manifest) {
   // Read content script files
   let allCode = '';
   contentScriptFiles.forEach(file => {
-    const fullPath = path.join(EXTENSION_ROOT, file);
+    const bundled = path.join(EXTENSION_ROOT, 'ui', 'dist', file);
+    const fullPath = fs.existsSync(bundled) ? bundled : path.join(EXTENSION_ROOT, file);
     if (fs.existsSync(fullPath)) {
       allCode += fs.readFileSync(fullPath, 'utf8');
     }

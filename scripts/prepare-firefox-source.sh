@@ -26,6 +26,7 @@ cp "$SRC_DIR/ui/package.json" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/package-lock.json" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/vite.config.ts" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/vite.background.config.ts" "$OUT_DIR/ui/"
+cp "$SRC_DIR/ui/vite.content.config.ts" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/tsconfig.json" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/tsconfig.app.json" "$OUT_DIR/ui/"
 cp "$SRC_DIR/ui/tsconfig.node.json" "$OUT_DIR/ui/"
@@ -33,6 +34,7 @@ cp "$SRC_DIR/ui/tsconfig.background.json" "$OUT_DIR/ui/"
 
 # Copy build scripts
 cp "$SRC_DIR/ui/build-background.cjs" "$OUT_DIR/ui/"
+cp "$SRC_DIR/ui/build-content.cjs" "$OUT_DIR/ui/"
 
 # Copy Source Directories
 echo "   Copying src/..."

@@ -1,3 +1,28 @@
+/**
+ * Rolodink content script. Runs in the DOM of every LinkedIn profile page and
+ * is bundled by vite.content.config.ts into dist/content.js — the name the
+ * manifest declares. Until this file moved here it lived as a plain,
+ * import-less script at linkedin-crm-extension/content.js, which forced it to
+ * carry its own copies of cleanProfileName, the encryption prefix and the URL
+ * normalizer; those now come from @rolodink/core, where CI tests them.
+ *
+ * Deliberately still JavaScript: this code has never been typechecked or
+ * linted, and converting it to strict TypeScript is a real change to review on
+ * its own — it lands in PR 6 together with the jsdom tests that make such a
+ * conversion safe. This PR only changes where the code lives and how it is
+ * packaged.
+ *
+ * legacyNormalizeLinkedInUrl, not normalizeLinkedInUrl: GET
+ * /api/connections?url= is an exact string match and the server does not
+ * normalize the parameter. Rows in the database were stored with the
+ * host-preserving legacy form (nl.linkedin.com rows exist). Switching to the
+ * canonical www-rewriting form would make every non-www row unfindable: the
+ * button stops saying "Already added", the note card claims the profile is not
+ * in the CRM, and a typed note cannot be saved. Core's url.test.ts pins the
+ * difference between the two forms for exactly this reason.
+ */
+import { isEncryptedString, cleanProfileName, legacyNormalizeLinkedInUrl } from '@rolodink/core';
+
 const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
 let API_BASE_URL = DEFAULT_API_BASE_URL;
 
@@ -14,18 +39,6 @@ async function loadApiBaseUrl() {
     } catch (error) {
         console.warn('Falling back to default API base URL due to error:', error);
     }
-}
-
-// Prefix waarmee versleutelde velden herkenbaar zijn. Moet gelijk blijven aan
-// packages/core/src/crypto.ts — anders leest de popup onze notities niet meer.
-// (Stond hier eerder als ui/src/utils/cryptoHelper.ts; dat bestand is opgegaan
-// in @rolodink/core. Dit script is nog een los bestand zonder imports, dus de
-// constante staat hier nog een keer — die duplicatie verdwijnt zodra het
-// content script gebundeld wordt.)
-const ENCRYPTION_PREFIX = 'rolodink-enc:';
-
-function isEncryptedString(text) {
-    return typeof text === 'string' && text.startsWith(ENCRYPTION_PREFIX);
 }
 
 /**
@@ -73,35 +86,9 @@ async function decryptNoteText(value) {
     return response.plaintext;
 }
 
-// Function to clean notification counts from profile names
-function cleanProfileName(name) {
-    if (!name) return name;
-
-
-    // Normalize whitespace (including Unicode NBSP) first
-    let cleaned = name.replace(/\u00A0/g, ' ');
-
-    // Patterns to remove notification-like counters and ornaments
-    const patterns = [
-        // Leading counters: (1) [2] {3}
-        /^[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*/,
-        // Leading numbers like: 1 John, 12· John, 3. John
-        /^[\s\u00A0]*\d+[\s\u00A0]*[\.|·•:\-]*[\s\u00A0]*/,
-        // Trailing counters at end: John Doe (1)
-        /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}]\s*$/,
-        // Inline counters: John (1) Doe
-        /[\s\u00A0]*[\(\[\{]\s*\d+\s*[\)\]\}][\s\u00A0]*/g,
-    ];
-
-    for (const pattern of patterns) {
-        cleaned = cleaned.replace(pattern, ' ');
-    }
-
-    // Collapse spaces again and trim
-    cleaned = cleaned.replace(/\s+/g, ' ').trim();
-
-    return cleaned;
-}
+// cleanProfileName komt nu uit @rolodink/core; de inline kopie die hier stond
+// wordt daar bewaakt door name.test.ts, inclusief de gelijkwaardigheidstest
+// tegen content-firefox.js en de backend-route.
 
 // Function to inject the CRM button into the LinkedIn profile page
 function injectCRMButton(anchorButton) {
@@ -154,12 +141,8 @@ function injectCRMButton(anchorButton) {
                 }
 
                 const profileUrl = window.location.href;
-                const normalizeLinkedInUrl = (inputUrl) => {
-                    let normalized = inputUrl.split('?')[0].split('#')[0];
-                    if (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
-                    return normalized;
-                };
-                const normalizedUrl = normalizeLinkedInUrl(profileUrl);
+                // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+                const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
 
                 let authToken;
                 try {
@@ -381,13 +364,6 @@ async function injectContextField() {
         if (!topCard) {
             const anchor = findAnchorButton();
             if (anchor) {
-                // Debug: Trace parents to see what we are dealing with
-                let current = anchor.parentElement;
-                for (let i = 0; i < 5; i++) {
-                    if (!current) break;
-                    current = current.parentElement;
-                }
-
                 // Traverse up to find the main container (usually a SECTION tag)
                 const parentSection = anchor.closest('section');
                 if (parentSection) {
@@ -395,33 +371,16 @@ async function injectContextField() {
                         // Verify it's not the sticky header
                         if (!parentSection.closest('.scaffold-layout__sticky-content')) {
                             topCard = parentSection;
-                        } else {
                         }
-                    } else {
                     }
-                } else {
-
-                    // Fallback 3b: If no section, maybe it's a DIV with specific class?
-                    // Let's try to find a parent with class 'pv-top-card' manually if closest failed
-                    // Or just the biggest parent < 5 levels up?
                 }
-            } else {
+                // Fallback 3b (nooit gebouwd): geen section gevonden -> geen kaart.
             }
         }
 
         if (!topCard) {
             // Debugging: Log ONLY ONCE per session/page-load to avoid spam if we can't find it
             if (!window.hasLoggedTopCardError) {
-                const count = document.querySelectorAll('.pv-top-card').length;
-                // document.querySelectorAll('.pv-top-card').forEach((c, i) => {
-                //    console.log(`Candidate ${i}: Class="${c.className}" Height=${c.offsetHeight} Parent=${c.parentElement?.className}`);
-                // });
-
-                // Show visual banner
-                if (typeof showDebugBanner === 'function') {
-                    // showDebugBanner(`Rolodink Debug: Card Not Found (Seen ${count} .pv-top-card). Trying to recover...`, 'red');
-                }
-
                 window.hasLoggedTopCardError = true;
             }
             window.rolodinkIsInjecting = false;
@@ -512,7 +471,7 @@ async function injectContextField() {
             header.appendChild(title);
 
             const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
+            closeBtn.textContent = '×';
             closeBtn.title = 'Hide Context Field';
             closeBtn.style.background = 'none';
             closeBtn.style.border = 'none';
@@ -576,12 +535,8 @@ async function injectContextField() {
                     }
 
                     const profileUrl = window.location.href;
-                    const normalizeLinkedInUrl = (inputUrl) => {
-                        let normalized = inputUrl.split('?')[0].split('#')[0];
-                        if (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
-                        return normalized;
-                    };
-                    const normalizedUrl = normalizeLinkedInUrl(profileUrl);
+                    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+                    const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
 
                     const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
