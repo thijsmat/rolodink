@@ -1,6 +1,7 @@
 /**
- * AES-GCM helpers, ported verbatim from the extension's
- * `ui/src/utils/cryptoHelper.ts`.
+ * AES-GCM helpers, ported verbatim from the extension's former
+ * `ui/src/utils/cryptoHelper.ts` — since deleted (#41): the extension now
+ * imports these functions instead of carrying its own copy.
  *
  * The wire format is fixed and shared with data already in the database:
  *

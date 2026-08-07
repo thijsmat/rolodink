@@ -48,7 +48,11 @@ export function unwrapDataKey(wrapped: string, masterKey: Buffer): Buffer {
     const iv = blob.subarray(0, 12);
     const authTag = blob.subarray(12, 28);
     const ciphertext = blob.subarray(28);
-    const decipher = createDecipheriv('aes-256-gcm', masterKey, iv);
+    // authTagLength is pinned even though the fixed-width slice above already
+    // guarantees 16 bytes: it states the assumption where it is enforced, and
+    // it keeps Node from ever accepting a shorter (forgeable) tag if the
+    // slicing is later refactored. Semgrep: gcm-no-tag-length.
+    const decipher = createDecipheriv('aes-256-gcm', masterKey, iv, { authTagLength: 16 });
     decipher.setAuthTag(authTag);
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }

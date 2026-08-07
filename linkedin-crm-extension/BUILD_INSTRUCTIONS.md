@@ -76,22 +76,21 @@ Checks:
 npm run validate
 ```
 
-### Step 2: Production Build (`build-production.js`)
+### Step 2: Production Build (`build.js`)
+
+`build.js` is the packaging script — the same one `release.yml` runs in CI.
+(The former `build-production.js` was never wired into any workflow and has
+been removed.)
 
 Process:
-1. **Clean** - Remove old `dist/` folder
-2. **Build UI** - Run `npm run build` in `ui/` folder
-3. **Copy Files:**
-   - `manifest.json` → `dist/manifest.json`
-   - `icon.png` → `dist/icon.png`
-   - `icons/` → `dist/icons/`
-   - `content.js` → `dist/content.js`
-   - `ui/dist/` → `dist/ui/dist/`
-4. **Create ZIP** - `rolodink-v1.0.3-chrome.zip`
-5. **Verify** - Check all required files are in ZIP
+1. **Build UI** — runs `npm run build` in `ui/` (popup, background worker, asset copy)
+2. **Flatten** — copies `ui/dist/` contents to the package root, so
+   `index.html`, `assets/` and `background.js` sit next to `manifest.json`
+3. **Copy extension assets** — `manifest.json`, `content.js`, `icon.png`, `icons/`
+4. **Create ZIP** — `../dist/Rolodink-<target>-v<version>.zip`
 
 ```bash
-npm run build
+node build.js chrome   # or: edge | firefox
 ```
 
 ### Step 3: Manual Testing

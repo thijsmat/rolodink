@@ -8,12 +8,6 @@ Dit document beschrijft de status van scripts in de `scripts/` folder na de migr
 
 Deze scripts worden nog gebruikt en moeten behouden blijven:
 
-#### `build-extension.sh`
-- **Status**: Actief
-- **Gebruik**: Multi-browser extension builds (Chrome, Firefox, Edge)
-- **Waarom nodig**: Turborepo gebruikt `build.js` voor de build, maar dit script biedt extra functionaliteit voor multi-target builds
-- **Aanbeveling**: Behoud, maar overweeg migratie naar Turborepo task in de toekomst
-
 #### `prepare-firefox-source.sh`
 - **Status**: Actief
 - **Gebruik**: Voorbereiden van Firefox AMO submission
@@ -73,9 +67,23 @@ Deze scripts zijn mogelijk verouderd na de Turborepo migratie:
 
 ### Wat blijft nodig?
 
-- **Multi-browser builds**: `build-extension.sh` biedt extra functionaliteit
+- **Multi-browser builds**: `linkedin-crm-extension/build.js chrome|edge|firefox` — hetzelfde script dat `release.yml` gebruikt
 - **Publishing workflows**: Scripts voor store submissions
 - **Development utilities**: Backend switching, validation, etc.
+
+### Verwijderd
+
+- **`build-extension.sh`** — werd door geen enkele workflow of npm-script
+  aangeroepen en was bovendien kapot: het zette `ui/dist/index.html` nooit in de
+  pakketroot terwijl het manifest `"default_popup": "index.html"` declareert.
+  Dit document noemde het eerder "Actief"; dat was onjuist en heeft minstens één
+  keer geleid tot verificatie van releases tegen het verkeerde script. De echte
+  release-build is `linkedin-crm-extension/build.js`.
+- **`linkedin-crm-extension/build-production.js`** — zelfde categorie: alleen in
+  documentatie genoemd, nooit aangeroepen, en het bevatte een
+  command-injection-patroon (`execSync` met geïnterpoleerde bestandsnaam).
+- **`ui/remove-block-comments.cjs`** — werd door niets aangeroepen; alleen
+  meegekopieerd in het AMO-bronarchief, waar het ook niets deed.
 
 ## Aanbevelingen
 
@@ -86,7 +94,6 @@ Deze scripts zijn mogelijk verouderd na de Turborepo migratie:
 
 ## Toekomstige Verbeteringen
 
-- Migreer `build-extension.sh` functionaliteit naar Turborepo task
 - Maak generieke release script in plaats van versie-specifieke scripts
 - Centraliseer build logica in Turborepo waar mogelijk
 

@@ -21,7 +21,7 @@ and (with a WebCrypto polyfill) in React Native.
 
 | Module | Purpose |
 |---|---|
-| `crypto.ts` | AES-GCM helpers. **Byte-identical** to `ui/src/utils/cryptoHelper.ts`. |
+| `crypto.ts` | AES-GCM helpers. The extension imports these directly (its own copy, `ui/src/utils/cryptoHelper.ts`, was deleted in #41). |
 | `fields.ts` | Which fields are encrypted, plus the `FieldCipher` port. |
 | `url.ts` | LinkedIn profile URL normalization, slug extraction, share-payload parsing. |
 | `client.ts` | `RolodinkClient` for the `api.rolodink.app` REST API. |
@@ -66,8 +66,10 @@ still resolves a symlinked dependency. That is a whole PR of risk against the
 shipping product, so it is not bundled with new-client work.
 
 When it happens, the extension implements `FieldCipher` on top of its existing
-`chrome.runtime.sendMessage({type: 'ENCRYPT_TEXT'})` handlers, and the five URL
-normalizers plus `cryptoHelper.ts` can be deleted.
+`chrome.runtime.sendMessage({type: 'ENCRYPT_TEXT'})` handlers, and the remaining
+inline URL normalizers can be deleted. (The first step landed in #41: the
+extension resolves this package through a Vite alias, and its `cryptoHelper.ts`
+copy is gone.)
 
 ## Commands
 

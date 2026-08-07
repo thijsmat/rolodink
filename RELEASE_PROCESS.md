@@ -79,9 +79,14 @@ Instellen onder **Settings → Secrets and variables → Actions**.
 Alleen als de automatisering stuk is:
 
 ```bash
-./scripts/build-extension.sh --target=chrome
-./scripts/build-extension.sh --target=edge
-./scripts/build-extension.sh --target=firefox
+# Zelfde script als release.yml gebruikt — dit is het enige pakketteerscript.
+# (build-extension.sh is verwijderd: het werd door niets aangeroepen en zette
+# index.html nooit in de pakketroot, dus een zip eruit had een dode popup.)
+cd linkedin-crm-extension
+node build.js chrome
+node build.js edge
+node build.js firefox
+cd ..
 
 git tag ext-vX.Y.Z && git push origin ext-vX.Y.Z
 gh release create ext-vX.Y.Z \
