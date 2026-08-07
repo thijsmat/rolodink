@@ -33,7 +33,6 @@ cp "$SRC_DIR/ui/tsconfig.background.json" "$OUT_DIR/ui/"
 
 # Copy build scripts
 cp "$SRC_DIR/ui/build-background.cjs" "$OUT_DIR/ui/"
-cp "$SRC_DIR/ui/remove-block-comments.cjs" "$OUT_DIR/ui/"
 
 # Copy Source Directories
 echo "   Copying src/..."

@@ -144,7 +144,7 @@ linkedin-crm-extension/
 │   └── dist/                  # Built popup (after build)
 ├── dist/                      # Production build output
 ├── validate.js                # Pre-build validation
-├── build-production.js        # Production build script
+├── build.js                   # Packaging script (same one release.yml runs)
 └── package.json               # npm scripts
 ```
 

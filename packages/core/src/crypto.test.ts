@@ -8,8 +8,9 @@ import {
 } from './crypto.js';
 
 /**
- * Fixed key and ciphertext produced by the extension's own helper
- * (ui/src/utils/cryptoHelper.ts) running under WebCrypto.
+ * Fixed key and ciphertext produced by the extension's own helper (the former
+ * ui/src/utils/cryptoHelper.ts, deleted in #41 when the extension switched to
+ * importing from this package) running under WebCrypto.
  *
  * This is the real compatibility guard. A round trip alone proves nothing about
  * interoperability — it passes just as happily if both sides are wrong together.
