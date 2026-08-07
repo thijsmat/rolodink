@@ -164,10 +164,10 @@ jobs:
         fi
         echo "Extension build successful"
 
-    # build.js needs fs-extra and archiver; same install release.yml does.
-    - name: Install packaging dependencies
-      run: npm install --no-audit --no-fund
-      working-directory: ./linkedin-crm-extension
+    # No separate install for build.js: linkedin-crm-extension is a workspace
+    # member, so its fs-extra and archiver come in with the root `npm ci` at
+    # the top of this job and resolve up the directory tree. A `npm install`
+    # here would be both redundant and unlocked (Sonar S8543/S6505).
 
     # Package with the REAL release script and prove the content script in the
     # package is the Vite bundle, not the raw source. This guards the failure

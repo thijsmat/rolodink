@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+const { execSync } = require('node:child_process');
 
 // Compile the content script with Vite (to bundle @rolodink/core).
 // Mirrors build-background.cjs; runs after the popup and background builds in
