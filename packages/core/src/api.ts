@@ -19,9 +19,19 @@
  */
 export function normalizeApiBaseUrl(value: unknown): string {
     if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
     // Strip every trailing slash, not just one: '.../' and '...//' are both
     // values a copy-paste into a settings field or a CI secret can produce.
-    return value.trim().replace(/\/+$/, '');
+    //
+    // Walked backwards rather than matched with /\/+$/. That regex backtracks
+    // super-linearly on a long run of slashes (SonarCloud S8786) - harmless for
+    // a URL a human typed, but this also normalises values arriving from
+    // storage, and an index walk is O(n) and easier to read besides.
+    let end = trimmed.length;
+    while (end > 0 && trimmed.charCodeAt(end - 1) === 47 /* '/' */) {
+        end--;
+    }
+    return trimmed.slice(0, end);
 }
 
 /**

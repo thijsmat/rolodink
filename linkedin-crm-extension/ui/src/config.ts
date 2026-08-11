@@ -7,8 +7,14 @@ export const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
 // service worker used to read this environment variable raw, and a configured
 // value ending in '/' produced '<host>//api/...', which the server answers with
 // a redirect that a CORS preflight is not allowed to follow. See core's api.ts.
+// Written as a bare `import.meta.env.VITE_API_BASE_URL`, character for
+// character, because vite.background.config.ts substitutes exactly that string
+// via `define`. An optional-chained or guarded variant does not match the
+// define and would silently leave the service worker on the default, ignoring
+// whatever the release secret says. resolveApiBaseUrl already treats undefined
+// as "fall through", so no guard is needed here.
 export const API_BASE_URL = resolveApiBaseUrl(
-  typeof import.meta === 'undefined' ? undefined : import.meta.env?.VITE_API_BASE_URL,
+  import.meta.env.VITE_API_BASE_URL,
   DEFAULT_API_BASE_URL
 );
 
