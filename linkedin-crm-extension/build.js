@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const archiver = require('archiver');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const { execSync } = require('child_process');
 
 const target = process.argv[2] || 'chrome'; // chrome, firefox, edge
@@ -18,7 +18,7 @@ function extensionIdFromKey(base64Key) {
   const digest = crypto.createHash('sha256').update(Buffer.from(base64Key, 'base64')).digest();
   return Array.from(digest.subarray(0, 16))
     .flatMap(byte => [byte >> 4, byte & 0x0f])
-    .map(nibble => String.fromCharCode(0x61 + nibble))
+    .map(nibble => String.fromCodePoint(0x61 + nibble))
     .join('');
 }
 
