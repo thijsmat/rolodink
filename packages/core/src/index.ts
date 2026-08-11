@@ -28,6 +28,8 @@ export {
 
 export { cleanProfileName } from './name.js';
 
+export { normalizeApiBaseUrl, resolveApiBaseUrl } from './api.js';
+
 export {
     RolodinkClient,
     RolodinkApiError,
