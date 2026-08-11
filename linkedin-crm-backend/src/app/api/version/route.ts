@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     // Define latest version info
     // Keep this in sync with the extension manifests on every release, otherwise
     // the in-extension update notice silently stops firing.
-    const latestVersion = '1.3.2';
+    const latestVersion = '1.3.3';
     const versionInfo = {
       latest: latestVersion,
       current: currentVersion,
@@ -116,8 +116,8 @@ export async function GET(request: NextRequest) {
       // dus lange zinnen duwen de rest van de interface buiten beeld.
       if (versionInfo.updateType === 'patch') {
         versionInfo.bugFixes = [
-          'Notities worden weer versleuteld opgeslagen',
-          'Notitieveld toont leesbare tekst'
+          'Onderhoudsrelease zonder zichtbare wijzigingen',
+          'LinkedIn-code komt nu uit dezelfde gedeelde bron als de popup'
         ];
       }
 
