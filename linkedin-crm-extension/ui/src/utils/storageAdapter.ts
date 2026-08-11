@@ -19,6 +19,7 @@ declare global {
         };
         runtime: {
             sendMessage: (message: any) => Promise<any>;
+            getManifest: () => { version: string;[key: string]: unknown };
             onMessage: {
                 addListener: (callback: (message: any, sender: any, sendResponse: (response?: any) => void) => void | boolean) => void;
             };

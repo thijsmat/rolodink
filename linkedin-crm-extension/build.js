@@ -1,6 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const archiver = require('archiver');
+const crypto = require('node:crypto');
 const { execSync } = require('child_process');
 
 const target = process.argv[2] || 'chrome'; // chrome, firefox, edge
@@ -10,6 +11,39 @@ const uiDir = path.join(extDir, 'ui');
 const distDir = path.join(repoRoot, 'dist');
 const tmpDir = path.join(distDir, 'tmp', target);
 const uiBuildDir = path.join(uiDir, 'dist');
+
+// Chrome derives an extension's ID from its public key: the first 16 bytes of
+// SHA-256 over the DER-encoded key, with each nibble mapped 0-15 onto a-p.
+function extensionIdFromKey(base64Key) {
+  const digest = crypto.createHash('sha256').update(Buffer.from(base64Key, 'base64')).digest();
+  return Array.from(digest.subarray(0, 16))
+    .flatMap(byte => [byte >> 4, byte & 0x0f])
+    .map(nibble => String.fromCodePoint(0x61 + nibble))
+    .join('');
+}
+
+// Pin the packaged manifest to the store's identity. See extension-keys.json
+// for why. Recomputing the ID here means a wrong key fails the build instead of
+// producing a package that loads under some other extension's identity.
+async function applyExtensionKey(manifestPath) {
+  const entry = require(path.join(extDir, 'extension-keys.json'))[target];
+  if (!entry) {
+    console.log(`==> No signing key configured for ${target}, leaving manifest identity unpinned`);
+    return;
+  }
+
+  const derivedId = extensionIdFromKey(entry.key);
+  if (derivedId !== entry.id) {
+    throw new Error(
+      `extension-keys.json: the ${target} key derives to ${derivedId}, not the declared ${entry.id}`
+    );
+  }
+
+  const manifest = await fs.readJson(manifestPath);
+  manifest.key = entry.key;
+  await fs.writeJson(manifestPath, manifest, { spaces: 2 });
+  console.log(`==> Pinned ${target} extension ID to ${entry.id}`);
+}
 
 async function build() {
   console.log(`==> Building UI for ${target}...`);
@@ -36,6 +70,8 @@ async function build() {
   await fs.copy(path.join(extDir, 'icons'), path.join(tmpDir, 'icons'));
   await fs.copy(path.join(extDir, manifestFile), path.join(tmpDir, 'manifest.json'));
   await fs.copy(path.join(extDir, 'icon.png'), path.join(tmpDir, 'icon.png'));
+
+  await applyExtensionKey(path.join(tmpDir, 'manifest.json'));
 
   // Chrome/Edge ship the BUNDLED content script (ui/src/content/main.js ->
   // dist/content.js, built by build-content.cjs and copied in with the UI

@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Public signing keys per store target, injected into the packaged manifest by build.js.",
+    "",
+    "WHY: without a `key`, Chrome derives an unpacked extension's ID from its folder path, so a",
+    "locally loaded build gets a different ID than the published one. Anything keyed to that ID",
+    "then behaves differently under test than in production - most visibly the OAuth redirect,",
+    "which is https://<id>.chromiumapp.org/provider_cb and is matched against Supabase's redirect",
+    "allowlist. Pinning the key makes an unpacked build indistinguishable from the store build.",
+    "",
+    "NOT A SECRET: this is the public half of the store's signing pair, and it is present in every",
+    "published CRX. Losing it costs nothing; it cannot sign anything.",
+    "",
+    "`id` is the ID this key must produce. build.js recomputes it (first 16 bytes of SHA-256 over",
+    "the DER key, each nibble mapped 0-15 -> a-p) and fails the build on a mismatch, so a wrong or",
+    "swapped key is a build error rather than an extension that silently loads under a stranger's",
+    "identity.",
+    "",
+    "Chrome and Edge share manifest.json but are separate store items with separate IDs, so they",
+    "need separate entries. Set a target to null to leave its manifest untouched. Firefox does not",
+    "use this mechanism at all - it pins identity with browser_specific_settings.gecko.id."
+  ],
+  "chrome": {
+    "id": "jfgnbkeagmpmappmekainclghhndlimc",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnXIWZkUCZ5Zg4D1s4x6f08kZ6Ftmbs0uSw8++yMi1rJnUe2wkkjYSqbMAoCLhjW8OdRmOb0+M1aU0luhU2fhe21Cm5BHhanlaSWWxNay6GMijU2m8ZlI0mBNNaeyPZnIM9zj68nA6yhaj2FJjUpRU+qZQTV477xW8zvQ9fwfo7g8lDvg68UEnsFCCLlK8IuGgxYONHzEhPckLZm3ZE2wKY0Cam3CYISxsm/2QORLx85vSyUEp0821FDOXk9cpK8gTgrH01tiMMYnc+fgxrCY7vpqhJvNJ4Bk5ioGDZOEuOtInChGCgHt0G6Klx0EjQMjCFLB4KUYEzlESZDcvhGbcQIDAQAB"
+  },
+  "edge": {
+    "id": "ihcocnphebdemiipmoedinojihpbcmmf",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm3W+2toficYpGWbfQno+vcGu6H9IbuKeEQlqXdGS1+Irjr90bQGAJ6fs0/pYleF48S+ajFP9fGQTnihYSDK5LsZrVbvN/kPAGsnF8Q4v5EGr7e4iV/JF1Zd6syCNGKFgy7Bib6mG8CWK/hang2F+aDm87maeDbrmevePfWGoiiVHEYUm18XZUDTnYJWuzF7c/hycFf1HUepeI7KOW3JVUEGqFKRfwspE+6KWfoZvRapgVXoBrYP+8+0Vcr5zFc4jk15qV58o3V+Ng09isPufI/rkvJLhsfRjJM6mYPH/mD9/5p/9BCfygt8JbCAHsYIyKLi0WXjn7q+MrcFfwDADBwIDAQAB"
+  }
+}

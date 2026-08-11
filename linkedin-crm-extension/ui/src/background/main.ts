@@ -31,7 +31,12 @@ async function logToStorage(message: string, data?: any) {
 // Wrap in IIFE to avoid top-level await issues in some environments
 (async () => {
     try {
-        await logToStorage('Background script loaded (v1.1.1)');
+        // Read the version off the manifest. This line used to carry a
+        // hardcoded 'v1.1.1', which survived every release since and made the
+        // debug log claim an ancient build was running while debugging a
+        // genuine auth failure.
+        const manifestVersion = browserAPI?.runtime?.getManifest?.().version ?? 'unknown';
+        await logToStorage(`Background script loaded (v${manifestVersion})`);
     } catch (e) {
         console.error('Failed to log startup:', e);
     }
