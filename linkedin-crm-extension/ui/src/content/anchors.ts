@@ -87,7 +87,7 @@ function linkTargetsProfile(element: Element, profilePath: string): boolean {
  */
 function withoutTrailingSlashes(value: string): string {
     let end = value.length;
-    while (end > 0 && value.charCodeAt(end - 1) === 47 /* '/' */) {
+    while (end > 0 && value.codePointAt(end - 1) === 47 /* '/' */) {
         end--;
     }
     return value.slice(0, end);
