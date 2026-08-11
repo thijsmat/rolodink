@@ -193,6 +193,21 @@ jobs:
         fi
         echo "content.js is the bundle ($SIZE bytes)"
 
+        # The packaged manifest must carry the store's public key, or an
+        # unpacked build gets a path-derived ID and its OAuth redirect
+        # (https://<id>.chromiumapp.org/provider_cb) no longer matches
+        # Supabase's allowlist - login then fails only when tested locally.
+        node -e '
+          const m = require("../dist/tmp/chrome/manifest.json");
+          const expected = require("./extension-keys.json").chrome.id;
+          if (!m.key) { console.error("manifest.key missing from the chrome package"); process.exit(1); }
+          const d = require("crypto").createHash("sha256").update(Buffer.from(m.key, "base64")).digest();
+          const id = [...d.subarray(0, 16)].flatMap(b => [b >> 4, b & 15])
+            .map(n => String.fromCharCode(97 + n)).join("");
+          if (id !== expected) { console.error(`packaged key yields ${id}, expected ${expected}`); process.exit(1); }
+          console.log(`chrome package is pinned to ${id}`);
+        '
+
   # Backend Build & Test
   backend:
     permissions:
