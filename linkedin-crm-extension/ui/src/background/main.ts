@@ -4,6 +4,7 @@ import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
 import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
 import { importDataKey, encryptText, decryptText } from '@rolodink/core';
+import { API_BASE_URL } from '../config';
 
 // 1. Immediate Alive Check
 console.log('Background script loading (restored)...');
@@ -201,8 +202,14 @@ async function clearDataKeyCache(): Promise<void> {
 }
 
 async function fetchDataKeyFromServer(token: string): Promise<string> {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-    const response = await fetch(`${apiBase}/api/user/key`, {
+    // Use the shared, normalised value rather than reading the environment
+    // variable again. Reading it raw here is what produced '<host>//api/user/key'
+    // when the configured value ended in a slash: the server redirects on the
+    // doubled slash, a CORS preflight may not follow a redirect, and the wrapped
+    // data key never arrived - so nothing could be decrypted. The old
+    // 'http://localhost:3001' fallback is gone with it; a shipped service worker
+    // must never quietly aim at a developer machine.
+    const response = await fetch(`${API_BASE_URL}/api/user/key`, {
         headers: { 'Authorization': `Bearer ${token}` },
     });
     if (!response.ok) {

@@ -21,7 +21,12 @@
  * in the CRM, and a typed note cannot be saved. Core's url.test.ts pins the
  * difference between the two forms for exactly this reason.
  */
-import { isEncryptedString, cleanProfileName, legacyNormalizeLinkedInUrl } from '@rolodink/core';
+import {
+    isEncryptedString,
+    cleanProfileName,
+    legacyNormalizeLinkedInUrl,
+    resolveApiBaseUrl,
+} from '@rolodink/core';
 
 const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
 let API_BASE_URL = DEFAULT_API_BASE_URL;
@@ -32,10 +37,10 @@ async function loadApiBaseUrl() {
             return;
         }
         const result = await chrome.storage.local.get('apiBaseUrl');
-        const storedValue = typeof result.apiBaseUrl === 'string' ? result.apiBaseUrl.trim() : '';
-        if (storedValue) {
-            API_BASE_URL = storedValue;
-        }
+        // resolveApiBaseUrl, not a bare trim: a stored value ending in '/'
+        // produced '<host>//api/...', which the server redirects and a CORS
+        // preflight may not follow. See api.ts in @rolodink/core.
+        API_BASE_URL = resolveApiBaseUrl(result.apiBaseUrl, DEFAULT_API_BASE_URL);
     } catch (error) {
         console.warn('Falling back to default API base URL due to error:', error);
     }
@@ -687,6 +692,7 @@ function findAnchorButton() {
 function observeAndInject() {
     // Throttle observer callbacks to avoid excessive checks
     let isChecking = false;
+    let loggedMissingAnchor = false;
 
     const checkAndInject = async () => {
         // Stop if extension context is dead
@@ -698,6 +704,13 @@ function observeAndInject() {
 
         try {
             const anchorButton = findAnchorButton();
+            // Logged once, not per observer tick: the MutationObserver fires
+            // continuously on LinkedIn. Without this, "no anchor button found"
+            // and "script never ran" were indistinguishable from the console.
+            if (!anchorButton && !loggedMissingAnchor) {
+                loggedMissingAnchor = true;
+                console.warn('Rolodink: geen ankerknop gevonden op deze pagina - de "Add to Rldnk"-knop wordt niet geplaatst');
+            }
             injectCRMButton(anchorButton);
             await injectContextField();
 
@@ -789,7 +802,14 @@ function observeAndInject() {
     }
 }
 
-// Initialize the observer when the script loads
+// Initialize the observer when the script loads.
+//
+// The startup line is deliberate. Until it existed there was no way to tell a
+// content script that never ran from one that ran and found nothing - the
+// manifest only injects on a document whose URL matches, so arriving at a
+// profile through LinkedIn's own SPA navigation silently skips injection. Both
+// cases looked identical from the console: no button, no error.
+console.log(`Rolodink: content script actief op ${location.href}`);
 loadApiBaseUrl().finally(() => {
     observeAndInject();
 });

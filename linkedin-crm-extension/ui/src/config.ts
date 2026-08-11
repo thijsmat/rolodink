@@ -1,11 +1,16 @@
-const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
+import { resolveApiBaseUrl } from '@rolodink/core';
 
-const envApiBaseUrl =
-  typeof import.meta !== 'undefined' && typeof import.meta.env?.VITE_API_BASE_URL === 'string'
-    ? import.meta.env.VITE_API_BASE_URL.trim().replace(/\/$/, '')
-    : '';
+export const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
 
-export const API_BASE_URL = envApiBaseUrl.length > 0 ? envApiBaseUrl : DEFAULT_API_BASE_URL;
+// The normalisation lives in core so that every consumer - popup, service
+// worker and content script - derives the same URL from the same value. The
+// service worker used to read this environment variable raw, and a configured
+// value ending in '/' produced '<host>//api/...', which the server answers with
+// a redirect that a CORS preflight is not allowed to follow. See core's api.ts.
+export const API_BASE_URL = resolveApiBaseUrl(
+  typeof import.meta === 'undefined' ? undefined : import.meta.env?.VITE_API_BASE_URL,
+  DEFAULT_API_BASE_URL
+);
 
 // Supabase configuration
 // NOTE: These MUST be set as environment variables - never hardcode in production!
