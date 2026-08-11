@@ -1,3 +1,23 @@
+## v1.3.3 (2026-08-11) - Build Consolidation
+
+No user-visible changes. This release exists so the repackaged extension ships
+under a version of its own; the behaviour on LinkedIn is identical to v1.3.2.
+
+### Changed
+- The content script is now bundled from `linkedin-crm-extension/ui/src/content/main.js` with Vite instead of being copied verbatim, so it can import from `@rolodink/core` — Chrome and Edge only, Firefox still ships `content-firefox.js` unchanged
+- `cleanProfileName` and the crypto helpers now live in `@rolodink/core`, replacing three and two hand-maintained copies respectively
+- The popup's `vite.config.js`/`vite.config.d.ts` pair is gone; `vite.config.ts` is the only config, and it pins `minify: 'esbuild'` so the output is unchanged
+
+### CI
+- Tests now run on every push and pull request. They previously ran nowhere, which made the suites in `packages/core` and the backend decoration rather than a gate
+- The extension lint can fail the build again (`continue-on-error` removed)
+- `node build.js chrome` runs in pull-request CI and asserts that `content.js` in the package is the bundle, not the raw source — the failure mode that would otherwise only surface at release time
+- `release.yml` gained a manual trigger and a check that the version matches both manifests, so a release can no longer be packaged under a version the extension does not report
+- All nine SonarCloud findings and both Semgrep findings resolved; five dead build scripts removed
+
+### Security
+- `createDecipheriv` for the wrapped-key envelope now states `authTagLength: 16` explicitly. This was defence-in-depth, not a live vulnerability: the tag is sliced at fixed offsets and short blobs were already rejected. A fixed ciphertext vector, generated before the change, is now a test
+
 ## v1.3.2 (2026-07-30) - Popup Polish
 
 ### Fixed

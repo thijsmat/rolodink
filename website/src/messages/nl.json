@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.3.2 • Gratis",
+        "version": "Versie 1.3.3 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -210,6 +210,20 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.3",
+                "date": "11 augustus 2026",
+                "sections": [
+                    {
+                        "title": "Onder de motorkap",
+                        "items": [
+                            "Geen zichtbare wijzigingen: deze release herschikt alleen hoe Rolodink gebouwd wordt.",
+                            "De code die op LinkedIn-pagina's draait komt nu uit dezelfde gedeelde bron als de popup, dus een fix hoort nog maar op één plek thuis in plaats van drie.",
+                            "Geautomatiseerde tests draaien nu bij elke wijziging voordat die uitgebracht kan worden."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.2",
                 "date": "30 juli 2026",

@@ -4,14 +4,23 @@ on:
   push:
     tags:
       - 'ext-v*'
-
-permissions:
-  contents: write
+  # Manual trigger, because a draft release created in the GitHub UI does NOT
+  # create its tag until you publish it — so it never fires the `push: tags`
+  # trigger above and never gets any zips attached. Running this workflow by
+  # hand builds the packages and fills that draft in.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to package, without the ext-v prefix (e.g. 1.3.3). Must match manifest.json.'
+        required: true
+        type: string
 
 jobs:
   release:
     name: Build and Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -23,6 +32,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # The version has to agree with the manifests, or the zips are named after
+      # a version the extension does not report and the store rejects the
+      # upload as a duplicate of the one already published.
+      - name: Resolve and verify version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="${GITHUB_REF#refs/tags/ext-v}"
+          fi
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Version '$VERSION' is not x.y.z"
+            exit 1
+          fi
+          for MANIFEST in linkedin-crm-extension/manifest.json linkedin-crm-extension/manifest-firefox.json; do
+            MANIFEST_VERSION=$(node -p "require('./$MANIFEST').version")
+            if [ "$VERSION" != "$MANIFEST_VERSION" ]; then
+              echo "::error::$MANIFEST says $MANIFEST_VERSION but this release is $VERSION - bump the manifests first"
+              exit 1
+            fi
+          done
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Releasing $VERSION"
 
       - name: Install UI Dependencies
         working-directory: linkedin-crm-extension/ui
@@ -62,15 +97,15 @@ jobs:
 
       - name: Prepare Release Notes
         id: prepare_notes
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/ext-v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          export VERSION
-          envsubst < .github/RELEASE_TEMPLATE.md > RELEASE_NOTES.md
+        run: envsubst < .github/RELEASE_TEMPLATE.md > RELEASE_NOTES.md
 
+      # tag_name is explicit because on a manual run GITHUB_REF is a branch, not
+      # the tag. For a draft the tag is only created when you publish, so this
+      # also fills in a draft that was started by hand in the UI.
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ext-v${{ env.VERSION }}
           name: Rolodink v${{ env.VERSION }}
           files: |
             dist/Rolodink-chrome-*.zip
