@@ -72,7 +72,25 @@ function linkTargetsProfile(element: Element, profilePath: string): boolean {
     } catch {
         return false;
     }
-    return pathname.replace(/\/+$/, '') === profilePath;
+    return withoutTrailingSlashes(pathname) === profilePath;
+}
+
+/**
+ * An index walk rather than /\/+$/, which backtracks super-linearly on a long
+ * run of slashes (SonarCloud S8786). This runs over every anchor on the page on
+ * every MutationObserver tick, so linear matters more here than it did in
+ * core's api.ts, where the same substitution was made for the same reason.
+ *
+ * Compared exactly rather than by prefix on purpose: `/in/foo/recent-activity/`
+ * also starts with the profile path, sits on the same page, and is not the
+ * header. Climbing from it would find a different container.
+ */
+function withoutTrailingSlashes(value: string): string {
+    let end = value.length;
+    while (end > 0 && value.charCodeAt(end - 1) === 47 /* '/' */) {
+        end--;
+    }
+    return value.slice(0, end);
 }
 
 function containsAction(element: Element): boolean {
