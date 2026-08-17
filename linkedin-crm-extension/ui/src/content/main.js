@@ -664,6 +664,26 @@ function observeAndInject() {
     // note card (somebody else's note, and a connectionId that saves to it).
     let activeProfilePath = currentProfilePath(location.pathname);
 
+    // Tears down the previous profile's UI and state when the path changes.
+    // Its own function (SonarCloud S3776): navigation handling is a separate
+    // responsibility from injection, and inlining it pushed checkAndInject
+    // over the complexity threshold.
+    const handleNavigation = (path) => {
+        if (path === activeProfilePath) return;
+        const removed = removeInjectedElements(document);
+        // The per-page flags belong to the old profile too. Without this, a
+        // warning logged on profile A suppresses the same warning on profile
+        // B, and a stuck injection lock from a mid-navigation teardown would
+        // block injection forever.
+        window.rolodinkIsInjecting = false;
+        window.hasLoggedTopCardError = false;
+        loggedMissingAnchor = false;
+        activeProfilePath = path;
+        if (removed > 0) {
+            console.log(`Rolodink: navigatie naar ${path ?? 'een niet-profielpagina'} - oude injecties opgeruimd`);
+        }
+    };
+
     const checkAndInject = async () => {
         // Stop if extension context is dead
         if (window.rolodinkExtensionInvalidated) return;
@@ -674,20 +694,7 @@ function observeAndInject() {
 
         try {
             const path = currentProfilePath(location.pathname);
-            if (path !== activeProfilePath) {
-                const removed = removeInjectedElements(document);
-                // The per-page flags belong to the old profile too. Without
-                // this, a warning logged on profile A suppresses the same
-                // warning on profile B, and a stuck injection lock from a
-                // mid-navigation teardown would block injection forever.
-                window.rolodinkIsInjecting = false;
-                window.hasLoggedTopCardError = false;
-                loggedMissingAnchor = false;
-                activeProfilePath = path;
-                if (removed > 0) {
-                    console.log(`Rolodink: navigatie naar ${path ?? 'een niet-profielpagina'} - oude injecties opgeruimd`);
-                }
-            }
+            handleNavigation(path);
 
             // Feed, search, company pages: nothing to do here. The early
             // return keeps the observer cheap on LinkedIn's noisiest pages.
