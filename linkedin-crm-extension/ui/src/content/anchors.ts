@@ -225,3 +225,33 @@ export function findLabelClassNames(anchor: HTMLElement): { wrapper: string; tex
 export function findCardInsertionPoint(header: HTMLElement): HTMLElement | null {
     return header.parentElement ? header : null;
 }
+
+/**
+ * Tears down everything this extension injected into the page.
+ *
+ * Needed since the manifest widened from /in/* to all of LinkedIn. The content
+ * script used to be born and die with a profile document; under SPA navigation
+ * it now lives across page changes, so moving from profile A to profile B - or
+ * to the feed - leaves A's button and note card behind with A's state inside
+ * them: a button claiming "Already added" about somebody else, a card holding
+ * somebody else's note. Removing them lets the next observer tick re-inject
+ * fresh for whatever the URL now shows.
+ *
+ * Returns how many elements were removed, so the caller can log a teardown
+ * without logging the (constant) quiet case.
+ */
+const INJECTED_ELEMENT_IDS = ['crm-add-button', 'rolodink-context-field'] as const;
+
+export function removeInjectedElements(root: ParentNode): number {
+    let removed = 0;
+    for (const id of INJECTED_ELEMENT_IDS) {
+        // querySelectorAll rather than getElementById: duplicate ids are
+        // invalid HTML but a re-render race can still produce them, and a
+        // teardown that leaves one behind defeats its purpose.
+        for (const element of Array.from(root.querySelectorAll(`#${id}`))) {
+            element.remove();
+            removed++;
+        }
+    }
+    return removed;
+}

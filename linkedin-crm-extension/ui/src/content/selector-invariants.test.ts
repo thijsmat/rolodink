@@ -78,3 +78,25 @@ describe('the note card goes below the header, not into the action row', () => {
         expect(code).not.toMatch(/actionsContainer\.(after|before|insertAdjacentElement)\b/);
     });
 });
+
+/**
+ * SPA navigation handling, guarded at the call site.
+ *
+ * Same reasoning as the card-insertion guard above: navigation.test.ts proves
+ * removeInjectedElements works, and cannot prove main.js calls it when the
+ * path changes. Without these, deleting the teardown block leaves every
+ * behavioural test green while profile B inherits profile A's button and note
+ * card - stale state that saves one person's note onto another's connection.
+ */
+describe('SPA navigation is handled', () => {
+    it('tears down old injections when the path changes', () => {
+        expect(code).toMatch(/removeInjectedElements\(document\)/);
+        expect(code).toMatch(/activeProfilePath/);
+    });
+
+    it('does nothing off profile pages', () => {
+        // The observer now runs on the feed - LinkedIn's noisiest page - so the
+        // early return on a null path is what keeps it cheap there.
+        expect(code).toMatch(/if \(!path\) return;/);
+    });
+});
