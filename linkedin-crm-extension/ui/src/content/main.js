@@ -326,66 +326,25 @@ async function injectContextField() {
             return;
         }
 
-        // 3. Check connection status (Must be 1st degree connection)
-        // 3. Find the correct Profile Top Card (Main Card vs Sticky Header)
-        // STRATEGY:
-        // 1. Prefer card inside .scaffold-layout__main (main content column)
-        // 2. Filter out small cards (sticky headers are usually < 150px height)
-
-        let topCard = document.querySelector('.scaffold-layout__main .pv-top-card');
-
-        // Fallback: If specific structure not found, look for any big top card
-        if (!topCard) {
-            const candidates = document.querySelectorAll('.pv-top-card');
-            for (const candidate of candidates) {
-                // Ignore obvious sticky containers
-                if (candidate.closest('.scaffold-layout__sticky-content') ||
-                    candidate.classList.contains('js-sticky-header') ||
-                    candidate.classList.contains('pv-top-card--sticky')) {
-                    continue;
-                }
-
-                // Height check: Sticky headers are thin. Profile cards are tall (>200px usually).
-                // We use a conservative 100px threshold.
-                if (candidate.offsetHeight > 100) {
-                    topCard = candidate;
-                    break;
-                }
-            }
-        }
-
-        // Strategy 3: Anchor-based Proximity Search (Critical Fallback if class names changed)
-        if (!topCard) {
-            const anchor = findAnchorButton();
-            if (anchor) {
-                // Traverse up to find the main container (usually a SECTION tag)
-                const parentSection = anchor.closest('section');
-                if (parentSection) {
-                    if (parentSection.offsetHeight > 100) {
-                        // Verify it's not the sticky header
-                        if (!parentSection.closest('.scaffold-layout__sticky-content')) {
-                            topCard = parentSection;
-                        }
-                    }
-                }
-                // Fallback 3b (nooit gebouwd): geen section gevonden -> geen kaart.
-            }
-        }
-
-        // Last resort: the profile header located without class names. The
-        // .pv-top-card lookups above are all dead as of the August 2026
-        // redesign; this is the same finder the button uses, and it is tested.
-        if (!topCard) {
-            const profilePath = currentProfilePath(location.pathname);
-            if (profilePath) {
-                topCard = findProfileHeaderElement(document, profilePath);
-            }
-        }
+        // 3. Find the profile header, with the same tested finder the button
+        // uses. The chain that stood here tried '.scaffold-layout__main
+        // .pv-top-card', then every '.pv-top-card' with offsetHeight > 100, and
+        // only then fell through to this - three dead selectors deep. Every one
+        // of them matches nothing since the August 2026 redesign, which
+        // anchors.test.ts asserts against two real captures.
+        //
+        // offsetHeight is worth a note: it is always 0 under jsdom, so the
+        // sticky-header heuristic could never have been tested even while the
+        // classes still existed. findProfileHeader picks the first card in
+        // document order instead - an honest answer rather than a heuristic
+        // that cannot be verified.
+        const profilePath = currentProfilePath(location.pathname);
+        const topCard = profilePath ? findProfileHeaderElement(document, profilePath) : null;
 
         if (!topCard) {
             // Once per page load, but it does now actually say something. The
             // previous version set this flag and logged nothing, so a missing
-            // top card was indistinguishable from the feature being switched off.
+            // header was indistinguishable from the feature being switched off.
             if (!window.hasLoggedTopCardError) {
                 window.hasLoggedTopCardError = true;
                 console.warn('Rolodink: profielkaart niet gevonden - de notitiekaart wordt niet geplaatst');
@@ -394,59 +353,32 @@ async function injectContextField() {
             return;
         }
 
-        // 3. Connectie status check (Robuust voor meerdere talen)
-        let is1stDegree = false;
+        // The 1st-degree gate that stood here is gone, and not because it was
+        // inconvenient: LinkedIn no longer renders the connection degree at all.
+        // It read '.dist-value', then fell back to scanning
+        // span[aria-hidden="true"] for "1st"/"1e". Two page-wide console probes
+        // on live profiles found no degree text anywhere, and neither capture in
+        // __fixtures__ contains one - asserted, so a future capture that does
+        // carry it again will fail that test and tell us the gate could return.
+        //
+        // With the degree unavailable the gate was not broken but
+        // unimplementable, and an always-false gate means the note card never
+        // appears for anyone. Dropping it also makes the two injections
+        // consistent: the "Add to Rldnk" button has never had a degree
+        // requirement. The real gate was always further down anyway - without a
+        // connection in the CRM the card says "Add to CRM first" and cannot
+        // save.
 
-        // Check standard distance badge
-        const distValue = topCard.querySelector('.dist-value') || topCard.querySelector('span.dist-value');
-        if (distValue) {
-            const text = distValue.innerText.toLowerCase();
-            // Check op "1st" (Engels), "1e" (Nederlands), of gewoon het cijfer "1" gevolgd door iets
-            if (text.includes('1st') || text.includes('1e') || /1\s*(st|e|er)/.test(text)) {
-                is1stDegree = true;
-            }
-        }
-
-        // Fallback: Check aria-hidden badges if dist-value failed
-        if (!is1stDegree) {
-            const potentialBadges = topCard.querySelectorAll('span[aria-hidden="true"]');
-            for (const badge of potentialBadges) {
-                const text = badge.innerText.toLowerCase();
-                if (text.includes('1st') || text.includes('1e')) {
-                    is1stDegree = true;
-                    break;
-                }
-            }
-        }
-
-
-        if (!is1stDegree) {
-            window.rolodinkIsInjecting = false;
-            return;
-        }
-
-        // 4. Find Injection Point
-        // STRICTLY target the message button inside .pv-top-card to avoid sticky headers
-        const messageButton = topCard.querySelector('button[aria-label*="Message"]') || topCard.querySelector('button[aria-label*="Bericht"]');
-
-        let actionsContainer = null;
-
-        if (messageButton) {
-            // Traverse up to find the main action row WITHIN the top card
-            actionsContainer = messageButton.closest('.pv-top-card__actions') ||
-                messageButton.closest('.pv-top-card__buttons') ||
-                messageButton.closest('.ph5'); // Fallback
-
-            // FAILSAFE: Fallback traversal
-            if (!actionsContainer) {
-                actionsContainer = messageButton.parentElement;
-            }
-        } else {
-            // Fallback to direct selectors inside top card
-            actionsContainer =
-                topCard.querySelector('.pv-top-card__actions') ||
-                topCard.querySelector('.pv-top-card__buttons');
-        }
+        // 4. Find the action row, with the same helpers the button uses.
+        //
+        // What stood here looked for button[aria-label*="Message"], which could
+        // never match: the Message action is an <a> with no aria-label. Then it
+        // tried .pv-top-card__actions, .pv-top-card__buttons and .ph5, all dead
+        // since the redesign, before falling back to messageButton.parentElement
+        // - the [data-display-contents] slot that findActionContainer exists to
+        // climb past.
+        const anchor = findAnchorButton();
+        const actionsContainer = anchor ? findActionContainer(anchor) : null;
 
         if (actionsContainer) {
             // FIX: Create container explicitly before using it
@@ -518,13 +450,18 @@ async function injectContextField() {
             status.style.height = '16px'; // Prevent layout jump
             container.appendChild(status);
 
-            // Insert into DOM
-            // Insert into DOM
-            if (actionsContainer && actionsContainer.parentNode) {
-                // Insert after the actions container
-                actionsContainer.insertAdjacentElement('afterend', container);
+            // Insert the card just below the action row, so it reads as part
+            // of the profile header rather than floating somewhere else.
+            //
+            // .after() rather than insertAdjacentElement('afterend', ...): same
+            // result, and it says what it does (SonarCloud S7768). The silent
+            // else that stood here has been replaced by a warning - a card that
+            // could not be placed used to look exactly like a card that was
+            // never asked for, which is how this feature stayed broken.
+            if (actionsContainer.parentNode) {
+                actionsContainer.after(container);
             } else {
-                // console.error('Rolodink Debug: Cannot insert. actionsContainer parent missing.', actionsContainer);
+                console.warn('Rolodink: actierij heeft geen ouder - de notitiekaart kan niet geplaatst worden');
             }
 
             // 6. Load Data

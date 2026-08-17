@@ -14,8 +14,31 @@ import {
 // fileURLToPath rejects it. `?raw` is resolved at transform time and does not
 // care what the runtime environment thinks the base URL is.
 import HEADER_FIXTURE from './__fixtures__/profile-header-2026-08-11.html?raw';
+import HEADER_FIXTURE_2 from './__fixtures__/profile-header-2026-08-17.html?raw';
 
 const PROFILE_PATH = '/in/paul-christian-gevaerts-aba21143';
+const PROFILE_PATH_2 = '/in/emmelywildeboer';
+
+/**
+ * Both captures, so the shared assertions below run against two real profiles.
+ *
+ * One sample cannot tell "this is how LinkedIn builds profile headers" apart
+ * from "this is how it built that one page", and matching on meaning rather
+ * than class names is only worth anything if it holds across both.
+ *
+ * What the second capture actually shows, checked rather than assumed: the
+ * structure is the same. Same action order (overflow menu, then Message), same
+ * three [data-display-contents] slots, same absolute /in/ link, no <section>
+ * wrapper in either. Every class name differs, which is the point - they are
+ * per-build hashes, and six days apart produced two entirely different sets.
+ *
+ * That sameness is the finding. It says the shape these helpers match on is
+ * LinkedIn's actual template rather than one page's accident.
+ */
+const CAPTURES = [
+    { name: '2026-08-11 (Paul)', html: HEADER_FIXTURE, path: PROFILE_PATH },
+    { name: '2026-08-17 (Emmely)', html: HEADER_FIXTURE_2, path: PROFILE_PATH_2 },
+] as const;
 
 /**
  * A "people also viewed" card: same shape as the header, but pointing at
@@ -262,5 +285,52 @@ describe('findInsertionReference', () => {
         );
         expect(actionSlots.length).toBeGreaterThan(0);
         expect(actionSlots.some((slot) => slot.contains(button))).toBe(false);
+    });
+});
+
+/**
+ * The same claims against every capture we hold.
+ *
+ * Written as a loop rather than copied per fixture so that adding a capture is
+ * one line and cannot accidentally test less than the others do.
+ */
+describe.each(CAPTURES)('holds for capture $name', ({ html, path }) => {
+    it('finds the header', () => {
+        expect(findProfileHeader(render(html), path)).not.toBeNull();
+    });
+
+    it('finds an action to anchor beside', () => {
+        const anchor = findAnchorButton(render(html), path);
+        expect(anchor).not.toBeNull();
+        // Either the compose link or the overflow menu; both are real actions
+        // on a real profile and the code accepts either.
+        expect(['A', 'BUTTON']).toContain(anchor?.tagName);
+    });
+
+    it('puts the button in the action row beside the other actions', () => {
+        const doc = render(html);
+        const anchor = findAnchorButton(doc, path)!;
+        const container = findActionContainer(anchor)!;
+        const reference = findInsertionReference(anchor);
+
+        const button = doc.createElement('button');
+        reference.after(button);
+
+        expect(button.parentElement).toBe(container);
+        const slots = Array.from(container.querySelectorAll(':scope > [data-display-contents]'));
+        expect(slots.length).toBeGreaterThan(0);
+        expect(slots.some((slot) => slot.contains(button))).toBe(false);
+    });
+
+    it('has no connection degree anywhere', () => {
+        // The finding that killed the note card's 1st-degree gate. Asserted so
+        // that if a future capture does carry the degree again, this fails and
+        // tells us the gate could be reinstated - rather than the knowledge
+        // living only in a commit message.
+        const doc = render(html);
+        const text = doc.body.textContent ?? '';
+        expect(text).not.toMatch(/\b(1st|2nd|3rd)\b/);
+        expect(text).not.toMatch(/\b[123]e\b/);
+        expect(doc.querySelectorAll('.dist-value')).toHaveLength(0);
     });
 });
