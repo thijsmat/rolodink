@@ -28,7 +28,7 @@ export function normalizeApiBaseUrl(value: unknown): string {
     // a URL a human typed, but this also normalises values arriving from
     // storage, and an index walk is O(n) and easier to read besides.
     let end = trimmed.length;
-    while (end > 0 && trimmed.charCodeAt(end - 1) === 47 /* '/' */) {
+    while (end > 0 && trimmed.codePointAt(end - 1) === 47 /* '/' */) {
         end--;
     }
     return trimmed.slice(0, end);

@@ -18,8 +18,9 @@ jobs:
   # `turbo run test` runs every workspace that declares a `test` script, so a
   # new suite is covered the moment it is added and this file needs no change.
   #
-  # Not covered: linkedin-crm-extension/ui has its own lockfile, is not a
-  # workspace member, and has no test runner yet.
+  # Not covered here: linkedin-crm-extension/ui has its own lockfile and is not
+  # a workspace member, so turbo cannot see it. It now has its own vitest suite,
+  # run by the `extension` job below.
   tests:
     permissions:
       contents: read
@@ -147,7 +148,14 @@ jobs:
     - name: Run linting (extension)
       run: npm run lint
       working-directory: ./linkedin-crm-extension/ui
-      
+
+    # The content script's DOM logic, tested against real captures of LinkedIn's
+    # markup. `ui` is not an npm workspace member, so `turbo run test` in the
+    # `tests` job does not reach it - it has to be run here or not at all.
+    - name: Run tests (extension UI)
+      run: npm test
+      working-directory: ./linkedin-crm-extension/ui
+
     - name: Build extension
       run: npm run build
       working-directory: ./linkedin-crm-extension/ui

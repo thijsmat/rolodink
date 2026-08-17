@@ -27,6 +27,15 @@ import {
     legacyNormalizeLinkedInUrl,
     resolveApiBaseUrl,
 } from '@rolodink/core';
+// Extensionless, like the rest of ui. Not './anchors.js': Vite only retries a
+// .js specifier as .ts when the importing file is itself TypeScript, and this
+// one is not - the build fails with "Could not resolve ./anchors.js".
+import {
+    currentProfilePath,
+    findActionContainer,
+    findAnchorButton as findProfileAnchor,
+    findProfileHeader as findProfileHeaderElement,
+} from './anchors';
 
 const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
 let API_BASE_URL = DEFAULT_API_BASE_URL;
@@ -99,38 +108,24 @@ async function decryptNoteText(value) {
 function injectCRMButton(anchorButton) {
     if (!anchorButton) return;
 
-    // Determine the best container to place the CRM button
-    // Determine the best container to place the CRM button
-    // Rolodink Fix: If the button is wrapped in an '.entry-point' div, we must insert AFTER that wrapper,
-    // not inside it, to maintain the flex layout of the row.
-    const entryPointWrapper = anchorButton.closest('.entry-point');
-    const effectiveParent = entryPointWrapper ? entryPointWrapper.parentElement : anchorButton.parentElement;
-
-    const candidateContainers = [
-        effectiveParent,
-        anchorButton.closest("div[data-test-id='profile-actions']"),
-        anchorButton.closest(".pv-top-card__actions"),
-        anchorButton.closest(".pv-top-card__inner"),
-        document.querySelector("div[data-test-id='profile-actions']"),
-        document.querySelector(".pv-top-card__actions"),
-    ].filter(Boolean);
-
-    const container = candidateContainers.find((el) => el instanceof HTMLElement);
+    // The action row, found without class names. LinkedIn wraps each action in a
+    // [data-display-contents] div, so the row is one level above the anchor's
+    // own wrapper — inserting into the wrapper would put our button inside
+    // another button's slot. See anchors.ts.
+    const container = findActionContainer(anchorButton);
     if (container && !container.querySelector("#crm-add-button")) {
         const crmButton = document.createElement("button");
         crmButton.innerText = "Add to Rldnk";
         crmButton.id = "crm-add-button";
         crmButton.type = "button";
 
-        // Rolodink: Copy classes from the anchor button to match native LinkedIn styling
+        // Copy the neighbouring action's classes so the button matches whatever
+        // LinkedIn currently looks like. This is the one place where not knowing
+        // the class names is an advantage: the hashes change every build, and
+        // copying them is immune to that. The old code also force-added
+        // 'artdeco-button' and demoted 'artdeco-button--primary' to secondary;
+        // neither class exists any more, so both are gone.
         crmButton.className = anchorButton.className;
-
-        // Demote to secondary button style (Hollow Blue) to visually distinguish from the primary action
-        if (crmButton.classList.contains('artdeco-button--primary')) {
-            crmButton.classList.replace('artdeco-button--primary', 'artdeco-button--secondary');
-        }
-        // Ensure standard button classes exist if copy failed to provide them
-        crmButton.classList.add('artdeco-button', 'artdeco-button--2', 'artdeco-button--secondary');
 
         // Only apply layout spacing, let classes handle the rest
         crmButton.style.marginLeft = "8px";
@@ -383,10 +378,23 @@ async function injectContextField() {
             }
         }
 
+        // Last resort: the profile header located without class names. The
+        // .pv-top-card lookups above are all dead as of the August 2026
+        // redesign; this is the same finder the button uses, and it is tested.
         if (!topCard) {
-            // Debugging: Log ONLY ONCE per session/page-load to avoid spam if we can't find it
+            const profilePath = currentProfilePath(location.pathname);
+            if (profilePath) {
+                topCard = findProfileHeaderElement(document, profilePath);
+            }
+        }
+
+        if (!topCard) {
+            // Once per page load, but it does now actually say something. The
+            // previous version set this flag and logged nothing, so a missing
+            // top card was indistinguishable from the feature being switched off.
             if (!window.hasLoggedTopCardError) {
                 window.hasLoggedTopCardError = true;
+                console.warn('Rolodink: profielkaart niet gevonden - de notitiekaart wordt niet geplaatst');
             }
             window.rolodinkIsInjecting = false;
             return;
@@ -654,38 +662,16 @@ async function injectContextField() {
     }
 }
 
-// Stable anchor selectors that cover the variety of LinkedIn CTAs
-const primaryButtonSelectors = [
-    "button[aria-label*='Message']",
-    "button[aria-label*='Bericht']",
-    "button[aria-label*='InMail']",
-    "button[aria-label*='Contact']",
-    "button[aria-label*='Connect']",
-    "button[aria-label='Follow']",
-    "button[data-control-name='connect']",
-    "button[data-control-name='message']",
-    ".artdeco-button--primary",
-];
-
+// The selector list that used to live here is gone. It matched LinkedIn's class
+// names and English/Dutch button labels, and after the August 2026 redesign every
+// entry returned zero matches: .pv-top-card, .artdeco-button--primary and the
+// rest no longer exist, and the Message action became an <a> rather than a
+// <button>. See anchors.ts, which matches on meaning instead, and its tests,
+// which run against a real capture of the new markup.
 function findAnchorButton() {
-    for (const selector of primaryButtonSelectors) {
-        // Use querySelectorAll to find ALL candidates, not just the first one
-        const buttons = document.querySelectorAll(selector);
-        for (const button of buttons) {
-            // Debug the check
-            const isSticky =
-                button.closest('.pvs-sticky-header-profile-actions') ||
-                button.closest('.pv-profile-sticky-header-v2__actions-container') || // Added based on logs
-                button.closest('.scaffold-layout__sticky-content') ||
-                button.classList.contains('pvs-sticky-header-profile-actions__action');
-
-            if (isSticky) {
-                continue; // Skip sticky buttons
-            }
-            return button; // Return the first non-sticky button found
-        }
-    }
-    return null;
+    const profilePath = currentProfilePath(location.pathname);
+    if (!profilePath) return null;
+    return findProfileAnchor(document, profilePath);
 }
 
 // MutationObserver to watch for DOM changes (supports SPA navigation)

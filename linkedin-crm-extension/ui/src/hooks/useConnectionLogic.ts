@@ -167,7 +167,8 @@ async function handleFetchResponse(
         setConnection(null);
     } else if (response.status === 401) {
         setError('Je sessie is verlopen. Log opnieuw in.');
-        await supabase.auth.signOut();
+        // scope: 'local' - see the note on the other 401 handler below.
+        await supabase.auth.signOut({ scope: 'local' });
     } else {
         throw new Error(`Serverfout: ${response.statusText}`);
     }
@@ -313,7 +314,13 @@ export function useConnectionLogic(user: User | null) {
 
             if (response.status === 401) {
                 if (!silent) setError('Je sessie is verlopen.');
-                await supabase.auth.signOut();
+                // scope: 'local'. signOut() defaults to 'global' in auth-js,
+                // which asks the server to revoke every refresh token this user
+                // has - on their phone, on the website, in another browser. One
+                // 401 here, from a token that had merely expired and could have
+                // been refreshed, logged them out everywhere and made the
+                // situation unrecoverable. 'local' clears this client only.
+                await supabase.auth.signOut({ scope: 'local' });
                 return;
             }
             if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
