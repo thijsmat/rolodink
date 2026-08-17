@@ -2,7 +2,7 @@ import './polyfill'; // MUST BE FIRST
 import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
-import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAdapter';
+import { chromeStorageAdapter } from '../utils/storageAdapter';
 import { importDataKey, encryptText, decryptText } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 
@@ -122,7 +122,6 @@ async function handleAuth() {
         const hashParams = new URLSearchParams(url.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        const expiresIn = hashParams.get('expires_in');
         const error = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
 
@@ -134,32 +133,44 @@ async function handleAuth() {
             throw new Error('No access token received');
         }
 
-        // 4. Store session
+        // 4. Hand the tokens to supabase-js and let it own the session.
+        //
+        // There used to be a hand-built object written straight to the Supabase
+        // storage key here, before this call. It looked harmless and it silently
+        // logged everyone out: it carried `expires_in` but no `expires_at`, and
+        // auth-js's _isValidSession requires access_token, refresh_token AND
+        // expires_at. Anything else is discarded on the next read -
+        // GoTrueClient.getSession() calls _removeSession() on it - and our
+        // storage adapter deletes the mirrored `supabaseAccessToken` with it, so
+        // the content script lost its token too. Logging in appeared to work and
+        // the session was gone by the time the popup next opened.
+        //
+        // setSession writes the session itself, with expires_at derived from the
+        // JWT and the real user attached. It is the only writer now. The
+        // Supabase docs show exactly this shape, error check included.
         if (!refreshToken) {
-            console.warn('[Rolodink] OAuth redirect did not include a refresh_token. Session will not be refreshable and will expire.');
-            await logToStorage('Warning: No refresh_token in OAuth response');
+            // Not a warning to be logged and walked past: without a refresh
+            // token the session cannot be renewed and dies within the hour, and
+            // in MV3 nothing refreshes in the background anyway. Better to fail
+            // the login than to hand out a session that quietly expires.
+            await logToStorage('No refresh_token in OAuth response');
+            throw new Error(
+                'De inlogpoging gaf geen refresh-token terug. Probeer het opnieuw; blijft dit gebeuren, neem dan contact op met support.'
+            );
         }
 
-        const sessionData = {
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-            expires_in: expiresIn ? parseInt(expiresIn, 10) : 3600,
-            token_type: 'bearer',
-            user: null,
-        };
-
-        const storageKey = getSupabaseStorageKey(supabaseUrl);
         await logToStorage('Saving session');
 
-        await browserAPI.storage.local.set({
-            [storageKey]: JSON.stringify(sessionData),
+        const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
         });
 
-        // 5. Notify Supabase client
-        await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-        });
+        // Previously discarded. A failure here left the caller believing the
+        // login had succeeded while no session existed anywhere.
+        if (setSessionError) {
+            throw setSessionError;
+        }
 
         await logToStorage('Auth flow completed successfully');
         return { success: true };
