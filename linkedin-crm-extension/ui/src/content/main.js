@@ -32,7 +32,9 @@ import {
 import {
     currentProfilePath,
     findActionContainer,
+    findCardInsertionPoint,
     findInsertionReference,
+    findLabelClassNames,
     findAnchorButton as findProfileAnchor,
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
@@ -90,6 +92,30 @@ async function apiRequest({ path, method = 'GET', query, body }) {
     return response;
 }
 
+/**
+ * Zoekt de CRM-connectie voor het profiel dat nu open staat.
+ *
+ * Geeft het id terug, of null als het profiel er niet in staat. Gooit niet: de
+ * aanroepers behandelen "niet gevonden" en "kon niet kijken" allebei als "nog
+ * niet toevoegbaar", en een fout hier mag het typen niet onderbreken.
+ */
+async function findConnectionId() {
+    try {
+        // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+        const normalizedUrl = legacyNormalizeLinkedInUrl(window.location.href);
+        const resp = await apiRequest({
+            path: '/api/connections',
+            query: { url: normalizedUrl },
+        });
+        if (!resp.ok) return null;
+        const conn = Array.isArray(resp.data) ? resp.data[0] : resp.data;
+        return conn?.id ?? null;
+    } catch (error) {
+        console.error('Rolodink: kon de connectie niet opzoeken:', error);
+        return null;
+    }
+}
+
 /** Versleutelt tekst. Gooit een fout als dat niet lukt — nooit stil plaintext opslaan. */
 async function encryptNoteText(plaintext) {
     if (!plaintext) return plaintext;
@@ -128,9 +154,26 @@ function injectCRMButton(anchorButton) {
     const container = findActionContainer(anchorButton);
     if (container && !container.querySelector("#crm-add-button")) {
         const crmButton = document.createElement("button");
-        crmButton.innerText = "Add to Rldnk";
         crmButton.id = "crm-add-button";
         crmButton.type = "button";
+
+        // The label goes in the same nested spans LinkedIn uses, because that is
+        // where the typography lives. Copying only the outer className gave a
+        // button with the right box and a label rendered as small grey text
+        // beside a properly styled Message button - visible in a screenshot, and
+        // not something any assertion about the outer element would have caught.
+        const labelClasses = findLabelClassNames(anchorButton);
+        const labelWrapper = document.createElement("span");
+        labelWrapper.className = labelClasses.wrapper;
+        const labelText = document.createElement("span");
+        labelText.className = labelClasses.text;
+        labelWrapper.appendChild(labelText);
+        crmButton.appendChild(labelWrapper);
+
+        // Every place that used to assign crmButton.innerText goes through this,
+        // so the nesting cannot be lost by a later state change.
+        const setButtonLabel = (text) => { labelText.textContent = text; };
+        setButtonLabel("Add to Rldnk");
 
         // Copy the neighbouring action's classes so the button matches whatever
         // LinkedIn currently looks like. This is the one place where not knowing
@@ -166,7 +209,7 @@ function injectCRMButton(anchorButton) {
                 const data = resp.data;
                 const exists = Array.isArray(data) ? data.length > 0 : (data && (data.id || data.linkedInUrl));
                 if (exists) {
-                    crmButton.innerText = "Already added ✔️";
+                    setButtonLabel("Already added ✔️");
                     crmButton.disabled = true;
                 }
             } catch (e) {
@@ -238,7 +281,7 @@ function injectCRMButton(anchorButton) {
 
                     if (response.ok) {
                         alert(`${profileName} has been successfully added!`);
-                        crmButton.innerText = "Added ✔️";
+                        setButtonLabel("Added ✔️");
                         crmButton.disabled = true;
                     } else {
                         const errorData = response.data || {};
@@ -248,7 +291,7 @@ function injectCRMButton(anchorButton) {
                             // TODO: Open de login-pagina van de extensie.
                         } else if (response.status === 409) {
                             // Bestaat al: markeer als toegevoegd zonder foutmelding
-                            crmButton.innerText = "Already added ✔️";
+                            setButtonLabel("Already added ✔️");
                             crmButton.disabled = true;
                             // Eventueel een zachte notificatie
                         } else {
@@ -450,18 +493,18 @@ async function injectContextField() {
             status.style.height = '16px'; // Prevent layout jump
             container.appendChild(status);
 
-            // Insert the card just below the action row, so it reads as part
-            // of the profile header rather than floating somewhere else.
+            // Insert the card below the whole profile header.
             //
-            // .after() rather than insertAdjacentElement('afterend', ...): same
-            // result, and it says what it does (SonarCloud S7768). The silent
-            // else that stood here has been replaced by a warning - a card that
-            // could not be placed used to look exactly like a card that was
-            // never asked for, which is how this feature stayed broken.
-            if (actionsContainer.parentNode) {
-                actionsContainer.after(container);
+            // It used to go after the *action row*, which made it a sibling of
+            // the buttons inside that row. The row is a flex container, so the
+            // card became a flex item and rendered as a panel floating beside
+            // the buttons, overlapping the navigation bar. That read like a CSS
+            // problem and was a DOM-structure one.
+            const cardAnchor = findCardInsertionPoint(topCard);
+            if (cardAnchor) {
+                cardAnchor.after(container);
             } else {
-                console.warn('Rolodink: actierij heeft geen ouder - de notitiekaart kan niet geplaatst worden');
+                console.warn('Rolodink: profielkaart heeft geen ouder - de notitiekaart kan niet geplaatst worden');
             }
 
             // 6. Load Data
@@ -533,10 +576,21 @@ async function injectContextField() {
                 debounceTimer = setTimeout(async () => {
                     status.innerText = 'Saving...';
                     try {
+                        // connectionId komt uit loadNote, dat één keer draait bij
+                        // het plaatsen van de kaart. Stond het profiel toen nog
+                        // niet in de CRM, dan bleef dit voor altijd null - ook
+                        // nadat de gebruiker op "Add to Rldnk" had geklikt en het
+                        // profiel er wél in stond. De kaart weigerde dan met "Add
+                        // to CRM first" en de getypte notitie was weg.
+                        //
+                        // Daarom hier opnieuw ophalen in plaats van vertrouwen op
+                        // wat we bij het laden zagen. Dat haalt de volgorde-eis
+                        // tussen knop en kaart helemaal weg.
                         if (!connectionId) {
-                            // Try to create connection if it doesn't exist
-                            // Reuse logic from injectCRMButton or similar?
-                            // For now, let's just warn.
+                            connectionId = await findConnectionId();
+                        }
+
+                        if (!connectionId) {
                             status.innerText = 'Add to CRM first';
                             return;
                         }

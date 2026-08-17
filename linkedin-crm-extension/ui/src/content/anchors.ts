@@ -174,3 +174,54 @@ export function findInsertionReference(anchor: HTMLElement): HTMLElement {
     const slot = anchor.closest('[data-display-contents]');
     return slot instanceof HTMLElement ? slot : anchor;
 }
+
+/**
+ * Class names to reuse for a button label, taken from a neighbouring action.
+ *
+ * Copying the anchor's own className onto a bare `<button>` is not enough, which
+ * a screenshot made obvious: the new button had the right box but its label
+ * rendered as small grey text next to a properly styled Message button. The
+ * typography lives on nested spans, not on the outer element:
+ *
+ *     <a class="OUTER">
+ *       <span class="WRAPPER">        <- padding, alignment, icon slot
+ *         <svg/>
+ *         <span class="TEXT">Message</span>   <- font, size, colour
+ *       </span>
+ *     </a>
+ *
+ * Both are per-build hashes, so they are read off the live neighbour rather than
+ * written down anywhere. Returns empty strings when the anchor has no such
+ * structure - the overflow menu has a wrapper but no text span, because its
+ * content is an icon - and an empty className is harmless.
+ */
+export function findLabelClassNames(anchor: HTMLElement): { wrapper: string; text: string } {
+    const wrapper = anchor.querySelector(':scope > span');
+    if (!(wrapper instanceof HTMLElement)) return { wrapper: '', text: '' };
+
+    const text = Array.from(wrapper.querySelectorAll(':scope > span')).find(
+        (span) => (span.textContent ?? '').trim().length > 0
+    );
+
+    return {
+        wrapper: wrapper.className,
+        text: text instanceof HTMLElement ? text.className : '',
+    };
+}
+
+/**
+ * Where a block-level card belongs: after the whole profile header, not after
+ * the action row.
+ *
+ * The note card used to be inserted with `actionsContainer.after(card)`, which
+ * made it a sibling of the action buttons *inside* the row. The row is a flex
+ * container, so the card became a flex item and rendered as a floating panel
+ * beside the buttons, overlapping the navigation bar. It looked like a CSS bug
+ * and was a DOM-structure bug.
+ *
+ * A card belongs below the header as a whole. Returns null when the header has
+ * no parent to insert into, which the caller should report rather than swallow.
+ */
+export function findCardInsertionPoint(header: HTMLElement): HTMLElement | null {
+    return header.parentElement ? header : null;
+}
