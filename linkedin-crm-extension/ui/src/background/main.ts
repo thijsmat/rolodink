@@ -281,6 +281,88 @@ async function getDataKey(): Promise<CryptoKey> {
     return keyPromise;
 }
 
+/**
+ * API calls on behalf of the content script.
+ *
+ * The content script runs in the page's world, so its origin is
+ * https://www.linkedin.com - or nl.linkedin.com, de.linkedin.com, and every
+ * other locale host the manifest matches. Its fetches to api.rolodink.app are
+ * therefore cross-origin and subject to CORS, and the API allowlists neither
+ * (deliberately: cors.ts says in as many words that a malicious *page* is the
+ * threat CORS exists to stop, and never to put a wildcard in the web list).
+ *
+ * Widening that list is not a real option. It would need every locale host
+ * enumerated, and the moment LinkedIn adds one the button silently stops
+ * working again - the exact failure mode this whole workstream exists to
+ * remove. A pattern match would be the wildcard cors.ts forbids.
+ *
+ * The service worker has host_permissions for api.rolodink.app, so its own
+ * fetches are not subject to page CORS at all. Routing through here needs no
+ * server change, works on every locale host, and keeps the API's web-origin
+ * allowlist as tight as it is.
+ *
+ * It also means the content script no longer needs the access token: the worker
+ * attaches it from the session it already owns. That is the coupling
+ * storageAdapter.test.ts documents as fragile - a token mirrored into
+ * chrome.storage.local for the content script to read - and this is the first
+ * step in being able to drop it.
+ *
+ * Deliberately not a general-purpose proxy. Path and method are checked against
+ * a fixed list, and the base URL is the worker's own. A handler that fetched
+ * whatever it was handed would turn every content script into an SSRF gadget
+ * against anything the extension's host permissions can reach.
+ */
+const ALLOWED_API_PATHS = ['/api/connections'] as const;
+const ALLOWED_API_METHODS = ['GET', 'POST', 'PATCH'] as const;
+
+async function performApiRequest(message: {
+    path?: unknown;
+    method?: unknown;
+    query?: unknown;
+    body?: unknown;
+}): Promise<{ status: number; ok: boolean; data: unknown }> {
+    const path = message.path;
+    const method = typeof message.method === 'string' ? message.method.toUpperCase() : 'GET';
+
+    if (typeof path !== 'string' || !ALLOWED_API_PATHS.includes(path as never)) {
+        throw new Error(`Refusing to call disallowed API path: ${String(path)}`);
+    }
+    if (!ALLOWED_API_METHODS.includes(method as never)) {
+        throw new Error(`Refusing to use disallowed method: ${method}`);
+    }
+
+    const supabase = getSupabase();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
+        // 401 rather than a thrown error: this is the ordinary "not signed in"
+        // state, and the content script already knows how to render it.
+        return { status: 401, ok: false, data: null };
+    }
+
+    const url = new URL(API_BASE_URL + path);
+    if (message.query && typeof message.query === 'object') {
+        for (const [key, value] of Object.entries(message.query as Record<string, unknown>)) {
+            if (typeof value === 'string') url.searchParams.set(key, value);
+        }
+    }
+
+    const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+    if (message.body !== undefined) headers['Content-Type'] = 'application/json';
+
+    const response = await fetch(url.toString(), {
+        method,
+        headers,
+        body: message.body === undefined ? undefined : JSON.stringify(message.body),
+    });
+
+    // Parsed here rather than in the caller: a Response cannot cross the
+    // message channel, and an empty or non-JSON body is normal on some of
+    // these responses.
+    const data = await response.json().catch(() => null);
+    return { status: response.status, ok: response.ok, data };
+}
+
 // Luister naar berichten van de UI en content scripts
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -308,6 +390,21 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
                     sendResponse({ success: true, ciphertext });
                 } catch (error: unknown) {
                     const errorMessage = error instanceof Error ? error.message : 'Unknown encryption error';
+                    sendResponse({ success: false, error: errorMessage });
+                }
+            })();
+            return true;
+        }
+
+        // Doe een API-aanroep namens het content script, dat vanuit de
+        // paginacontext geen CORS-toestemming heeft. Zie performApiRequest.
+        if (message.type === 'API_REQUEST') {
+            (async () => {
+                try {
+                    const result = await performApiRequest(message);
+                    sendResponse({ success: true, ...result });
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown API error';
                     sendResponse({ success: false, error: errorMessage });
                 }
             })();
