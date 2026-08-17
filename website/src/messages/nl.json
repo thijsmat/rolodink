@@ -612,8 +612,13 @@
                 "description": "Klik op het puzzelstukje in je werkbalk en pin Rolodink voor snelle toegang."
             },
             "login": {
-                "title": "Maak je account aan",
-                "description": "Meld je aan om notities op te slaan en je LinkedIn netwerk te organiseren."
+                "title": "Log in via de extensie",
+                "description": "Inloggen doe je in het Rolodink-venster zelf. Een account aanmaken kan daar ook.",
+                "instructions": {
+                    "open": "Klik op het Rolodink-icoon in je werkbalk om het venster te openen.",
+                    "choose": "Kies \"Registreren\" voor een nieuw account, of \"Inloggen\" als je er al een hebt — met LinkedIn of met e-mail.",
+                    "note": "Inloggen op deze website logt de extensie niet in: dat zijn twee losse sessies. Alleen inloggen in het extensievenster telt."
+                }
             },
             "vault": {
                 "title": "Automatische encryptie",
@@ -623,8 +628,7 @@
         "cta": {
             "signup": "Maak Gratis Account",
             "login": "Ik heb al een account",
-            "toggleSignup": "Registreren",
-            "toggleLogin": "Inloggen"
+            "next": "Verder — wat je nu op LinkedIn kunt doen"
         }
     }
 }
