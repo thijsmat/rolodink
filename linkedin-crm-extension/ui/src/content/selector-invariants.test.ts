@@ -55,3 +55,26 @@ describe('LinkedIn class names are not matched on', () => {
         expect(code).not.toContain('offsetHeight');
     });
 });
+
+/**
+ * Where the note card is inserted, guarded at the call site.
+ *
+ * anchors.test.ts proves findCardInsertionPoint returns the right node. It
+ * cannot prove main.js uses it: swapping the call back for `actionsContainer`
+ * left all 62 behavioural tests green while reintroducing the exact layout bug
+ * a screenshot had just shown - the card floating over the navigation bar.
+ *
+ * That gap is the same one that let `entryPointWrapper` ship: the finder was
+ * tested, the use of it was not.
+ */
+describe('the note card goes below the header, not into the action row', () => {
+    it('inserts relative to the header', () => {
+        expect(code).toMatch(/findCardInsertionPoint\(topCard\)/);
+    });
+
+    it('does not insert the card relative to the action row', () => {
+        // The action row is a flex container. A card inserted as its sibling
+        // becomes a flex item and lays out as one more button.
+        expect(code).not.toMatch(/actionsContainer\.(after|before|insertAdjacentElement)\b/);
+    });
+});

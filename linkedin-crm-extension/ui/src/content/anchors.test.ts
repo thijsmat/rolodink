@@ -3,7 +3,9 @@ import {
     currentProfilePath,
     findActionContainer,
     findAnchorButton,
+    findCardInsertionPoint,
     findInsertionReference,
+    findLabelClassNames,
     findProfileHeader,
 } from './anchors';
 
@@ -332,5 +334,73 @@ describe.each(CAPTURES)('holds for capture $name', ({ html, path }) => {
         expect(text).not.toMatch(/\b(1st|2nd|3rd)\b/);
         expect(text).not.toMatch(/\b[123]e\b/);
         expect(doc.querySelectorAll('.dist-value')).toHaveLength(0);
+    });
+});
+
+/**
+ * How the button is dressed, and where the card goes.
+ *
+ * Both of these were reported from a screenshot rather than an error: the
+ * "Added ✔️" label rendered as small grey text beside a properly styled Message
+ * button, and the note card floated over the navigation bar. Neither threw,
+ * neither logged, and both looked like styling problems. Only one of them was.
+ */
+describe.each(CAPTURES)('presentation for capture $name', ({ html, path }) => {
+    it('takes the label classes from the nested spans, not just the outer element', () => {
+        const doc = render(html);
+        const anchor = findAnchorButton(doc, path)!;
+        const { wrapper, text } = findLabelClassNames(anchor);
+
+        // The wrapper carries padding and alignment; the text span carries the
+        // font. Copying only anchor.className gets neither, which is why the
+        // label looked unstyled next to a real button.
+        expect(wrapper.length).toBeGreaterThan(0);
+        expect(text.length).toBeGreaterThan(0);
+        expect(wrapper).not.toBe(anchor.className);
+    });
+
+    it('builds a button whose label sits inside the same nesting', () => {
+        const doc = render(html);
+        const anchor = findAnchorButton(doc, path)!;
+        const { wrapper, text } = findLabelClassNames(anchor);
+
+        const button = doc.createElement('button');
+        button.className = anchor.className;
+        const w = doc.createElement('span');
+        w.className = wrapper;
+        const t = doc.createElement('span');
+        t.className = text;
+        t.textContent = 'Add to Rldnk';
+        w.appendChild(t);
+        button.appendChild(w);
+
+        expect(button.querySelector('span > span')?.textContent).toBe('Add to Rldnk');
+        expect(button.className).toBe(anchor.className);
+    });
+
+    // The layout bug, asserted structurally. The card must not become a child of
+    // the action row, because that row is a flex container and our card would
+    // lay out as one more button in it.
+    it('puts a card below the header rather than inside the action row', () => {
+        const doc = render(html);
+        const anchor = findAnchorButton(doc, path)!;
+        const header = findProfileHeader(doc, path)!;
+        const actionRow = findActionContainer(anchor)!;
+
+        const card = doc.createElement('div');
+        findCardInsertionPoint(header)!.after(card);
+
+        expect(card.parentElement).toBe(header.parentElement);
+        expect(actionRow.contains(card)).toBe(false);
+        expect(header.contains(card)).toBe(false);
+        // And it really is after the header, not before it.
+        expect(header.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('reports rather than guesses when the header has no parent', () => {
+        const doc = render(html);
+        const header = findProfileHeader(doc, path)!;
+        header.remove();
+        expect(findCardInsertionPoint(header)).toBeNull();
     });
 });
