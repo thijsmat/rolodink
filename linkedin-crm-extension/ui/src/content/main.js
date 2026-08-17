@@ -25,7 +25,6 @@ import {
     isEncryptedString,
     cleanProfileName,
     legacyNormalizeLinkedInUrl,
-    resolveApiBaseUrl,
 } from '@rolodink/core';
 // Extensionless, like the rest of ui. Not './anchors.js': Vite only retries a
 // .js specifier as .ts when the importing file is itself TypeScript, and this
@@ -38,23 +37,13 @@ import {
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
 
-const DEFAULT_API_BASE_URL = 'https://api.rolodink.app';
-let API_BASE_URL = DEFAULT_API_BASE_URL;
-
-async function loadApiBaseUrl() {
-    try {
-        if (!chrome || !chrome.storage || !chrome.storage.local?.get) {
-            return;
-        }
-        const result = await chrome.storage.local.get('apiBaseUrl');
-        // resolveApiBaseUrl, not a bare trim: a stored value ending in '/'
-        // produced '<host>//api/...', which the server redirects and a CORS
-        // preflight may not follow. See api.ts in @rolodink/core.
-        API_BASE_URL = resolveApiBaseUrl(result.apiBaseUrl, DEFAULT_API_BASE_URL);
-    } catch (error) {
-        console.warn('Falling back to default API base URL due to error:', error);
-    }
-}
+// The API base URL is no longer resolved here. Every call goes through the
+// background worker now, and that is where the base URL belongs - it is the
+// side that actually builds the request.
+//
+// Nothing is lost with it. The block that stood here read an `apiBaseUrl` key
+// out of chrome.storage, and a grep over the whole extension says no code has
+// ever written that key: it always fell through to the compiled-in default.
 
 /**
  * Het content script draait buiten de extensie-bundle en heeft dus geen toegang
@@ -76,6 +65,29 @@ function sendRuntimeMessage(message) {
             reject(error);
         }
     });
+}
+
+/**
+ * Roept de API aan via de background worker in plaats van rechtstreeks.
+ *
+ * Dit script draait in de wereld van de pagina, dus zijn origin is
+ * www.linkedin.com — of nl.linkedin.com, of welke localehost dan ook. De API
+ * staat die origins bewust niet toe, dus een directe fetch strandt op de
+ * CORS-preflight met "No 'Access-Control-Allow-Origin' header". De worker heeft
+ * host_permissions voor api.rolodink.app en valt niet onder pagina-CORS.
+ *
+ * De worker plakt de Authorization-header er zelf op, uit de sessie die hij al
+ * bezit. Dit script hoeft het token dus niet meer te kennen.
+ *
+ * Geeft { status, ok, data } terug, of gooit als het bericht zelf niet
+ * aankwam — een dode service worker of een herladen extensie.
+ */
+async function apiRequest({ path, method = 'GET', query, body }) {
+    const response = await sendRuntimeMessage({ type: 'API_REQUEST', path, method, query, body });
+    if (!response?.success) {
+        throw new Error(response?.error || 'API request failed');
+    }
+    return response;
 }
 
 /** Versleutelt tekst. Gooit een fout als dat niet lukt — nooit stil plaintext opslaan. */
@@ -137,31 +149,21 @@ function injectCRMButton(anchorButton) {
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
         (async () => {
             try {
-                if (!chrome || !chrome.storage || !chrome.storage.local) {
-                    return;
-                }
-
                 const profileUrl = window.location.href;
                 // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
                 const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
 
-                let authToken;
-                try {
-                    const result = await chrome.storage.local.get('supabaseAccessToken');
-                    authToken = result.supabaseAccessToken;
-                } catch (_) {
-                    return;
-                }
-                if (!authToken) return; // niet ingelogd → laat knop actief
-
-                const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                // Geen tokencontrole meer hier: de worker weet of er een sessie
+                // is en antwoordt anders met 401, wat hieronder gewoon "niets
+                // doen" betekent — de knop blijft actief.
+                const resp = await apiRequest({
+                    path: '/api/connections',
+                    query: { url: normalizedUrl },
                 });
 
                 if (!resp.ok) return; // bij 404/401 etc. niets doen
 
-                const data = await resp.json().catch(() => null);
+                const data = resp.data;
                 const exists = Array.isArray(data) ? data.length > 0 : (data && (data.id || data.linkedInUrl));
                 if (exists) {
                     crmButton.innerText = "Already added ✔️";
@@ -219,53 +221,27 @@ function injectCRMButton(anchorButton) {
 
                 const profileUrl = window.location.href;
 
-                // Controleer of de Chrome API beschikbaar is (context kan ongeldig zijn na reload)
-                if (!chrome || !chrome.storage || !chrome.storage.local) {
-                    alert('Extension reloaded. Please refresh the page and try again.');
-                    return;
-                }
-
-                // Haal het authenticatietoken op uit de storage van de extensie.
-                let authToken;
-                try {
-                    const result = await chrome.storage.local.get('supabaseAccessToken');
-                    authToken = result.supabaseAccessToken;
-                } catch (err) {
-                    console.error('Kon token niet ophalen uit storage:', err);
-                    const message = err instanceof Error ? err.message : String(err);
-                    if (message && message.toLowerCase().includes('invalidated')) {
-                        alert('Extension reloaded. Please refresh the page and try again.');
-                        return;
-                    }
-                    alert('Could not retrieve authentication info. Please try again.');
-                    return;
-                }
-
-                if (!authToken) {
-                    alert('You are not logged in. Please log in via the extension popup to use this feature.');
-                    // We stoppen hier als de gebruiker niet is ingelogd.
-                    return;
-                }
-
+                // Het token wordt niet meer hier opgehaald: de worker haalt het
+                // uit zijn eigen sessie en antwoordt 401 als die er niet is.
+                // Dat scheelt het hele storage-pad, inclusief de "extension
+                // invalidated"-afhandeling eromheen - een dode worker komt nu
+                // naar boven als een afgewezen bericht, afgevangen in de catch
+                // hieronder.
                 const requestBody = { name: profileName, url: profileUrl };
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/api/connections`, {
+                    const response = await apiRequest({
+                        path: '/api/connections',
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${authToken}`
-                        },
-                        body: JSON.stringify(requestBody),
+                        body: requestBody,
                     });
-
 
                     if (response.ok) {
                         alert(`${profileName} has been successfully added!`);
                         crmButton.innerText = "Added ✔️";
                         crmButton.disabled = true;
                     } else {
-                        const errorData = await response.json();
+                        const errorData = response.data || {};
                         console.error('Error response:', errorData);
                         if (response.status === 401) {
                             alert('Session expired. Please log in again via the extension.');
@@ -558,23 +534,23 @@ async function injectContextField() {
             const loadNote = async () => {
                 try {
                     status.innerText = 'Loading...';
-                    const result = await chrome.storage.local.get('supabaseAccessToken');
-                    const token = result.supabaseAccessToken;
-                    if (!token) {
-                        status.innerText = 'Not logged in';
-                        return;
-                    }
 
                     const profileUrl = window.location.href;
                     // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
                     const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
 
-                    const resp = await fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                    const resp = await apiRequest({
+                        path: '/api/connections',
+                        query: { url: normalizedUrl },
                     });
 
+                    if (resp.status === 401) {
+                        status.innerText = 'Not logged in';
+                        return;
+                    }
+
                     if (resp.ok) {
-                        const data = await resp.json();
+                        const data = resp.data;
                         const conn = Array.isArray(data) ? data[0] : data;
                         if (conn) {
                             connectionId = conn.id;
@@ -620,13 +596,6 @@ async function injectContextField() {
                 debounceTimer = setTimeout(async () => {
                     status.innerText = 'Saving...';
                     try {
-                        const result = await chrome.storage.local.get('supabaseAccessToken');
-                        const token = result.supabaseAccessToken;
-                        if (!token) {
-                            status.innerText = 'Not logged in';
-                            return;
-                        }
-
                         if (!connectionId) {
                             // Try to create connection if it doesn't exist
                             // Reuse logic from injectCRMButton or similar?
@@ -646,19 +615,15 @@ async function injectContextField() {
                             return;
                         }
 
-                        const resp = await fetch(`${API_BASE_URL}/api/connections`, {
+                        const resp = await apiRequest({
+                            path: '/api/connections',
                             method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({
-                                id: connectionId,
-                                notes: notesPayload
-                            })
+                            body: { id: connectionId, notes: notesPayload },
                         });
 
-                        if (resp.ok) {
+                        if (resp.status === 401) {
+                            status.innerText = 'Not logged in';
+                        } else if (resp.ok) {
                             status.innerText = 'Saved';
                         } else {
                             status.innerText = 'Save failed';
@@ -814,6 +779,4 @@ function observeAndInject() {
 // profile through LinkedIn's own SPA navigation silently skips injection. Both
 // cases looked identical from the console: no button, no error.
 console.log(`Rolodink: content script actief op ${location.href}`);
-loadApiBaseUrl().finally(() => {
-    observeAndInject();
-});
+observeAndInject();
