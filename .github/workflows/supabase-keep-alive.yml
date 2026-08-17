@@ -1,0 +1,86 @@
+name: Supabase keep-alive
+
+# Supabase pauses a Free-plan project that has not seen "sufficient user
+# database activity" over the past week. Their documentation puts the bar at
+# "a few user requests to the database each day over the previous week".
+#
+# The Vercel cron in linkedin-crm-backend/vercel.json runs once a day and sat
+# under that bar: on 2026-08-11 the project was scheduled for pausing even
+# though the cron had fired that morning and returned 200. It was not broken,
+# just too quiet.
+#
+# This runs the same endpoint four times a day. It does NOT replace the Vercel
+# cron - both stay, because they fail independently: one goes down with a bad
+# backend deploy, the other with a GitHub Actions outage. Four attempts a day
+# also means a skipped run is survivable, which matters because GitHub's
+# scheduler is best-effort and drops or delays runs under load. At one run a
+# day that was the difference between activity and none.
+#
+# Note for later: GitHub disables scheduled workflows in a repository with no
+# activity for 60 days. If this repo ever goes quiet for two months, this
+# workflow stops with it - and a quiet repo is exactly when the project would
+# be at risk. Upgrading the Supabase organisation to a paid plan is the only
+# option that removes the pausing rule rather than working around it.
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping the keep-alive endpoint
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      # No checkout and no third-party actions: this job needs neither, and the
+      # smaller the surface on a workflow that runs unattended four times a day,
+      # the better.
+      #
+      # Values arrive through env rather than ${{ }} interpolation into the
+      # script, so nothing here can be turned into shell by a repository
+      # variable. Same reasoning as the version input in release.yml.
+      - name: Ping
+        env:
+          BASE_URL: ${{ vars.KEEP_ALIVE_BASE_URL || 'https://api.rolodink.app' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          # --retry covers a transient blip without failing the run; a real
+          # outage still surfaces, because a failed job emails the repo owner
+          # and that notification is the whole point of doing this in CI.
+          STATUS=$(curl --silent --show-error \
+            --max-time 30 --retry 3 --retry-delay 10 --retry-all-errors \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            --output response.json \
+            --write-out '%{http_code}' \
+            "${BASE_URL}/api/cron/keep-alive") || true
+
+          echo "HTTP ${STATUS}"
+          cat response.json || true
+          echo
+
+          if [ "${STATUS}" = "401" ]; then
+            echo "::error::401 - the endpoint expects CRON_SECRET and this workflow did not send a matching one. Set the CRON_SECRET repository secret to the same value as the Vercel environment variable."
+            exit 1
+          fi
+
+          if [ "${STATUS}" != "200" ]; then
+            echo "::error::keep-alive returned ${STATUS}; the Supabase project is not being kept awake"
+            exit 1
+          fi
+
+          # The handler returns 500 on a failed query, so a 200 already implies
+          # the Supabase round trip worked. Checked anyway - the failure this
+          # guards against is a future refactor that starts answering 200
+          # without touching the database, which would leave a green workflow
+          # and a paused project.
+          grep -q '"ok":true' response.json || {
+            echo "::error::200 but the body does not report ok:true - did the handler stop querying Supabase?"
+            exit 1
+          }
+
+          echo "Supabase keep-alive OK"
