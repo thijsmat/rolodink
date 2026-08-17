@@ -243,7 +243,7 @@ describe('findInsertionReference', () => {
 
         const button = doc.createElement('button');
         button.id = 'crm-add-button';
-        reference.insertAdjacentElement('afterend', button);
+        reference.after(button);
 
         expect(button.parentElement).toBe(container);
         expect(anchor!.contains(button)).toBe(false);

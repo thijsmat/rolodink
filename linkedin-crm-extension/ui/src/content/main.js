@@ -311,7 +311,10 @@ function injectCRMButton(anchorButton) {
         // direct child of the container.
         const reference = findInsertionReference(anchorButton);
         if (reference.parentElement === container) {
-            reference.insertAdjacentElement('afterend', crmButton);
+            // .after(), not insertAdjacentElement('afterend', …): same result,
+            // and the ChildNode method is the one that reads as what it does
+            // (SonarCloud S7768).
+            reference.after(crmButton);
         } else {
             // Reachable if LinkedIn re-parents between the query and the insert.
             // appendChild on the container is the safe answer: worst case the
