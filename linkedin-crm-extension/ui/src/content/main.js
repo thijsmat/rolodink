@@ -33,6 +33,7 @@ import {
 import {
     currentProfilePath,
     findActionContainer,
+    findInsertionReference,
     findAnchorButton as findProfileAnchor,
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
@@ -293,14 +294,31 @@ function injectCRMButton(anchorButton) {
             }
         };
 
-        // Insert the button right after the anchor button (or its wrapper) for consistent UX
-        if (entryPointWrapper && container === entryPointWrapper.parentElement) {
-            entryPointWrapper.insertAdjacentElement('afterend', crmButton);
-        } else if (anchorButton.parentElement === container) {
-            anchorButton.insertAdjacentElement('afterend', crmButton);
-        } else if (anchorButton.parentElement) {
-            anchorButton.parentElement.appendChild(crmButton);
+        // Insert the button right after the anchor's slot, so it lands in the
+        // action row beside the other buttons.
+        //
+        // The branch that used to be here referenced `entryPointWrapper`, a
+        // variable whose definition went with the dead `.entry-point` lookup
+        // while these lines stayed behind. It threw a ReferenceError on every
+        // observer tick, before this insert, so the button never appeared for
+        // anyone. eslint now covers this file with no-undef; it did not before.
+        //
+        // The old fallback was wrong too, in a way that would have survived the
+        // ReferenceError being fixed on its own: appending to
+        // anchorButton.parentElement puts our button inside another action's
+        // [data-display-contents] slot, which is exactly what findActionContainer
+        // climbs past. findInsertionReference returns the slot itself, which is a
+        // direct child of the container.
+        const reference = findInsertionReference(anchorButton);
+        if (reference.parentElement === container) {
+            // .after(), not insertAdjacentElement('afterend', …): same result,
+            // and the ChildNode method is the one that reads as what it does
+            // (SonarCloud S7768).
+            reference.after(crmButton);
         } else {
+            // Reachable if LinkedIn re-parents between the query and the insert.
+            // appendChild on the container is the safe answer: worst case the
+            // button sits at the end of the row rather than beside Message.
             container.appendChild(crmButton);
         }
     }

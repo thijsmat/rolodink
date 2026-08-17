@@ -3,6 +3,7 @@ import {
     currentProfilePath,
     findActionContainer,
     findAnchorButton,
+    findInsertionReference,
     findProfileHeader,
 } from './anchors';
 
@@ -174,5 +175,92 @@ describe('the overflow menu as fallback', () => {
         const anchor = findAnchorButton(doc, PROFILE_PATH);
         expect(anchor?.tagName).toBe('BUTTON');
         expect(anchor?.getAttribute('aria-expanded')).toBe('false');
+    });
+});
+
+/**
+ * Where the button actually lands.
+ *
+ * These exist because of a bug that shipped: the insertion block referenced
+ * `entryPointWrapper`, left behind when the dead `.entry-point` lookup that
+ * defined it was removed. It threw a ReferenceError on every observer tick,
+ * before the insert, so no user ever saw the button — while the anchor-finding
+ * tests right above this all passed. Finding the right element and putting
+ * something next to it are two claims, and only one of them was tested.
+ *
+ * The second half is subtler and would have survived fixing the ReferenceError
+ * on its own: the old fallback appended to `anchor.parentElement`, which is the
+ * [data-display-contents] slot — the very wrapper findActionContainer climbs
+ * past. `display: contents` means that slot has no box, so a button inside it
+ * inherits the neighbouring action's layout instead of sitting beside it.
+ */
+describe('findInsertionReference', () => {
+    it('returns the display-contents slot, not the anchor', () => {
+        const doc = render(HEADER_FIXTURE);
+        const anchor = findAnchorButton(doc, PROFILE_PATH);
+        expect(anchor).not.toBeNull();
+
+        const reference = findInsertionReference(anchor!);
+        expect(reference).not.toBe(anchor);
+        expect(reference.hasAttribute('data-display-contents')).toBe(true);
+    });
+
+    // The invariant the two functions have to share. If this breaks,
+    // insertAdjacentElement puts the button somewhere nobody intended.
+    it('is a direct child of the container findActionContainer returns', () => {
+        const doc = render(HEADER_FIXTURE);
+        const anchor = findAnchorButton(doc, PROFILE_PATH);
+        const container = findActionContainer(anchor!);
+
+        expect(findInsertionReference(anchor!).parentElement).toBe(container);
+    });
+
+    // Without a slot there is nothing to climb to, and the anchor is already a
+    // direct child of the container. Same invariant, other branch.
+    it('falls back to the anchor when there is no slot', () => {
+        const doc = render(`
+      <div class="hashed">
+        <a href="${PROFILE_PATH}/"><p>Paul</p></a>
+        <div class="hashed">
+          <a href="/messaging/compose/?profileUrn=urn%3Ali%3Afsd_profile%3AABC"><span>Message</span></a>
+        </div>
+      </div>`);
+
+        const anchor = findAnchorButton(doc, PROFILE_PATH);
+        const reference = findInsertionReference(anchor!);
+
+        expect(reference).toBe(anchor);
+        expect(reference.parentElement).toBe(findActionContainer(anchor!));
+    });
+
+    // The end result, asserted on the DOM rather than on the helper: the button
+    // is a sibling of the other actions, and is not swallowed by one of them.
+    it('places the button in the action row, beside the other actions', () => {
+        const doc = render(HEADER_FIXTURE);
+        const anchor = findAnchorButton(doc, PROFILE_PATH);
+        const container = findActionContainer(anchor!);
+        const reference = findInsertionReference(anchor!);
+
+        const button = doc.createElement('button');
+        button.id = 'crm-add-button';
+        reference.after(button);
+
+        expect(button.parentElement).toBe(container);
+        expect(anchor!.contains(button)).toBe(false);
+
+        // Not swallowed by one of the row's action slots - the failure mode the
+        // old appendChild fallback produced.
+        //
+        // Asserted against the row's own slots rather than with
+        // closest('[data-display-contents]'), which was the first version of
+        // this line and was simply wrong: the whole header card sits inside a
+        // display-contents wrapper of its own, so closest() always finds an
+        // ancestor and the assertion could never pass. What matters is the
+        // sibling slots, not the ancestor.
+        const actionSlots = Array.from(
+            container!.querySelectorAll(':scope > [data-display-contents]')
+        );
+        expect(actionSlots.length).toBeGreaterThan(0);
+        expect(actionSlots.some((slot) => slot.contains(button))).toBe(false);
     });
 });

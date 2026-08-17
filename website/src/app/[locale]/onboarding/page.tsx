@@ -1,38 +1,41 @@
 "use client";
 
+/**
+ * Onboarding voor een net geïnstalleerde extensie.
+ *
+ * Stap 2 bood hier tot nu toe een volwaardig inlog- en registratieformulier
+ * aan. Dat werkte — maar het logde de *website* in, niet de extensie, en dat is
+ * precies waar de gebruiker op dat moment vandaan komt. De twee sessies staan
+ * volledig los van elkaar: de website bewaart de hare in de opslag van
+ * rolodink.app, de extensie schrijft de hare via haar eigen supabase-client
+ * naar chrome.storage.local. Er is geen brug — het manifest heeft geen
+ * externally_connectable en niets stuurt de tokens door.
+ *
+ * Het resultaat was de ergste soort fout: inloggen lukte, er kwam een groen
+ * vinkje, en de extensie bleef uitgelogd zonder dat iets dat vertelde.
+ *
+ * Deze pagina wijst nu naar de popup, waar inloggen én registreren allebei
+ * bestaan (LinkedIn-OAuth, e-mail inloggen, e-mail registreren — zie
+ * LoginView.tsx). Er gaat dus geen enkele mogelijkheid verloren; alleen de
+ * route die niet kon werken is weg.
+ *
+ * LinkedInSignInButton en EmailPasswordForm blijven bestaan: auth-layout.tsx
+ * gebruikt ze voor de gewone website-login, waar ze wél op hun plek zijn.
+ */
 import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pin, UserPlus, Lock } from "lucide-react";
+import { Pin, UserPlus, Lock, Puzzle } from "lucide-react";
 import NextImage from "next/image";
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
+// Uit @/navigation, niet next/link: die variant zet de locale-prefix ervoor.
+// Zonder prefix komt het pad niet langs de next-intl middleware en geeft het
+// een 404 - dezelfde val die in de verwijderde successPath werd toegelicht.
 import { Link } from "@/navigation";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import LinkedInSignInButton from "@/components/LinkedInSignInButton";
-import { EmailPasswordForm } from "@/components/EmailPasswordForm";
-import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
     const t = useTranslations('OnboardingPage');
-    const locale = useLocale();
-    // De auth-flow stuurt `next` uiteindelijk door naar window.location, en
-    // getSafeRedirect geeft het pad ongewijzigd terug. Zonder locale-prefix komt
-    // dat niet langs de next-intl middleware en levert het een 404 op.
-    const successPath = `/${locale}/onboarding/success`;
-    const [session, setSession] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
-
-    useEffect(() => {
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setIsLoading(false);
-        };
-        getSession();
-    }, [supabase]);
 
     return (
         <>
@@ -80,7 +83,7 @@ export default function OnboardingPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Step 2: Create Account / Auth */}
+                        {/* Step 2: Sign in, from the extension */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-azure/50 to-transparent" />
                             <CardHeader>
@@ -96,64 +99,34 @@ export default function OnboardingPage() {
                                     {t('steps.login.description')}
                                 </p>
 
-                                <div className="w-full max-w-sm space-y-6">
-                                    {isLoading ? (
-                                        <div className="flex justify-center py-8">
-                                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-azure border-t-transparent" />
-                                        </div>
-                                    ) : session ? (
-                                        <div className="space-y-4 py-4">
-                                            <p className="text-sm text-azure font-medium">
-                                                Welcome back! You are already signed in.
-                                            </p>
-                                            <Button asChild size="lg" className="w-full">
-                                                <Link href="/onboarding/success">
-                                                    Continue to next step
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {/* Auth Mode Toggle */}
-                                            <div className="flex p-1 bg-azure/5 rounded-lg mb-4">
-                                                <button
-                                                    onClick={() => setAuthMode('signup')}
-                                                    className={cn(
-                                                        "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                                                        authMode === 'signup'
-                                                            ? "bg-white text-azure shadow-sm border border-azure/10"
-                                                            : "text-grey hover:text-azure"
-                                                    )}
-                                                >
-                                                    {t('cta.toggleSignup')}
-                                                </button>
-                                                <button
-                                                    onClick={() => setAuthMode('login')}
-                                                    className={cn(
-                                                        "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                                                        authMode === 'login'
-                                                            ? "bg-white text-azure shadow-sm border border-azure/10"
-                                                            : "text-grey hover:text-azure"
-                                                    )}
-                                                >
-                                                    {t('cta.toggleLogin')}
-                                                </button>
-                                            </div>
+                                <div className="w-full max-w-sm space-y-4 text-left">
+                                    <ol className="space-y-3">
+                                        <li className="flex gap-3 items-start">
+                                            <span className="flex-shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
+                                                1
+                                            </span>
+                                            <span className="text-sm text-grey leading-relaxed">
+                                                {t('steps.login.instructions.open')}
+                                            </span>
+                                        </li>
+                                        <li className="flex gap-3 items-start">
+                                            <span className="flex-shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
+                                                2
+                                            </span>
+                                            <span className="text-sm text-grey leading-relaxed">
+                                                {t('steps.login.instructions.choose')}
+                                            </span>
+                                        </li>
+                                    </ol>
 
-                                            <LinkedInSignInButton intent={authMode} next={successPath} />
-
-                                            <div className="relative">
-                                                <div className="absolute inset-0 flex items-center">
-                                                    <span className="w-full border-t border-gray-200" />
-                                                </div>
-                                                <div className="relative flex justify-center text-xs uppercase tracking-wide text-muted-foreground">
-                                                    <span className="bg-white px-2">Or with email</span>
-                                                </div>
-                                            </div>
-
-                                            <EmailPasswordForm mode={authMode} next={successPath} />
-                                        </>
-                                    )}
+                                    {/* Waarom hier geen inlogformulier staat. Zonder deze regel
+                                        leest het weghalen ervan als iets dat vergeten is, en
+                                        gaat iemand op de website inloggen in de veronderstelling
+                                        dat de extensie dan meedoet. */}
+                                    <p className="flex gap-2 items-start rounded-lg border border-azure/10 bg-azure/5 p-3 text-xs text-grey leading-relaxed">
+                                        <Puzzle className="h-4 w-4 flex-shrink-0 mt-0.5 text-azure" aria-hidden="true" />
+                                        <span>{t('steps.login.instructions.note')}</span>
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -176,6 +149,19 @@ export default function OnboardingPage() {
                             </CardContent>
                         </Card>
 
+                    </div>
+
+                    {/* De enige link naar /onboarding/success die er nog is.
+                        Die pagina werd tot nu toe bereikt als redirect ná het
+                        inlogformulier hierboven; met dat formulier weg zou hij
+                        nergens meer vandaan te bereiken zijn, terwijl er de
+                        uitleg staat van wat je op LinkedIn kunt doen. */}
+                    <div className="mt-12 text-center">
+                        <Button asChild size="lg" variant="outline">
+                            <Link href="/onboarding/success">
+                                {t('cta.next')}
+                            </Link>
+                        </Button>
                     </div>
                 </section>
             </main >

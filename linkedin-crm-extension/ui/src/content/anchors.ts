@@ -151,3 +151,26 @@ export function findActionContainer(anchor: HTMLElement): HTMLElement | null {
     const container = slot?.parentElement ?? anchor.parentElement;
     return container instanceof HTMLElement ? container : null;
 }
+
+/**
+ * The node to insert our button after: the anchor's `[data-display-contents]`
+ * slot when it has one, otherwise the anchor itself.
+ *
+ * This is the other half of findActionContainer, and it has to agree with it.
+ * The container is the slot's *parent*, so the anchor is a grandchild of it —
+ * meaning `container.insertBefore(button, anchor)` throws NotFoundError and
+ * `anchor.parentElement.appendChild(button)` quietly puts our button inside
+ * another action's slot, where `display: contents` makes it inherit that
+ * action's layout box.
+ *
+ * Returning the slot fixes both: it is a direct child of the container, so
+ * inserting after it lands the button in the row, beside the other actions.
+ *
+ * The caller must still check that the result's parent really is the container
+ * before inserting after it — see main.js. A null parent is possible on a node
+ * LinkedIn has detached between the query and the insert.
+ */
+export function findInsertionReference(anchor: HTMLElement): HTMLElement {
+    const slot = anchor.closest('[data-display-contents]');
+    return slot instanceof HTMLElement ? slot : anchor;
+}

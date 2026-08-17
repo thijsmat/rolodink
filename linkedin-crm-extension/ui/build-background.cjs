@@ -1,6 +1,4 @@
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 // Compile background script with Vite (to bundle dependencies)
 console.log('Building background script with Vite...');

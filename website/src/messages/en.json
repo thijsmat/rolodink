@@ -612,8 +612,13 @@
                 "description": "Click the puzzle piece icon in your toolbar and pin Rolodink for easy access."
             },
             "login": {
-                "title": "Create your Account",
-                "description": "Sign up to start saving notes and organizing your LinkedIn network."
+                "title": "Sign in from the extension",
+                "description": "Signing in happens inside the Rolodink window itself. You can create your account there too.",
+                "instructions": {
+                    "open": "Click the Rolodink icon in your toolbar to open the window.",
+                    "choose": "Pick \"Sign Up\" for a new account, or \"Log In\" if you already have one — with LinkedIn or with email.",
+                    "note": "Signing in on this website does not sign in the extension: they are two separate sessions. Only signing in from the extension window counts."
+                }
             },
             "vault": {
                 "title": "Automatic encryption",
@@ -623,8 +628,7 @@
         "cta": {
             "signup": "Create Free Account",
             "login": "I already have an account",
-            "toggleSignup": "Sign Up",
-            "toggleLogin": "Log In"
+            "next": "Next — what you can do on LinkedIn"
         }
     }
 }
