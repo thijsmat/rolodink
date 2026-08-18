@@ -95,9 +95,26 @@ jobs:
         run: ls -lh dist/
         working-directory: .
 
+      # RELEASE_NOTES_vX.Y.Z.md is the release's actual notes, written in the
+      # version-bump PR. Until now nothing read it: this step ran envsubst over
+      # the template unconditionally, so every published release carried the
+      # template's placeholder text - "Brief summary of what's new in this
+      # release." went out to users on v1.3.4 while a full, accurate
+      # RELEASE_NOTES_v1.3.4.md sat unused in the repository.
+      #
+      # The template stays as the fallback for a release cut without notes, and
+      # says so rather than pretending to be a summary.
       - name: Prepare Release Notes
         id: prepare_notes
-        run: envsubst < .github/RELEASE_TEMPLATE.md > RELEASE_NOTES.md
+        run: |
+          NOTES="RELEASE_NOTES_v${VERSION}.md"
+          if [ -f "$NOTES" ]; then
+            cp "$NOTES" RELEASE_NOTES.md
+            echo "Using $NOTES"
+          else
+            echo "::warning::$NOTES not found - falling back to the template. Write the notes before publishing."
+            envsubst < .github/RELEASE_TEMPLATE.md > RELEASE_NOTES.md
+          fi
 
       # tag_name is explicit because on a manual run GITHUB_REF is a branch, not
       # the tag. For a draft the tag is only created when you publish, so this

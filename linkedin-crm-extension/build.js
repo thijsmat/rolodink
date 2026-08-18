@@ -22,6 +22,23 @@ function extensionIdFromKey(base64Key) {
     .join('');
 }
 
+// Stores that refuse a package whose manifest carries `key`.
+//
+// Microsoft Partner Center validates the uploaded manifest and rejects it
+// outright: "The manifest shouldn't contain the key field." That is a hard
+// validation error, not a warning - the submission never reaches review, and
+// the publish workflow fails with "Failed to validate the add-on". It is what
+// broke the v1.3.4 Edge publish while Chrome accepted the identical field.
+//
+// The cost is real but small and only local: an Edge build loaded unpacked
+// gets a path-derived ID instead of the store's, so its OAuth redirect
+// (https://<id>.chromiumapp.org/provider_cb) will not match Supabase's
+// allowlist. That affects testing sign-in in an unpacked Edge build, nothing
+// users see - the store build gets its identity from Partner Center regardless.
+// Chrome, which is where the unpacked browser checks actually happen, keeps
+// the key.
+const TARGETS_REJECTING_MANIFEST_KEY = new Set(['edge']);
+
 // Pin the packaged manifest to the store's identity. See extension-keys.json
 // for why. Recomputing the ID here means a wrong key fails the build instead of
 // producing a package that loads under some other extension's identity.
@@ -32,11 +49,19 @@ async function applyExtensionKey(manifestPath) {
     return;
   }
 
+  // Verified even when the key is not written, because the check is about the
+  // file being right rather than about this particular package - a swapped or
+  // truncated key should fail every build, not only the ones that use it.
   const derivedId = extensionIdFromKey(entry.key);
   if (derivedId !== entry.id) {
     throw new Error(
       `extension-keys.json: the ${target} key derives to ${derivedId}, not the declared ${entry.id}`
     );
+  }
+
+  if (TARGETS_REJECTING_MANIFEST_KEY.has(target)) {
+    console.log(`==> ${target} rejects a manifest key; leaving the packaged manifest unpinned (store item ${entry.id})`);
+    return;
   }
 
   const manifest = await fs.readJson(manifestPath);
