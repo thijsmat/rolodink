@@ -121,3 +121,34 @@ describe('only one button and one card exist at a time', () => {
         expect(code).toMatch(/topCard\.after\(card\)/);
     });
 });
+
+describe('injection keeps checking after the page goes quiet', () => {
+    // The failure these guard against is invisible in behavioural tests: every
+    // injection function can be correct and the feature still does nothing,
+    // because nothing calls them at the moment the DOM is finally right. That
+    // is what happened - the button landed in the 49px sticky header and stayed
+    // there, while a hand-run probe seconds later found the hero without
+    // trouble. See scheduler.ts.
+
+    it('drives injection from the scheduler, not from a self-clearing lock', () => {
+        expect(code).toContain('createInjectionScheduler');
+        // `let isChecking = false` with `if (isChecking) return;` throws away
+        // every observer callback that arrives during the lock window, and the
+        // last mutations of a render burst are exactly the ones that arrive
+        // there.
+        expect(code).not.toMatch(/isChecking/);
+    });
+
+    it('does not treat the MutationObserver as the only clock', () => {
+        // If checkAndInject is called straight from the observer callback then
+        // a page that stops mutating stops being checked.
+        expect(code).not.toMatch(/new MutationObserver\(\(\) => \{\s*checkAndInject\(\)/);
+        expect(code).toMatch(/new MutationObserver\(\(\) => \{\s*scheduler\.request\(\)/);
+    });
+
+    it('gives the runtime message a deadline', () => {
+        // A promise that never settles blocks the scheduler's next round for
+        // good, and an MV3 worker can die between send and reply.
+        expect(code).toContain('RUNTIME_MESSAGE_TIMEOUT_MS');
+    });
+});
