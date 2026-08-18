@@ -1,4 +1,36 @@
-## v1.3.3 (2026-08-11) - Build Consolidation
+## v1.3.4 (2026-08-18) - LinkedIn's August 2026 Redesign
+
+LinkedIn rebuilt its profile pages, and every selector the extension used to
+find its way around them stopped matching. The button and the note card were
+gone. Nine separate faults sat behind that, and this release fixes all of them.
+
+### Fixed
+- **The "Add to Rldnk" button is back.** Every selector it used - `.pv-top-card`, `.artdeco-button--primary`, `.entry-point`, the Message button by `aria-label` - returned zero matches after the redesign, and the Message action had become an `<a>` rather than a `<button>`. The action row is now found by meaning: where a link goes, what a button does
+- **The note card is back.** It was gated on a 1st-degree check reading `.dist-value`, a class that no longer exists, so the gate could never pass for anyone
+- **Both land in the hero card**, next to Message, instead of the narrow bar that only appears once you scroll. The header is chosen by height now, which is the only property that reliably tells the two apart
+- **The card sits below the header** rather than floating over the navigation bar. It used to be inserted into the action row itself, which is a flex container, so it rendered as a panel beside the buttons
+- **Notes save again.** Every API call from the LinkedIn page was blocked by CORS; they now go through the service worker, which holds the host permission and is not subject to page CORS
+- **Notes save whatever order you work in.** The connection id was looked up once when the card was placed, so a profile added to the CRM afterwards kept being told "Add to CRM first" - and the typed note was lost
+- **Rolodink follows LinkedIn's own navigation.** The extension only ran on documents loaded at a `/in/` URL, so a profile reached from the feed, a search result or a "people also viewed" card never started it at all. Onboarding sends every new user to the feed, so the default path for a fresh install was precisely the one that could not work
+- **Injection keeps checking after the page goes quiet.** Requests arriving during a run were dropped rather than queued, and the DOM observer was the only clock - so the last mutations of LinkedIn's render burst, the ones that add the hero card, were thrown away and never revisited. This is also what repairs an injection that LinkedIn re-renders away
+- **The button and the card follow you between profiles.** Now that the script survives navigation, the previous profile's injections are torn down explicitly; without that, profile B inherited profile A's "Already added" and note
+
+### Fixed (accounts and sign-in)
+- **Signing in from the onboarding page could not sign the extension in.** The two use different storage, and nothing bridged them, so the flow it recommended was the one that did not work. Onboarding now points at the popup, which does work
+- Signing out clears the cached encryption key, and a stale key can no longer be handed to the next account
+
+### Changed
+- The extension no longer sends the API token from the page; the service worker attaches it from the session it already holds
+- A message to the service worker now times out after 15 seconds. An MV3 worker can die between send and reply, and the reply then never arrives
+
+### Tests
+- 93 tests now run in the extension workspace, which had no test runner at all before this work. They cover the DOM logic against two real captures of the redesigned profile header, the header choice, the injection scheduler, and the API and auth boundaries
+- Source-level guards fail the build if a dead LinkedIn class name comes back, or if the observer is wired straight to the injection again. Behavioural tests cannot see either: a selector that matches nothing simply makes the feature quietly do nothing, which is the exact failure this release is about
+
+### Note on v1.3.3
+v1.3.3 was packaged but never published to the stores. Its contents ship here.
+
+## v1.3.3 (2026-08-11) - Build Consolidation *(never published)*
 
 No user-visible changes. This release exists so the repackaged extension ships
 under a version of its own; the behaviour on LinkedIn is identical to v1.3.2.
