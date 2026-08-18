@@ -39,6 +39,7 @@ import {
     findAnchorButton as findProfileAnchor,
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
+import { createInjectionScheduler } from './scheduler';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -53,19 +54,43 @@ import {
  * tot de Web Crypto helpers of de datasleutel. Beide gaan daarom via de
  * background service worker, die de sleutel al gecached heeft.
  */
+/**
+ * Hoe lang we op de service worker wachten voordat we het opgeven.
+ *
+ * MV3-workers gaan na ~30s inactiviteit uit. Normaal wekt sendMessage hem
+ * weer, maar sterft hij precies tussen verzenden en antwoorden, dan komt de
+ * callback nooit - en een Promise die nooit settelt houdt de aanroeper voor
+ * altijd vast. injectContextField wacht op zo'n antwoord, en de scheduler
+ * start geen nieuwe ronde zolang de vorige loopt: één hangend bericht zou dus
+ * alle verdere injectie stilleggen.
+ */
+const RUNTIME_MESSAGE_TIMEOUT_MS = 15000;
+
 function sendRuntimeMessage(message) {
     return new Promise((resolve, reject) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            reject(new Error('Geen antwoord van de achtergrondservice'));
+        }, RUNTIME_MESSAGE_TIMEOUT_MS);
+        const finish = (fn, value) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            fn(value);
+        };
         try {
             chrome.runtime.sendMessage(message, (response) => {
                 const runtimeError = chrome.runtime.lastError;
                 if (runtimeError) {
-                    reject(new Error(runtimeError.message));
+                    finish(reject, new Error(runtimeError.message));
                     return;
                 }
-                resolve(response);
+                finish(resolve, response);
             });
         } catch (error) {
-            reject(error);
+            finish(reject, error);
         }
     });
 }
@@ -707,8 +732,6 @@ function findAnchorButton() {
 
 // MutationObserver to watch for DOM changes (supports SPA navigation)
 function observeAndInject() {
-    // Throttle observer callbacks to avoid excessive checks
-    let isChecking = false;
     let loggedMissingAnchor = false;
 
     // The profile the current injections belong to. The manifest matches all of
@@ -735,18 +758,21 @@ function observeAndInject() {
         window.hasLoggedTopCardError = false;
         loggedMissingAnchor = false;
         activeProfilePath = path;
+        // Terug naar het snelle ritme: een nieuw profiel verdient dezelfde
+        // aandacht als het eerste, en LinkedIn bouwt het opnieuw op.
+        scheduler.restart();
         if (removed > 0) {
             console.log(`Rolodink: navigatie naar ${path ?? 'een niet-profielpagina'} - oude injecties opgeruimd`);
         }
     };
 
+    // Serialisatie en herhaling liggen bij de scheduler, niet hier: die
+    // garandeert dat rondes elkaar niet overlappen én dat er altijd nog een
+    // ronde komt. Wat hier stond - `if (isChecking) return;` met een lock die
+    // 500ms later viel - deed alleen het eerste. Zie scheduler.ts.
     const checkAndInject = async () => {
         // Stop if extension context is dead
         if (window.rolodinkExtensionInvalidated) return;
-
-        // Prevent multiple simultaneous checks
-        if (isChecking) return;
-        isChecking = true;
 
         try {
             const path = currentProfilePath(location.pathname);
@@ -776,17 +802,19 @@ function observeAndInject() {
             if (err.message && err.message.includes('Extension context invalidated')) {
                 window.rolodinkExtensionInvalidated = true;
                 showDebugBanner('Rolodink: Extension invalidated. PLEASE RELOAD PAGE.', 'red');
-                if (typeof observer !== 'undefined') observer.disconnect();
+                observer.disconnect();
+                scheduler.stop();
                 return;
             }
             console.error('Rolodink: Global injection error:', err);
             // showDebugBanner(`Rolodink Error: ${err.message}`, 'red');
-        } finally {
-            setTimeout(() => {
-                isChecking = false;
-            }, 500);
         }
     };
+
+    // De klok van de injectie. Bewust niet alleen de MutationObserver: die
+    // zwijgt zodra LinkedIn klaar is met renderen, en juist dan staat de hero
+    // er eindelijk. Zie scheduler.ts voor wat dat kostte.
+    const scheduler = createInjectionScheduler({ run: checkAndInject });
 
     // Helper for visual debugging
     function showDebugBanner(message, color = 'red') {
@@ -826,7 +854,7 @@ function observeAndInject() {
 
     // Create MutationObserver to watch for DOM changes
     const observer = new MutationObserver(() => {
-        checkAndInject();
+        scheduler.request();
     });
 
     // Start observing the document body for changes
@@ -836,7 +864,7 @@ function observeAndInject() {
             subtree: true
         });
         // Initial check in case the button is already present
-        checkAndInject();
+        scheduler.request();
     } else {
         // Wait for body to be available
         const bodyObserver = new MutationObserver(() => {
@@ -845,7 +873,7 @@ function observeAndInject() {
                     childList: true,
                     subtree: true
                 });
-                checkAndInject();
+                scheduler.request();
                 bodyObserver.disconnect();
             }
         });
