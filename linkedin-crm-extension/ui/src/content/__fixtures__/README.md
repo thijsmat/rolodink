@@ -36,8 +36,23 @@ Two captures rather than one on purpose. A single sample cannot distinguish
 one page", and the whole point of matching on meaning instead of class names is
 that it should hold across both. Every anchor test runs against both.
 
-**Neither capture contains the connection degree.** No `1st`, no `1e`, no
-separator dot - not in text, not in an aria-label. Two page-wide console probes
-found nothing either. The note card's old `.dist-value` gate is therefore not
-merely broken but unimplementable from the header, which is why it was dropped
-rather than repaired.
+**Neither capture contains the connection degree** - and both captures are of
+the *sticky header*, which is the whole reason. A live measurement on
+2026-08-18 found "Tim Jansen · 1st" in the hero card, which neither fixture
+covers.
+
+An earlier version of this note claimed LinkedIn had stopped rendering the
+degree altogether. That was wrong, and wrong in an instructive way: every probe
+and capture behind it had only ever seen the sticky header, because
+findProfileHeader returned the first candidate in document order and that is
+the sticky one. A conclusion about "LinkedIn" was really a conclusion about the
+one card the code happened to look at.
+
+The `.dist-value` gate is still gone, and that decision stands on its own - it
+was dropped deliberately, not because the degree was unavailable. Reinstating
+it would now be possible against the hero.
+
+**Still wanted: a capture of the hero card.** Two attempts produced the sticky
+header instead. Until then the hero is covered by the synthetic document in
+header-choice.test.ts, which is labelled as synthetic precisely because it is
+not a capture.

@@ -100,3 +100,24 @@ describe('SPA navigation is handled', () => {
         expect(code).toMatch(/if \(!path\) return;/);
     });
 });
+
+/**
+ * Injection is document-wide, guarded at the call site.
+ *
+ * The sticky header and the hero are both action rows for the same profile, so
+ * a per-container check let each of them get its own "Add to Rldnk" button.
+ * Behavioural tests cannot catch that: each injection is individually correct.
+ */
+describe('only one button and one card exist at a time', () => {
+    it('checks for an existing button across the document', () => {
+        expect(code).toMatch(/getElementById\('crm-add-button'\)/);
+        // container.querySelector("#crm-add-button") was the per-container
+        // check that allowed a second button.
+        expect(code).not.toMatch(/container\.querySelector\(["']#crm-add-button/);
+    });
+
+    it('moves a misplaced card rather than leaving it behind', () => {
+        // Moved, not recreated: the textarea keeps what the user typed.
+        expect(code).toMatch(/topCard\.after\(card\)/);
+    });
+});

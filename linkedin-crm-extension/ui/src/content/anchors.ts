@@ -98,28 +98,91 @@ function containsAction(element: Element): boolean {
 }
 
 /**
- * The card for the profile currently being viewed: it links to this profile and
- * carries at least one action.
- *
- * Both conditions are needed. The link alone also matches the avatar in the
- * sticky header and any "you appeared in searches" teaser; the action alone
- * matches half the page.
- *
- * Known limit: on a page rendering both the header and a sticky duplicate, this
- * returns whichever comes first in the document. There is no class name left to
- * tell them apart and no layout to measure outside a real browser, so document
- * order is the honest answer rather than a guess dressed up as a heuristic.
+ * How tall an element renders. Injectable so the choice between candidates can
+ * be tested; jsdom lays nothing out and reports 0 for everything.
  */
-export function findProfileHeader(root: ParentNode, profilePath: string): HTMLElement | null {
-    const links = Array.from(root.querySelectorAll('a[href]'));
-    for (const link of links) {
+export type MeasureHeight = (element: HTMLElement) => number;
+
+export const measureRenderedHeight: MeasureHeight = (element) =>
+    element.getBoundingClientRect().height;
+
+/**
+ * Every card on the page that links to the profile being viewed and carries an
+ * action. There are more of these than the name suggests.
+ *
+ * Measured on a live profile (Tim Jansen, 2026-08-18): 32 of them. The compact
+ * sticky header, the hero card, and thirty post cards in the activity list -
+ * each post repeats the author's name, links to their profile, and carries
+ * Like/Comment/Repost buttons, so each one satisfies both conditions.
+ */
+export function findProfileHeaderCandidates(root: ParentNode, profilePath: string): HTMLElement[] {
+    const candidates: HTMLElement[] = [];
+    const seen = new Set<HTMLElement>();
+    for (const link of Array.from(root.querySelectorAll('a[href]'))) {
         if (!linkTargetsProfile(link, profilePath)) continue;
         let node = link.parentElement;
         for (let depth = 0; node && depth < MAX_CLIMB; depth++, node = node.parentElement) {
-            if (containsAction(node)) return node;
+            if (containsAction(node)) {
+                if (!seen.has(node)) {
+                    seen.add(node);
+                    candidates.push(node);
+                }
+                break;
+            }
         }
     }
-    return null;
+    return candidates;
+}
+
+/**
+ * The profile header proper: the tallest candidate.
+ *
+ * This used to return the first in document order, with a comment calling that
+ * "the honest answer rather than a guess dressed up as a heuristic". The honest
+ * answer turned out to be the wrong one - first in document order is the sticky
+ * header, so the button and note card landed in the bar that only appears once
+ * you scroll, instead of in the hero.
+ *
+ * Height separates them cleanly, measured on a live profile:
+ *
+ *     sticky header    49px
+ *     hero            459px
+ *     post cards   52-86px
+ *
+ * Two hypotheses were tested and discarded first, which is worth recording so
+ * nobody spends the afternoon on them again: the hero does have a self-link (so
+ * "the hero is not a candidate" is false), and the sticky header has no
+ * position:sticky or :fixed ancestor (so excluding those finds nothing).
+ *
+ * This is the `offsetHeight > 100` heuristic that #50 deleted, restored without
+ * the magic number - the tallest wins, no threshold to drift. It was deleted
+ * for being untestable rather than for being wrong; the fix for untestable is
+ * an injectable measurement, not deletion.
+ *
+ * Falls back to the sticky header when it is the only candidate, which happens
+ * if the hero has not rendered yet. main.js relocates the injections when a
+ * taller candidate appears later.
+ */
+export function findProfileHeader(
+    root: ParentNode,
+    profilePath: string,
+    measure: MeasureHeight = measureRenderedHeight
+): HTMLElement | null {
+    let best: HTMLElement | null = null;
+    // -Infinity, not -1: with -1 any candidate measuring below zero loses to the
+    // initial value and the function returns null instead of the best of a bad
+    // lot. Real heights are never negative, so this never bit in production -
+    // but "never happens in practice" is how the sticky-header bug got its
+    // comment too, and a test caught this one.
+    let bestHeight = -Infinity;
+    for (const candidate of findProfileHeaderCandidates(root, profilePath)) {
+        const height = measure(candidate);
+        if (height > bestHeight) {
+            best = candidate;
+            bestHeight = height;
+        }
+    }
+    return best;
 }
 
 /**
@@ -127,8 +190,12 @@ export function findProfileHeader(root: ParentNode, profilePath: string): HTMLEl
  * cannot be found — which the caller should log rather than swallow. A silent
  * null here is exactly how this breakage went unnoticed for so long.
  */
-export function findAnchorButton(root: ParentNode, profilePath: string): HTMLElement | null {
-    const header = findProfileHeader(root, profilePath);
+export function findAnchorButton(
+    root: ParentNode,
+    profilePath: string,
+    measure: MeasureHeight = measureRenderedHeight
+): HTMLElement | null {
+    const header = findProfileHeader(root, profilePath, measure);
     if (!header) return null;
     for (const selector of ACTION_SELECTORS) {
         const candidate = header.querySelector(selector);

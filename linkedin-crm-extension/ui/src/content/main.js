@@ -153,7 +153,25 @@ function injectCRMButton(anchorButton) {
     // own wrapper — inserting into the wrapper would put our button inside
     // another button's slot. See anchors.ts.
     const container = findActionContainer(anchorButton);
-    if (container && !container.querySelector("#crm-add-button")) {
+    if (!container) return;
+
+    // Document-wide, not per container. The check used to be
+    // container.querySelector, which meant a second candidate got its own
+    // button: the sticky header and the hero are both action rows for the same
+    // profile, so the page ended up with two "Add to Rldnk" buttons the moment
+    // both were injected into.
+    //
+    // A button in the wrong row is moved rather than left alone, because
+    // findProfileHeader now picks the tallest candidate and the hero can render
+    // after the sticky header - so the first tick may legitimately choose the
+    // sticky one and a later tick a better one.
+    const existingButton = document.getElementById('crm-add-button');
+    if (existingButton) {
+        if (container.contains(existingButton)) return;
+        existingButton.remove();
+    }
+
+    {
         const crmButton = document.createElement("button");
         crmButton.id = "crm-add-button";
         crmButton.type = "button";
@@ -344,14 +362,44 @@ function injectCRMButton(anchorButton) {
     }
 }
 
+/**
+ * Puts an already-injected note card back where it belongs.
+ *
+ * Moved rather than recreated, so the textarea keeps whatever the user has
+ * typed and its listeners stay attached. Needed because findProfileHeader picks
+ * the tallest candidate and the hero can render after the sticky header - the
+ * first tick may legitimately choose the sticky one and a later tick a better
+ * one.
+ *
+ * Its own function for SonarCloud S3776: injectContextField was at cognitive
+ * complexity 16 against the 15 allowed, and relocating is a separate job from
+ * building.
+ *
+ * Returns true when a card already exists, meaning the caller has nothing left
+ * to build.
+ */
+function relocateExistingCard(topCard) {
+    const cards = Array.from(document.querySelectorAll('.rolodink-context-field'));
+    if (cards.length === 0) return false;
+
+    const [card, ...duplicates] = cards;
+    // Duplicates are invalid but a re-render race can produce them.
+    duplicates.forEach((duplicate) => duplicate.remove());
+    if (card.previousElementSibling !== topCard) {
+        topCard.after(card);
+    }
+    return true;
+}
+
 // Function to inject the Context Field (Note)
 async function injectContextField() {
 
     // 1. Check if already injected OR currently injecting (Race condition fix)
     // Check for ID OR class presence to catch any duplicates
-    if (document.getElementById('rolodink-context-field') ||
-        document.querySelectorAll('.rolodink-context-field').length > 0 ||
-        window.rolodinkIsInjecting) {
+    // Only the lock here. Whether an existing card is in the right place cannot
+    // be judged before the header is known, so that decision moved down to
+    // where topCard exists.
+    if (window.rolodinkIsInjecting) {
         return;
     }
 
@@ -397,21 +445,29 @@ async function injectContextField() {
             return;
         }
 
-        // The 1st-degree gate that stood here is gone, and not because it was
-        // inconvenient: LinkedIn no longer renders the connection degree at all.
-        // It read '.dist-value', then fell back to scanning
-        // span[aria-hidden="true"] for "1st"/"1e". Two page-wide console probes
-        // on live profiles found no degree text anywhere, and neither capture in
-        // __fixtures__ contains one - asserted, so a future capture that does
-        // carry it again will fail that test and tell us the gate could return.
+        if (relocateExistingCard(topCard)) {
+            window.rolodinkIsInjecting = false;
+            return;
+        }
+
+        // The 1st-degree gate that stood here is gone. The reason recorded here
+        // was wrong: LinkedIn does still render the connection degree, in the
+        // hero card ("Tim Jansen · 1st", measured 2026-08-18). Every probe
+        // behind the old claim had only seen the sticky header, because this
+        // code was looking at the sticky header.
+        // It read '.dist-value', which is dead, and then scanned
+        // span[aria-hidden="true"] for "1st"/"1e" inside whatever
+        // findProfileHeader returned - and that was the sticky header, which
+        // does not carry the degree. So the gate could never pass, and an
+        // always-false gate means the note card never appears for anyone.
         //
-        // With the degree unavailable the gate was not broken but
-        // unimplementable, and an always-false gate means the note card never
-        // appears for anyone. Dropping it also makes the two injections
-        // consistent: the "Add to Rldnk" button has never had a degree
-        // requirement. The real gate was always further down anyway - without a
-        // connection in the CRM the card says "Add to CRM first" and cannot
-        // save.
+        // It stays dropped, but on its own merits rather than on the claim it
+        // was dropped for. The "Add to Rldnk" button has never had a degree
+        // requirement, so removing it makes the two injections consistent, and
+        // the real gate is further down anyway: without a connection in the CRM
+        // the card says "Add to CRM first" and cannot save. Now that the hero is
+        // the header, reinstating a degree check would be possible - that is a
+        // product decision, not a repair.
 
         // 4. Find the action row, with the same helpers the button uses.
         //
