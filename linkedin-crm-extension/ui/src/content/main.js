@@ -35,6 +35,7 @@ import {
     findCardInsertionPoint,
     findInsertionReference,
     findLabelClassNames,
+    removeInjectedElements,
     findAnchorButton as findProfileAnchor,
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
@@ -654,6 +655,35 @@ function observeAndInject() {
     let isChecking = false;
     let loggedMissingAnchor = false;
 
+    // The profile the current injections belong to. The manifest matches all of
+    // LinkedIn now, so this script lives across SPA navigations: the user
+    // arrives on the feed, clicks through to a profile, and on to the next -
+    // all without a document load. Injection state that used to die with the
+    // page has to be torn down by hand when the path changes, or profile B
+    // inherits profile A's button ("Already added" about somebody else) and
+    // note card (somebody else's note, and a connectionId that saves to it).
+    let activeProfilePath = currentProfilePath(location.pathname);
+
+    // Tears down the previous profile's UI and state when the path changes.
+    // Its own function (SonarCloud S3776): navigation handling is a separate
+    // responsibility from injection, and inlining it pushed checkAndInject
+    // over the complexity threshold.
+    const handleNavigation = (path) => {
+        if (path === activeProfilePath) return;
+        const removed = removeInjectedElements(document);
+        // The per-page flags belong to the old profile too. Without this, a
+        // warning logged on profile A suppresses the same warning on profile
+        // B, and a stuck injection lock from a mid-navigation teardown would
+        // block injection forever.
+        window.rolodinkIsInjecting = false;
+        window.hasLoggedTopCardError = false;
+        loggedMissingAnchor = false;
+        activeProfilePath = path;
+        if (removed > 0) {
+            console.log(`Rolodink: navigatie naar ${path ?? 'een niet-profielpagina'} - oude injecties opgeruimd`);
+        }
+    };
+
     const checkAndInject = async () => {
         // Stop if extension context is dead
         if (window.rolodinkExtensionInvalidated) return;
@@ -663,6 +693,13 @@ function observeAndInject() {
         isChecking = true;
 
         try {
+            const path = currentProfilePath(location.pathname);
+            handleNavigation(path);
+
+            // Feed, search, company pages: nothing to do here. The early
+            // return keeps the observer cheap on LinkedIn's noisiest pages.
+            if (!path) return;
+
             const anchorButton = findAnchorButton();
             // Logged once, not per observer tick: the MutationObserver fires
             // continuously on LinkedIn. Without this, "no anchor button found"
@@ -764,10 +801,16 @@ function observeAndInject() {
 
 // Initialize the observer when the script loads.
 //
-// The startup line is deliberate. Until it existed there was no way to tell a
-// content script that never ran from one that ran and found nothing - the
-// manifest only injects on a document whose URL matches, so arriving at a
-// profile through LinkedIn's own SPA navigation silently skips injection. Both
-// cases looked identical from the console: no button, no error.
+// The startup line is deliberate: it is what tells a content script that never
+// ran apart from one that ran and found nothing.
+//
+// The manifest matches all of linkedin.com, not just /in/*. It used to match
+// only profile documents, which meant a profile reached through LinkedIn's own
+// SPA navigation - the feed, a search result, a "people also viewed" card -
+// never loaded this script at all: no document load, no injection, no error.
+// Onboarding sends every new user to the feed, so the default path for a fresh
+// install was precisely the one that could never work. The observer now runs
+// everywhere and checkAndInject gates on currentProfilePath, which returns
+// null off-profile.
 console.log(`Rolodink: content script actief op ${location.href}`);
 observeAndInject();
