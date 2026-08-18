@@ -216,6 +216,32 @@ jobs:
           console.log(`chrome package is pinned to ${id}`);
         '
 
+    # The mirror image, and the guard that was missing when it mattered. Edge's
+    # Partner Center rejects a manifest carrying `key` - "The manifest
+    # shouldn't contain the key field" - so the v1.3.4 Edge submission failed
+    # validation while Chrome accepted the same field without complaint. That
+    # only surfaced after the release was published, because packaging in CI
+    # only ever built the chrome target.
+    - name: Package extension (edge) and verify it carries no manifest key
+      working-directory: ./linkedin-crm-extension
+      run: |
+        node build.js edge
+        node -e '
+          const m = require("../dist/tmp/edge/manifest.json");
+          if (m.key) {
+            console.error("manifest.key present in the edge package - Partner Center will reject this upload");
+            process.exit(1);
+          }
+          const chrome = require("../dist/tmp/chrome/manifest.json");
+          const differing = [...new Set([...Object.keys(m), ...Object.keys(chrome)])]
+            .filter(k => JSON.stringify(m[k]) !== JSON.stringify(chrome[k]));
+          if (differing.join() !== "key") {
+            console.error(`edge and chrome manifests differ in more than the key: ${differing.join(", ")}`);
+            process.exit(1);
+          }
+          console.log("edge package carries no key and is otherwise identical to chrome");
+        '
+
   # Backend Build & Test
   backend:
     permissions:

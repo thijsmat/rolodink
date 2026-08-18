@@ -3,6 +3,17 @@ name: Publish Edge Extension
 on:
   release:
     types: [published]
+  # A store upload that fails leaves nothing to retry: this workflow only ever
+  # fired on `release: published`, so recovering meant unpublishing the release
+  # and publishing it again. That is exactly the situation v1.3.4 landed in -
+  # Chrome rejected an expired refresh token and Edge rejected the package, and
+  # neither could be retried once the cause was fixed.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag whose assets to publish, e.g. ext-v1.3.4'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -33,7 +44,7 @@ jobs:
         id: download_artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
         run: |
           # Release assets worden pas na het publiceren van de release geüpload,
           # dus wachten met retries in plaats van direct falen op de race.

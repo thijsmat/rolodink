@@ -1,10 +1,9 @@
 # Rolodink v${VERSION}
 
-## Highlights
-- Brief summary of what’s new in this release.
-
-## Changes
-- Auto-generated release notes will appear here. If empty, summarize notable commits.
+> No `RELEASE_NOTES_v${VERSION}.md` was found in the repository, so this
+> release is describing itself with the fallback template. See
+> [CHANGELOG.md](https://github.com/thijsmat/rolodink/blob/main/CHANGELOG.md)
+> for what actually changed, and the auto-generated commit list below.
 
 ## 📥 Installation
 
