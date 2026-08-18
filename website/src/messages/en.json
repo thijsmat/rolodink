@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.3.4 • Free",
+        "version": "Version 1.3.5 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -210,6 +210,21 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.5",
+                "date": "August 18, 2026",
+                "sections": [
+                    {
+                        "title": "Delivery fix",
+                        "items": [
+                            "Nothing changes in the extension itself: a fault in our release process meant v1.3.4 reached Firefox only.",
+                            "If you use Chrome or Edge, this version brings you everything in v1.3.4 — the nine fixes for LinkedIn's August 2026 redesign.",
+                            "The Edge package was rejected by the store over a field Chrome actually needs; that is now decided per store.",
+                            "Release notes we write are now the ones that actually get published."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.4",
                 "date": "August 18, 2026",

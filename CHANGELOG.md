@@ -1,4 +1,25 @@
-## v1.3.4 (2026-08-18) - LinkedIn's August 2026 Redesign
+## v1.3.5 (2026-08-18) - Delivery Fix
+
+No change to what the extension does. This release exists because v1.3.4
+reached only one of the three stores.
+
+**If you use Chrome or Edge, this is the release that brings you everything in
+v1.3.4** - the nine fixes for LinkedIn's August 2026 redesign. Firefox already
+has them.
+
+### Fixed (release pipeline)
+- The Edge package no longer carries a `key` field in its manifest. Partner Center rejects such a package outright - "The manifest shouldn't contain the key field" - so the v1.3.4 Edge submission failed validation before it ever reached review. Chrome accepts the same field and keeps it
+- Published releases now carry the notes written for them. `release.yml` ran `envsubst` over the template unconditionally and never read `RELEASE_NOTES_vX.Y.Z.md`, so v1.3.4 went out telling users "Brief summary of what's new in this release." while a complete set of notes sat unused in the repository
+- A failed store upload can be retried. The three publish workflows fired only on `release: published`, so recovering from one store's failure meant unpublishing and republishing the release
+
+### CI
+- Packaging in pull-request CI now builds the Edge target as well, and fails if its manifest carries a key or differs from Chrome's in anything else. Only Chrome was packaged before, which is why a broken Edge package could reach a published release
+
+### Note on v1.3.4
+Published to Firefox only. The Chrome upload failed on an expired store
+credential, unrelated to the package.
+
+## v1.3.4 (2026-08-18) - LinkedIn's August 2026 Redesign *(Firefox only)*
 
 LinkedIn rebuilt its profile pages, and every selector the extension used to
 find its way around them stopped matching. The button and the note card were
