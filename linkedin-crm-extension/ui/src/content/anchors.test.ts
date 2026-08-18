@@ -324,11 +324,15 @@ describe.each(CAPTURES)('holds for capture $name', ({ html, path }) => {
         expect(slots.some((slot) => slot.contains(button))).toBe(false);
     });
 
-    it('has no connection degree anywhere', () => {
-        // The finding that killed the note card's 1st-degree gate. Asserted so
-        // that if a future capture does carry the degree again, this fails and
-        // tells us the gate could be reinstated - rather than the knowledge
-        // living only in a commit message.
+    it('has no connection degree in these sticky-header captures', () => {
+        // Both captures are of the sticky header, and that is what this
+        // records: the degree is absent *there*. It is present in the hero -
+        // "Tim Jansen · 1st", measured live on 2026-08-18 - which no fixture
+        // covers yet.
+        //
+        // This assertion used to be titled "has no connection degree anywhere"
+        // and was read as a fact about LinkedIn. It was only ever a fact about
+        // the one card findProfileHeader happened to return.
         const doc = render(html);
         const text = doc.body.textContent ?? '';
         expect(text).not.toMatch(/\b(1st|2nd|3rd)\b/);
