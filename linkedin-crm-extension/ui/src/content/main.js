@@ -362,6 +362,35 @@ function injectCRMButton(anchorButton) {
     }
 }
 
+/**
+ * Puts an already-injected note card back where it belongs.
+ *
+ * Moved rather than recreated, so the textarea keeps whatever the user has
+ * typed and its listeners stay attached. Needed because findProfileHeader picks
+ * the tallest candidate and the hero can render after the sticky header - the
+ * first tick may legitimately choose the sticky one and a later tick a better
+ * one.
+ *
+ * Its own function for SonarCloud S3776: injectContextField was at cognitive
+ * complexity 16 against the 15 allowed, and relocating is a separate job from
+ * building.
+ *
+ * Returns true when a card already exists, meaning the caller has nothing left
+ * to build.
+ */
+function relocateExistingCard(topCard) {
+    const cards = Array.from(document.querySelectorAll('.rolodink-context-field'));
+    if (cards.length === 0) return false;
+
+    const [card, ...duplicates] = cards;
+    // Duplicates are invalid but a re-render race can produce them.
+    duplicates.forEach((duplicate) => duplicate.remove());
+    if (card.previousElementSibling !== topCard) {
+        topCard.after(card);
+    }
+    return true;
+}
+
 // Function to inject the Context Field (Note)
 async function injectContextField() {
 
@@ -416,17 +445,7 @@ async function injectContextField() {
             return;
         }
 
-        // An existing card is moved rather than recreated, so the textarea keeps
-        // whatever the user has typed and its listeners stay attached. Same
-        // reason as the button above: a later tick can find a taller candidate.
-        const existingCards = Array.from(document.querySelectorAll('.rolodink-context-field'));
-        if (existingCards.length > 0) {
-            const [card, ...duplicates] = existingCards;
-            // Duplicates are invalid but a re-render race can produce them.
-            duplicates.forEach((duplicate) => duplicate.remove());
-            if (card.previousElementSibling !== topCard) {
-                topCard.after(card);
-            }
+        if (relocateExistingCard(topCard)) {
             window.rolodinkIsInjecting = false;
             return;
         }
