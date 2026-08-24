@@ -136,12 +136,14 @@ describe('cleanProfileName: known defects, pinned deliberately', () => {
  * backend imports it). When the last one goes, this block fails with a clear
  * message: that is the signal to delete it, not to repair it.
  */
-// content.js is gone from this list: the bundled content script imports
-// cleanProfileName from this package (PR 4), so there is no copy left to
-// compare against. The remaining two disappear with the Firefox unification
-// and the backend import; when the last one goes, delete this block.
+// Two of the three are gone. content.js went first: the bundled content script
+// imports cleanProfileName from this package (PR 4). content-firefox.js
+// followed when Firefox stopped running its own fork and started shipping the
+// same bundle - there is no separate copy left to compare against.
+//
+// One remains. When the backend imports from core too, this whole block has
+// nothing to compare and should be deleted rather than repaired.
 const LEGACY_SOURCES = [
-    ['content-firefox.js', '../../../linkedin-crm-extension/content-firefox.js'],
     ['backend connections route', '../../../linkedin-crm-backend/src/app/api/connections/route.ts'],
 ] as const;
 

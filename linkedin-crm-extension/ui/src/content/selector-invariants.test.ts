@@ -152,3 +152,30 @@ describe('injection keeps checking after the page goes quiet', () => {
         expect(code).toContain('RUNTIME_MESSAGE_TIMEOUT_MS');
     });
 });
+
+describe('one bundle runs on all three browsers', () => {
+    // Firefox shipped a separate content-firefox.js until this landed - 353
+    // lines against 900, with no injectContextField, so its users never had the
+    // inline note card. Nothing announced that: the fork simply existed, and
+    // every fix written here stopped at Chrome and Edge.
+    //
+    // What kept the fork alive was one real difference, and reintroducing a
+    // bare chrome.* call is how it comes back. In Firefox `chrome.storage.local
+    // .get()` called without a callback does not return a promise, so an
+    // `await` on it resolves to undefined and the settings read silently yields
+    // nothing - a fault that looks like a preference problem, on a browser
+    // nobody here can open.
+
+    it('talks to the platform through the adapter, not through chrome.* directly', () => {
+        expect(code).toContain('getBrowserApi');
+        // Matches chrome.runtime / chrome.storage / chrome.tabs and friends,
+        // but not the word inside an identifier.
+        expect(code).not.toMatch(/\bchrome\.\w/);
+    });
+
+    it('does not assume the platform is there', () => {
+        // The content script outlives its extension: a reload or an uninstall
+        // leaves it running in a page that was never ours.
+        expect(code).toMatch(/if\s*\(!platform/);
+    });
+});
