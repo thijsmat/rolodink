@@ -13,14 +13,23 @@ This document contains everything needed to submit Rolodink to Firefox Add-ons (
     npm install
     npm run build
     ```
-  - Package Firefox build (MV2 bundle used by AMO):
+  - Package the Firefox build (Manifest V3, `browser_specific_settings.gecko`):
     ```bash
-    # Minimal clean package already prepared as Rolodink-Firefox-1.0.3.zip
-    # To rebuild locally without rsync:
-    #  - Copy icons/, icon.png, content-firefox.js → content.js, manifest-firefox.json → manifest.json
-    #  - Copy ui/dist/ (built assets)
-    #  - Zip into Rolodink-Firefox-1.0.3.zip
+    cd linkedin-crm-extension
+    node build.js firefox        # -> dist/Rolodink-firefox-vX.Y.Z.zip
     ```
+    This is the script the release workflow runs; there is no separate manual
+    path. It builds the UI, uses `manifest-firefox.json` as the manifest, and
+    ships the same `content.js` bundle as Chrome and Edge. Firefox ran its own
+    `content-firefox.js` until that fork was dissolved; the file no longer
+    exists.
+  - Source archive for review:
+    ```bash
+    ./scripts/prepare-firefox-source.sh   # -> .web-ext-src/
+    ```
+    It reproduces the repository layout, because `ui` resolves
+    `@rolodink/core` to `../../packages/core/src` — above the extension
+    directory.
 - Dependencies
   - Runtime: Chrome/Firefox WebExtension APIs, React 18
   - Build-time: Node.js 18+, Vite 5, TypeScript 5, ESLint
@@ -28,7 +37,7 @@ This document contains everything needed to submit Rolodink to Firefox Add-ons (
 - Minification/transpilation
   - Vite builds the UI into `ui/dist/` with ES module bundling and minification
   - No source maps or TypeScript sources are shipped in the final ZIP
-  - Content script is plain JS (`content.js`)
+  - The content script is bundled by Vite from `ui/src/content/` into `content.js`, the name the manifest declares
 
 ---
 

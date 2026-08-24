@@ -98,16 +98,19 @@ async function build() {
 
   await applyExtensionKey(path.join(tmpDir, 'manifest.json'));
 
-  // Chrome/Edge ship the BUNDLED content script (ui/src/content/main.js ->
+  // Every target ships the BUNDLED content script (ui/src/content/main.js ->
   // dist/content.js, built by build-content.cjs and copied in with the UI
   // artifacts above). Do not add a copy step for it here: the line that used
   // to sit here silently overwrote the bundle with the raw source after every
-  // build. Firefox still runs its own hand-maintained content-firefox.js —
-  // that fork is dissolved in its own PR, not smuggled into this one — and
-  // the copy below deliberately overwrites the bundle in the Firefox package.
-  if (target === 'firefox') {
-    await fs.copy(path.join(extDir, 'content-firefox.js'), path.join(tmpDir, 'content.js'));
-  }
+  // build.
+  //
+  // Firefox used to be the exception, overwriting the bundle with its own
+  // content-firefox.js. That file is gone. It was 353 lines against 900 and
+  // had no injectContextField at all, so Firefox users never had the inline
+  // note card - a missing feature dressed up as a platform difference. The
+  // platform difference that was real (browser.* takes promises, chrome.*
+  // takes callbacks) lives in ui/src/content/browser-api.ts now, where it is
+  // tested against a fake of each.
 
   // The manifest declares content.js literally; a package without it is a
   // broken extension, so fail the build rather than zip it up.

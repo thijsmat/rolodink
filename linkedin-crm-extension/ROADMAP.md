@@ -271,9 +271,12 @@ npm run build
 cd ..
 
 # Create ZIP for Firefox
+# Historical. `node build.js firefox` does all of this now, and Firefox no
+# longer has its own content-firefox.js - all three targets ship the same
+# bundle.
 zip -r rolodink-v1.0.3-firefox.zip \
   manifest.json \
-  content-firefox.js \
+  content.js \
   icon.png \
   icons/ \
   ui/dist/ \

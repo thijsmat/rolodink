@@ -40,6 +40,7 @@ import {
     findProfileHeader as findProfileHeaderElement,
 } from './anchors';
 import { createInjectionScheduler } from './scheduler';
+import { getBrowserApi } from './browser-api';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -66,7 +67,20 @@ import { createInjectionScheduler } from './scheduler';
  */
 const RUNTIME_MESSAGE_TIMEOUT_MS = 15000;
 
+/**
+ * Het extensieplatform waar dit script op draait: browser.* in Firefox,
+ * chrome.* in Chrome en Edge. Zie browser-api.ts - daar zit het verschil, en
+ * daar is het getest tegen een nagemaakte versie van allebei.
+ *
+ * Kan null zijn. Dat is geen theorie: dit script blijft draaien nadat de
+ * extensie herladen of verwijderd is, en de pagina eromheen is niet van ons.
+ */
+const platform = getBrowserApi();
+
 function sendRuntimeMessage(message) {
+    if (!platform) {
+        return Promise.reject(new Error('Extensie-API niet beschikbaar'));
+    }
     return new Promise((resolve, reject) => {
         let settled = false;
         const timer = setTimeout(() => {
@@ -80,18 +94,10 @@ function sendRuntimeMessage(message) {
             clearTimeout(timer);
             fn(value);
         };
-        try {
-            chrome.runtime.sendMessage(message, (response) => {
-                const runtimeError = chrome.runtime.lastError;
-                if (runtimeError) {
-                    finish(reject, new Error(runtimeError.message));
-                    return;
-                }
-                finish(resolve, response);
-            });
-        } catch (error) {
-            finish(reject, error);
-        }
+        platform.sendMessage(message).then(
+            (response) => finish(resolve, response),
+            (error) => finish(reject, error),
+        );
     });
 }
 
@@ -433,11 +439,11 @@ async function injectContextField() {
 
     try {
         // 2. Check settings
-        if (!chrome || !chrome.storage || !chrome.storage.local) {
+        if (!platform || !platform.hasStorage()) {
             window.rolodinkIsInjecting = false;
             return;
         }
-        const result = await chrome.storage.local.get(['contextFieldEnabled']);
+        const result = await platform.storageGet(['contextFieldEnabled']);
         if (result.contextFieldEnabled === false) {
             window.rolodinkIsInjecting = false;
             return;
@@ -546,7 +552,7 @@ async function injectContextField() {
             closeBtn.onclick = async () => {
                 if (confirm('Hide this field? You can re-enable it in the extension settings.')) {
                     container.remove();
-                    await chrome.storage.local.set({ contextFieldEnabled: false });
+                    await platform.storageSet({ contextFieldEnabled: false });
                 }
             };
             header.appendChild(closeBtn);

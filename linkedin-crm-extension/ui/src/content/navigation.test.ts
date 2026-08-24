@@ -1,18 +1,31 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { removeInjectedElements } from './anchors';
 // The manifest is part of the navigation behaviour: SPA support is the pair
 // (match all of LinkedIn) + (gate on the path in the script). Asserting only
 // the script half would let the manifest quietly narrow back to /in/*, which
 // silently reintroduces the bug for every SPA navigation.
 import manifestRaw from '../../../manifest.json?raw';
+// Both manifests, because all three targets now ship the same bundle. Firefox
+// was deliberately left at /in/* while it ran its own content-firefox.js,
+// which had no path gating; that fork is gone, so the narrowing has no reason
+// to survive either - and an untested second manifest is exactly where it
+// would survive unnoticed.
+import firefoxManifestRaw from '../../../manifest-firefox.json?raw';
 
 beforeEach(() => {
     document.body.innerHTML = '';
 });
 
-describe('the manifest lets the script live across SPA navigations', () => {
-    const manifest = JSON.parse(manifestRaw);
-    const matches: string[] = manifest.content_scripts[0].matches;
+const MANIFESTS = [
+    ['manifest.json', manifestRaw],
+    ['manifest-firefox.json', firefoxManifestRaw],
+] as const;
+
+describe.each(MANIFESTS)('%s lets the script live across SPA navigations', (_name, raw) => {
+    const matches: string[] = JSON.parse(raw).content_scripts[0].matches;
 
     it('injects on every LinkedIn page, not only profile documents', () => {
         expect(matches).toContain('https://*.linkedin.com/*');
@@ -29,6 +42,39 @@ describe('the manifest lets the script live across SPA navigations', () => {
         for (const match of matches) {
             expect(match).toMatch(/^https:\/\/(\*\.)?linkedin\.com\//);
         }
+    });
+});
+
+describe('there are exactly two manifests', () => {
+    // There were three. ui/public/manifest.json sat at version 1.1.1 with the
+    // old /in/* matches, and Vite copies public/ wholesale into dist/, so it
+    // landed as dist/manifest.json on every build. copy-assets.cjs happened to
+    // overwrite it a step later, which is the only reason nothing shipped
+    // wrong - a trap held shut by step ordering.
+    //
+    // It did escape once: the AMO source archive builds without the extension
+    // root, so copy-assets finds no manifest to copy, and a reviewer following
+    // the build instructions ended up looking at 1.1.1 while the submitted
+    // package said 1.3.5.
+    it('does not keep a stale copy in ui/public', () => {
+        const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
+        expect(existsSync(join(publicDir, 'manifest.json'))).toBe(false);
+    });
+});
+
+describe('the two manifests agree on where the script runs', () => {
+    it('matches the same hosts', () => {
+        const [[, chromeRaw], [, firefoxRaw]] = MANIFESTS;
+        expect(JSON.parse(firefoxRaw).content_scripts[0].matches)
+            .toEqual(JSON.parse(chromeRaw).content_scripts[0].matches);
+    });
+
+    it('declares the same version', () => {
+        // build.js resolves the version from whichever manifest it packages,
+        // and release.yml checks both against the tag. A drift here means one
+        // store gets a package numbered differently from the others.
+        const [[, chromeRaw], [, firefoxRaw]] = MANIFESTS;
+        expect(JSON.parse(firefoxRaw).version).toBe(JSON.parse(chromeRaw).version);
     });
 });
 

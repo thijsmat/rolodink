@@ -242,6 +242,47 @@ jobs:
           console.log("edge package carries no key and is otherwise identical to chrome");
         '
 
+    # Firefox packaged in CI for the first time. It used to overwrite the
+    # bundle with its own content-firefox.js, so "does the Firefox package
+    # contain the same content script as the others" had no answer that CI
+    # could give - and the answer was no, for as long as anyone had been
+    # shipping fixes to it.
+    - name: Package extension (firefox) and verify it ships the same bundle
+      working-directory: ./linkedin-crm-extension
+      run: |
+        node build.js firefox
+        FIREFOX=../dist/tmp/firefox/content.js
+        CHROME=../dist/tmp/chrome/content.js
+        test -f "$FIREFOX" || { echo "content.js missing from the firefox package"; exit 1; }
+        # Checked on content rather than by comparing bytes: firefox-postbuild
+        # .cjs rewrites dist for AMO's linter (block comments stripped,
+        # .innerHTML= rewritten), so byte equality is not something to depend
+        # on even when it happens to hold. What must hold is that Firefox
+        # ships the bundle rather than a hand-maintained fork.
+        grep -q "rolodink-enc:" "$FIREFOX" || { echo "encryption prefix missing - wrong file in package"; exit 1; }
+        grep -q "rolodink-context-field" "$FIREFOX" || {
+          echo "the note card is missing from the firefox package - is this the old content-firefox.js?"
+          exit 1
+        }
+        SIZE=$(stat -c%s "$FIREFOX")
+        CHROME_SIZE=$(stat -c%s "$CHROME")
+        # The old fork was 353 lines against 900. Anything close to half the
+        # Chrome bundle is not the same content script.
+        if [ "$SIZE" -lt $((CHROME_SIZE * 3 / 4)) ]; then
+          echo "firefox content.js is $SIZE bytes against chrome's $CHROME_SIZE - not the same bundle"
+          exit 1
+        fi
+        node -e '
+          const m = require("../dist/tmp/firefox/manifest.json");
+          if (m.key) { console.error("manifest.key present in the firefox package"); process.exit(1); }
+          if (!m.browser_specific_settings?.gecko?.id) {
+            console.error("browser_specific_settings.gecko.id missing - AMO needs it to identify the add-on");
+            process.exit(1);
+          }
+          console.log(`firefox package is ${m.browser_specific_settings.gecko.id}`);
+        '
+        echo "firefox ships the bundle ($SIZE bytes against chrome's $CHROME_SIZE)"
+
   # Backend Build & Test
   backend:
     permissions:
