@@ -217,10 +217,8 @@
                     {
                         "title": "Herstelrelease",
                         "items": [
-                            "Aan de extensie zelf verandert niets: v1.3.4 bereikte door een fout in ons uitbrengproces alleen Firefox.",
-                            "Gebruik je Chrome of Edge, dan brengt deze versie je alles uit v1.3.4 — de negen fixes voor LinkedIn's herbouw van augustus 2026.",
-                            "Het Edge-pakket werd door de store geweigerd op een veld dat Chrome juist nodig heeft; dat wordt nu per store bepaald.",
-                            "Releasenotities die we schrijven worden voortaan ook daadwerkelijk gepubliceerd."
+                            "Aan de extensie zelf verandert niets. Een fout in ons uitbrengproces vertraagde v1.3.4 voor Chrome en Edge; deze versie brengt hem daar alsnog.",
+                            "Kwam je van v1.3.3 of ouder, dan krijg je hiermee de negen fixes voor LinkedIn's herbouw van augustus 2026 — zie v1.3.4 hieronder."
                         ]
                     }
                 ]
@@ -235,6 +233,7 @@
                             "LinkedIn heeft zijn profielpagina's opnieuw gebouwd; \"Add to Rldnk\" en het notitieveld waren daardoor verdwenen. Beide staan er weer.",
                             "Ze staan nu in de grote profielkaart naast Message, niet in het smalle balkje dat pas bij scrollen verschijnt.",
                             "Het notitieveld staat onder die kaart in plaats van als los paneel over de navigatiebalk.",
+                            "Let op: het notitieveld op de profielpagina werkt nog niet in Firefox. Daar draait een oudere versie van dat onderdeel; we zijn bezig die samen te voegen.",
                             "Rolodink volgt nu je klikken binnen LinkedIn: een profiel dat je opent vanuit je feed of een zoekresultaat werkt ook.",
                             "Knop en notitieveld verhuizen mee naar het volgende profiel, met de juiste gegevens erbij."
                         ]
@@ -257,6 +256,7 @@
                     {
                         "title": "Onder de motorkap",
                         "items": [
+                            "Deze versie is nooit in de stores verschenen — je hebt hem dus niet gemist. De inhoud zit in v1.3.4.",
                             "Geen zichtbare wijzigingen: deze release herschikt alleen hoe Rolodink gebouwd wordt.",
                             "De code die op LinkedIn-pagina's draait komt nu uit dezelfde gedeelde bron als de popup, dus een fix hoort nog maar op één plek thuis in plaats van drie.",
                             "Geautomatiseerde tests draaien nu bij elke wijziging voordat die uitgebracht kan worden."

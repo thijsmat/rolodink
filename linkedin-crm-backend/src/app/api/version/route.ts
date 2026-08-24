@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
+import { LATEST_EXTENSION_VERSION } from '@/lib/version';
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: buildCorsHeaders(request) });
@@ -39,10 +40,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Define latest version info
-    // Keep this in sync with the extension manifests on every release, otherwise
-    // the in-extension update notice silently stops firing.
-    const latestVersion = '1.3.3';
+    // Define latest version info. The value lives in @/lib/version, where
+    // bump-version.sh rewrites it and version.test.ts asserts it still matches
+    // both extension manifests.
+    const latestVersion = LATEST_EXTENSION_VERSION;
     const versionInfo = {
       latest: latestVersion,
       current: currentVersion,

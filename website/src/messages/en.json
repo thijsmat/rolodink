@@ -217,10 +217,8 @@
                     {
                         "title": "Delivery fix",
                         "items": [
-                            "Nothing changes in the extension itself: a fault in our release process meant v1.3.4 reached Firefox only.",
-                            "If you use Chrome or Edge, this version brings you everything in v1.3.4 — the nine fixes for LinkedIn's August 2026 redesign.",
-                            "The Edge package was rejected by the store over a field Chrome actually needs; that is now decided per store.",
-                            "Release notes we write are now the ones that actually get published."
+                            "Nothing changes in the extension itself. A fault in our release process delayed v1.3.4 for Chrome and Edge; this version delivers it there.",
+                            "Coming from v1.3.3 or older, this is what brings you the nine fixes for LinkedIn's August 2026 redesign — see v1.3.4 below."
                         ]
                     }
                 ]
@@ -235,6 +233,7 @@
                             "LinkedIn rebuilt its profile pages, which made \"Add to Rldnk\" and the note field disappear. Both are back.",
                             "They now sit in the large profile card next to Message, not in the narrow bar that only appears once you scroll.",
                             "The note field sits below that card instead of floating over the navigation bar.",
+                            "Note: the profile-page note field does not work in Firefox yet. That build still runs an older version of this part; merging the two is in progress.",
                             "Rolodink now follows your clicks inside LinkedIn: a profile opened from your feed or a search result works too.",
                             "The button and note field move with you to the next profile, carrying the right details."
                         ]
@@ -257,6 +256,7 @@
                     {
                         "title": "Under the hood",
                         "items": [
+                            "This version never reached the stores, so you did not miss it. Its contents ship in v1.3.4.",
                             "No visible changes: this release only reorganises how Rolodink is built.",
                             "The code that runs on LinkedIn pages is now built from the same shared source as the popup, so a fix has one place to live instead of three.",
                             "Automated tests now run on every change before it can be released."
