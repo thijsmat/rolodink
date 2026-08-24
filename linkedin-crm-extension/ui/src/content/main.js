@@ -439,7 +439,7 @@ async function injectContextField() {
 
     try {
         // 2. Check settings
-        if (!platform || !platform.hasStorage()) {
+        if (!platform?.hasStorage()) {
             window.rolodinkIsInjecting = false;
             return;
         }
