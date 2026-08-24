@@ -5,7 +5,7 @@
 
 VERSION=$1
 
-if [ -z "$VERSION" ]; then
+if [[ -z "$VERSION" ]]; then
   echo "Error: No version provided."
   echo "Usage: $0 <version>"
   exit 1
@@ -23,7 +23,7 @@ FILES=(
 echo "Bumping version to $VERSION..."
 
 for FILE in "${FILES[@]}"; do
-  if [ ! -f "$FILE" ]; then
+  if [[ ! -f "$FILE" ]]; then
     echo "Warning: $FILE not found, skipping."
     continue
   fi
@@ -44,7 +44,7 @@ done
 # notice started telling people an old build was the newest there was.
 # version.test.ts fails the build if this stops matching.
 VERSION_MODULE="linkedin-crm-backend/src/lib/version.ts"
-if [ -f "$VERSION_MODULE" ]; then
+if [[ -f "$VERSION_MODULE" ]]; then
   echo "Updating $VERSION_MODULE..."
   sed -i "s/^export const LATEST_EXTENSION_VERSION = '[^']*';/export const LATEST_EXTENSION_VERSION = '$VERSION';/" "$VERSION_MODULE"
 else
