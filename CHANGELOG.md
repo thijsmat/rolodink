@@ -1,3 +1,29 @@
+## v1.3.6 (2026-08-24) - One Extension, Three Browsers
+
+**Firefox gets the inline note card.** It never had one: Firefox ran a separate
+content script, `content-firefox.js`, 353 lines against 900, with no
+`injectContextField` anywhere in it. Every fix written for LinkedIn's August
+2026 redesign stopped at Chrome and Edge. All three now ship the same bundle.
+
+### Added (Firefox)
+- The "Rolodink Note" card on profile pages, with the same encryption round-trip as the other browsers
+- Injection into the hero card next to Message rather than the sticky header
+- Following LinkedIn's own navigation: a profile opened from the feed or a search result now works
+- Teardown between profiles, so one profile's button and note never carry over to the next
+- Everything else the bundled content script has gained since the fork was frozen
+
+### Changed
+- The platform difference the fork existed for now lives in one module. Firefox's `browser.*` is promise-native; Chrome's `chrome.*` takes a callback and reports failure through `runtime.lastError`. The style is chosen from which global exists, before any call - probing by calling and seeing what comes back cannot be made safe for `sendMessage`, because the call has already sent the message
+- `manifest-firefox.json` matches all of LinkedIn, like Chrome's. It was narrowed to `/in/*` because the old fork had no path gating; the bundle gates on the path itself
+
+### Fixed
+- **A third manifest.** `ui/public/manifest.json` sat at version 1.1.1 with the old `/in/*` matches. Vite copies `public/` wholesale, so it landed as `dist/manifest.json` on every build and was overwritten a step later by `copy-assets.cjs` - a trap held shut by step ordering. It escaped through the source archive, where a reviewer saw 1.1.1 against a submission of 1.3.5
+- **The AMO source archive could not be built.** It flattened the extension directory into the archive root, but `ui` resolves `@rolodink/core` above that directory, and `index.html` was never copied at all. It now reproduces the repository layout, verified by building from the archive rather than by reading the instructions
+
+### Tests
+- 121 tests in the extension workspace, up from 93. 21 of them run the same assertions against a fake of each platform - there is no Firefox in CI and none on the machine this was developed from, so a fake of each is the honest claim
+- CI packages the Firefox target for the first time and fails if its `content.js` lacks the note card or comes in well under the Chrome bundle's size
+
 ## v1.3.5 (2026-08-18) - Delivery Fix
 
 No change to what the extension does. This release exists because v1.3.4

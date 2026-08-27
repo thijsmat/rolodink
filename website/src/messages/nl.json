@@ -127,7 +127,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.3.5 • Gratis",
+        "version": "Versie 1.3.6 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -210,6 +210,27 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.6",
+                "date": "24 augustus 2026",
+                "sections": [
+                    {
+                        "title": "Voor Firefox",
+                        "items": [
+                            "Het notitieveld op profielpagina's is er nu ook in Firefox. Dat heeft het nooit gehad: Firefox draaide een apart, achtergebleven onderdeel.",
+                            "\"Add to Rldnk\" staat in de grote profielkaart naast Message, niet in het smalle balkje dat pas bij scrollen verschijnt.",
+                            "Rolodink volgt ook in Firefox je klikken binnen LinkedIn, en knop en notitieveld verhuizen mee naar het volgende profiel.",
+                            "Kortom: Firefox loopt weer gelijk met Chrome en Edge."
+                        ]
+                    },
+                    {
+                        "title": "Voor Chrome en Edge",
+                        "items": [
+                            "Niets. Er verandert geen regel aan wat jouw browser draait."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.5",
                 "date": "18 augustus 2026",
