@@ -53,7 +53,8 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup${next ? `&next=${encodeURIComponent(next)}` : ''}`,
+          // locale meegeven: de callback zit buiten het [locale]-segment.
+          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup&locale=${locale}${next ? `&next=${encodeURIComponent(next)}` : ''}`,
           data: {
             receives_updates: receivesUpdates,
           },

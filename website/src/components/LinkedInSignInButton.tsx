@@ -1,6 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
+import { useLocale } from 'next-intl'
 
 type LinkedInSignInButtonProps = {
   intent?: 'login' | 'signup'
@@ -8,10 +9,14 @@ type LinkedInSignInButtonProps = {
 }
 
 export default function LinkedInSignInButton({ intent = 'login', next }: LinkedInSignInButtonProps) {
+  const locale = useLocale()
 
   const handleSignIn = async () => {
     const redirectUrl = new URL('/auth/callback', window.location.origin)
     redirectUrl.searchParams.set('intent', intent)
+    // De callback zit buiten het [locale]-segment en kan de taal zelf niet
+    // afleiden, dus geven we hem mee.
+    redirectUrl.searchParams.set('locale', locale)
     if (next) redirectUrl.searchParams.set('next', next)
 
     const { error } = await supabase.auth.signInWithOAuth({
