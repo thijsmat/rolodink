@@ -179,3 +179,24 @@ describe('one bundle runs on all three browsers', () => {
         expect(code).toMatch(/if\s*\(!platform/);
     });
 });
+
+describe('typing a note is a request to save it', () => {
+    it('creates the connection instead of sending the user to a button', () => {
+        // The save path used to stop at "Add to CRM first" when the profile
+        // was not in the CRM yet, discarding what had just been typed. The
+        // code carried a note about it - "Optional: Auto-create connection?" -
+        // that never became anything.
+        expect(code).toContain('createConnectionForCurrentProfile');
+    });
+
+    it('keeps one profile-name selector list, in profile.ts', () => {
+        // There were two: one in the button's click handler and, had this been
+        // done inline, one in the card. Two lists of LinkedIn selectors drift,
+        // and a stale one does not raise anything - it returns an empty name
+        // and the feature quietly declines to work, which is how the August
+        // 2026 breakage stayed invisible.
+        expect(code).toContain('extractRawProfileName');
+        expect(code).not.toContain('text-heading-xlarge');
+        expect(code).not.toContain('data-test-id="profile-name"');
+    });
+});
