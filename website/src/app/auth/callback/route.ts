@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSafeRedirect } from '@/lib/utils'
+import { routing } from '@/navigation'
 
 const DEFAULT_ERROR_MESSAGE = 'Bevestiging mislukt. Probeer het opnieuw.'
 const VERIFY_TYPES = ['email', 'recovery', 'invite', 'email_change'] as const
@@ -16,11 +17,26 @@ const LEGACY_VERIFY_TYPE_MAP: Record<'signup' | 'magiclink', VerifyOtpType> = {
 const isVerifyOtpType = (value: string | null): value is VerifyOtpType =>
   Boolean(value && VERIFY_TYPE_SET.has(value as VerifyOtpType))
 
+type Locale = (typeof routing.locales)[number]
+
+const isLocale = (value: string | null | undefined): value is Locale =>
+  Boolean(value && (routing.locales as readonly string[]).includes(value))
+
+// Eerst wat de client meegaf, dan de cookie voor oudere e-mailkoppelingen die
+// nog geen parameter dragen, dan de standaardtaal.
+const resolveLocale = (
+  param: string | null,
+  cookie: string | undefined
+): Locale => {
+  if (isLocale(param)) return param
+  if (isLocale(cookie)) return cookie
+  return routing.defaultLocale
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
-  const errorDescription = requestUrl.searchParams.get('error_description')
   const intent = requestUrl.searchParams.get('intent') === 'signup' ? 'signup' : 'login'
   const tokenHash = requestUrl.searchParams.get('token_hash')
   const typeParam = requestUrl.searchParams.get('type')
@@ -35,18 +51,35 @@ export async function GET(request: NextRequest) {
 
   const next = requestUrl.searchParams.get('next')
 
+  // Deze route zit buiten het [locale]-segment, dus next-intl kan de taal hier
+  // niet afleiden. De client die de callback-URL bouwt weet hem wel en geeft
+  // hem mee; de cookie vangt oudere e-mailkoppelingen op die nog zonder
+  // parameter binnenkomen. Whitelisten is verplicht - de waarde komt uit de
+  // URL en gaat een redirectpad in.
+  const cookieStore = await cookies()
+  const locale = resolveLocale(
+    requestUrl.searchParams.get('locale'),
+    cookieStore.get('NEXT_LOCALE')?.value
+  )
+
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
-    const destination = new URL(intent === 'signup' ? '/nl/signup' : '/nl/login', requestUrl.origin)
-    destination.searchParams.set('error', message)
+    const destination = new URL(
+      `/${locale}/${intent === 'signup' ? 'signup' : 'login'}`,
+      requestUrl.origin
+    )
+    // De login- en signup-pagina lezen oauth_error; op 'error' keek niemand,
+    // dus elke melding hieronder verdween tot nu toe geruisloos.
+    destination.searchParams.set('oauth_error', message)
     if (next) destination.searchParams.set('next', next)
     return NextResponse.redirect(destination)
   }
 
   if (error) {
-    return redirectWithError(errorDescription ?? DEFAULT_ERROR_MESSAGE)
+    // error_description komt uit de URL en is dus door de aanroeper op te
+    // stellen. Een inlogpagina is een uitgelezen plek voor een misleidende
+    // tekst, dus we tonen onze eigen melding en niet die van de afzender.
+    return redirectWithError()
   }
-
-  const cookieStore = await cookies()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -94,7 +127,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Redirect to success page after successful auth
-  const defaultSuccessPath = '/nl/onboarding/success'
+  const defaultSuccessPath = `/${locale}/onboarding/success`
   const successPath = getSafeRedirect(next, defaultSuccessPath)
 
   return NextResponse.redirect(new URL(successPath, requestUrl.origin))

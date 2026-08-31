@@ -1,6 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
+import { useLocale } from 'next-intl'
 import { FormEvent, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +13,10 @@ type EmailPasswordFormProps = {
   next?: string
 }
 
-const SUCCESS_REDIRECTS: Record<EmailPasswordFormProps['mode'], string> = {
+// Zonder taalprefix bestaan deze paden niet: next-intl staat op localePrefix
+// 'always' en de middleware matcht alleen / en /(nl|en)/:path*, dus /download
+// haalt de [locale]-route nooit en geeft een 404.
+const SUCCESS_PATHS: Record<EmailPasswordFormProps['mode'], string> = {
   login: '/download',
   signup: '/download?signup=confirmed',
 }
@@ -28,6 +32,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
   const [message, setMessage] = useState<MessageState | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [receivesUpdates, setReceivesUpdates] = useState(false)
+  const locale = useLocale()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -40,15 +45,22 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         if (error) {
           throw error
         }
-        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.login)
+        window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.login}`)
         return
       }
+
+      // Zelfde opbouw als LinkedInSignInButton: searchParams doet de encoding,
+      // en de locale moet mee omdat de callback buiten [locale] valt.
+      const callbackUrl = new URL('/auth/callback', window.location.origin)
+      callbackUrl.searchParams.set('intent', 'signup')
+      callbackUrl.searchParams.set('locale', locale)
+      if (next) callbackUrl.searchParams.set('next', next)
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup${next ? `&next=${encodeURIComponent(next)}` : ''}`,
+          emailRedirectTo: callbackUrl.toString(),
           data: {
             receives_updates: receivesUpdates,
           },
@@ -60,7 +72,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       }
 
       if (data.session) {
-        window.location.href = getSafeRedirect(next, SUCCESS_REDIRECTS.signup)
+        window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.signup}`)
       } else {
         setMessage({
           type: 'success',
