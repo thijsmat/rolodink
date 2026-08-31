@@ -224,9 +224,16 @@
                         ]
                     },
                     {
+                        "title": "For everyone",
+                        "items": [
+                            "Type a note on someone who is not in your Rolodink yet and they are now added for you. Your text used to be dropped with a message telling you to add them first.",
+                            "The note field calls it \"Rldnk\" now, like the button beside it."
+                        ]
+                    },
+                    {
                         "title": "For Chrome and Edge",
                         "items": [
-                            "Nothing. Not a line changes in what your browser runs."
+                            "Nothing beyond that: the Firefox part of this release does not touch your browser."
                         ]
                     }
                 ]

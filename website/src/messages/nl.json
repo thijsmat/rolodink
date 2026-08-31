@@ -224,9 +224,16 @@
                         ]
                     },
                     {
+                        "title": "Voor iedereen",
+                        "items": [
+                            "Typ je een notitie op iemand die nog niet in je Rolodink staat, dan wordt die nu vanzelf toegevoegd. Voorheen verdween je tekst met de melding dat je hem eerst moest toevoegen.",
+                            "Het notitieveld noemt het voortaan \"Rldnk\", net als de knop ernaast."
+                        ]
+                    },
+                    {
                         "title": "Voor Chrome en Edge",
                         "items": [
-                            "Niets. Er verandert geen regel aan wat jouw browser draait."
+                            "Verder niets: het Firefox-gedeelte van deze release raakt jouw browser niet."
                         ]
                     }
                 ]

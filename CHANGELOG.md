@@ -5,12 +5,19 @@ content script, `content-firefox.js`, 353 lines against 900, with no
 `injectContextField` anywhere in it. Every fix written for LinkedIn's August
 2026 redesign stopped at Chrome and Edge. All three now ship the same bundle.
 
+Every browser also gets the note card change below: typing a note now adds the
+profile rather than dropping what you typed.
+
 ### Added (Firefox)
 - The "Rolodink Note" card on profile pages, with the same encryption round-trip as the other browsers
 - Injection into the hero card next to Message rather than the sticky header
 - Following LinkedIn's own navigation: a profile opened from the feed or a search result now works
 - Teardown between profiles, so one profile's button and note never carry over to the next
 - Everything else the bundled content script has gained since the fork was frozen
+
+### Added
+- **Typing a note adds the profile.** The card used to answer "Add to CRM first" and drop what you had just typed, sending you to a button a few pixels above it. It creates the connection now, marks the button as added, and saves: `Typing…` → `Saving…` → `Adding to Rldnk…` → `Saved`
+- The note card calls it Rldnk, like the button does. "Profile not in CRM" and "Add to CRM first" named the same thing two ways in the same glance
 
 ### Changed
 - The platform difference the fork existed for now lives in one module. Firefox's `browser.*` is promise-native; Chrome's `chrome.*` takes a callback and reports failure through `runtime.lastError`. The style is chosen from which global exists, before any call - probing by calling and seeing what comes back cannot be made safe for `sendMessage`, because the call has already sent the message
@@ -21,8 +28,9 @@ content script, `content-firefox.js`, 353 lines against 900, with no
 - **The AMO source archive could not be built.** It flattened the extension directory into the archive root, but `ui` resolves `@rolodink/core` above that directory, and `index.html` was never copied at all. It now reproduces the repository layout, verified by building from the archive rather than by reading the instructions
 
 ### Tests
-- 121 tests in the extension workspace, up from 93. 21 of them run the same assertions against a fake of each platform - there is no Firefox in CI and none on the machine this was developed from, so a fake of each is the honest claim
+- 143 tests in the extension workspace, up from 93. 21 of them run the same assertions against a fake of each platform - there is no Firefox in CI and none on the machine this was developed from, so a fake of each is the honest claim
 - CI packages the Firefox target for the first time and fails if its `content.js` lacks the note card or comes in well under the Chrome bundle's size
+- The LinkedIn selector chain that reads the profile's name moved to `profile.ts` and is tested for the first time: it had to be shared with the note card, and a second copy of such a list is how the August 2026 breakage stayed invisible - a stale selector raises nothing, it returns an empty name
 
 ## v1.3.5 (2026-08-18) - Delivery Fix
 
