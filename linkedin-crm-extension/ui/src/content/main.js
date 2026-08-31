@@ -636,7 +636,7 @@ async function injectContextField() {
                             }
                         } else {
                             // Connection doesn't exist yet in CRM
-                            status.innerText = 'Profile not in CRM';
+                            status.innerText = 'Not in Rldnk yet';
                             // Optional: Auto-create connection? Or just wait for user to add?
                             // For now, we only allow notes if in CRM, or we could auto-add.
                             // Let's allow typing and auto-add on save if possible, but that's complex.
@@ -679,7 +679,7 @@ async function injectContextField() {
                         }
 
                         if (!connectionId) {
-                            status.innerText = 'Add to CRM first';
+                            status.innerText = 'Add to Rldnk first';
                             return;
                         }
 
