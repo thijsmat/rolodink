@@ -69,6 +69,38 @@ describe('the two manifests agree on where the script runs', () => {
             .toEqual(JSON.parse(chromeRaw).content_scripts[0].matches);
     });
 
+    it('differs only where the platforms genuinely differ', () => {
+        // Firefox reported this one out loud: "Warning processing
+        // privacy_policy_url: An unexpected property was found in the
+        // WebExtension manifest." It is a store-listing field, not a manifest
+        // key - in neither browser - and it sat in manifest-firefox.json only.
+        //
+        // The general shape of that mistake is a key added to one manifest and
+        // not the other, which nothing catches: the packages build, both
+        // stores accept them, and the two browsers quietly behave differently.
+        // So the allowed differences are named, and anything else fails here.
+        const ALLOWED_DIFFERENCES = new Set([
+            // Firefox needs the gecko id to identify the add-on on AMO.
+            'browser_specific_settings',
+            // Chrome MV3 wants service_worker; Firefox MV3 wants scripts.
+            'background',
+            // Different default_icon path per store.
+            'action',
+            // Firefox additionally exposes icons/*, which its action icon needs.
+            'web_accessible_resources',
+        ]);
+
+        const [[, chromeRaw], [, firefoxRaw]] = MANIFESTS;
+        const chrome = JSON.parse(chromeRaw);
+        const firefox = JSON.parse(firefoxRaw);
+
+        const differing = [...new Set([...Object.keys(chrome), ...Object.keys(firefox)])]
+            .filter((key) => JSON.stringify(chrome[key]) !== JSON.stringify(firefox[key]))
+            .filter((key) => !ALLOWED_DIFFERENCES.has(key));
+
+        expect(differing).toEqual([]);
+    });
+
     it('declares the same version', () => {
         // build.js resolves the version from whichever manifest it packages,
         // and release.yml checks both against the tag. A drift here means one
