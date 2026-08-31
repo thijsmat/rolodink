@@ -43,6 +43,14 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Een major is hier geen onderhoud maar een migratie: prisma 5 -> 7 raakt
+      # de schema-laag, tailwind 3 -> 4 de hele website. Zulke PR's blijven
+      # maanden staan en leren je de lijst te negeren. @types/node hoort bij
+      # de node-version in de workflows (20), dus die mag al helemaal niet
+      # vooruitlopen. Majors doe je bewust, niet omdat er een PR openstond.
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
 
   # ui is bewust geen workspace-lid en heeft een eigen lockfile, dus de root
   # hierboven ziet hem niet.
@@ -64,22 +72,11 @@ updates:
           - minor
           - patch
     ignore:
-      # Deze horen bij elkaar: eslint 8 gaat met typescript-eslint 7 en
-      # react-hooks 4, en React 18 met de bijbehorende @types. Een major op
-      # een van de losse onderdelen breekt de rest, dus die komen hier niet
-      # per stuk voorbij. Wil je moderniseren, dan is dat een eigen PR die
-      # de hele set tegelijk optilt.
-      - dependency-name: react
-        update-types: [version-update:semver-major]
-      - dependency-name: react-dom
-        update-types: [version-update:semver-major]
-      - dependency-name: "@types/react"
-        update-types: [version-update:semver-major]
-      - dependency-name: "@types/react-dom"
-        update-types: [version-update:semver-major]
-      - dependency-name: eslint
-        update-types: [version-update:semver-major]
-      - dependency-name: "@typescript-eslint/*"
-        update-types: [version-update:semver-major]
-      - dependency-name: eslint-plugin-react-hooks
+      # Deze workspace staat bewust op een oudere, samenhangende toolchain:
+      # eslint 8 met typescript-eslint 7 en react-hooks 4, React 18 met zijn
+      # @types, vite 5 met vitest 3 en @vitejs/plugin-react 4. Die onderdelen
+      # bewegen alleen samen. Een major op een van de losse delen levert een
+      # PR op die niet kan slagen, week na week. Optillen doe je in een eigen
+      # wijziging die de hele set tegelijk meeneemt.
+      - dependency-name: "*"
         update-types: [version-update:semver-major]
