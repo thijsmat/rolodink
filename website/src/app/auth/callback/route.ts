@@ -22,6 +22,17 @@ type Locale = (typeof routing.locales)[number]
 const isLocale = (value: string | null | undefined): value is Locale =>
   Boolean(value && (routing.locales as readonly string[]).includes(value))
 
+// Eerst wat de client meegaf, dan de cookie voor oudere e-mailkoppelingen die
+// nog geen parameter dragen, dan de standaardtaal.
+const resolveLocale = (
+  param: string | null,
+  cookie: string | undefined
+): Locale => {
+  if (isLocale(param)) return param
+  if (isLocale(cookie)) return cookie
+  return routing.defaultLocale
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
@@ -47,13 +58,10 @@ export async function GET(request: NextRequest) {
   // parameter binnenkomen. Whitelisten is verplicht - de waarde komt uit de
   // URL en gaat een redirectpad in.
   const cookieStore = await cookies()
-  const localeParam = requestUrl.searchParams.get('locale')
-  const localeCookie = cookieStore.get('NEXT_LOCALE')?.value
-  const locale: Locale = isLocale(localeParam)
-    ? localeParam
-    : isLocale(localeCookie)
-      ? localeCookie
-      : routing.defaultLocale
+  const locale = resolveLocale(
+    requestUrl.searchParams.get('locale'),
+    cookieStore.get('NEXT_LOCALE')?.value
+  )
 
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
     const destination = new URL(

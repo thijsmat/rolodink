@@ -49,12 +49,18 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         return
       }
 
+      // Zelfde opbouw als LinkedInSignInButton: searchParams doet de encoding,
+      // en de locale moet mee omdat de callback buiten [locale] valt.
+      const callbackUrl = new URL('/auth/callback', window.location.origin)
+      callbackUrl.searchParams.set('intent', 'signup')
+      callbackUrl.searchParams.set('locale', locale)
+      if (next) callbackUrl.searchParams.set('next', next)
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // locale meegeven: de callback zit buiten het [locale]-segment.
-          emailRedirectTo: `${window.location.origin}/auth/callback?intent=signup&locale=${locale}${next ? `&next=${encodeURIComponent(next)}` : ''}`,
+          emailRedirectTo: callbackUrl.toString(),
           data: {
             receives_updates: receivesUpdates,
           },
