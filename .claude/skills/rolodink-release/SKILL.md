@@ -5,6 +5,11 @@ description: Release- en operationele kennis voor de Rolodink-monorepo (extensie
 
 # Rolodink release & operations
 
+> Werk je aan de **code** van de extensie in plaats van aan het uitbrengen
+> ervan? Gebruik dan `rolodink-extension`. Daar staat de regel dat een
+> wijziging in één browserversie meteen tegen de andere twee gecontroleerd
+> wordt, met de commando's ervoor.
+
 ## Releaseproces (volledig geautomatiseerd sinds juli 2026)
 
 1. `./scripts/bump-version.sh X.Y.Z` — bumpt 6 JSON-bestanden (beide manifests, extension package.json's, backend- en website-package.json) én `linkedin-crm-backend/src/lib/version.ts`, de versie die `/api/version` aan de update-melding in de extensie meldt. Die laatste stond lang los van het script en dreef weg: bij 1.3.5 stond hij nog op 1.3.3, en bij een eerdere release op 1.0.10 terwijl 1.3.0 live was — ouder dan de uitgebrachte versie, dus de melding ging helemaal nooit af. `version.test.ts` faalt nu de build als hij niet meer met beide manifests overeenkomt. Werk daarna `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md` én de website-changelog (`website/src/messages/{nl,en}.json` → `ChangelogPage.releases` + `DownloadPage.version`) bij. Alles via PR naar `main`.
