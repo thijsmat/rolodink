@@ -15,8 +15,21 @@ Dit is een grote release. Wat erbij komt:
 - **Knop en notitieveld verhuizen mee** naar het volgende profiel, met de juiste gegevens
 - Alles wat het gedeelde content script verder heeft gekregen sinds de fork bevroren raakte
 
+## Voor iedereen: typen is voortaan opslaan
+
+Typte je een notitie op een profiel dat nog niet in je CRM stond, dan zei het
+kaartje "Add to CRM first" en was je tekst weg. Je moest eerst een knop zoeken
+die een paar pixels hoger stond.
+
+Dat doet hij nu zelf: `Typing…` → `Saving…` → `Adding to Rldnk…` → `Saved`. Het
+profiel wordt toegevoegd, de knop springt op "Already added ✔️", en je notitie
+staat erin.
+
+Meteen ook consistente naamgeving: het kaartje zei "CRM" waar de knop "Rldnk"
+zegt. Dat is nu overal Rldnk.
+
 ## Voor Chrome- en Edge-gebruikers
-Niets. Er verandert geen regel aan wat jouw browser draait.
+Behalve het bovenstaande niets. De rest van deze release gaat over Firefox.
 
 ## Onder de motorkap
 
@@ -31,8 +44,9 @@ Twee dingen die door het opruimen boven water kwamen:
 - **Er was een derde manifest.** `ui/public/manifest.json` stond op versie 1.1.1 met de oude `/in/*`-matches. Vite kopieert `public/` integraal, dus het landde bij elke build in `dist/` en werd één stap later overschreven — een val die alleen dicht bleef door de volgorde van de stappen
 - **Het bronarchief voor de AMO-reviewer was niet te bouwen.** Het reproduceert nu de repo-indeling, gecontroleerd door de instructies te vólgen in plaats van te lezen
 
-121 tests in de extensie-workspace, tegen 93 eerder. 21 daarvan draaien tegen
-een nagemaakte versie van elk platform.
+143 tests in de extensie-workspace, tegen 93 eerder. 21 daarvan draaien tegen
+een nagemaakte versie van elk platform, en 20 tegen de selectorketen die de
+naam van de pagina leest - die stond tot nu toe inline en was nooit getest.
 
 ## Upgrade Notes
 - Je hoeft niets te doen; de stores werken bij
