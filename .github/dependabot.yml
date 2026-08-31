@@ -51,13 +51,6 @@ updates:
       # vooruitlopen. Majors doe je bewust, niet omdat er een PR openstond.
       - dependency-name: "*"
         update-types: [version-update:semver-major]
-      # Onder 1.0 is een minor wél breaking, en Dependabot groepeert hem toch
-      # bij het kleine onderhoud. auth-helpers-nextjs is bovendien door
-      # Supabase afgeschreven ("please use the @supabase/ssr package
-      # instead"); 0.15 heeft createClientComponentClient niet meer, dus dit
-      # pakket wil vervangen worden en niet opgehoogd.
-      - dependency-name: "@supabase/auth-helpers-nextjs"
-        update-types: [version-update:semver-minor]
 
   # ui is bewust geen workspace-lid en heeft een eigen lockfile, dus de root
   # hierboven ziet hem niet.
