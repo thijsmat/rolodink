@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Check store credentials
         env:
@@ -63,6 +63,11 @@ jobs:
           fi
           echo "zip_file=$(ls Rolodink-chrome-*.zip)" >> $GITHUB_OUTPUT
 
+      # 2.1.1 is de laatste release en draait nog op node16, niet eens node20.
+      # De runner forceert hem voorlopig op node24, dus dit werkt, maar bumpen
+      # heeft geen zin: er is niets nieuwers. Valt die forcering ooit weg, dan
+      # is dit de stap die vervangen moet worden - de Chrome Web Store API is
+      # twee calls met de refresh token die hieronder al staat.
       - name: Publish to Chrome Web Store
         uses: mobilefirstllc/cws-publish@569e87bc9a54ad7712ba6dc154a110d88af63b85 # 2.1.1
         with:

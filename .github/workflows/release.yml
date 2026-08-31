@@ -24,14 +24,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
+          # setup-node v5 en later zetten npm-caching vanzelf aan zodra
+          # package.json een packageManager-veld heeft, en dat heeft het.
+          # Uit, zodat deze stap doet wat hij onder v4 deed; de releasebuild
+          # hoort van een schone node_modules te komen.
+          package-manager-cache: false
 
       # The version has to agree with the manifests, or the zips are named after
       # a version the extension does not report and the store rejects the
@@ -120,7 +125,7 @@ jobs:
       # the tag. For a draft the tag is only created when you publish, so this
       # also fills in a draft that was started by hand in the UI.
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ext-v${{ env.VERSION }}
           name: Rolodink v${{ env.VERSION }}
