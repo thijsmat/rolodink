@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
-  const errorDescription = requestUrl.searchParams.get('error_description')
   const intent = requestUrl.searchParams.get('intent') === 'signup' ? 'signup' : 'login'
   const tokenHash = requestUrl.searchParams.get('token_hash')
   const typeParam = requestUrl.searchParams.get('type')
@@ -76,7 +75,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (error) {
-    return redirectWithError(errorDescription ?? DEFAULT_ERROR_MESSAGE)
+    // error_description komt uit de URL en is dus door de aanroeper op te
+    // stellen. Een inlogpagina is een uitgelezen plek voor een misleidende
+    // tekst, dus we tonen onze eigen melding en niet die van de afzender.
+    return redirectWithError()
   }
 
   const supabase = createServerClient(
