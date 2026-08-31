@@ -51,7 +51,7 @@ naam van de pagina leest - die stond tot nu toe inline en was nooit getest.
 ## Upgrade Notes
 - Je hoeft niets te doen; de stores werken bij
 - Geen wijzigingen aan de versleuteling. Bestaande notities blijven leesbaar
-- **Firefox-gebruikers**: het notitieveld verschijnt na deze update voor het eerst. Staat een profiel nog niet in je CRM, dan zegt het veld "Add to CRM first" — klik dan eerst op "Add to Rldnk"
+- **Firefox-gebruikers**: het notitieveld verschijnt na deze update voor het eerst. Staat een profiel nog niet in je CRM, dan voegt het typen van een notitie hem er zelf aan toe — je hoeft niet eerst op "Add to Rldnk" te klikken
 
 ## 🏪 Installeren via de stores (aanbevolen)
 - **Chrome Web Store**: [Install Rolodink](https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc)
