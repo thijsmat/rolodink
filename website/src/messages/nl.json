@@ -261,7 +261,7 @@
                             "LinkedIn heeft zijn profielpagina's opnieuw gebouwd; \"Add to Rldnk\" en het notitieveld waren daardoor verdwenen. Beide staan er weer.",
                             "Ze staan nu in de grote profielkaart naast Message, niet in het smalle balkje dat pas bij scrollen verschijnt.",
                             "Het notitieveld staat onder die kaart in plaats van als los paneel over de navigatiebalk.",
-                            "Let op: het notitieveld op de profielpagina werkt nog niet in Firefox. Daar draait een oudere versie van dat onderdeel; we zijn bezig die samen te voegen.",
+                            "Let op: in deze versie werkte het notitieveld op de profielpagina nog niet in Firefox. Dat is opgelost in 1.3.6.",
                             "Rolodink volgt nu je klikken binnen LinkedIn: een profiel dat je opent vanuit je feed of een zoekresultaat werkt ook.",
                             "Knop en notitieveld verhuizen mee naar het volgende profiel, met de juiste gegevens erbij."
                         ]
