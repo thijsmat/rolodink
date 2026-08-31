@@ -41,6 +41,7 @@ import {
 } from './anchors';
 import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
+import { extractRawProfileName } from './profile';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -144,6 +145,64 @@ async function findConnectionId() {
         return conn?.id ?? null;
     } catch (error) {
         console.error('Rolodink: kon de connectie niet opzoeken:', error);
+        return null;
+    }
+}
+
+/**
+ * Zet de knop op "toegevoegd", waar hij ook staat.
+ *
+ * Via het DOM en niet via de closure in injectCRMButton: de knop en de
+ * notitiekaart worden door verschillende functies gebouwd, en sinds het
+ * notitieveld zelf een connectie kan aanmaken moet de knop dat kunnen volgen.
+ */
+function markButtonAsAdded() {
+    const button = document.getElementById('crm-add-button');
+    if (!button) return;
+    const label = button.querySelector(':scope > span > span');
+    if (label) label.textContent = 'Already added ✔️';
+    button.disabled = true;
+}
+
+/**
+ * Voegt het profiel dat nu open staat toe aan de CRM en geeft het id terug.
+ *
+ * Bestaat omdat typen in het notitieveld een vraag om op te slaan is. Wie een
+ * notitie intikt op een profiel dat nog niet in de CRM staat, wil die notitie
+ * bewaren - eerst een knop moeten zoeken is een stap die niemand wilde. De
+ * code had er al een aantekening over staan ("Optional: Auto-create
+ * connection?") die nooit iets geworden is.
+ *
+ * Geeft null terug als het niet lukt; de aanroeper vertelt de gebruiker wat er
+ * aan de hand is. Gooit niet: een mislukte aanmaak mag het typen niet
+ * onderbreken.
+ */
+async function createConnectionForCurrentProfile() {
+    try {
+        const rawName = extractRawProfileName(document, document.title);
+        const name = rawName ? cleanProfileName(rawName) : '';
+        if (!name) {
+            console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
+            return null;
+        }
+
+        const resp = await apiRequest({
+            path: '/api/connections',
+            method: 'POST',
+            body: { name, url: window.location.href },
+        });
+
+        // 409 betekent dat hij er al in staat - in een ander tabblad, of door
+        // een klik op de knop tussen het opzoeken en het aanmaken door. Dat is
+        // geen fout, alleen een reden om het id alsnog op te halen.
+        if (resp.status === 409) return await findConnectionId();
+        if (!resp.ok) {
+            console.error('Rolodink: kon de connectie niet aanmaken:', resp.status, resp.data);
+            return null;
+        }
+        return resp.data?.id ?? await findConnectionId();
+    } catch (error) {
+        console.error('Rolodink: kon de connectie niet aanmaken:', error);
         return null;
     }
 }
@@ -270,40 +329,12 @@ function injectCRMButton(anchorButton) {
         crmButton.onclick = async () => {
             try {
 
-                // More robust profile name extraction with multiple fallback selectors
-                let profileName = '';
-                const selectors = [
-                    'h1.text-heading-xlarge',
-                    'h1[data-test-id="profile-name"]',
-                    'h1.break-words',
-                    'h1',
-                    '.text-heading-xlarge',
-                    '[data-test-id="profile-name"]'
-                ];
-
-
-                for (const selector of selectors) {
-                    const element = document.querySelector(selector);
-                    if (element && element.innerText && element.innerText.trim()) {
-                        profileName = element.innerText.trim();
-                        break;
-                    }
-                }
-
-                // If still no name found, try to get it from the page title
-                if (!profileName) {
-                    const title = document.title;
-                    if (title && title.includes('|')) {
-                        profileName = title.split('|')[0].trim();
-                    } else if (title) {
-                        profileName = title.replace(' | LinkedIn', '').trim();
-                    }
-                }
-
-                // Clean up notification count from profile name (applies to ALL extraction methods)
-                if (profileName) {
-                    profileName = cleanProfileName(profileName);
-                }
+                // De selectorketen die hier stond woont nu in profile.ts, waar
+                // hij getest is en waar de notitiekaart hem ook kan gebruiken.
+                // Twee kopieën van een selectorlijst tegen een site die zijn
+                // markup herschrijft is precies hoe augustus 2026 misging.
+                const rawName = extractRawProfileName(document, document.title);
+                const profileName = rawName ? cleanProfileName(rawName) : '';
 
                 // Final fallback - show error if no name found
                 if (!profileName) {
@@ -678,7 +709,20 @@ async function injectContextField() {
                             connectionId = await findConnectionId();
                         }
 
+                        // Staat het profiel er nog niet in, dan voegen we het
+                        // toe in plaats van de gebruiker terug te sturen naar
+                        // een knop. Typen is de vraag om op te slaan.
                         if (!connectionId) {
+                            status.innerText = 'Adding to Rldnk...';
+                            connectionId = await createConnectionForCurrentProfile();
+                            if (connectionId) markButtonAsAdded();
+                        }
+
+                        if (!connectionId) {
+                            // Alleen nog bereikbaar als het aanmaken zelf
+                            // mislukte - geen naam op de pagina, of de API
+                            // onbereikbaar. createConnectionForCurrentProfile
+                            // logt waarom.
                             status.innerText = 'Add to Rldnk first';
                             return;
                         }
