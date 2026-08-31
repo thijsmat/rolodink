@@ -51,6 +51,13 @@ updates:
       # vooruitlopen. Majors doe je bewust, niet omdat er een PR openstond.
       - dependency-name: "*"
         update-types: [version-update:semver-major]
+      # Onder 1.0 is een minor wél breaking, en Dependabot groepeert hem toch
+      # bij het kleine onderhoud. auth-helpers-nextjs is bovendien door
+      # Supabase afgeschreven ("please use the @supabase/ssr package
+      # instead"); 0.15 heeft createClientComponentClient niet meer, dus dit
+      # pakket wil vervangen worden en niet opgehoogd.
+      - dependency-name: "@supabase/auth-helpers-nextjs"
+        update-types: [version-update:semver-minor]
 
   # ui is bewust geen workspace-lid en heeft een eigen lockfile, dus de root
   # hierboven ziet hem niet.
@@ -80,3 +87,12 @@ updates:
       # wijziging die de hele set tegelijk meeneemt.
       - dependency-name: "*"
         update-types: [version-update:semver-major]
+      # Dezelfde 0.x-val als hierboven, twee keer:
+      # eslint-plugin-react-refresh 0.5 eist eslint 9 of 10 als peer en deze
+      # workspace draait 8, en @types/chrome 0.1+ maakt de callback-types
+      # strenger (unknown in plaats van any), goed voor negen nieuwe
+      # typefouten. Allebei op te lossen, allebei eigen werk.
+      - dependency-name: eslint-plugin-react-refresh
+        update-types: [version-update:semver-minor]
+      - dependency-name: "@types/chrome"
+        update-types: [version-update:semver-minor]
