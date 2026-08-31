@@ -1,0 +1,85 @@
+# Houdt de vastgezette versies bij. Zonder dit verouderen de SHA-pins in
+# .github/workflows/ stil: niets in CI klaagt over een actie van twee jaar oud.
+version: 2
+
+updates:
+  # De SHA-pins in de workflows. Dependabot werkt zowel de SHA als het
+  # versie-comment erachter bij, dus de pin blijft een pin.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    groups:
+      # Klein onderhoud in een PR; een major krijgt zijn eigen PR, want die
+      # wil je los kunnen lezen.
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # De monorepo. Dekt alle workspaces via de root package-lock.json:
+  # linkedin-crm-backend, linkedin-crm-extension, website en packages/*.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      npm:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ui is bewust geen workspace-lid en heeft een eigen lockfile, dus de root
+  # hierboven ziet hem niet.
+  - package-ecosystem: npm
+    directory: /linkedin-crm-extension/ui
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      extension-ui:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Deze horen bij elkaar: eslint 8 gaat met typescript-eslint 7 en
+      # react-hooks 4, en React 18 met de bijbehorende @types. Een major op
+      # een van de losse onderdelen breekt de rest, dus die komen hier niet
+      # per stuk voorbij. Wil je moderniseren, dan is dat een eigen PR die
+      # de hele set tegelijk optilt.
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react-dom"
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: "@typescript-eslint/*"
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint-plugin-react-hooks
+        update-types: [version-update:semver-major]
