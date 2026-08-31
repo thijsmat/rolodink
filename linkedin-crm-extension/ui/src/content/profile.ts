@@ -59,8 +59,17 @@ export function findProfileNameInDocument(root: ParentNode): string {
  */
 export function findProfileNameInTitle(title: string): string {
     if (!title) return '';
+    // No regex here. The obvious one - /\s*\|?\s*LinkedIn\s*$/i - is what
+    // SonarCloud S8786 flags: two adjacent \s* around an optional separator
+    // backtrack super-linearly on a long run of whitespace that turns out not
+    // to be followed by "LinkedIn". anchors.ts traded a regex for an index
+    // walk over the same rule.
+    //
+    // It was also doing nothing: split('|') already removed the separator, so
+    // the only case left is a title that is the bare site name.
     const [first] = title.split('|');
-    return (first ?? '').replace(/\s*\|?\s*LinkedIn\s*$/i, '').trim();
+    const name = (first ?? '').trim();
+    return name.toLowerCase() === 'linkedin' ? '' : name;
 }
 
 /**
