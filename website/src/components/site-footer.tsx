@@ -12,7 +12,7 @@ export function SiteFooter() {
     <footer className="w-full bg-background border-t border-azure/10">
       <div className="max-w-[1136px] mx-auto px-8 py-16">
         {/* Top Section: Brand + Description + Social */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-12">
           {/* Brand Section */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
@@ -86,9 +86,6 @@ export function SiteFooter() {
               <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.helpCenter')}
               </Link>
-              <Link href="/help" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
-                {t('links.contact')}
-              </Link>
               <Link href="/privacy" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.privacy')}
               </Link>
@@ -98,8 +95,26 @@ export function SiteFooter() {
             </nav>
           </div>
 
-          {/* Empty for spacing */}
-          <div></div>
+          {/* Rolodink Column */}
+          <div>
+            <h3 className="text-sm font-semibold text-azure mb-4">{t('sections.rolodink')}</h3>
+            <nav className="space-y-3">
+              <Link href="/over" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+                {t('links.about')}
+              </Link>
+              <a href="mailto:hallo@rolodink.app" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+                {t('links.contact')}
+              </a>
+              <a
+                href="https://www.linkedin.com/company/rolodink/"
+                target="_blank"
+                rel="noreferrer"
+                className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out"
+              >
+                {t('links.linkedin')}
+              </a>
+            </nav>
+          </div>
         </div>
 
         {/* Divider */}

@@ -34,10 +34,11 @@ export async function generateMetadata({
     },
     description: t('description'),
     metadataBase: new URL('https://rolodink.app'),
+    // Elke URL draagt een taalprefix (localePrefix 'always'); '/' is alleen een redirect.
     alternates: {
-      canonical: locale === 'nl' ? '/' : `/${locale}`,
+      canonical: `/${locale}`,
       languages: {
-        'nl': '/',
+        'nl': '/nl',
         'en': '/en',
       },
     },

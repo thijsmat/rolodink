@@ -1,0 +1,3 @@
+# Rolodink CMS: alleen een schrijfomgeving. De artikelen staan op https://rolodink.app/over
+User-agent: *
+Disallow: /
