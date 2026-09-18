@@ -189,7 +189,9 @@ if (!$existingKey) {
 $configFile = "{$root}/config/config.php";
 if (!is_file($configFile)) {
     $secret = randomToken(32);
-    if (!is_dir("{$root}/config")) mkdir("{$root}/config", 0755, true);
+    if (!is_dir("{$root}/config")) {
+        mkdir("{$root}/config", 0755, true);
+    }
     $template = is_file(__DIR__ . '/../config/config.sample.php')
         ? file_get_contents(__DIR__ . '/../config/config.sample.php')
         : file_get_contents("{$root}/config/config.sample.php");

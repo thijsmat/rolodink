@@ -148,7 +148,7 @@ function excerptOf(intro: string, body: string): string {
   if (source.length <= EXCERPT_LENGTH) return source
   const cut = source.slice(0, EXCERPT_LENGTH)
   let head = cut.slice(0, Math.max(cut.lastIndexOf(' '), 0))
-  while (head.length && ' .,;:!-\n\t'.includes(head[head.length - 1])) head = head.slice(0, -1)
+  while (head.length && ' .,;:!-\n\t'.includes(head.at(-1) ?? '')) head = head.slice(0, -1)
   return `${head}…`
 }
 
