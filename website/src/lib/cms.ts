@@ -76,7 +76,9 @@ export function isValidSlug(slug: string): boolean {
 }
 
 export function cmsBaseUrl(): string {
-  return (process.env.CMS_BASE_URL?.trim() || CMS_DEFAULT_BASE_URL).replace(/\/+$/, '')
+  let url = process.env.CMS_BASE_URL?.trim() || CMS_DEFAULT_BASE_URL
+  while (url.endsWith('/')) url = url.slice(0, -1)
+  return url
 }
 
 function uploadsBaseUrl(): string {
@@ -145,7 +147,9 @@ function excerptOf(intro: string, body: string): string {
   const source = intro.trim() || decodeEntities(stripTags(body))
   if (source.length <= EXCERPT_LENGTH) return source
   const cut = source.slice(0, EXCERPT_LENGTH)
-  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), 0)).replace(/[\s.,;:!-]+$/, '')}…`
+  let head = cut.slice(0, Math.max(cut.lastIndexOf(' '), 0))
+  while (head.length && ' .,;:!-\n\t'.includes(head[head.length - 1])) head = head.slice(0, -1)
+  return `${head}…`
 }
 
 function readingMinutesOf(...texts: string[]): number {
@@ -225,7 +229,7 @@ function toArticle(item: CmsItem, locale: Locale, isFallback: boolean): Article 
   const bodyText = stripTags(body)
 
   const image: ArticleImage | null =
-    item.image && item.image.path
+    item.image?.path
       ? {
           url: assetUrl(item.image),
           alt: (item.imageAlt ?? item.image.title ?? '').trim(),

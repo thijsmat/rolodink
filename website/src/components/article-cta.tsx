@@ -3,7 +3,7 @@ import { getExtensionUrl } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
 
 /** Afsluitende band onder de Over-pagina's, zelfde opzet als de CTA op /help. */
-export async function ArticleCta({ locale }: { locale: string }) {
+export async function ArticleCta({ locale }: Readonly<{ locale: string }>) {
   const t = await getTranslations({ locale, namespace: "AboutPage" });
   const extensionUrl = getExtensionUrl();
 

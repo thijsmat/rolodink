@@ -15,8 +15,8 @@ export const proseClassName =
 
 interface ProseProps {
   /** Reeds gesanitizede HTML (zie src/lib/cms.ts). Nooit ruwe gebruikersinvoer. */
-  html: string;
-  className?: string;
+  readonly html: string;
+  readonly className?: string;
 }
 
 export function Prose({ html, className }: ProseProps) {

@@ -4,8 +4,8 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import type { Article } from "@/lib/cms";
 
 interface ArticleListProps {
-  articles: Article[];
-  locale: string;
+  readonly articles: Article[];
+  readonly locale: string;
 }
 
 /**

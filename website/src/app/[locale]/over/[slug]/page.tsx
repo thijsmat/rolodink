@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function ArticlePage({ params }: { params: Params }) {
+export default async function ArticlePage({ params }: Readonly<{ params: Params }>) {
   const { locale, slug } = await params;
   if (!isValidSlug(slug)) notFound();
 

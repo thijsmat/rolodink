@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function AboutPage({ params }: { params: Params }) {
+export default async function AboutPage({ params }: Readonly<{ params: Params }>) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "AboutPage" });
   const articles = await getArticles(asLocale(locale));
