@@ -52,7 +52,7 @@ if ($adminPass === '') {
 
 define('APP_CLI', true);
 /** @var \Lime\App $app */
-$app = require "{$root}/bootstrap.php";
+$app = require_once "{$root}/bootstrap.php";
 $app = Cockpit::instance();
 
 // Cockpit's eigen CLI-handler logt fouten stil; hier willen we ze zien.
@@ -201,7 +201,7 @@ if (!is_file($configFile)) {
     file_put_contents($configFile, $config);
     $out['Revalidate-secret (CMS_REVALIDATE_SECRET)'] = $secret;
 } else {
-    $cfg = include $configFile;
+    $cfg = include_once $configFile;
     $out['Revalidate-secret (CMS_REVALIDATE_SECRET)'] = ($cfg['rolodink']['revalidate_secret'] ?? '?') . ' (config.php bestond al)';
 }
 
