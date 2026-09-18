@@ -201,8 +201,9 @@ if (!is_file($configFile)) {
     file_put_contents($configFile, $config);
     $out['Revalidate-secret (CMS_REVALIDATE_SECRET)'] = $secret;
 } else {
-    $cfg = include_once $configFile;
-    $out['Revalidate-secret (CMS_REVALIDATE_SECRET)'] = ($cfg['rolodink']['revalidate_secret'] ?? '?') . ' (config.php bestond al)';
+    // config.php is al door de bootstrap geladen; niet opnieuw includen.
+    $existingSecret = (string) $app->retrieve('rolodink/revalidate_secret', '?');
+    $out['Revalidate-secret (CMS_REVALIDATE_SECRET)'] = $existingSecret . ' (config.php bestond al)';
 }
 
 // Caches verversen zodat de admin en de API de nieuwe onderdelen direct zien.
