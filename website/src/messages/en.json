@@ -479,6 +479,23 @@
             }
         ]
     },
+    "AboutPage": {
+        "eyebrow": "About Rolodink",
+        "title": "The story behind Rolodink",
+        "description": "Why we build Rolodink, how we think about networking and what happens behind the scenes.",
+        "readMore": "Read more",
+        "readingTime": "{minutes, plural, =1 {1 minute read} other {# minute read}}",
+        "empty": "There are no articles yet. More soon.",
+        "emptyLink": "Follow Rolodink on LinkedIn",
+        "back": "About Rolodink",
+        "backToAll": "All articles",
+        "onlyInDutch": "This article is only available in Dutch.",
+        "cta": {
+            "title": "Want to see how Rolodink works?",
+            "description": "Install the extension for free and add a note to a LinkedIn connection today.",
+            "button": "Install for free"
+        }
+    },
     "OnboardingSuccessPage": {
         "hero": {
             "title": "Your account is confirmed! 🎉",
@@ -646,7 +663,8 @@
         "description": "Bring the personal touch of business cards to the digital world. Remember why every connection is valuable with Rolodink for LinkedIn.",
         "sections": {
             "product": "Product",
-            "support": "Support"
+            "support": "Support",
+            "rolodink": "Rolodink"
         },
         "links": {
             "features": "Features",
@@ -658,7 +676,9 @@
             "privacy": "Privacy Policy",
             "security": "Security",
             "terms": "Terms of Service",
-            "disclaimer": "Disclaimer"
+            "disclaimer": "Disclaimer",
+            "about": "About",
+            "linkedin": "LinkedIn"
         },
         "copyright": "All rights reserved."
     },
