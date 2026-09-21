@@ -479,6 +479,23 @@
             }
         ]
     },
+    "AboutPage": {
+        "eyebrow": "Over Rolodink",
+        "title": "Het verhaal achter Rolodink",
+        "description": "Waarom we Rolodink bouwen, hoe we over netwerken denken en wat er achter de schermen gebeurt.",
+        "readMore": "Lees verder",
+        "readingTime": "{minutes, plural, =1 {1 minuut lezen} other {# minuten lezen}}",
+        "empty": "Er zijn nog geen artikelen. Binnenkort meer.",
+        "emptyLink": "Volg Rolodink op LinkedIn",
+        "back": "Over Rolodink",
+        "backToAll": "Alle artikelen",
+        "onlyInDutch": "Dit artikel is alleen in het Nederlands beschikbaar.",
+        "cta": {
+            "title": "Zelf ervaren hoe Rolodink werkt?",
+            "description": "Installeer de extensie gratis en voeg vandaag nog een notitie toe aan een LinkedIn-connectie.",
+            "button": "Gratis installeren"
+        }
+    },
     "OnboardingSuccessPage": {
         "hero": {
             "title": "Je account is bevestigd! 🎉",
@@ -646,7 +663,8 @@
         "description": "Breng de persoonlijke touch van business cards naar de digitale wereld. Onthoud waarom elke connectie waardevol is met Rolodink voor LinkedIn.",
         "sections": {
             "product": "Product",
-            "support": "Support"
+            "support": "Support",
+            "rolodink": "Rolodink"
         },
         "links": {
             "features": "Functies",
@@ -658,7 +676,9 @@
             "privacy": "Privacybeleid",
             "security": "Beveiliging",
             "terms": "Algemene Voorwaarden",
-            "disclaimer": "Disclaimer"
+            "disclaimer": "Disclaimer",
+            "about": "Over",
+            "linkedin": "LinkedIn"
         },
         "copyright": "Alle rechten voorbehouden."
     },

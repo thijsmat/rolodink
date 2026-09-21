@@ -16,6 +16,7 @@ Marketing website for the Rolodink LinkedIn CRM browser extension.
 - `/features` - Detailed features overview
 - `/how-it-works` - 3-step process explanation
 - `/download` - Extension download with installation instructions
+- `/over` - Articles about Rolodink (content from the CMS, see below)
 - `/privacy` - Privacy policy
 - `/terms` - Terms of service
 
@@ -45,7 +46,22 @@ NEXT_PUBLIC_EXTENSION_URL=https://chromewebstore.google.com/detail/rolodink/jfgn
 
 # Site URL for sitemap generation
 SITE_URL=https://rolodink.app
+
+# Content for /over (Cockpit CMS on cms.rolodink.app, see ../cms/README.md)
+CMS_BASE_URL=https://cms.rolodink.app
+CMS_API_KEY=...
+CMS_REVALIDATE_SECRET=...
 ```
+
+## Content (Over) via Cockpit
+
+The articles under `/over` are managed in a headless [Cockpit CMS](https://github.com/Cockpit-HQ/Cockpit)
+hosted separately (`cms.rolodink.app`). The website fetches published items server-side
+(`src/lib/cms.ts`), sanitizes the HTML and renders them in the site's own design. Responses are
+cached for 10 minutes (Next.js Data Cache, tag `cms`); the CMS calls `POST /api/revalidate`
+with the `x-cms-secret` header after every change so updates show up immediately.
+
+Setup of the CMS itself (model, API key, hook) is documented in [`../cms/README.md`](../cms/README.md).
 
 ## Deployment
 

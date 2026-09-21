@@ -1,73 +1,70 @@
 import { MetadataRoute } from 'next'
+import { routing } from '@/navigation'
+import { getArticleSummaries } from '@/lib/cms'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://rolodink.app'
-  const locales = ['en', 'nl']
+const BASE_URL = 'https://rolodink.app'
 
-  // List of routes that exist in the app
-  const routes = [
-    '',
-    '/features',
-    '/testimonials',
-    '/download',
-    '/pricing',
-    '/help',
-    '/how-it-works',
-    '/login',
-    '/signup',
-    '/privacy',
-    '/terms',
-    '/security',
-    '/disclaimer',
-    '/changelog'
-  ]
+// De sitemap wordt bij de build gegenereerd; hiermee verversen de artikel-URL's mee.
+export const revalidate = 600
 
-  const sitemapEntries: MetadataRoute.Sitemap = []
+// Statische routes onder /[locale]. Elke URL draagt een taalprefix: de middleware
+// (localePrefix 'always') stuurt prefixloze paden door, dus die horen niet in de sitemap.
+const STATIC_ROUTES = [
+  '',
+  '/features',
+  '/testimonials',
+  '/download',
+  '/help',
+  '/how-it-works',
+  '/over',
+  '/login',
+  '/signup',
+  '/privacy',
+  '/terms',
+  '/security',
+  '/disclaimer',
+  '/changelog',
+]
 
-  // Add entries for each route and locale
-  routes.forEach(route => {
-    locales.forEach(locale => {
-      // For default locale (nl), we can serve at root, but for consistency with next-intl 
-      // and canonical URLs, we should be careful. 
-      // Based on the middleware config:
-      // defaultLocale is 'nl'. defineRouting usually redirects root to default locale 
-      // or serves default locale at root depending on 'localePrefix'. 
-      // In navigation.ts we set `localePrefix: 'always'` previously but then switched to `defineRouting` default which is 'always'.
-      // EXCEPT I noticed in my manual navigation.ts edit I didn't explicitly set prefix.
-      // Default defineRouting prefix is 'always' for non-default, but 'as-needed' behavior depends on config. 
-      // Actually, standard practice for SEO with next-intl:
-      // - Root '/' -> Usually redirects to '/nl' or shows NL content.
-      // - '/nl' -> NL content
-      // - '/en' -> EN content
+type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
 
-      const localePath = locale === 'nl' ? '' : `/${locale}`
-      const url = `${baseUrl}${localePath}${route}`
+function staticEntry(route: string): { priority: number; changeFrequency: ChangeFrequency } {
+  if (route === '') return { priority: 1.0, changeFrequency: 'weekly' }
+  if (route === '/download') return { priority: 0.9, changeFrequency: 'weekly' }
+  if (['/features', '/how-it-works', '/over'].includes(route)) {
+    return { priority: 0.8, changeFrequency: 'monthly' }
+  }
+  if (['/login', '/signup'].includes(route)) return { priority: 0.7, changeFrequency: 'yearly' }
+  return { priority: 0.5, changeFrequency: 'monthly' }
+}
 
-      let priority = 0.5
-      let changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' = 'monthly'
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date()
+  const entries: MetadataRoute.Sitemap = []
 
-      if (route === '') {
-        priority = 1.0
-        changeFrequency = 'weekly'
-      } else if (route === '/download') {
-        priority = 0.9
-        changeFrequency = 'weekly'
-      } else if (['/features', '/how-it-works'].includes(route)) {
-        priority = 0.8
-        // changeFrequency stays 'monthly' (default)
-      } else if (['/login', '/signup'].includes(route)) {
-        priority = 0.7
-        changeFrequency = 'yearly' // These pages don't change often in terms of SEO content
-      }
-
-      sitemapEntries.push({
-        url,
-        lastModified: new Date(),
-        changeFrequency,
-        priority
+  for (const route of STATIC_ROUTES) {
+    for (const locale of routing.locales) {
+      entries.push({
+        url: `${BASE_URL}/${locale}${route}`,
+        lastModified: now,
+        ...staticEntry(route),
       })
-    })
-  })
+    }
+  }
 
-  return sitemapEntries
+  // Artikelen uit het CMS; bij een storing blijft de rest van de sitemap gewoon werken.
+  const articles = await getArticleSummaries()
+
+  for (const article of articles) {
+    for (const locale of routing.locales) {
+      entries.push({
+        url: `${BASE_URL}/${locale}/over/${article.slug}`,
+        lastModified: article.updatedAt,
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      })
+    }
+  }
+
+  return entries
 }

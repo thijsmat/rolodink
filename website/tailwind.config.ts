@@ -95,6 +95,30 @@ const config: Config = {
         'slide-up': 'slideUp 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
       },
+      // Lange teksten (artikelen onder /over, privacy, voorwaarden): de prose-kleuren
+      // volgen de huisstijl-variabelen, die in globals.css ook een dark-variant hebben.
+      typography: {
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': 'hsl(var(--grey))',
+            '--tw-prose-headings': 'hsl(var(--azure))',
+            '--tw-prose-lead': 'hsl(var(--grey))',
+            '--tw-prose-links': 'hsl(var(--link-blue))',
+            '--tw-prose-bold': 'hsl(var(--azure))',
+            '--tw-prose-counters': 'hsl(var(--gold))',
+            '--tw-prose-bullets': 'hsl(var(--gold))',
+            '--tw-prose-hr': 'hsl(var(--azure) / 0.1)',
+            '--tw-prose-quotes': 'hsl(var(--azure))',
+            '--tw-prose-quote-borders': 'hsl(var(--gold))',
+            '--tw-prose-captions': 'hsl(var(--grey))',
+            '--tw-prose-code': 'hsl(var(--azure))',
+            '--tw-prose-pre-code': 'hsl(var(--background))',
+            '--tw-prose-pre-bg': 'hsl(var(--azure))',
+            '--tw-prose-th-borders': 'hsl(var(--azure) / 0.2)',
+            '--tw-prose-td-borders': 'hsl(var(--azure) / 0.1)',
+          },
+        },
+      },
       keyframes: {
         "accordion-down": {
           from: {
@@ -127,7 +151,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 }
 
 export default config
