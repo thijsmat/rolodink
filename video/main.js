@@ -39,7 +39,10 @@
   };
   const rng = seed => {
     let s = seed >>> 0;
-    return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
+    return () => {
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -187,7 +190,7 @@
   // binnenrand van de gouden letter doorloopt.
   function buildCounterMask(o, baseline) {
     const K = 3;
-    const fs = parseFloat(getComputedStyle(o).fontSize);
+    const fs = Number.parseFloat(getComputedStyle(o).fontSize);
     const font = `italic 400 ${fs * K}px "Instrument Serif"`;
     const c = document.createElement('canvas');
     let ctx = c.getContext('2d');
@@ -283,7 +286,7 @@
 
     hookWords = splitWords($('#hook .l1'));
     hookChars = splitChars($('#hook .l2'));
-    hookChars[hookChars.length - 1].style.transformOrigin = '40% 85%';
+    hookChars.at(-1).style.transformOrigin = '40% 85%';
 
     // De o van "ook": de camera vliegt door zijn binnenruimte naar de volgende scène.
     const o = hookChars[0];
@@ -330,7 +333,7 @@
     // het vraagteken wiebelt even na
     const qt = t - 1.2;
     if (qt > 0) {
-      const q = hookChars[hookChars.length - 1];
+      const q = hookChars.at(-1);
       q.style.transform += ` rotate(${(10 * Math.sin(qt * 10) * Math.exp(-qt * 2.3)).toFixed(3)}deg)`;
     }
 
@@ -529,7 +532,7 @@
 
     // breedte van de knop in beide toestanden
     const meas = document.createElement('span');
-    meas.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:600 21px/1 Inter';
+    meas.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:600 21px/1 Inter, sans-serif';
     document.body.appendChild(meas);
     meas.textContent = btnA.textContent;
     btnW.a = meas.getBoundingClientRect().width / stageScale + 52 + 3;
@@ -596,12 +599,10 @@
     vblur(el, id, (Math.abs(a - aPrev) / 90) * el.h * 0.38);
   }
 
-  function renderSteps(t) {
-    const visible = t >= 5.2 && t < 16.4;
-    steps.style.visibility = visible ? 'visible' : 'hidden';
-    if (!visible) return;
+  // Knipperende tekstcursor: brandt tijdens het typen en knippert daarna.
+  const caretOn = (t, lastKey) => t - lastKey < 0.45 || Math.floor((t - lastKey - 0.45) / 0.5) % 2 === 1;
 
-    // --- browservenster ---
+  function renderWindow(t) {
     const wp = E.outExpo(prog(t, 5.4, 1.2));
     const drift = E.inOutCubic(prog(t, 6.6, 8.6));
     const ry = lerp(-34, -10, wp) + 3.5 * drift;
@@ -612,8 +613,10 @@
     win.style.opacity = clamp(prog(t, 5.4, 0.2)).toFixed(3);
     scroller.style.transform = `translateY(${(-SCROLL * E.inOutCubic(prog(t, 9.02, 0.62))).toFixed(2)}px)`;
     winDim.style.opacity = (0.12 * E.outCubic(prog(t, 13.02, 0.4))).toFixed(3);
+  }
 
-    // --- groot stapnummer: de 0 blijft staan, het tweede cijfer rolt 1 → 2 → 3 ---
+  // Groot stapnummer: de 0 blijft staan, het tweede cijfer rolt 1 → 2 → 3.
+  function renderStepNumber(t) {
     const enter = x => E.outExpo(prog(x, 5.5, 1.0));
     const rollAt = x => (1 - enter(x)) * -1.06 + E.inOutQuart(prog(x, SWITCH[0] - 0.04, 0.62)) + E.inOutQuart(prog(x, SWITCH[1] - 0.04, 0.62));
     const roll = rollAt(t);
@@ -622,27 +625,31 @@
     numStrips.forEach(s => vblur(s, 'num', v * 0.42));
     const zeroEnter = E.outExpo(prog(t, 5.44, 1.0));
     numZeros.forEach(z => (z.style.transform = `translateY(${((1 - zeroEnter) * DIGIT * 1.06).toFixed(2)}px)`));
-    // elk cijfer loopt vol als een druppel, zodra zijn stap begint
-    fillItems.forEach((el, k) => {
-      const start = (k === 0 ? STEP_FIRST : SWITCH[k - 1]) + 0.45;
-      const L = E.inOutCubic(prog(t, start, 1.15));
-      if (L <= 0.001) {
-        el.style.clipPath = 'inset(0 0 100% 0)';
-        return;
-      }
-      const level = lerp(206, 4, L);
-      const amp = 8 * Math.sin(Math.PI * L);
-      const pts = [];
-      for (let j = 0; j <= 20; j++) {
-        const x = (fillW * j) / 20;
-        const y = level + amp * Math.sin((j / 20) * Math.PI * 2.4 + t * 8 + k * 2);
-        pts.push(`${x.toFixed(1)}px ${y.toFixed(1)}px`);
-      }
-      pts.push(`${fillW}px 230px`, '0px 230px');
-      el.style.clipPath = `polygon(${pts.join(',')})`;
-    });
+    fillItems.forEach((el, k) => fillDigit(el, k, t));
+  }
 
-    // --- titels en onderregels draaien per stap door als kaartjes op een rolodex ---
+  // Elk cijfer loopt vol als een druppel, zodra zijn stap begint.
+  function fillDigit(el, k, t) {
+    const start = (k === 0 ? STEP_FIRST : SWITCH[k - 1]) + 0.45;
+    const L = E.inOutCubic(prog(t, start, 1.15));
+    if (L <= 0.001) {
+      el.style.clipPath = 'inset(0 0 100% 0)';
+      return;
+    }
+    const level = lerp(206, 4, L);
+    const amp = 8 * Math.sin(Math.PI * L);
+    const pts = [];
+    for (let j = 0; j <= 20; j++) {
+      const x = (fillW * j) / 20;
+      const y = level + amp * Math.sin((j / 20) * Math.PI * 2.4 + t * 8 + k * 2);
+      pts.push(`${x.toFixed(1)}px ${y.toFixed(1)}px`);
+    }
+    pts.push(`${fillW}px 230px`, '0px 230px');
+    el.style.clipPath = `polygon(${pts.join(',')})`;
+  }
+
+  // Titels en onderregels draaien per stap door als kaartjes op een rolodex.
+  function renderStepText(t) {
     titles.forEach((words, k) => {
       words.forEach((w, i) => {
         const d = 0.02 + i * 0.05;
@@ -650,8 +657,10 @@
       });
     });
     subs.forEach((s, k) => drum(s, `ts${k}`, stepAngle(t, k, 0.2), stepAngle(t - 1 / FPS, k, 0.2)));
+  }
 
-    // --- stap 1: de knop wordt ingevoegd en aangeklikt ---
+  // Stap 1: de knop wordt ingevoegd en aangeklikt.
+  function renderAddButton(t) {
     const bi = prog(t, 6.32, 0.62);
     const done = E.inOutCubic(prog(t, 7.46, 0.34));
     btn.style.width = `${(lerp(0, btnW.a, E.outExpo(bi)) + (btnW.b - btnW.a) * done).toFixed(2)}px`;
@@ -664,8 +673,10 @@
       : 'none';
     btnA.style.transform = `translateY(${(-done * 110).toFixed(2)}%)`;
     btnB.style.transform = `translateY(${((1 - done) * 110).toFixed(2)}%)`;
+  }
 
-    // --- stap 2: typen, opslaan ---
+  // Stap 2: typen en opslaan.
+  function renderNote(t) {
     const focus = E.outCubic(prog(t, 9.68, 0.2));
     ta.style.borderColor = focus > 0 ? `rgba(10, 102, 194, ${focus.toFixed(3)})` : '';
     ta.style.boxShadow = focus > 0 ? `0 0 0 ${(4 * focus).toFixed(2)}px rgba(10, 102, 194, .14)` : 'none';
@@ -674,8 +685,7 @@
     typed.textContent = NOTE.slice(0, n);
     placeholder.style.opacity = n > 0 ? 0 : 1;
     const lastKey = n > 0 ? noteTimes[n - 1] : 9.68;
-    const blinkOn = t - lastKey < 0.45 || Math.floor((t - lastKey - 0.45) / 0.5) % 2 === 1;
-    caret.style.opacity = t >= 9.68 && t < 12.5 && blinkOn ? 1 : 0;
+    caret.style.opacity = t >= 9.68 && t < 12.5 && caretOn(t, lastKey) ? 1 : 0;
 
     const statusWindows = [[noteTimes[0], 11.55], [11.55, 11.92], [11.92, 99]];
     statusEls.forEach((el, k) => {
@@ -685,8 +695,10 @@
       el.style.transform = `translateY(${((1 - pin) * 100 - pout * 100).toFixed(2)}%)`;
       el.style.opacity = (pin * (1 - pout)).toFixed(3);
     });
+  }
 
-    // --- stap 3: popup, zoeken, filteren ---
+  // Stap 3: popup openen, zoeken en filteren.
+  function renderPopup(t) {
     const po = prog(t, 13.02, 0.45);
     show(popup, po > 0);
     if (po > 0) {
@@ -700,13 +712,10 @@
     pq.textContent = QUERY.slice(0, qn);
     pph.style.opacity = qn > 0 ? 0 : 1;
     const qLast = qn > 0 ? QUERY_TIMES[qn - 1] : 13.3;
-    pcaret.style.opacity = po > 0.4 && (t - qLast < 0.45 || Math.floor((t - qLast - 0.45) / 0.5) % 2 === 1) ? 1 : 0;
+    pcaret.style.opacity = po > 0.4 && caretOn(t, qLast) ? 1 : 0;
     pinfo.style.height = `${(E.outCubic(prog(t, 14.16, 0.3)) * 40).toFixed(2)}px`;
-    let j = 0;
-    pcards.forEach(c => {
-      if (c === sanne) return;
+    pcards.filter(c => c !== sanne).forEach((c, j) => {
       const p = E.inOutCubic(prog(t, 14.16 + j * 0.045, 0.4));
-      j++;
       c.wrap.style.height = `${lerp(c.h, 0, p).toFixed(2)}px`;
       c.wrap.style.marginBottom = `${lerp(12, 0, p).toFixed(2)}px`;
       c.card.style.opacity = (1 - p).toFixed(3);
@@ -716,18 +725,33 @@
     sanne.acc.style.opacity = hit.toFixed(3);
     sanne.card.style.boxShadow = `0 0 0 ${(2 * hit).toFixed(2)}px rgba(10, 102, 194, ${(0.9 * hit).toFixed(3)}), 0 14px 30px -14px rgba(7, 21, 51, ${(0.4 * hit).toFixed(3)})`;
     sanne.mark.style.setProperty('--hl', `${(E.inOutCubic(prog(t, 14.52, 0.34)) * 100).toFixed(2)}%`);
+  }
 
-    // --- sticker onder de notitie zodra hij is opgeslagen ---
+  // Sticker onder de notitie zodra die is opgeslagen.
+  function renderSticker(t) {
     const sp = prog(t, 11.98, 0.75);
     const sOut = E.inCubic(prog(t, 12.42, 0.3));
-    show(sticker, sp > 0 && sOut < 1);
-    if (sp > 0 && sOut < 1) {
-      const nb = box(noteCard);
-      sticker.style.transform =
-        `translate(${(nb.x + nb.w - sticker.offsetWidth - 20).toFixed(2)}px, ${(nb.y + nb.h + 18).toFixed(2)}px) ` +
-        `rotate(${lerp(-10, -2.5, E.outCubic(sp)).toFixed(3)}deg) scale(${(E.spring(sp) * (1 - 0.2 * sOut)).toFixed(4)})`;
-      sticker.style.opacity = (clamp(sp * 4) * (1 - sOut)).toFixed(3);
-    }
+    const on = sp > 0 && sOut < 1;
+    show(sticker, on);
+    if (!on) return;
+    const nb = box(noteCard);
+    sticker.style.transform =
+      `translate(${(nb.x + nb.w - sticker.offsetWidth - 20).toFixed(2)}px, ${(nb.y + nb.h + 18).toFixed(2)}px) ` +
+      `rotate(${lerp(-10, -2.5, E.outCubic(sp)).toFixed(3)}deg) scale(${(E.spring(sp) * (1 - 0.2 * sOut)).toFixed(4)})`;
+    sticker.style.opacity = (clamp(sp * 4) * (1 - sOut)).toFixed(3);
+  }
+
+  function renderSteps(t) {
+    const visible = t >= 5.2 && t < 16.4;
+    steps.style.visibility = visible ? 'visible' : 'hidden';
+    if (!visible) return;
+    renderWindow(t);
+    renderStepNumber(t);
+    renderStepText(t);
+    renderAddButton(t);
+    renderNote(t);
+    renderPopup(t);
+    renderSticker(t);
   }
 
   // =====================================================================
@@ -890,7 +914,7 @@
       });
       cursor.style.transform = `translate(${(pos.x - 4).toFixed(2)}px, ${(pos.y - 3).toFixed(2)}px) scale(${(1 - 0.16 * press).toFixed(4)})`;
       cursor.style.opacity = shown.toFixed(3);
-      const last = CLICKS.filter(c => t >= c && t < c + 0.55).pop();
+      const last = CLICKS.findLast(c => t >= c && t < c + 0.55);
       if (last !== undefined) {
         const p = prog(t, last, 0.55);
         ripple.style.transform = `translate(${pos.x.toFixed(2)}px, ${pos.y.toFixed(2)}px) scale(${lerp(0.5, 3.4, E.outCubic(p)).toFixed(4)})`;
@@ -990,7 +1014,7 @@
     play.addEventListener('click', toggle);
     scrub.addEventListener('input', () => {
       if (playing) toggle();
-      seek(parseFloat(scrub.value));
+      seek(Number.parseFloat(scrub.value));
     });
     window.addEventListener('keydown', e => {
       if (e.code === 'Space') {

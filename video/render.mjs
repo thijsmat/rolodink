@@ -5,7 +5,7 @@
 //   node render.mjs --from 5 --to 9      → alleen een stuk van de tijdlijn
 //   node render.mjs --preview            → lokale server; open de URL in je browser
 //
-// Opties: --out <bestand> --fps <n> --crf <n> --outdir <map>
+// Opties: --out <bestand> --fps <n> --crf <n> --outdir <map> --port <n>
 // Een eigen Chrome/Chromium gebruiken kan met CHROME_PATH=/pad/naar/chrome.
 
 import http from 'node:http';
@@ -39,12 +39,25 @@ const MIME = {
   '.woff': 'font/woff',
 };
 
+// De server kent alleen de bestanden die de compositie nodig heeft. Het pad uit
+// een verzoek is een sleutel in deze lijst en wordt nooit zelf een bestandspad.
+function servableFiles() {
+  const files = new Map();
+  const add = file => files.set(`/${path.relative(root, file).split(path.sep).join('/')}`, file);
+  for (const name of ['index.html', 'style.css', 'main.js']) add(path.join(here, name));
+  add(path.join(root, 'afbeeldingen', 'rolodink.png'));
+  // de lettertypen die style.css met @font-face laadt
+  const css = fs.readFileSync(path.join(here, 'style.css'), 'utf8');
+  for (const [, font] of css.matchAll(/url\('(node_modules\/[^']+\.woff2)'\)/g)) add(path.join(here, font));
+  return files;
+}
+
 function serve() {
+  const files = servableFiles();
   const server = http.createServer((req, res) => {
-    const { pathname } = new URL(req.url, 'http://localhost');
-    const file = path.join(root, decodeURIComponent(pathname));
-    if (!file.startsWith(root + path.sep)) {
-      res.writeHead(403).end();
+    const file = files.get(new URL(req.url, 'http://localhost').pathname);
+    if (!file) {
+      res.writeHead(404).end();
       return;
     }
     fs.readFile(file, (err, data) => {
