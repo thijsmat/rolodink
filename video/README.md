@@ -3,6 +3,12 @@
 `rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt: 1920×1080, 60 fps, H.264, zonder geluid.
 Zonder geluid omdat de video vooral automatisch en gedempt afspeelt, op de website en in de LinkedIn-feed.
 
+`rolodink-uitleg-poster.jpg` is het slotbeeld, voor wie de video ergens insluit:
+
+```html
+<video src="rolodink-uitleg.mp4" poster="rolodink-uitleg-poster.jpg" autoplay muted loop playsinline></video>
+```
+
 De video is een HTML-compositie (`index.html`, `style.css`, `main.js`) die `render.mjs` frame voor frame in
 headless Chromium opneemt en met ffmpeg tot MP4 samenvoegt. Er lopen geen CSS-animaties: `main.js` berekent
 elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op.
