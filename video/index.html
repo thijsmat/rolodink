@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rolodink — uitlegvideo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage">
+
+      <!-- Scène 3-5: de drie stappen. Onderste laag: het navy doek van scène 2 valt weg en onthult deze. -->
+      <section id="steps" class="scene">
+        <div class="lockup" id="lockInk"></div>
+
+        <div id="stepNum" aria-hidden="true">
+          <div class="numLayer outline"><span class="zero"><span class="zi">0</span></span><span class="slot"><span class="strip"><span>1</span><span>2</span><span>3</span></span></span></div>
+          <div class="numLayer fill"><span class="zero"><span class="zi">0</span></span><span class="slot"><span class="strip"><span>1</span><span>2</span><span>3</span></span></span></div>
+        </div>
+
+        <div id="stepTitles">
+          <h2 class="stitle"><span class="l1">Open een</span><span class="l2">profiel.</span></h2>
+          <h2 class="stitle"><span class="l1">Schrijf een</span><span class="l2">notitie.</span></h2>
+          <h2 class="stitle"><span class="l1">Vind alles</span><span class="l2">terug.</span></h2>
+        </div>
+
+        <div id="stepSubs">
+          <p class="ssub"><span class="si">Klik op <span class="kbd">Add to Rldnk</span></span></p>
+          <p class="ssub"><span class="si">Privé, alleen voor jou.</span></p>
+          <p class="ssub"><span class="si">Zoek op naam, bedrijf of detail.</span></p>
+        </div>
+
+        <div id="winWrap">
+          <div id="win">
+            <div class="bar">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span class="url">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="7" width="10" height="7.5" rx="1.6" fill="currentColor"/></svg>
+                linkedin.com/in/sannevisser
+              </span>
+              <span class="ext" id="extIcon"><span class="appicon"><img src="../afbeeldingen/rolodink.png" alt=""></span></span>
+              <span class="me"></span>
+            </div>
+            <div class="page">
+              <div class="scroller" id="scroller">
+                <div class="profile">
+                  <div class="banner"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+                  <div class="avatar av-sanne">SV</div>
+                  <div class="info">
+                    <div class="name">Sanne Visser <span class="deg">· 1e</span></div>
+                    <div class="headline">Head of Talent bij Nordlicht</div>
+                    <div class="meta">Utrecht, Nederland · 500+ connecties · <span class="link">Contactgegevens</span></div>
+                    <div class="actions">
+                      <span class="btn primary">Bericht</span>
+                      <span class="btn rldnk" id="rldnkBtn"><span class="bl"><span class="bt a">Add to Rldnk</span><span class="bt b">Added <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></span>
+                      <span class="btn ghost">Meer</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="note" id="noteCard">
+                  <div class="nhead"><span class="ntitle">Rolodink Note</span><span class="nclose">×</span></div>
+                  <div class="ta" id="ta"><span class="ph">Add a private note...</span><span class="typed" id="typed"></span><span class="caret" id="caret"></span></div>
+                  <div class="status" id="status"><span class="s s1">Typing...</span><span class="s s2">Saving...</span><span class="s s3"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Saved</span></div>
+                </div>
+
+                <div class="about"><div class="atitle">Info</div><i></i><i></i><i></i></div>
+              </div>
+              <div class="dim" id="winDim"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sticker">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10.5V8a5 5 0 0 1 10 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4.5" y="10.5" width="15" height="11" rx="3" fill="currentColor"/></svg>
+          <span>Versleuteld opgeslagen</span>
+        </div>
+
+        <div id="popup">
+          <div class="phead">
+            <div class="ptitle">Rolodink</div>
+            <div class="ppills"><span>Toon alle connecties</span><span>Instellingen</span><span>Help</span></div>
+          </div>
+          <div class="psearch">
+            <div class="pinput" id="pinput"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="pph">Zoek in connecties... (Ctrl+F)</span><span class="pq" id="pq"></span><span class="caret" id="pcaret"></span></div>
+            <div class="pinfo" id="pinfo"><span>1 resultaat voor “zeil”</span></div>
+          </div>
+          <div class="plist" id="plist"></div>
+        </div>
+      </section>
+
+      <!-- Scène 1 staat in twee lagen: het papier onder de navy scène, de tekst erboven.
+           Zo kan de navy scène precies in de binnenruimte van de o verschijnen. -->
+      <div id="s1bg" class="scene"></div>
+
+      <!-- Scène 2: het merk -->
+      <section id="s2" class="scene">
+        <div id="s2bg"></div>
+        <div class="lockup" id="lockPaper"></div>
+        <p id="tagline"><span class="t1">Jouw notities,</span> <span class="t2">direct op LinkedIn.</span></p>
+      </section>
+
+      <!-- Scène 1: de vraag -->
+      <section id="s1" class="scene">
+        <div id="s1cam">
+          <div id="chips"></div>
+          <h1 id="hook"><span class="line l1">Wie was dat</span><span class="line l2">ook alweer?</span></h1>
+        </div>
+      </section>
+
+      <!-- Overgang naar het slot: het zoekresultaat klapt om als een rolodexkaart -->
+      <div id="flip">
+        <div id="flipInner">
+          <div class="face front" id="flipFront"></div>
+          <div class="face back"><span class="tile" id="flipIcon"><img src="../afbeeldingen/rolodink.png" alt=""></span></div>
+        </div>
+      </div>
+
+      <!-- Scène 6: slot -->
+      <section id="s6" class="scene">
+        <div id="oLock"><span class="oword">Rolodink</span></div>
+        <h2 id="outro"><span class="o1">Van connectie</span><span class="o2"><span class="o2t">naar relatie.</span><svg id="swoosh" viewBox="0 0 600 60" preserveAspectRatio="none" aria-hidden="true"><path d="M8 38 C 150 12, 300 8, 592 30" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg></span></h2>
+        <div id="cta"><span class="c1">Gratis voor Chrome, Edge &amp; Firefox</span><span class="c2">rolodink.app</span></div>
+      </section>
+      <div class="tile" id="oIcon"><img src="../afbeeldingen/rolodink.png" alt=""></div>
+
+      <div id="sparks"></div>
+      <div id="ripple"></div>
+      <div id="cursor">
+        <svg viewBox="0 0 28 40" aria-hidden="true"><path d="M3 2.5v29.2l7.1-6.9 4.6 10.7 5.2-2.2-4.6-10.6h9.9z" fill="#111" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button id="play" type="button">Pauze</button>
+    <label for="scrub">Tijd</label>
+    <input id="scrub" type="range" min="0" max="19" step="0.0166667" value="0">
+    <span id="clock">0.00 s</span>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs id="filters"></defs>
+  </svg>
+
+  <script src="main.js"></script>
+</body>
+</html>
