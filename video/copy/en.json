@@ -13,7 +13,7 @@
     [
       "Open a",
       "profile.",
-      "Click <span class=\"kbd\">Add to Rldnk</span>"
+      "Click "
     ],
     [
       "Write a",
@@ -29,7 +29,8 @@
   "profile": {
     "degree": "· 1st",
     "headline": "Head of Talent at Nordlicht",
-    "meta": "Utrecht, Netherlands · 500+ connections · <span class=\"link\">Contact info</span>",
+    "meta": "Utrecht, Netherlands · 500+ connections · ",
+    "contact": "Contact info",
     "message": "Message",
     "more": "More",
     "about": "About"
@@ -76,7 +77,7 @@
     ],
     [
       "Head of Talent at Nordlicht",
-      "Met at DDW. Looking for a CTO. Restores <mark class=\"hl\">sail</mark>boats."
+      "Met at DDW. Looking for a CTO. Restores sailboats."
     ],
     [
       "Investor",

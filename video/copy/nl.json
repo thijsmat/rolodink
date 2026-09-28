@@ -13,7 +13,7 @@
     [
       "Open een",
       "profiel.",
-      "Klik op <span class=\"kbd\">Add to Rldnk</span>"
+      "Klik op "
     ],
     [
       "Schrijf een",
@@ -29,7 +29,8 @@
   "profile": {
     "degree": "· 1e",
     "headline": "Head of Talent bij Nordlicht",
-    "meta": "Utrecht, Nederland · 500+ connecties · <span class=\"link\">Contactgegevens</span>",
+    "meta": "Utrecht, Nederland · 500+ connecties · ",
+    "contact": "Contactgegevens",
     "message": "Bericht",
     "more": "Meer",
     "about": "Info"
@@ -76,7 +77,7 @@
     ],
     [
       "Head of Talent bij Nordlicht",
-      "Ontmoet op DDW. Zoekt een CTO. Restaureert <mark class=\"hl\">zeil</mark>boten."
+      "Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten."
     ],
     [
       "Investeerder",

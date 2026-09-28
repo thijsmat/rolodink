@@ -104,10 +104,11 @@ node render.mjs --audio-only --wav soundtrack.wav   # de soundtrack ook als WAV,
 node render.mjs --no-audio              # zonder geluid
 ```
 
-Teksten staan per taal in `copy/<taal>.json`, ook de notitie, de zoekterm en de kaartjes. `index.html` verwijst
-ernaar met `data-copy="pad"`; met `data-html` is de tekst HTML. Twee dingen hangen aan de animatie: de tweede regel
-van de hook heeft een o (daar vliegt de camera doorheen), en de zoekterm heeft vier letters, één per aanslag, en
-staat in de notitie van Sanne tussen `<mark class="hl">…</mark>`. Timing staat als constanten bovenaan de scènes in
+Teksten staan per taal in `copy/<taal>.json`, ook de notitie, de zoekterm en de kaartjes; `index.html` verwijst
+ernaar met `data-copy="pad"`. Het zijn altijd platte teksten, geen HTML. Twee dingen hangen aan de animatie: de
+tweede regel van de hook heeft een o (daar vliegt de camera doorheen), en de zoekterm heeft vier letters, één per
+aanslag, en staat letterlijk in de notitie van Sanne; de markering maakt de code zelf. Een tekst die op een spatie
+eindigt (`profile.meta`, de onderregel van stap 1) wordt direct gevolgd door een link of knop. Timing staat als constanten bovenaan de scènes in
 `main.js`; niveaus, noten en klankkleuren van het geluid in `soundtrack.mjs`. Elke optie van `render.mjs` werkt ook
 met `--lang en`. Met `CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
 

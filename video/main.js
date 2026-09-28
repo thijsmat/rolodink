@@ -280,7 +280,9 @@
       el.innerHTML =
         `<div class="av" style="background:linear-gradient(135deg,${PAL[pal][0]},${PAL[pal][1]})">` +
         `<span class="ini">${initialsOf(name)}</span><span class="q">?</span></div>` +
-        `<div class="tx"><div class="nm">${name}</div><div class="rl">${role}</div><div class="sk"><i></i><i></i></div></div>`;
+        '<div class="tx"><div class="nm"></div><div class="rl"></div><div class="sk"><i></i><i></i></div></div>';
+      $('.nm', el).textContent = name;
+      $('.rl', el).textContent = role;
       root.appendChild(el);
       return {
         el, x, y, rot, i,
@@ -540,6 +542,20 @@
   let pcards = [];
   let sanne = null;
 
+  // Zet de notitie als tekst in el en markeert de zoekterm erin (voor de markeerstift).
+  function noteWithMark(el, note, query) {
+    const at = note.toLowerCase().indexOf(query.toLowerCase());
+    if (at < 0) {
+      el.textContent = note;
+      return null;
+    }
+    const mark = document.createElement('mark');
+    mark.className = 'hl';
+    mark.textContent = note.slice(at, at + query.length);
+    el.replaceChildren(note.slice(0, at), mark, note.slice(at + query.length));
+    return mark;
+  }
+
   function buildSteps() {
     titles = $$('.stitle').map(el => [...splitWords($('.l1', el)), ...splitWords($('.l2', el))]);
     titles.flat().forEach(w => (w.h = w.offsetHeight));
@@ -580,9 +596,11 @@
         `<div class="pcard"><span class="acc"></span>` +
         `<div class="pc-head"><span class="pc-av" style="background:linear-gradient(135deg,${PAL[pal][0]},${PAL[pal][1]})">${initialsOf(name)}</span>` +
         `<span class="pc-name">${name}<span class="pc-badge">${check}</span></span><span class="pc-link">in</span></div>` +
-        `<div class="pc-role">${role}</div><div class="pc-note">${note}</div></div>`;
+        '<div class="pc-role"></div><div class="pc-note"></div></div>';
+      $('.pc-role', wrap).textContent = role;
+      const mark = noteWithMark($('.pc-note', wrap), note, T.query);
       list.appendChild(wrap);
-      return { wrap, card: $('.pcard', wrap), acc: $('.acc', wrap), mark: $('mark', wrap), name };
+      return { wrap, card: $('.pcard', wrap), acc: $('.acc', wrap), mark, name };
     });
     pcards.forEach(c => {
       c.h = c.wrap.offsetHeight;
@@ -1034,15 +1052,14 @@
     return (await fetch('copy/nl.json')).json();
   }
 
-  // Zet de teksten in de pagina: data-copy="pad" in index.html verwijst naar T;
-  // met data-html is de tekst HTML.
+  // Zet de teksten in de pagina: data-copy="pad" in index.html verwijst naar T.
+  // Altijd als tekst, nooit als HTML.
   function applyCopy() {
     document.documentElement.lang = LANG;
     document.title = T.title;
     for (const el of $$('[data-copy]')) {
       const text = el.dataset.copy.split('.').reduce((node, key) => node[key], T);
-      if ('html' in el.dataset) el.innerHTML = text;
-      else el.textContent = text;
+      el.textContent = text;
     }
   }
 
