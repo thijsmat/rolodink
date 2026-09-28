@@ -1,14 +1,15 @@
 # Uitlegvideo Rolodink
 
 `rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt; `rolodink-explainer.mp4` is dezelfde video in
-het Engels. Beide zijn 1920×1080, 60 fps, H.264, met stereogeluid (AAC, 48 kHz). Het geluid is een extra: op de
-website en in de LinkedIn-feed speelt de video automatisch en gedempt af, dus het beeld vertelt het verhaal ook
-zonder geluid.
+het Engels. Beide zijn 1920×1080, 60 fps, H.264, met stereogeluid (AAC, 48 kHz). Ze staan met hun poster (het
+slotbeeld) in `website/public/video/`, want de homepage toont ze in de sectie *Zo werkt het* / *How it works*. Het
+geluid is een extra: op de website en in de LinkedIn-feed speelt de video gedempt af, dus het beeld vertelt het
+verhaal ook zonder geluid.
 
-`rolodink-uitleg-poster.jpg` en `rolodink-explainer-poster.jpg` zijn het slotbeeld, voor wie de video ergens insluit:
+Elders insluiten kan zo:
 
 ```html
-<video src="rolodink-uitleg.mp4" poster="rolodink-uitleg-poster.jpg" autoplay muted loop playsinline></video>
+<video src="https://rolodink.app/video/rolodink-uitleg.mp4" poster="https://rolodink.app/video/rolodink-uitleg-poster.jpg" muted loop playsinline controls></video>
 ```
 
 De video is een HTML-compositie (`index.html`, `style.css`, `main.js`) die `render.mjs` frame voor frame in
@@ -88,8 +89,8 @@ licenties om rekening mee te houden.
 cd video
 npm install
 npx playwright install chromium   # eenmalig
-npm run render                     # → rolodink-uitleg.mp4 en -poster.jpg, met geluid (duurt een paar minuten)
-npm run render:en                  # → rolodink-explainer.mp4 en -poster.jpg, de Engelse versie
+npm run render                     # → website/public/video/rolodink-uitleg.mp4 en -poster.jpg (een paar minuten)
+npm run render:en                  # → website/public/video/rolodink-explainer.mp4 en -poster.jpg
 npm run audio                      # alleen de soundtrack opnieuw; het beeld blijft staan (een paar seconden)
 npm run audio:en                   # idem voor de Engelse versie
 ```

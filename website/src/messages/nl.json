@@ -4,6 +4,7 @@
         "title": "Maak van elke LinkedIn connectie een waardevolle relatie",
         "subtitle": "Rolodink is de slimme notitielaag voor LinkedIn. Voeg persoonlijke notities toe, onthoud details en bouw een sterker netwerk, direct vanuit je browser.",
         "trustedBy": "4.9/5 - Vertrouwd door professionals",
+        "watch": "Bekijk hoe het werkt",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -14,6 +15,34 @@
             "addToEdge": "Toevoegen aan Edge",
             "addToFirefox": "Toevoegen aan Firefox"
         }
+    },
+    "Explainer": {
+        "title": "Zo werkt het",
+        "description": "Een profiel openen, een notitie schrijven en iemand terugvinden. In negentien seconden.",
+        "video": {
+            "src": "/video/rolodink-uitleg.mp4",
+            "poster": "/video/rolodink-uitleg-poster.jpg",
+            "label": "Uitlegvideo: zo werkt Rolodink",
+            "play": "Video afspelen",
+            "pause": "Video pauzeren",
+            "soundOn": "Geluid aan",
+            "soundOff": "Geluid uit"
+        },
+        "steps": [
+            {
+                "title": "Open een profiel",
+                "description": "Op LinkedIn staat de knop Add to Rldnk naast Bericht. Eén klik en de connectie staat in Rolodink."
+            },
+            {
+                "title": "Schrijf een notitie",
+                "description": "Waar je elkaar ontmoette, waar jullie het over hadden, wat je niet wilt vergeten. Alleen voor jou, en versleuteld opgeslagen."
+            },
+            {
+                "title": "Vind alles terug",
+                "description": "Zoek op naam, bedrijf of een detail uit je notitie. Zo vind je Sanne terug met ‘zeil’."
+            }
+        ],
+        "more": "Meer over hoe het werkt"
     },
     "Features": {
         "title": "De kracht van persoonlijke notities",

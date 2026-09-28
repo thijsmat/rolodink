@@ -4,6 +4,7 @@
         "title": "Turn every LinkedIn connection into a meaningful relationship",
         "subtitle": "Rolodink is the smart note-taking layer for LinkedIn. Add personal notes, remember details, and build a stronger network, directly from your browser.",
         "trustedBy": "4.9/5 - Trusted by professionals",
+        "watch": "See how it works",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -14,6 +15,34 @@
             "addToEdge": "Add to Edge",
             "addToFirefox": "Add to Firefox"
         }
+    },
+    "Explainer": {
+        "title": "How it works",
+        "description": "Open a profile, write a note and find someone again. In nineteen seconds.",
+        "video": {
+            "src": "/video/rolodink-explainer.mp4",
+            "poster": "/video/rolodink-explainer-poster.jpg",
+            "label": "Explainer video: how Rolodink works",
+            "play": "Play video",
+            "pause": "Pause video",
+            "soundOn": "Sound on",
+            "soundOff": "Sound off"
+        },
+        "steps": [
+            {
+                "title": "Open a profile",
+                "description": "On LinkedIn, the Add to Rldnk button sits next to Message. One click and the connection is in Rolodink."
+            },
+            {
+                "title": "Write a note",
+                "description": "Where you met, what you talked about, what you don't want to forget. Just for you, and stored encrypted."
+            },
+            {
+                "title": "Find them again",
+                "description": "Search by name, company or a detail from your note. That's how ‘sail’ finds Sanne."
+            }
+        ],
+        "more": "More about how it works"
     },
     "Features": {
         "title": "The power of personal notes",

@@ -2,6 +2,7 @@
 //
 //   node render.mjs                      → rolodink-uitleg.mp4 en -poster.jpg (1920×1080, 60 fps, AAC-stereo)
 //   node render.mjs --lang en            → de Engelse versie: rolodink-explainer.mp4 en -poster.jpg
+//                                          (beide in website/public/video, waar de website ze toont)
 //   node render.mjs --audio-only         → alleen de soundtrack opnieuw; het beeld blijft staan
 //   node render.mjs --still 3.4,7.5      → losse frames als PNG in ./stills
 //   node render.mjs --from 5 --to 9      → alleen een stuk van de tijdlijn
@@ -27,6 +28,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // De server staat op de root van de repo, zodat de compositie het app-icoon
 // uit ../afbeeldingen kan laden zonder er een kopie van te maken.
 const root = path.resolve(here, '..');
+// De video's en posters staan waar de website ze serveert (/video/…).
+const published = path.join(root, 'website', 'public', 'video');
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -139,6 +142,7 @@ if (flag('preview')) {
   if (timeline.lang !== lang) throw new Error(`Onbekende taal "${lang}"; de talen staan in copy/`);
   const fps = Number(opt('fps', timeline.fps));
   const frame = t => page.evaluate(x => window.renderFrame(x), t);
+  const out = opt('out') ? path.resolve(here, opt('out')) : path.join(published, `${timeline.file}.mp4`);
 
   if (opt('still')) {
     const outdir = path.resolve(here, opt('outdir', 'stills'));
@@ -151,14 +155,12 @@ if (flag('preview')) {
       console.log(file);
     }
   } else if (flag('audio-only')) {
-    const out = path.resolve(here, opt('out', `${timeline.file}.mp4`));
     if (!fs.existsSync(out)) throw new Error(`${out} bestaat nog niet; render eerst het beeld met npm run render`);
     await addSoundtrack(page, timeline, out, 0, timeline.duration);
     console.log(out);
   } else {
     const from = Number(opt('from', 0));
     const to = Math.min(Number(opt('to', timeline.duration)), timeline.duration);
-    const out = path.resolve(here, opt('out', `${timeline.file}.mp4`));
     const total = Math.round((to - from) * fps);
     const { proc, done } = ffmpeg([
       '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
@@ -185,7 +187,7 @@ if (flag('preview')) {
     console.log('');
     // de poster is het slotbeeld, alleen bij een volledige render
     if (from === 0 && to === timeline.duration && !opt('out')) {
-      const poster = path.join(here, `${timeline.file}-poster.jpg`);
+      const poster = path.join(published, `${timeline.file}-poster.jpg`);
       await frame(timeline.duration);
       await page.screenshot({ path: poster, type: 'jpeg', quality: 90 });
       console.log(poster);
