@@ -6,8 +6,8 @@
  * Alles hangt aan één functie: render(t). Er lopen geen CSS-animaties of
  * transities; elke eigenschap wordt uit de tijd t berekend. Daardoor levert
  * render.mjs frame voor frame exact hetzelfde beeld op, en kun je in de preview
- * vrij door de tijdlijn scrubben. De teksten staan per taal in copy.js; ?lang=en
- * geeft de Engelse versie.
+ * vrij door de tijdlijn scrubben. De teksten staan per taal in copy/<taal>.json;
+ * ?lang=en geeft de Engelse versie.
  *
  *   0,0 –  3,1  vraag   "Wie was dat ook alweer?" → de camera vliegt door de o
  *   2,4 –  6,0  merk    Rolodink rolt in als kaartjes in een rolodex, het doek valt weg
@@ -23,9 +23,10 @@
   const params = new URLSearchParams(location.search);
   const RENDER = params.has('render');
   if (RENDER) document.body.classList.add('render');
-  // taal van de teksten in copy.js: ?lang=en, standaard Nederlands
-  const LANG = Object.hasOwn(window.COPY, params.get('lang')) ? params.get('lang') : 'nl';
-  const T = window.COPY[LANG];
+  // taal van de teksten: ?lang=en, standaard Nederlands; init() laadt copy/<taal>.json
+  const requested = params.get('lang') ?? 'nl';
+  let LANG = /^[a-z]{2}$/.test(requested) ? requested : 'nl';
+  let T = null;
 
   // ---------- rekenhulp ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -155,7 +156,7 @@
     teal: ['#3CD6B0', '#0E9F7E'],
     coral: ['#F4AE93', '#D2654A'],
   };
-  // naam, kleur, middelpunt x/y, rotatie; de rollen staan per taal in copy.js
+  // naam, kleur, middelpunt x/y, rotatie; de rollen staan per taal in copy/<taal>.json
   const CHIPS = [
     ['Lotte Bakker', 'gold', 262, 150, -6],
     ['Daan de Wit', 'blue', 690, 106, 4],
@@ -517,12 +518,10 @@
   const HIT = 14.45; // Sanne licht op
   const MARK = 14.52; // de zoekterm wordt gemarkeerd
 
-  const NOTE = T.note;
-  const QUERY = T.query;
   const QUERY_TIMES = [13.62, 13.75, 13.87, 14.0];
   const noteTimes = [];
 
-  // naam en kleur per kaartje in de popup; functie en notitie staan per taal in copy.js
+  // naam en kleur per kaartje in de popup; functie en notitie staan in copy/<taal>.json
   const PCARDS = [
     ['Lotte Bakker', 'gold'],
     ['Daan de Wit', 'blue'],
@@ -565,7 +564,7 @@
     // typritme: snel, met een adempauze na elke zin
     const r = rng(5);
     let tt = 9.88;
-    for (const ch of NOTE) {
+    for (const ch of T.note) {
       noteTimes.push(tt);
       tt += 0.017 + r() * 0.013 + (ch === '.' ? 0.1 : 0) + (ch === ' ' ? 0.006 : 0);
     }
@@ -703,8 +702,8 @@
     ta.style.borderColor = focus > 0 ? `rgba(10, 102, 194, ${focus.toFixed(3)})` : '';
     ta.style.boxShadow = focus > 0 ? `0 0 0 ${(4 * focus).toFixed(2)}px rgba(10, 102, 194, .14)` : 'none';
     let n = 0;
-    while (n < NOTE.length && noteTimes[n] <= t) n++;
-    typed.textContent = NOTE.slice(0, n);
+    while (n < T.note.length && noteTimes[n] <= t) n++;
+    typed.textContent = T.note.slice(0, n);
     placeholder.style.opacity = n > 0 ? 0 : 1;
     const lastKey = n > 0 ? noteTimes[n - 1] : 9.68;
     caret.style.opacity = t >= 9.68 && t < 12.5 && caretOn(t, lastKey) ? 1 : 0;
@@ -731,7 +730,7 @@
       popup.style.opacity = clamp(po * 3).toFixed(3);
     }
     const qn = QUERY_TIMES.filter(x => t >= x).length;
-    pq.textContent = QUERY.slice(0, qn);
+    pq.textContent = T.query.slice(0, qn);
     pph.style.opacity = qn > 0 ? 0 : 1;
     const qLast = qn > 0 ? QUERY_TIMES[qn - 1] : 13.3;
     pcaret.style.opacity = po > 0.4 && caretOn(t, qLast) ? 1 : 0;
@@ -987,7 +986,7 @@
         render(at);
         return { at, x: cursorAt(at).x / 1920 };
       }),
-      note: NOTE,
+      note: T.note,
       noteKeys: noteTimes,
       saving: SAVING,
       saved: SAVED,
@@ -1026,8 +1025,17 @@
     stage.style.top = `${(vh - 1080 * stageScale) / 2}px`;
   }
 
-  // Zet de teksten van de gekozen taal in de pagina: data-copy="pad" in index.html
-  // verwijst naar T; met data-html is de tekst HTML.
+  // Laadt de teksten van de gekozen taal. Bestaat die taal niet, dan Nederlands;
+  // render.mjs ziet dat aan __timeline.lang en meldt het.
+  async function loadCopy() {
+    const response = await fetch(`copy/${LANG}.json`);
+    if (response.ok) return response.json();
+    LANG = 'nl';
+    return (await fetch('copy/nl.json')).json();
+  }
+
+  // Zet de teksten in de pagina: data-copy="pad" in index.html verwijst naar T;
+  // met data-html is de tekst HTML.
   function applyCopy() {
     document.documentElement.lang = LANG;
     document.title = T.title;
@@ -1039,6 +1047,8 @@
   }
 
   async function init() {
+    T = await loadCopy();
+    Object.assign(window.__timeline, { lang: LANG, file: T.file });
     applyCopy();
     fit();
     await document.fonts.ready;
@@ -1057,7 +1067,7 @@
     render(0);
   }
 
-  window.__timeline = { fps: FPS, duration: DURATION, lang: LANG, file: T.file };
+  window.__timeline = { fps: FPS, duration: DURATION };
   window.renderFrame = t => render(t);
   window.soundCues = soundCues;
   window.__ready = init();

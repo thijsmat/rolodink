@@ -11,9 +11,10 @@ zonder geluid.
 <video src="rolodink-uitleg.mp4" poster="rolodink-uitleg-poster.jpg" autoplay muted loop playsinline></video>
 ```
 
-De video is een HTML-compositie (`index.html`, `style.css`, `copy.js`, `main.js`) die `render.mjs` frame voor frame in
+De video is een HTML-compositie (`index.html`, `style.css`, `main.js`) die `render.mjs` frame voor frame in
 headless Chromium opneemt en met ffmpeg tot MP4 samenvoegt. Er lopen geen CSS-animaties: `main.js` berekent
-elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De teksten staan per taal in `copy.js`.
+elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De teksten staan per taal in
+`copy/nl.json` en `copy/en.json`.
 De soundtrack wordt daarna in `soundtrack.mjs` gesynthetiseerd en onder het beeld gezet.
 
 ## Draaiboek
@@ -31,7 +32,7 @@ Elk cijfer van het stapnummer loopt vol als een druppel, net als de druppel in h
 
 ## Engelse versie
 
-Zelfde beeld, geluid en timing; alleen de teksten verschillen (`copy.js`).
+Zelfde beeld, geluid en timing; alleen de teksten verschillen (`copy/en.json`).
 
 | Nederlands | Engels |
 |---|---|
@@ -103,10 +104,12 @@ node render.mjs --audio-only --wav soundtrack.wav   # de soundtrack ook als WAV,
 node render.mjs --no-audio              # zonder geluid
 ```
 
-Teksten staan per taal in `copy.js`, ook de notitie, de zoekterm en de kaartjes; `index.html` verwijst ernaar met
-`data-copy`. Timing staat als constanten bovenaan de scènes in `main.js`. Elke optie van `render.mjs` werkt ook met
-`--lang en`. Niveaus, noten en klankkleuren van het geluid staan in `soundtrack.mjs`. Met
-`CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
+Teksten staan per taal in `copy/<taal>.json`, ook de notitie, de zoekterm en de kaartjes. `index.html` verwijst
+ernaar met `data-copy="pad"`; met `data-html` is de tekst HTML. Twee dingen hangen aan de animatie: de tweede regel
+van de hook heeft een o (daar vliegt de camera doorheen), en de zoekterm heeft vier letters, één per aanslag, en
+staat in de notitie van Sanne tussen `<mark class="hl">…</mark>`. Timing staat als constanten bovenaan de scènes in
+`main.js`; niveaus, noten en klankkleuren van het geluid in `soundtrack.mjs`. Elke optie van `render.mjs` werkt ook
+met `--lang en`. Met `CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
 
 ## Verantwoording
 

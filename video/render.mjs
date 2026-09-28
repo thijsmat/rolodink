@@ -9,8 +9,8 @@
 //
 // Opties: --out <bestand> --fps <n> --crf <n> --outdir <map> --port <n>
 //         --no-audio (zonder geluid) --wav <bestand> (de soundtrack ook als WAV bewaren)
-// De teksten per taal staan in copy.js. Een eigen Chrome/Chromium gebruiken kan met
-// CHROME_PATH=/pad/naar/chrome.
+// De teksten per taal staan in copy/<taal>.json. Een eigen Chrome/Chromium gebruiken
+// kan met CHROME_PATH=/pad/naar/chrome.
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -39,6 +39,7 @@ const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
@@ -51,7 +52,11 @@ const MIME = {
 function servableFiles() {
   const files = new Map();
   const add = file => files.set(`/${path.relative(root, file).split(path.sep).join('/')}`, file);
-  for (const name of ['index.html', 'style.css', 'copy.js', 'main.js']) add(path.join(here, name));
+  for (const name of ['index.html', 'style.css', 'main.js']) add(path.join(here, name));
+  // de teksten per taal
+  for (const name of fs.readdirSync(path.join(here, 'copy'))) {
+    if (name.endsWith('.json')) add(path.join(here, 'copy', name));
+  }
   add(path.join(root, 'afbeeldingen', 'rolodink.png'));
   // de lettertypen die style.css met @font-face laadt
   const css = fs.readFileSync(path.join(here, 'style.css'), 'utf8');
@@ -131,7 +136,7 @@ if (flag('preview')) {
   await page.goto(`${url}?render&lang=${encodeURIComponent(lang)}`);
   await page.evaluate(() => window.__ready);
   const timeline = await page.evaluate(() => window.__timeline);
-  if (timeline.lang !== lang) throw new Error(`Onbekende taal "${lang}"; de talen staan in copy.js`);
+  if (timeline.lang !== lang) throw new Error(`Onbekende taal "${lang}"; de talen staan in copy/`);
   const fps = Number(opt('fps', timeline.fps));
   const frame = t => page.evaluate(x => window.renderFrame(x), t);
 
