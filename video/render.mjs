@@ -1,6 +1,7 @@
 // Rendert de compositie in index.html frame voor frame naar MP4, met geluid.
 //
-//   node render.mjs                      → rolodink-uitleg.mp4 (1920×1080, 60 fps, AAC-stereo)
+//   node render.mjs                      → rolodink-uitleg.mp4 en -poster.jpg (1920×1080, 60 fps, AAC-stereo)
+//   node render.mjs --lang en            → de Engelse versie: rolodink-explainer.mp4 en -poster.jpg
 //   node render.mjs --audio-only         → alleen de soundtrack opnieuw; het beeld blijft staan
 //   node render.mjs --still 3.4,7.5      → losse frames als PNG in ./stills
 //   node render.mjs --from 5 --to 9      → alleen een stuk van de tijdlijn
@@ -8,7 +9,8 @@
 //
 // Opties: --out <bestand> --fps <n> --crf <n> --outdir <map> --port <n>
 //         --no-audio (zonder geluid) --wav <bestand> (de soundtrack ook als WAV bewaren)
-// Een eigen Chrome/Chromium gebruiken kan met CHROME_PATH=/pad/naar/chrome.
+// De teksten per taal staan in copy.js. Een eigen Chrome/Chromium gebruiken kan met
+// CHROME_PATH=/pad/naar/chrome.
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -49,7 +51,7 @@ const MIME = {
 function servableFiles() {
   const files = new Map();
   const add = file => files.set(`/${path.relative(root, file).split(path.sep).join('/')}`, file);
-  for (const name of ['index.html', 'style.css', 'main.js']) add(path.join(here, name));
+  for (const name of ['index.html', 'style.css', 'copy.js', 'main.js']) add(path.join(here, name));
   add(path.join(root, 'afbeeldingen', 'rolodink.png'));
   // de lettertypen die style.css met @font-face laadt
   const css = fs.readFileSync(path.join(here, 'style.css'), 'utf8');
@@ -113,8 +115,11 @@ async function addSoundtrack(page, timeline, video, from, to) {
 const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/video/index.html`;
 
+const lang = opt('lang', 'nl');
+
 if (flag('preview')) {
   console.log(`Preview: ${url}  (spatie = afspelen/pauzeren, pijltjes = frame voor frame)`);
+  console.log(`Engels:  ${url}?lang=en`);
 } else {
   const browser = await chromium.launch({
     executablePath: process.env.CHROME_PATH || undefined,
@@ -123,9 +128,10 @@ if (flag('preview')) {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   page.on('pageerror', e => console.error('Fout in de compositie:', e.message));
   page.on('console', m => m.type() === 'error' && console.error('Console:', m.text()));
-  await page.goto(`${url}?render`);
+  await page.goto(`${url}?render&lang=${encodeURIComponent(lang)}`);
   await page.evaluate(() => window.__ready);
   const timeline = await page.evaluate(() => window.__timeline);
+  if (timeline.lang !== lang) throw new Error(`Onbekende taal "${lang}"; de talen staan in copy.js`);
   const fps = Number(opt('fps', timeline.fps));
   const frame = t => page.evaluate(x => window.renderFrame(x), t);
 
@@ -140,14 +146,14 @@ if (flag('preview')) {
       console.log(file);
     }
   } else if (flag('audio-only')) {
-    const out = path.resolve(here, opt('out', 'rolodink-uitleg.mp4'));
+    const out = path.resolve(here, opt('out', `${timeline.file}.mp4`));
     if (!fs.existsSync(out)) throw new Error(`${out} bestaat nog niet; render eerst het beeld met npm run render`);
     await addSoundtrack(page, timeline, out, 0, timeline.duration);
     console.log(out);
   } else {
     const from = Number(opt('from', 0));
     const to = Math.min(Number(opt('to', timeline.duration)), timeline.duration);
-    const out = path.resolve(here, opt('out', 'rolodink-uitleg.mp4'));
+    const out = path.resolve(here, opt('out', `${timeline.file}.mp4`));
     const total = Math.round((to - from) * fps);
     const { proc, done } = ffmpeg([
       '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
@@ -172,6 +178,13 @@ if (flag('preview')) {
     proc.stdin.end();
     await done;
     console.log('');
+    // de poster is het slotbeeld, alleen bij een volledige render
+    if (from === 0 && to === timeline.duration && !opt('out')) {
+      const poster = path.join(here, `${timeline.file}-poster.jpg`);
+      await frame(timeline.duration);
+      await page.screenshot({ path: poster, type: 'jpeg', quality: 90 });
+      console.log(poster);
+    }
     // pas na de frames: soundCues rendert kort de klikmomenten
     if (!flag('no-audio')) await addSoundtrack(page, timeline, out, from, to);
     console.log(out);

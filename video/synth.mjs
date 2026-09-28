@@ -78,9 +78,10 @@ export function pink(seed) {
 // Toestandsvariabel filter (topologie van Andrew Simper): blijft stabiel als de
 // frequentie per sample verandert en levert laag-, band- en hoogdoorlaat tegelijk.
 export class Filter {
+  ic1 = 0;
+  ic2 = 0;
+
   constructor(freq = 1000, q = Math.SQRT1_2) {
-    this.ic1 = 0;
-    this.ic2 = 0;
     this.set(freq, q);
   }
 
@@ -579,12 +580,20 @@ function hadamard8(v) {
   for (let i = 0; i < 8; i++) v[i] *= Math.SQRT1_2 / 2; // 1/√8
 }
 
-// Galm: een feedback delay network met acht lijnen en een Hadamard-matrix. Vier
-// allpass-diffusors per kanaal smeren klikjes uit voordat ze de galm in gaan.
-export function reverb([inL, inR], { decay = 1.8, damping = 5000, predelay = 0.02 } = {}) {
-  const n = inL.length;
-  const outL = new Float32Array(n);
-  const outR = new Float32Array(n);
+// Vier allpass-filters achter elkaar: smeren een klik uit tot een zachte wolk.
+function diffuser(sizes) {
+  const stages = sizes.map((size, k) => allpass(size, k < 2 ? 0.72 : 0.62));
+  return x => {
+    let y = x;
+    for (const stage of stages) y = stage(y);
+    return y;
+  };
+}
+
+// De kern van de galm: acht vertragingslijnen die via een Hadamard-matrix in elkaar
+// terugkoppelen, elk met een laagdoorlaat zodat de hoogte sneller uitsterft. step()
+// neemt een sample links en rechts en schrijft de galm in out[0] en out[1].
+function feedbackNetwork(decay, damping) {
   const sizes = [1493, 1789, 2011, 2243, 2557, 2837, 3119, 3413];
   const lines = sizes.map(s => new Float32Array(s));
   const pos = new Int32Array(8);
@@ -592,26 +601,39 @@ export function reverb([inL, inR], { decay = 1.8, damping = 5000, predelay = 0.0
   const damp = Math.exp((-TAU * damping) / SR);
   const lp = new Float64Array(8);
   const v = new Float64Array(8);
-  const diffL = [allpass(229, 0.72), allpass(173, 0.72), allpass(611, 0.62), allpass(447, 0.62)];
-  const diffR = [allpass(241, 0.72), allpass(163, 0.72), allpass(587, 0.62), allpass(461, 0.62)];
-  const pre = len(predelay);
-  for (let i = 0; i < n; i++) {
-    let xl = i >= pre ? inL[i - pre] : 0;
-    let xr = i >= pre ? inR[i - pre] : 0;
-    for (const d of diffL) xl = d(xl);
-    for (const d of diffR) xr = d(xr);
+  return (xl, xr, out) => {
     for (let k = 0; k < 8; k++) {
       const y = lines[k][pos[k]];
       lp[k] = y + damp * (lp[k] - y);
       v[k] = lp[k];
     }
-    outL[i] = (v[0] - v[1] + v[2] - v[3] + v[4] - v[5] + v[6] - v[7]) * 0.35;
-    outR[i] = (v[0] + v[1] - v[2] - v[3] + v[4] + v[5] - v[6] - v[7]) * 0.35;
+    out[0] = (v[0] - v[1] + v[2] - v[3] + v[4] - v[5] + v[6] - v[7]) * 0.35;
+    out[1] = (v[0] + v[1] - v[2] - v[3] + v[4] + v[5] - v[6] - v[7]) * 0.35;
     hadamard8(v);
     for (let k = 0; k < 8; k++) {
       lines[k][pos[k]] = gain[k] * v[k] + (k % 2 ? xr : xl) * 0.5;
       pos[k] = (pos[k] + 1) % sizes[k];
     }
+  };
+}
+
+// Galm: een feedback delay network met acht lijnen en een Hadamard-matrix. Vier
+// allpass-diffusors per kanaal smeren klikjes uit voordat ze de galm in gaan.
+export function reverb([inL, inR], { decay = 1.8, damping = 5000, predelay = 0.02 } = {}) {
+  const n = inL.length;
+  const outL = new Float32Array(n);
+  const outR = new Float32Array(n);
+  const diffL = diffuser([229, 173, 611, 447]);
+  const diffR = diffuser([241, 163, 587, 461]);
+  const step = feedbackNetwork(decay, damping);
+  const out = new Float64Array(2);
+  const pre = len(predelay);
+  for (let i = 0; i < n; i++) {
+    const xl = diffL(i >= pre ? inL[i - pre] : 0);
+    const xr = diffR(i >= pre ? inR[i - pre] : 0);
+    step(xl, xr, out);
+    outL[i] = out[0];
+    outR[i] = out[1];
   }
   return [outL, outR];
 }

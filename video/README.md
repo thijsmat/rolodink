@@ -1,19 +1,20 @@
 # Uitlegvideo Rolodink
 
-`rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt: 1920×1080, 60 fps, H.264, met stereogeluid
-(AAC, 48 kHz). Het geluid is een extra: op de website en in de LinkedIn-feed speelt de video automatisch en gedempt
-af, dus het beeld vertelt het verhaal ook zonder geluid.
+`rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt; `rolodink-explainer.mp4` is dezelfde video in
+het Engels. Beide zijn 1920×1080, 60 fps, H.264, met stereogeluid (AAC, 48 kHz). Het geluid is een extra: op de
+website en in de LinkedIn-feed speelt de video automatisch en gedempt af, dus het beeld vertelt het verhaal ook
+zonder geluid.
 
-`rolodink-uitleg-poster.jpg` is het slotbeeld, voor wie de video ergens insluit:
+`rolodink-uitleg-poster.jpg` en `rolodink-explainer-poster.jpg` zijn het slotbeeld, voor wie de video ergens insluit:
 
 ```html
 <video src="rolodink-uitleg.mp4" poster="rolodink-uitleg-poster.jpg" autoplay muted loop playsinline></video>
 ```
 
-De video is een HTML-compositie (`index.html`, `style.css`, `main.js`) die `render.mjs` frame voor frame in
+De video is een HTML-compositie (`index.html`, `style.css`, `copy.js`, `main.js`) die `render.mjs` frame voor frame in
 headless Chromium opneemt en met ffmpeg tot MP4 samenvoegt. Er lopen geen CSS-animaties: `main.js` berekent
-elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De soundtrack wordt daarna in
-`soundtrack.mjs` gesynthetiseerd en onder het beeld gezet.
+elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De teksten staan per taal in `copy.js`.
+De soundtrack wordt daarna in `soundtrack.mjs` gesynthetiseerd en onder het beeld gezet.
 
 ## Draaiboek
 
@@ -27,6 +28,28 @@ elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De s
 | 15,3 – 19,0 s | **Slot.** "Van connectie *naar relatie.*", het logo, "Gratis voor Chrome, Edge & Firefox" en rolodink.app. | — |
 
 Elk cijfer van het stapnummer loopt vol als een druppel, net als de druppel in het app-icoon.
+
+## Engelse versie
+
+Zelfde beeld, geluid en timing; alleen de teksten verschillen (`copy.js`).
+
+| Nederlands | Engels |
+|---|---|
+| Wie was dat *ook alweer?* | Who was that *one again?* |
+| Jouw notities, *direct op LinkedIn.* | Your notes, *right on LinkedIn.* |
+| Open een *profiel.* · Schrijf een *notitie.* · Vind alles *terug.* | Open a *profile.* · Write a *note.* · Find them *again.* |
+| Van connectie *naar relatie.* | From connection *to relationship.* |
+| Gratis voor Chrome, Edge & Firefox | Free for Chrome, Edge & Firefox |
+
+- De tweede regel van de hook moet een o hebben, want daar vliegt de camera doorheen. Vandaar *one again?*
+- *From connection to relationship* volgt de Engelse website ("Turn every LinkedIn connection into a meaningful
+  relationship").
+- De notitie wordt "Met at DDW. Looking for a CTO. Restores sailboats." en de zoekterm `sail`, net als `zeil` vier
+  letters.
+- De labels van de popup komen uit de Engelse vertaling van de extensie (*Show All Connections*, *Search
+  connections...*); LinkedIn heet in het Engels *Message*, *More* en *About*.
+- De streep onder het slot springt over de staart van de p in *relationship* heen (skip-ink), zoals bij een nette
+  onderstreping.
 
 ## Typografie en kleur
 
@@ -64,22 +87,25 @@ licenties om rekening mee te houden.
 cd video
 npm install
 npx playwright install chromium   # eenmalig
-npm run render                     # → rolodink-uitleg.mp4 met geluid (duurt een paar minuten)
+npm run render                     # → rolodink-uitleg.mp4 en -poster.jpg, met geluid (duurt een paar minuten)
+npm run render:en                  # → rolodink-explainer.mp4 en -poster.jpg, de Engelse versie
 npm run audio                      # alleen de soundtrack opnieuw; het beeld blijft staan (een paar seconden)
+npm run audio:en                   # idem voor de Engelse versie
 ```
 
 Handig tijdens het aanpassen:
 
 ```bash
-npm run preview                         # lokale server; open de URL, spatie = pauze, pijltjes = frame voor frame
+npm run preview                         # lokale server; open de URL (Engels: ?lang=en), spatie = pauze, pijltjes = frame voor frame
 node render.mjs --still 7.4,12.2        # losse frames als PNG in ./stills
 node render.mjs --from 5 --to 9 --out stuk.mp4
 node render.mjs --audio-only --wav soundtrack.wav   # de soundtrack ook als WAV, om te beluisteren of te bewerken
 node render.mjs --no-audio              # zonder geluid
 ```
 
-Teksten staan in `index.html`. Timing en inhoud van de mocks (notitie, zoekterm, kaartjes) staan als constanten
-bovenaan de scènes in `main.js`. Niveaus, noten en klankkleuren van het geluid staan in `soundtrack.mjs`. Met
+Teksten staan per taal in `copy.js`, ook de notitie, de zoekterm en de kaartjes; `index.html` verwijst ernaar met
+`data-copy`. Timing staat als constanten bovenaan de scènes in `main.js`. Elke optie van `render.mjs` werkt ook met
+`--lang en`. Niveaus, noten en klankkleuren van het geluid staan in `soundtrack.mjs`. Met
 `CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
 
 ## Verantwoording

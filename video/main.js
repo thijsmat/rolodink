@@ -6,7 +6,8 @@
  * Alles hangt aan één functie: render(t). Er lopen geen CSS-animaties of
  * transities; elke eigenschap wordt uit de tijd t berekend. Daardoor levert
  * render.mjs frame voor frame exact hetzelfde beeld op, en kun je in de preview
- * vrij door de tijdlijn scrubben.
+ * vrij door de tijdlijn scrubben. De teksten staan per taal in copy.js; ?lang=en
+ * geeft de Engelse versie.
  *
  *   0,0 –  3,1  vraag   "Wie was dat ook alweer?" → de camera vliegt door de o
  *   2,4 –  6,0  merk    Rolodink rolt in als kaartjes in een rolodex, het doek valt weg
@@ -19,8 +20,12 @@
 (() => {
   const FPS = 60;
   const DURATION = 19;
-  const RENDER = new URLSearchParams(location.search).has('render');
+  const params = new URLSearchParams(location.search);
+  const RENDER = params.has('render');
   if (RENDER) document.body.classList.add('render');
+  // taal van de teksten in copy.js: ?lang=en, standaard Nederlands
+  const LANG = Object.hasOwn(window.COPY, params.get('lang')) ? params.get('lang') : 'nl';
+  const T = window.COPY[LANG];
 
   // ---------- rekenhulp ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -150,20 +155,20 @@
     teal: ['#3CD6B0', '#0E9F7E'],
     coral: ['#F4AE93', '#D2654A'],
   };
-  // naam, rol, kleur, middelpunt x/y, rotatie
+  // naam, kleur, middelpunt x/y, rotatie; de rollen staan per taal in copy.js
   const CHIPS = [
-    ['Lotte Bakker', 'UX Lead', 'gold', 262, 150, -6],
-    ['Daan de Wit', 'Founder', 'blue', 690, 106, 4],
-    ['Mehmet Kaya', 'Investeerder', 'teal', 1218, 124, -3],
-    ['Eva Jansen', 'Recruiter', 'ink', 1650, 178, 5],
-    ['Joris Smit', 'Sales', 'electric', 190, 464, 5],
-    ['Noor El Amrani', 'CFO', 'coral', 1708, 452, -5],
-    ['Bram Hoekstra', 'Engineer', 'ink', 224, 742, -4],
-    ['Tim de Groot', 'Consultant', 'gold', 1704, 752, 4],
-    ['Fleur Mulder', 'Marketing', 'teal', 380, 966, 3],
-    ['Sanne Visser', 'Head of Talent', 'coral', 818, 992, -3],
-    ['Iris Vos', 'Product', 'blue', 1244, 968, 4],
-    ['Sem Bos', 'Designer', 'electric', 1636, 956, -4],
+    ['Lotte Bakker', 'gold', 262, 150, -6],
+    ['Daan de Wit', 'blue', 690, 106, 4],
+    ['Mehmet Kaya', 'teal', 1218, 124, -3],
+    ['Eva Jansen', 'ink', 1650, 178, 5],
+    ['Joris Smit', 'electric', 190, 464, 5],
+    ['Noor El Amrani', 'coral', 1708, 452, -5],
+    ['Bram Hoekstra', 'ink', 224, 742, -4],
+    ['Tim de Groot', 'gold', 1704, 752, 4],
+    ['Fleur Mulder', 'teal', 380, 966, 3],
+    ['Sanne Visser', 'coral', 818, 992, -3],
+    ['Iris Vos', 'blue', 1244, 968, 4],
+    ['Sem Bos', 'electric', 1636, 956, -4],
   ];
   const APPEAR = [3, 9, 0, 6, 11, 4, 1, 8, 5, 10, 2, 7];
   const FORGET = [5, 0, 8, 2, 10, 4, 7, 1, 11, 3, 9, 6];
@@ -267,7 +272,8 @@
 
   function buildS1() {
     const root = $('#chips');
-    chips = CHIPS.map(([name, role, pal, x, y, rot], i) => {
+    chips = CHIPS.map(([name, pal, x, y, rot], i) => {
+      const role = T.roles[i];
       const el = document.createElement('div');
       el.className = 'chip';
       el.innerHTML =
@@ -290,8 +296,9 @@
     hookChars = splitChars($('#hook .l2'));
     hookChars.at(-1).style.transformOrigin = '40% 85%';
 
-    // De o van "ook": de camera vliegt door zijn binnenruimte naar de volgende scène.
-    const o = hookChars[0];
+    // De eerste o van de tweede regel ("ook", "one"): de camera vliegt door zijn
+    // binnenruimte naar de volgende scène.
+    const o = hookChars.find(ch => ch.textContent === 'o') ?? hookChars[0];
     const marker = document.createElement('i');
     marker.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
     o.appendChild(marker);
@@ -508,19 +515,20 @@
   const POPUP_OPEN = 13.02;
   const LIST_FILTER = 14.16; // de lijst filtert op de zoekterm
   const HIT = 14.45; // Sanne licht op
-  const MARK = 14.52; // "zeil" wordt gemarkeerd
+  const MARK = 14.52; // de zoekterm wordt gemarkeerd
 
-  const NOTE = 'Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten.';
-  const QUERY = 'zeil';
+  const NOTE = T.note;
+  const QUERY = T.query;
   const QUERY_TIMES = [13.62, 13.75, 13.87, 14.0];
   const noteTimes = [];
 
+  // naam en kleur per kaartje in de popup; functie en notitie staan per taal in copy.js
   const PCARDS = [
-    ['Lotte Bakker', 'UX Lead bij Studio Noord', 'gold', 'Koffie gedaan in maart. Wil sparren over onderzoek.'],
-    ['Daan de Wit', 'Founder bij Kiemkracht', 'blue', 'Pitch gezien in Rotterdam. Terugbellen na de zomer.'],
-    ['Sanne Visser', 'Head of Talent bij Nordlicht', 'coral', 'Ontmoet op DDW. Zoekt een CTO. Restaureert <mark class="hl">zeil</mark>boten.'],
-    ['Mehmet Kaya', 'Investeerder', 'teal', 'Intro via Eva. Interesse in HR-tech.'],
-    ['Eva Jansen', 'Recruiter bij Talentlab', 'ink', 'Stuurt de vacature door naar haar netwerk.'],
+    ['Lotte Bakker', 'gold'],
+    ['Daan de Wit', 'blue'],
+    ['Sanne Visser', 'coral'],
+    ['Mehmet Kaya', 'teal'],
+    ['Eva Jansen', 'ink'],
   ];
 
   let titles = [];
@@ -565,7 +573,8 @@
     // de lijst in de popup
     const list = $('#plist');
     const check = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    pcards = PCARDS.map(([name, role, pal, note]) => {
+    pcards = PCARDS.map(([name, pal], i) => {
+      const [role, note] = T.cards[i];
       const wrap = document.createElement('div');
       wrap.className = 'pwrap';
       wrap.innerHTML =
@@ -826,6 +835,7 @@
   function buildS6() {
     outroWords = splitWords($('#outro .o1'));
     outroChars = splitChars($('#outro .o2t'));
+    splitChars($('#outro .o2k')); // zelfde letterposities als de regel erboven (zonder kerning)
     const wordW = oWord.offsetWidth;
     const iconW = 92;
     const gap = 24;
@@ -1016,7 +1026,20 @@
     stage.style.top = `${(vh - 1080 * stageScale) / 2}px`;
   }
 
+  // Zet de teksten van de gekozen taal in de pagina: data-copy="pad" in index.html
+  // verwijst naar T; met data-html is de tekst HTML.
+  function applyCopy() {
+    document.documentElement.lang = LANG;
+    document.title = T.title;
+    for (const el of $$('[data-copy]')) {
+      const text = el.dataset.copy.split('.').reduce((node, key) => node[key], T);
+      if ('html' in el.dataset) el.innerHTML = text;
+      else el.textContent = text;
+    }
+  }
+
   async function init() {
+    applyCopy();
     fit();
     await document.fonts.ready;
     await Promise.all([
@@ -1034,7 +1057,7 @@
     render(0);
   }
 
-  window.__timeline = { fps: FPS, duration: DURATION };
+  window.__timeline = { fps: FPS, duration: DURATION, lang: LANG, file: T.file };
   window.renderFrame = t => render(t);
   window.soundCues = soundCues;
   window.__ready = init();
