@@ -1,7 +1,8 @@
 # Uitlegvideo Rolodink
 
-`rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt: 1920×1080, 60 fps, H.264, zonder geluid.
-Zonder geluid omdat de video vooral automatisch en gedempt afspeelt, op de website en in de LinkedIn-feed.
+`rolodink-uitleg.mp4` legt in 19 seconden uit hoe Rolodink werkt: 1920×1080, 60 fps, H.264, met stereogeluid
+(AAC, 48 kHz). Het geluid is een extra: op de website en in de LinkedIn-feed speelt de video automatisch en gedempt
+af, dus het beeld vertelt het verhaal ook zonder geluid.
 
 `rolodink-uitleg-poster.jpg` is het slotbeeld, voor wie de video ergens insluit:
 
@@ -11,7 +12,8 @@ Zonder geluid omdat de video vooral automatisch en gedempt afspeelt, op de websi
 
 De video is een HTML-compositie (`index.html`, `style.css`, `main.js`) die `render.mjs` frame voor frame in
 headless Chromium opneemt en met ffmpeg tot MP4 samenvoegt. Er lopen geen CSS-animaties: `main.js` berekent
-elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op.
+elke eigenschap uit de tijd `t`, dus elke render levert hetzelfde beeld op. De soundtrack wordt daarna in
+`soundtrack.mjs` gesynthetiseerd en onder het beeld gezet.
 
 ## Draaiboek
 
@@ -38,13 +40,32 @@ Elk cijfer van het stapnummer loopt vol als een druppel, net als de druppel in h
 
 De lettertypen komen via npm binnen (Fontsource, allemaal SIL Open Font License) en staan niet in de repo.
 
+## Geluid
+
+Muziek en geluidseffecten zijn volledig gesynthetiseerd in JavaScript: `synth.mjs` bevat de instrumenten,
+`soundtrack.mjs` de partituur. Er zitten geen samples of loops van anderen in, dus er zijn geen rechten of
+licenties om rekening mee te houden.
+
+- **Muziek.** 122 BPM in D groot. Een zwevende intro (Gmaj9 naar A7sus4) lost op de eerste tel, als de camera door
+  de o is, op naar D. Daarna een lichte groove (D, A/C#, Bm7, Gmaj7, D/F#, G6) met kick, klap, shaker, bas, een
+  getokkeld arpeggio en een pad. Terwijl de kaart omklapt valt de groove stil; het slotakkoord Dmaj9 valt als de
+  kaart het beeld vult, met het muzikale logo F#, A, D terwijl het woordmerk inschuift.
+- **Effecten.** Bij elke handeling in beeld: twinkelende kaartjes, verwelkende namen, een inktdruppel, aanzwellende
+  ruis door de o, rolodextikjes bij het woordmerk en de stapwissels, muisklikken, toetsaanslagen, klokjes bij
+  *Added*, *Saved* en het zoekresultaat, een slotje bij *Versleuteld opgeslagen*, en zoefs die de overgangen volgen.
+- **Timing.** De effecten hangen aan de cues uit `main.js` (`soundCues`): verschuif je daar een moment, dan schuift
+  het geluid mee. De muziek staat op een vast grid met de eerste tel op 3,11 s; ook de stapwissels (9,0 en 12,45 s)
+  en het slotakkoord (16,39 s) vallen op een tel. Verschuif je die, pas dan `ONE` of `BPM` in `soundtrack.mjs` aan.
+- **Mastering.** −16 LUFS geïntegreerd, true peak onder −1 dBTP, met een lichte EQ voor kleine speakers.
+
 ## Opnieuw renderen
 
 ```bash
 cd video
 npm install
 npx playwright install chromium   # eenmalig
-npm run render                     # → rolodink-uitleg.mp4 (duurt een paar minuten)
+npm run render                     # → rolodink-uitleg.mp4 met geluid (duurt een paar minuten)
+npm run audio                      # alleen de soundtrack opnieuw; het beeld blijft staan (een paar seconden)
 ```
 
 Handig tijdens het aanpassen:
@@ -53,13 +74,17 @@ Handig tijdens het aanpassen:
 npm run preview                         # lokale server; open de URL, spatie = pauze, pijltjes = frame voor frame
 node render.mjs --still 7.4,12.2        # losse frames als PNG in ./stills
 node render.mjs --from 5 --to 9 --out stuk.mp4
+node render.mjs --audio-only --wav soundtrack.wav   # de soundtrack ook als WAV, om te beluisteren of te bewerken
+node render.mjs --no-audio              # zonder geluid
 ```
 
 Teksten staan in `index.html`. Timing en inhoud van de mocks (notitie, zoekterm, kaartjes) staan als constanten
-bovenaan de scènes in `main.js`. Met `CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
+bovenaan de scènes in `main.js`. Niveaus, noten en klankkleuren van het geluid staan in `soundtrack.mjs`. Met
+`CHROME_PATH` kun je een eigen Chrome of Chromium gebruiken.
 
 ## Verantwoording
 
 De LinkedIn-pagina en de extensie in de video zijn vereenvoudigde mocks. De labels van de extensie zelf
 (*Add to Rldnk*, *Added*, *Rolodink Note*, *Typing...*, *Saving...*, *Saved*, de popup) komen uit de code. Het label
-*Versleuteld opgeslagen* is een annotatie van de video, geen onderdeel van de UI. Alle personen zijn verzonnen.
+*Versleuteld opgeslagen* is een annotatie van de video, geen onderdeel van de UI. Alle personen zijn verzonnen. Het
+geluid is gesynthetiseerd; er zijn geen opnames van anderen gebruikt.

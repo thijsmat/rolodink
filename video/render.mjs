@@ -1,20 +1,25 @@
-// Rendert de compositie in index.html frame voor frame naar MP4.
+// Rendert de compositie in index.html frame voor frame naar MP4, met geluid.
 //
-//   node render.mjs                      → rolodink-uitleg.mp4 (1920×1080, 60 fps)
+//   node render.mjs                      → rolodink-uitleg.mp4 (1920×1080, 60 fps, AAC-stereo)
+//   node render.mjs --audio-only         → alleen de soundtrack opnieuw; het beeld blijft staan
 //   node render.mjs --still 3.4,7.5      → losse frames als PNG in ./stills
 //   node render.mjs --from 5 --to 9      → alleen een stuk van de tijdlijn
 //   node render.mjs --preview            → lokale server; open de URL in je browser
 //
 // Opties: --out <bestand> --fps <n> --crf <n> --outdir <map> --port <n>
+//         --no-audio (zonder geluid) --wav <bestand> (de soundtrack ook als WAV bewaren)
 // Een eigen Chrome/Chromium gebruiken kan met CHROME_PATH=/pad/naar/chrome.
 
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import ffmpegPath from 'ffmpeg-static';
+import { soundtrack } from './soundtrack.mjs';
+import { wav } from './synth.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // De server staat op de root van de repo, zodat de compositie het app-icoon
@@ -72,6 +77,39 @@ function serve() {
   return new Promise(resolve => server.listen(Number(opt('port', 0)), '127.0.0.1', () => resolve(server)));
 }
 
+function ffmpeg(ffArgs, stdin = 'ignore') {
+  const proc = spawn(ffmpegPath, ['-y', '-loglevel', 'error', ...ffArgs], { stdio: [stdin, 'inherit', 'inherit'] });
+  const done = new Promise((resolve, reject) => {
+    proc.on('error', reject);
+    proc.on('close', code => (code === 0 ? resolve() : reject(new Error(`ffmpeg stopte met code ${code}`))));
+  });
+  return { proc, done };
+}
+
+// Maakt de soundtrack bij de cues uit main.js en zet hem onder de video. Het beeld
+// wordt gekopieerd, niet opnieuw gecodeerd.
+async function addSoundtrack(page, timeline, video, from, to) {
+  const cues = await page.evaluate(() => window.soundCues());
+  const { audio, lufs, limiting } = soundtrack({ ...timeline, cues });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rolodink-'));
+  try {
+    const wavFile = path.join(dir, 'soundtrack.wav');
+    fs.writeFileSync(wavFile, wav(audio));
+    if (opt('wav')) fs.copyFileSync(wavFile, path.resolve(here, opt('wav')));
+    const muxed = path.join(dir, 'video.mp4');
+    await ffmpeg([
+      '-i', video,
+      '-ss', String(from), '-t', String(to - from), '-i', wavFile,
+      '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+      '-movflags', '+faststart', muxed,
+    ]).done;
+    fs.copyFileSync(muxed, video);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  console.log(`soundtrack: ${lufs.toFixed(1)} LUFS, limiter maximaal ${limiting.toFixed(1)} dB`);
+}
+
 const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/video/index.html`;
 
@@ -101,13 +139,17 @@ if (flag('preview')) {
       await page.screenshot({ path: file });
       console.log(file);
     }
+  } else if (flag('audio-only')) {
+    const out = path.resolve(here, opt('out', 'rolodink-uitleg.mp4'));
+    if (!fs.existsSync(out)) throw new Error(`${out} bestaat nog niet; render eerst het beeld met npm run render`);
+    await addSoundtrack(page, timeline, out, 0, timeline.duration);
+    console.log(out);
   } else {
     const from = Number(opt('from', 0));
     const to = Math.min(Number(opt('to', timeline.duration)), timeline.duration);
     const out = path.resolve(here, opt('out', 'rolodink-uitleg.mp4'));
     const total = Math.round((to - from) * fps);
-    const ffmpeg = spawn(ffmpegPath, [
-      '-y', '-loglevel', 'error',
+    const { proc, done } = ffmpeg([
       '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
       // sRGB-schermafdrukken → BT.709, zodat de huisstijlkleuren kloppen in elke speler
       '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p',
@@ -115,25 +157,24 @@ if (flag('preview')) {
       '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
       '-movflags', '+faststart',
       out,
-    ], { stdio: ['pipe', 'inherit', 'inherit'] });
-    const done = new Promise((resolve, reject) => {
-      ffmpeg.on('error', reject);
-      ffmpeg.on('close', code => (code === 0 ? resolve() : reject(new Error(`ffmpeg stopte met code ${code}`))));
-    });
+    ], 'pipe');
 
     const started = Date.now();
     for (let i = 0; i < total; i++) {
       await frame(from + i / fps);
       const png = await page.screenshot({ type: 'png' });
-      if (!ffmpeg.stdin.write(png)) await new Promise(r => ffmpeg.stdin.once('drain', r));
+      if (!proc.stdin.write(png)) await new Promise(r => proc.stdin.once('drain', r));
       if (i % fps === 0 || i === total - 1) {
         const secs = ((Date.now() - started) / 1000).toFixed(0);
         process.stdout.write(`\rframe ${i + 1}/${total}  (${secs} s)`);
       }
     }
-    ffmpeg.stdin.end();
+    proc.stdin.end();
     await done;
-    console.log(`\n${out}`);
+    console.log('');
+    // pas na de frames: soundCues rendert kort de klikmomenten
+    if (!flag('no-audio')) await addSoundtrack(page, timeline, out, from, to);
+    console.log(out);
   }
 
   await browser.close();
