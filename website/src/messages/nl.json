@@ -22,6 +22,8 @@
         "video": {
             "src": "/video/rolodink-uitleg.mp4",
             "poster": "/video/rolodink-uitleg-poster.jpg",
+            "captions": "/video/rolodink-uitleg.vtt",
+            "captionsLabel": "Nederlands",
             "label": "Uitlegvideo: zo werkt Rolodink",
             "play": "Video afspelen",
             "pause": "Video pauzeren",

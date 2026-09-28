@@ -12,9 +12,16 @@ type Labels = {
   soundOff: string;
 };
 
+type Captions = {
+  src: string;
+  lang: string;
+  label: string;
+};
+
 type Props = Readonly<{
   src: string;
   poster: string;
+  captions: Captions;
   labels: Labels;
 }>;
 
@@ -22,8 +29,9 @@ type Props = Readonly<{
 // is en pauzeert als hij uit beeld raakt; wie minder beweging wil
 // (prefers-reduced-motion) start hem zelf. De hele video is de afspeel- en
 // pauzeknop. Het geluid gaat alleen op verzoek aan, en de eerste keer begint de
-// video dan vooraan, zodat je het hele verhaal hoort.
-export function ExplainerVideo({ src, poster, labels }: Props) {
+// video dan vooraan, zodat je het hele verhaal hoort. Er wordt niet gesproken; de
+// ondertiteling beschrijft het geluid, voor wie ondertiteling aan heeft staan.
+export function ExplainerVideo({ src, poster, captions, labels }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const pausedByVisitor = useRef(false);
   const soundStarted = useRef(false);
@@ -83,7 +91,9 @@ export function ExplainerVideo({ src, poster, labels }: Props) {
         aria-label={labels.video}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-      />
+      >
+        <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} />
+      </video>
       <button
         type="button"
         onClick={togglePlay}

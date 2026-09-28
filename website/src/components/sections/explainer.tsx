@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ExplainerVideo } from "@/components/explainer-video";
 import { Link } from "@/navigation";
 
@@ -7,6 +7,7 @@ import { Link } from "@/navigation";
 // eronder als tekst (voor wie de video niet afspeelt, en voor zoekmachines).
 export default function Explainer() {
   const t = useTranslations('Explainer');
+  const locale = useLocale();
   const steps = t.raw('steps') as Array<{ title: string; description: string }>;
 
   return (
@@ -30,6 +31,7 @@ export default function Explainer() {
           <ExplainerVideo
             src={t('video.src')}
             poster={t('video.poster')}
+            captions={{ src: t('video.captions'), lang: locale, label: t('video.captionsLabel') }}
             labels={{
               video: t('video.label'),
               play: t('video.play'),

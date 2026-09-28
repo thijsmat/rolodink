@@ -22,6 +22,8 @@
         "video": {
             "src": "/video/rolodink-explainer.mp4",
             "poster": "/video/rolodink-explainer-poster.jpg",
+            "captions": "/video/rolodink-explainer.vtt",
+            "captionsLabel": "English",
             "label": "Explainer video: how Rolodink works",
             "play": "Play video",
             "pause": "Pause video",

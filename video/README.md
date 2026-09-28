@@ -4,7 +4,9 @@
 het Engels. Beide zijn 1920×1080, 60 fps, H.264, met stereogeluid (AAC, 48 kHz). Ze staan met hun poster (het
 slotbeeld) in `website/public/video/`, want de homepage toont ze in de sectie *Zo werkt het* / *How it works*. Het
 geluid is een extra: op de website en in de LinkedIn-feed speelt de video gedempt af, dus het beeld vertelt het
-verhaal ook zonder geluid.
+verhaal ook zonder geluid. Naast elke video staat een ondertitelbestand (`rolodink-uitleg.vtt`,
+`rolodink-explainer.vtt`). Er wordt niet gesproken, dus de ondertiteling beschrijft alleen het geluid; die schrijf je
+met de hand bij als de soundtrack wezenlijk verandert.
 
 Elders insluiten kan zo:
 
