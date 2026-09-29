@@ -7,7 +7,7 @@ Opgesteld op 2026-09-29 op basis van de repo (video, website-teksten, `docs/SECU
 
 | # | Punt | Waarom |
 |---|---|---|
-| 1 | **"End-to-end encryption" staat op de website** (FAQ `security`, `website/src/messages/en.json`) maar de architectuur is *server-tied*: de backend genereert per gebruiker een AES-256-sleutel en wrapt die met `ENCRYPTION_MASTER_KEY` (AES-256-GCM). Dat is versleuteling at rest met per-gebruiker-sleutels, **niet** end-to-end / zero-knowledge. | Een security-post die dit overdrijft is het eerste waar een kritische lezer op ingaat. De posts hieronder claimen het dus bewust niet. Pas ook de FAQ aan. |
+| 1 | **(Opgelost in deze PR: FAQ en `/security` zijn herschreven, ook in het Engels.)** **"End-to-end encryption" stond op de website** (FAQ `security`, `website/src/messages/en.json`) maar de architectuur is *server-tied*: de backend genereert per gebruiker een AES-256-sleutel en wrapt die met `ENCRYPTION_MASTER_KEY` (AES-256-GCM). Dat is versleuteling at rest met per-gebruiker-sleutels, **niet** end-to-end / zero-knowledge. | Een security-post die dit overdrijft is het eerste waar een kritische lezer op ingaat. De posts hieronder claimen het dus bewust niet. Pas ook de FAQ aan. |
 | 2 | Hero op de site: "4.9/5 – Trusted by professionals". | Niet gebruiken in posts zolang er geen onderbouwing is. |
 | 3 | Store-tekst noemt "Open source transparency", "Smart follow-up reminders" en de knop "Add to CRM", terwijl de video "Add to Rldnk" toont. | Alleen noemen wat aantoonbaar klopt; check of de repo publiek is voordat je "open source" zegt. |
 | 4 | Mobiel: FAQ zegt "a mobile version is in development". | Post 3 leunt hierop. Bevestig de actuele stand met jullie. |
@@ -110,7 +110,7 @@ Full details on the security page of our site. Questions welcome, especially har
 #security #privacy #GDPR
 ```
 
-*(Elke regel is gecontroleerd tegen `docs/SECURITY.md` en de encryptie-sectie in CHANGELOG/`SENSITIVE_FIELDS`; vraag de developer om "no tracking in the extension" en "secret scanning in CI" nog eens te bevestigen voordat je post. De security-pagina is nu alleen in het Nederlands, zet een Engelse versie live of link naar het NL-origineel.)*
+*(Elke regel is gecontroleerd tegen `docs/SECURITY.md` en de encryptie-sectie in CHANGELOG/`SENSITIVE_FIELDS`; vraag de developer om "no tracking in the extension" en "secret scanning in CI" nog eens te bevestigen voordat je post. De Engelse securitypagina staat in deze PR; post 4 pas plaatsen als die live is.)*
 
 ### Post 5 – Use case / tip (dag 15)
 
@@ -180,5 +180,5 @@ UTM-patroon: `?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_co
 
 1. Wie plaatst er (naam, persoonlijk profiel of bedrijfspagina)?
 2. Is er budget voor betaalde promotie (bijv. de launch-post boosten)?
-3. Staat de Engelse security-pagina voor post 4 live?
+3. Is de Engelse security-pagina (deze PR) live vóór post 4?
 4. Zijn er echte gebruikerscijfers of quotes voor post 6?
