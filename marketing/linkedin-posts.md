@@ -167,7 +167,7 @@ We cannot promise an order, but your votes decide what we look at first. Tell us
 
 Peilingopties (controleer tegen jullie echte plannen; vervang wat al bestaat of niet gepland is):
 1. Follow-up reminders
-2. Tags and lists
+2. Tags to organize
 3. Mobile version
 4. Something else (comment)
 
