@@ -6,7 +6,8 @@
  * Alles hangt aan één functie: render(t). Er lopen geen CSS-animaties of
  * transities; elke eigenschap wordt uit de tijd t berekend. Daardoor levert
  * render.mjs frame voor frame exact hetzelfde beeld op, en kun je in de preview
- * vrij door de tijdlijn scrubben.
+ * vrij door de tijdlijn scrubben. De teksten staan per taal in copy/<taal>.json;
+ * ?lang=en geeft de Engelse versie.
  *
  *   0,0 –  3,1  vraag   "Wie was dat ook alweer?" → de camera vliegt door de o
  *   2,4 –  6,0  merk    Rolodink rolt in als kaartjes in een rolodex, het doek valt weg
@@ -19,8 +20,13 @@
 (() => {
   const FPS = 60;
   const DURATION = 19;
-  const RENDER = new URLSearchParams(location.search).has('render');
+  const params = new URLSearchParams(location.search);
+  const RENDER = params.has('render');
   if (RENDER) document.body.classList.add('render');
+  // taal van de teksten: ?lang=en, standaard Nederlands; init() laadt copy/<taal>.json
+  const requested = params.get('lang') ?? 'nl';
+  let LANG = /^[a-z]{2}$/.test(requested) ? requested : 'nl';
+  let T = null;
 
   // ---------- rekenhulp ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -150,23 +156,25 @@
     teal: ['#3CD6B0', '#0E9F7E'],
     coral: ['#F4AE93', '#D2654A'],
   };
-  // naam, rol, kleur, middelpunt x/y, rotatie
+  // naam, kleur, middelpunt x/y, rotatie; de rollen staan per taal in copy/<taal>.json
   const CHIPS = [
-    ['Lotte Bakker', 'UX Lead', 'gold', 262, 150, -6],
-    ['Daan de Wit', 'Founder', 'blue', 690, 106, 4],
-    ['Mehmet Kaya', 'Investeerder', 'teal', 1218, 124, -3],
-    ['Eva Jansen', 'Recruiter', 'ink', 1650, 178, 5],
-    ['Joris Smit', 'Sales', 'electric', 190, 464, 5],
-    ['Noor El Amrani', 'CFO', 'coral', 1708, 452, -5],
-    ['Bram Hoekstra', 'Engineer', 'ink', 224, 742, -4],
-    ['Tim de Groot', 'Consultant', 'gold', 1704, 752, 4],
-    ['Fleur Mulder', 'Marketing', 'teal', 380, 966, 3],
-    ['Sanne Visser', 'Head of Talent', 'coral', 818, 992, -3],
-    ['Iris Vos', 'Product', 'blue', 1244, 968, 4],
-    ['Sem Bos', 'Designer', 'electric', 1636, 956, -4],
+    ['Lotte Bakker', 'gold', 262, 150, -6],
+    ['Daan de Wit', 'blue', 690, 106, 4],
+    ['Mehmet Kaya', 'teal', 1218, 124, -3],
+    ['Eva Jansen', 'ink', 1650, 178, 5],
+    ['Joris Smit', 'electric', 190, 464, 5],
+    ['Noor El Amrani', 'coral', 1708, 452, -5],
+    ['Bram Hoekstra', 'ink', 224, 742, -4],
+    ['Tim de Groot', 'gold', 1704, 752, 4],
+    ['Fleur Mulder', 'teal', 380, 966, 3],
+    ['Sanne Visser', 'coral', 818, 992, -3],
+    ['Iris Vos', 'blue', 1244, 968, 4],
+    ['Sem Bos', 'electric', 1636, 956, -4],
   ];
   const APPEAR = [3, 9, 0, 6, 11, 4, 1, 8, 5, 10, 2, 7];
   const FORGET = [5, 0, 8, 2, 10, 4, 7, 1, 11, 3, 9, 6];
+  const chipIn = c => 0.04 + c.appear * 0.05; // het kaartje verschijnt
+  const chipForget = c => 1.22 + c.forget * 0.07; // de naam vervaagt
   const Z0 = 2.5; // start van de zoom door de o
   const ZD = 0.62;
   const INK_DROP = Z0 - 0.16; // de binnenruimte van de o loopt vol met navy
@@ -265,13 +273,16 @@
 
   function buildS1() {
     const root = $('#chips');
-    chips = CHIPS.map(([name, role, pal, x, y, rot], i) => {
+    chips = CHIPS.map(([name, pal, x, y, rot], i) => {
+      const role = T.roles[i];
       const el = document.createElement('div');
       el.className = 'chip';
       el.innerHTML =
         `<div class="av" style="background:linear-gradient(135deg,${PAL[pal][0]},${PAL[pal][1]})">` +
         `<span class="ini">${initialsOf(name)}</span><span class="q">?</span></div>` +
-        `<div class="tx"><div class="nm">${name}</div><div class="rl">${role}</div><div class="sk"><i></i><i></i></div></div>`;
+        '<div class="tx"><div class="nm"></div><div class="rl"></div><div class="sk"><i></i><i></i></div></div>';
+      $('.nm', el).textContent = name;
+      $('.rl', el).textContent = role;
       root.appendChild(el);
       return {
         el, x, y, rot, i,
@@ -288,8 +299,9 @@
     hookChars = splitChars($('#hook .l2'));
     hookChars.at(-1).style.transformOrigin = '40% 85%';
 
-    // De o van "ook": de camera vliegt door zijn binnenruimte naar de volgende scène.
-    const o = hookChars[0];
+    // De eerste o van de tweede regel ("ook", "one"): de camera vliegt door zijn
+    // binnenruimte naar de volgende scène.
+    const o = hookChars.find(ch => ch.textContent === 'o') ?? hookChars[0];
     const marker = document.createElement('i');
     marker.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
     o.appendChild(marker);
@@ -308,14 +320,14 @@
     if (!visible) return;
 
     chips.forEach(c => {
-      const a0 = 0.04 + c.appear * 0.05;
+      const a0 = chipIn(c);
       const pa = prog(t, a0, 0.85);
       const scale = lerp(0.55, 1, E.spring(pa));
       const dx = Math.sin(t * 0.9 + c.i * 1.7) * 9;
       const dy = Math.cos(t * 0.75 + c.i * 2.3) * 7;
       const rot = c.rot + Math.sin(t * 0.6 + c.i) * 1.2;
       // vergeten: namen vervagen tot grijze balkjes, initialen worden een vraagteken
-      const f0 = 1.22 + c.forget * 0.07;
+      const f0 = chipForget(c);
       const f = E.inOutCubic(prog(t, f0, 0.55));
       c.el.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) rotate(${rot.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
       c.el.style.opacity = (clamp(prog(t, a0, 0.2)) * lerp(1, 0.72, f)).toFixed(3);
@@ -349,6 +361,8 @@
   const LOCK_HOME = { cx: 960, cy: 452 };
   const LOCK_HUD = { x: 76, y: 48, s: 0.215 };
   const ROLL_STEP = 1.25; // afstand tussen de letters in de rolstrook (em)
+  const letterRoll = i => ({ start: 3.0 + i * 0.055, dur: 0.7 + i * 0.035 });
+  const CANVAS_FALL = [5.28, 0.74]; // het navy doek valt schuin weg
   let lockSize = { w: 0, h: 0 };
   let lockups = [];
   let tagWords = [];
@@ -416,8 +430,7 @@
       L.icon.style.opacity = clamp(ip * 4).toFixed(3);
       // de letters rollen als kaartjes in een rolodex naar hun plek
       L.slots.forEach((s, i) => {
-        const st = 3.0 + i * 0.055;
-        const d = 0.7 + i * 0.035;
+        const { start: st, dur: d } = letterRoll(i);
         const y = E.outQuart(prog(t, st, d)) * (s.n - 1) * ROLL_STEP;
         const yPrev = E.outQuart(prog(t - 1 / FPS, st, d)) * (s.n - 1) * ROLL_STEP;
         s.strip.style.transform = `translateY(${(-y).toFixed(4)}em)`;
@@ -452,13 +465,13 @@
       s2.style.maskPosition = s2.style.webkitMaskPosition = pos;
       const r = counter.h * z * E.outCubic(prog(t, INK_DROP, 0.3));
       s2.style.clipPath = `circle(${r.toFixed(2)}px at ${oPt.x.toFixed(2)}px ${oPt.y.toFixed(2)}px)`;
-    } else if (t < 5.28) {
+    } else if (t < CANVAS_FALL[0]) {
       setMask(false);
       s2.style.clipPath = 'none';
     } else {
       // het doek valt schuin naar beneden weg
       setMask(false);
-      const cp = E.inOutCubic(prog(t, 5.28, 0.74));
+      const cp = E.inOutCubic(prog(t, ...CANVAS_FALL));
       const e = lerp(-180, 1080 + 190, cp);
       s2.style.clipPath = `polygon(0px ${e.toFixed(2)}px, 1920px ${(e - 180).toFixed(2)}px, 1920px 1100px, 0px 1100px)`;
     }
@@ -496,18 +509,27 @@
   const DIGIT = 210; // hoogte van één cijfer (0,84 × 250 px)
   const SCROLL = 150;
   const POPUP_SCALE = 1.12;
+  const WIN_IN = [5.4, 1.2]; // het browservenster schuift in beeld
+  const BTN_IN = 6.32; // de knop Add to Rldnk verschijnt
+  const BTN_ADDED = 7.46; // en wordt Added
+  const SAVING = 11.55;
+  const SAVED = 11.92;
+  const STICKER_IN = 11.98; // het label Versleuteld opgeslagen
+  const POPUP_OPEN = 13.02;
+  const LIST_FILTER = 14.16; // de lijst filtert op de zoekterm
+  const HIT = 14.45; // Sanne licht op
+  const MARK = 14.52; // de zoekterm wordt gemarkeerd
 
-  const NOTE = 'Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten.';
-  const QUERY = 'zeil';
   const QUERY_TIMES = [13.62, 13.75, 13.87, 14.0];
   const noteTimes = [];
 
+  // naam en kleur per kaartje in de popup; functie en notitie staan in copy/<taal>.json
   const PCARDS = [
-    ['Lotte Bakker', 'UX Lead bij Studio Noord', 'gold', 'Koffie gedaan in maart. Wil sparren over onderzoek.'],
-    ['Daan de Wit', 'Founder bij Kiemkracht', 'blue', 'Pitch gezien in Rotterdam. Terugbellen na de zomer.'],
-    ['Sanne Visser', 'Head of Talent bij Nordlicht', 'coral', 'Ontmoet op DDW. Zoekt een CTO. Restaureert <mark class="hl">zeil</mark>boten.'],
-    ['Mehmet Kaya', 'Investeerder', 'teal', 'Intro via Eva. Interesse in HR-tech.'],
-    ['Eva Jansen', 'Recruiter bij Talentlab', 'ink', 'Stuurt de vacature door naar haar netwerk.'],
+    ['Lotte Bakker', 'gold'],
+    ['Daan de Wit', 'blue'],
+    ['Sanne Visser', 'coral'],
+    ['Mehmet Kaya', 'teal'],
+    ['Eva Jansen', 'ink'],
   ];
 
   let titles = [];
@@ -519,6 +541,20 @@
   let btnW = { a: 0, b: 0 };
   let pcards = [];
   let sanne = null;
+
+  // Zet de notitie als tekst in el en markeert de zoekterm erin (voor de markeerstift).
+  function noteWithMark(el, note, query) {
+    const at = note.toLowerCase().indexOf(query.toLowerCase());
+    if (at < 0) {
+      el.textContent = note;
+      return null;
+    }
+    const mark = document.createElement('mark');
+    mark.className = 'hl';
+    mark.textContent = note.slice(at, at + query.length);
+    el.replaceChildren(note.slice(0, at), mark, note.slice(at + query.length));
+    return mark;
+  }
 
   function buildSteps() {
     titles = $$('.stitle').map(el => [...splitWords($('.l1', el)), ...splitWords($('.l2', el))]);
@@ -544,7 +580,7 @@
     // typritme: snel, met een adempauze na elke zin
     const r = rng(5);
     let tt = 9.88;
-    for (const ch of NOTE) {
+    for (const ch of T.note) {
       noteTimes.push(tt);
       tt += 0.017 + r() * 0.013 + (ch === '.' ? 0.1 : 0) + (ch === ' ' ? 0.006 : 0);
     }
@@ -552,16 +588,19 @@
     // de lijst in de popup
     const list = $('#plist');
     const check = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    pcards = PCARDS.map(([name, role, pal, note]) => {
+    pcards = PCARDS.map(([name, pal], i) => {
+      const [role, note] = T.cards[i];
       const wrap = document.createElement('div');
       wrap.className = 'pwrap';
       wrap.innerHTML =
         `<div class="pcard"><span class="acc"></span>` +
         `<div class="pc-head"><span class="pc-av" style="background:linear-gradient(135deg,${PAL[pal][0]},${PAL[pal][1]})">${initialsOf(name)}</span>` +
         `<span class="pc-name">${name}<span class="pc-badge">${check}</span></span><span class="pc-link">in</span></div>` +
-        `<div class="pc-role">${role}</div><div class="pc-note">${note}</div></div>`;
+        '<div class="pc-role"></div><div class="pc-note"></div></div>';
+      $('.pc-role', wrap).textContent = role;
+      const mark = noteWithMark($('.pc-note', wrap), note, T.query);
       list.appendChild(wrap);
-      return { wrap, card: $('.pcard', wrap), acc: $('.acc', wrap), mark: $('mark', wrap), name };
+      return { wrap, card: $('.pcard', wrap), acc: $('.acc', wrap), mark, name };
     });
     pcards.forEach(c => {
       c.h = c.wrap.offsetHeight;
@@ -603,16 +642,16 @@
   const caretOn = (t, lastKey) => t - lastKey < 0.45 || Math.floor((t - lastKey - 0.45) / 0.5) % 2 === 1;
 
   function renderWindow(t) {
-    const wp = E.outExpo(prog(t, 5.4, 1.2));
+    const wp = E.outExpo(prog(t, ...WIN_IN));
     const drift = E.inOutCubic(prog(t, 6.6, 8.6));
     const ry = lerp(-34, -10, wp) + 3.5 * drift;
     const rx = lerp(9, 3.5, wp) - 1.5 * drift;
     win.style.transform =
       `translate(${lerp(760, 0, wp).toFixed(2)}px, ${lerp(40, 0, wp).toFixed(2)}px) scale(${lerp(0.92, 1, wp).toFixed(4)}) ` +
       `rotateY(${ry.toFixed(3)}deg) rotateX(${rx.toFixed(3)}deg)`;
-    win.style.opacity = clamp(prog(t, 5.4, 0.2)).toFixed(3);
+    win.style.opacity = clamp(prog(t, WIN_IN[0], 0.2)).toFixed(3);
     scroller.style.transform = `translateY(${(-SCROLL * E.inOutCubic(prog(t, 9.02, 0.62))).toFixed(2)}px)`;
-    winDim.style.opacity = (0.12 * E.outCubic(prog(t, 13.02, 0.4))).toFixed(3);
+    winDim.style.opacity = (0.12 * E.outCubic(prog(t, POPUP_OPEN, 0.4))).toFixed(3);
   }
 
   // Groot stapnummer: de 0 blijft staan, het tweede cijfer rolt 1 → 2 → 3.
@@ -661,8 +700,8 @@
 
   // Stap 1: de knop wordt ingevoegd en aangeklikt.
   function renderAddButton(t) {
-    const bi = prog(t, 6.32, 0.62);
-    const done = E.inOutCubic(prog(t, 7.46, 0.34));
+    const bi = prog(t, BTN_IN, 0.62);
+    const done = E.inOutCubic(prog(t, BTN_ADDED, 0.34));
     btn.style.width = `${(lerp(0, btnW.a, E.outExpo(bi)) + (btnW.b - btnW.a) * done).toFixed(2)}px`;
     btn.style.marginRight = `${lerp(0, 12, E.outExpo(bi)).toFixed(2)}px`;
     btn.style.opacity = clamp(bi * 2.5).toFixed(3);
@@ -681,13 +720,13 @@
     ta.style.borderColor = focus > 0 ? `rgba(10, 102, 194, ${focus.toFixed(3)})` : '';
     ta.style.boxShadow = focus > 0 ? `0 0 0 ${(4 * focus).toFixed(2)}px rgba(10, 102, 194, .14)` : 'none';
     let n = 0;
-    while (n < NOTE.length && noteTimes[n] <= t) n++;
-    typed.textContent = NOTE.slice(0, n);
+    while (n < T.note.length && noteTimes[n] <= t) n++;
+    typed.textContent = T.note.slice(0, n);
     placeholder.style.opacity = n > 0 ? 0 : 1;
     const lastKey = n > 0 ? noteTimes[n - 1] : 9.68;
     caret.style.opacity = t >= 9.68 && t < 12.5 && caretOn(t, lastKey) ? 1 : 0;
 
-    const statusWindows = [[noteTimes[0], 11.55], [11.55, 11.92], [11.92, 99]];
+    const statusWindows = [[noteTimes[0], SAVING], [SAVING, SAVED], [SAVED, 99]];
     statusEls.forEach((el, k) => {
       const [a, b] = statusWindows[k];
       const pin = E.outCubic(prog(t, a, 0.22));
@@ -699,7 +738,7 @@
 
   // Stap 3: popup openen, zoeken en filteren.
   function renderPopup(t) {
-    const po = prog(t, 13.02, 0.45);
+    const po = prog(t, POPUP_OPEN, 0.45);
     show(popup, po > 0);
     if (po > 0) {
       const eb = box(extIcon);
@@ -709,27 +748,27 @@
       popup.style.opacity = clamp(po * 3).toFixed(3);
     }
     const qn = QUERY_TIMES.filter(x => t >= x).length;
-    pq.textContent = QUERY.slice(0, qn);
+    pq.textContent = T.query.slice(0, qn);
     pph.style.opacity = qn > 0 ? 0 : 1;
     const qLast = qn > 0 ? QUERY_TIMES[qn - 1] : 13.3;
     pcaret.style.opacity = po > 0.4 && caretOn(t, qLast) ? 1 : 0;
-    pinfo.style.height = `${(E.outCubic(prog(t, 14.16, 0.3)) * 40).toFixed(2)}px`;
+    pinfo.style.height = `${(E.outCubic(prog(t, LIST_FILTER, 0.3)) * 40).toFixed(2)}px`;
     pcards.filter(c => c !== sanne).forEach((c, j) => {
-      const p = E.inOutCubic(prog(t, 14.16 + j * 0.045, 0.4));
+      const p = E.inOutCubic(prog(t, LIST_FILTER + j * 0.045, 0.4));
       c.wrap.style.height = `${lerp(c.h, 0, p).toFixed(2)}px`;
       c.wrap.style.marginBottom = `${lerp(12, 0, p).toFixed(2)}px`;
       c.card.style.opacity = (1 - p).toFixed(3);
       c.card.style.transform = `scale(${lerp(1, 0.92, p).toFixed(4)})`;
     });
-    const hit = E.outCubic(prog(t, 14.45, 0.3));
+    const hit = E.outCubic(prog(t, HIT, 0.3));
     sanne.acc.style.opacity = hit.toFixed(3);
     sanne.card.style.boxShadow = `0 0 0 ${(2 * hit).toFixed(2)}px rgba(10, 102, 194, ${(0.9 * hit).toFixed(3)}), 0 14px 30px -14px rgba(7, 21, 51, ${(0.4 * hit).toFixed(3)})`;
-    sanne.mark.style.setProperty('--hl', `${(E.inOutCubic(prog(t, 14.52, 0.34)) * 100).toFixed(2)}%`);
+    sanne.mark.style.setProperty('--hl', `${(E.inOutCubic(prog(t, MARK, 0.34)) * 100).toFixed(2)}%`);
   }
 
   // Sticker onder de notitie zodra die is opgeslagen.
   function renderSticker(t) {
-    const sp = prog(t, 11.98, 0.75);
+    const sp = prog(t, STICKER_IN, 0.75);
     const sOut = E.inCubic(prog(t, 12.42, 0.3));
     const on = sp > 0 && sOut < 1;
     show(sticker, on);
@@ -762,6 +801,7 @@
   const flipFaces = $$('#flip .face');
   const flipIcon = $('#flipIcon');
   const F0 = 15.28;
+  const FLIP_TURN = [15.34, 0.5];
   const FLIP_SWAP = 15.84;
   const EXPAND = [15.84, 0.55];
   let flipFrom = null;
@@ -774,7 +814,7 @@
     flipFrom = box(sanne.card);
     if (!active) return;
     const lift = E.outCubic(prog(t, F0, 0.3));
-    const rot = 180 * E.inOutCubic(prog(t, 15.34, 0.5));
+    const rot = 180 * E.inOutCubic(prog(t, ...FLIP_TURN));
     const ex = E.inOutQuart(prog(t, ...EXPAND));
     const x = lerp(flipFrom.x, 0, ex);
     const y = lerp(flipFrom.y, 0, ex);
@@ -807,10 +847,12 @@
   let lockIconPos = { x: 0, y: 0 };
   let swooshLen = 0;
   const ICON_BASE = 100; // .tile is 100 × 98 px
+  const SWOOSH_DRAW = [17.3, 0.55]; // de streep onder "naar relatie." wordt getekend
 
   function buildS6() {
     outroWords = splitWords($('#outro .o1'));
     outroChars = splitChars($('#outro .o2t'));
+    splitChars($('#outro .o2k')); // zelfde letterposities als de regel erboven (zonder kerning)
     const wordW = oWord.offsetWidth;
     const iconW = 92;
     const gap = 24;
@@ -841,7 +883,7 @@
     oWord.style.transform = `translateX(${((1 - E.outExpo(prog(t, 16.78, 0.9))) * -104).toFixed(3)}%)`;
     wordsIn(outroWords, t, 16.6, { stagger: 0.085, dur: 1.0, rot: 5 });
     charsBlurIn(outroChars, t, 16.84, 0.026, 0.75);
-    const draw = E.inOutCubic(prog(t, 17.3, 0.55));
+    const draw = E.inOutCubic(prog(t, ...SWOOSH_DRAW));
     show(swoosh, draw > 0);
     swoosh.style.strokeDashoffset = `${(swooshLen * (1 - draw)).toFixed(2)}`;
     ctaParts.forEach((el, k) => {
@@ -939,6 +981,45 @@
   }
 
   // =====================================================================
+  // Cues voor de soundtrack
+  // =====================================================================
+  // De momenten waar het geluid (soundtrack.mjs) op aansluit. Ze komen uit
+  // dezelfde constanten als het beeld: verschuif je hier iets, dan schuift het
+  // geluid mee. x is de horizontale plek in beeld (0 links, 1 rechts), voor de panning.
+  // Om de cursor te vinden rendert dit de klikmomenten; render.mjs vraagt de cues
+  // daarom pas op nadat de frames zijn opgenomen.
+  function soundCues() {
+    return {
+      chips: chips.map(c => ({ in: chipIn(c), forget: chipForget(c), x: c.x / 1920 })),
+      inkDrop: INK_DROP,
+      zoom: [Z0, ZD],
+      letters: lockups[0].slots.map((s, i) => ({ ...letterRoll(i), steps: s.n - 1 })),
+      canvasFall: CANVAS_FALL,
+      windowIn: WIN_IN,
+      stepFirst: STEP_FIRST,
+      stepSwitch: SWITCH,
+      buttonIn: BTN_IN,
+      buttonAdded: BTN_ADDED,
+      clicks: CLICKS.map(at => {
+        render(at);
+        return { at, x: cursorAt(at).x / 1920 };
+      }),
+      note: T.note,
+      noteKeys: noteTimes,
+      saving: SAVING,
+      saved: SAVED,
+      sticker: STICKER_IN,
+      popupOpen: POPUP_OPEN,
+      queryKeys: QUERY_TIMES,
+      listFilter: LIST_FILTER,
+      hit: HIT,
+      mark: MARK,
+      flip: { lift: F0, turn: FLIP_TURN, expand: EXPAND },
+      swoosh: SWOOSH_DRAW,
+    };
+  }
+
+  // =====================================================================
   // Tijdlijn
   // =====================================================================
   function render(t) {
@@ -962,7 +1043,30 @@
     stage.style.top = `${(vh - 1080 * stageScale) / 2}px`;
   }
 
+  // Laadt de teksten van de gekozen taal. Bestaat die taal niet, dan Nederlands;
+  // render.mjs ziet dat aan __timeline.lang en meldt het.
+  async function loadCopy() {
+    const response = await fetch(`copy/${LANG}.json`);
+    if (response.ok) return response.json();
+    LANG = 'nl';
+    return (await fetch('copy/nl.json')).json();
+  }
+
+  // Zet de teksten in de pagina: data-copy="pad" in index.html verwijst naar T.
+  // Altijd als tekst, nooit als HTML.
+  function applyCopy() {
+    document.documentElement.lang = LANG;
+    document.title = T.title;
+    for (const el of $$('[data-copy]')) {
+      const text = el.dataset.copy.split('.').reduce((node, key) => node[key], T);
+      el.textContent = text;
+    }
+  }
+
   async function init() {
+    T = await loadCopy();
+    Object.assign(window.__timeline, { lang: LANG, file: T.file });
+    applyCopy();
     fit();
     await document.fonts.ready;
     await Promise.all([
@@ -982,6 +1086,7 @@
 
   window.__timeline = { fps: FPS, duration: DURATION };
   window.renderFrame = t => render(t);
+  window.soundCues = soundCues;
   window.__ready = init();
 
   // ---------- preview met afspeelknop en schuifbalk ----------

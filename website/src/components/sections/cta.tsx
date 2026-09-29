@@ -32,7 +32,7 @@ export default function CTA() {
             {t('addToChrome')}
           </a>
           <a
-            href="#features"
+            href="#how-it-works"
             className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors items-center justify-center gap-2"
           >
             {t('viewDemo')}

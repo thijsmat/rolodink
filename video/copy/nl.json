@@ -1,0 +1,91 @@
+{
+  "title": "Rolodink — uitlegvideo",
+  "file": "rolodink-uitleg",
+  "hook": [
+    "Wie was dat",
+    "ook alweer?"
+  ],
+  "tagline": [
+    "Jouw notities,",
+    "direct op LinkedIn."
+  ],
+  "steps": [
+    [
+      "Open een",
+      "profiel.",
+      "Klik op "
+    ],
+    [
+      "Schrijf een",
+      "notitie.",
+      "Privé, alleen voor jou."
+    ],
+    [
+      "Vind alles",
+      "terug.",
+      "Zoek op naam, bedrijf of detail."
+    ]
+  ],
+  "profile": {
+    "degree": "· 1e",
+    "headline": "Head of Talent bij Nordlicht",
+    "meta": "Utrecht, Nederland · 500+ connecties · ",
+    "contact": "Contactgegevens",
+    "message": "Bericht",
+    "more": "Meer",
+    "about": "Info"
+  },
+  "sticker": "Versleuteld opgeslagen",
+  "popup": {
+    "pills": [
+      "Toon alle connecties",
+      "Instellingen",
+      "Help"
+    ],
+    "search": "Zoek in connecties... (Ctrl+F)",
+    "result": "1 resultaat voor “zeil”"
+  },
+  "outro": [
+    "Van connectie",
+    "naar relatie."
+  ],
+  "cta": "Gratis voor Chrome, Edge & Firefox",
+  "roles": [
+    "UX Lead",
+    "Founder",
+    "Investeerder",
+    "Recruiter",
+    "Sales",
+    "CFO",
+    "Engineer",
+    "Consultant",
+    "Marketing",
+    "Head of Talent",
+    "Product",
+    "Designer"
+  ],
+  "note": "Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten.",
+  "query": "zeil",
+  "cards": [
+    [
+      "UX Lead bij Studio Noord",
+      "Koffie gedaan in maart. Wil sparren over onderzoek."
+    ],
+    [
+      "Founder bij Kiemkracht",
+      "Pitch gezien in Rotterdam. Terugbellen na de zomer."
+    ],
+    [
+      "Head of Talent bij Nordlicht",
+      "Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten."
+    ],
+    [
+      "Investeerder",
+      "Intro via Eva. Interesse in HR-tech."
+    ],
+    [
+      "Recruiter bij Talentlab",
+      "Stuurt de vacature door naar haar netwerk."
+    ]
+  ]
+}

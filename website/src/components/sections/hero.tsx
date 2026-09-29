@@ -1,5 +1,5 @@
 import NextImage from "next/image";
-import { Chrome, Star } from "lucide-react";
+import { Chrome, CirclePlay, Star } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
 import { getExtensionUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
@@ -57,6 +57,14 @@ export default function Hero() {
                 {t('cta.addToFirefox')}
               </a>
             </div>
+
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center gap-2 self-start text-sm sm:text-base font-medium text-link-blue hover:underline"
+            >
+              <CirclePlay className="h-5 w-5" />
+              {t('watch')}
+            </a>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 pt-2 sm:pt-4">
               <div className="flex items-center gap-2">

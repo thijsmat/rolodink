@@ -2,10 +2,13 @@
   "name": "rolodink-video",
   "private": true,
   "type": "module",
-  "description": "Uitlegvideo van Rolodink: een HTML-compositie die frame voor frame naar MP4 wordt gerenderd.",
+  "description": "Uitlegvideo van Rolodink in het Nederlands en Engels: een HTML-compositie die frame voor frame naar MP4 wordt gerenderd, met een gesynthetiseerde soundtrack.",
   "scripts": {
     "preview": "node render.mjs --preview",
-    "render": "node render.mjs"
+    "render": "node render.mjs",
+    "render:en": "node render.mjs --lang en",
+    "audio": "node render.mjs --audio-only",
+    "audio:en": "node render.mjs --lang en --audio-only"
   },
   "devDependencies": {
     "@fontsource-variable/inter": "^5.3.0",

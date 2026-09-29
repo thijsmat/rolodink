@@ -242,6 +242,12 @@ mark.hl { padding: 0 1px; border-radius: 2px; background: linear-gradient(#fdeeb
 #outro .o1 { display: block; font: 800 176px/1 'Inter Tight', sans-serif; letter-spacing: -.055em; color: #fff; }
 #outro .o2 { position: relative; display: inline-block; margin-top: -2px; font: italic 400 214px/.92 'Instrument Serif', serif; letter-spacing: -.012em; color: var(--mint); }
 #swoosh { position: absolute; left: 3%; bottom: -26px; width: 94%; height: 46px; overflow: visible; color: var(--mint); }
+/* Skip-ink, zoals bij een onderstreping: tussen de streep en de letters (de volgorde
+   in index.html) ligt een stilstaande kopie van de regel met alleen een rand in de
+   achtergrondkleur, afgesneden tot de strook van de streep. Die knipt de streep open
+   waar een staart hem kruist (de p van "relationship") en raakt geen letters. */
+#outro .o2t { position: relative; }
+#outro .o2k { position: absolute; left: 0; top: 0; color: transparent; -webkit-text-stroke: 18px var(--electric); clip-path: inset(78% -40px -80px -40px); }
 #cta { position: absolute; left: 0; right: 0; top: 876px; display: flex; justify-content: center; align-items: center; gap: 26px; white-space: nowrap; }
 #cta .c1 { display: inline-block; font: 500 31px/1 'Inter', sans-serif; color: rgba(255, 255, 255, .9); letter-spacing: -.01em; }
 #cta .c2 { display: inline-block; padding: 14px 24px; border-radius: 999px; background: #fff; font: 600 28px/1 'JetBrains Mono', monospace; color: var(--tile); letter-spacing: -.02em; }
