@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import backgroundSource from './main.ts?raw';
+import adapterSource from '../utils/storageAdapter.ts?raw';
 
 /**
  * The service worker reaches the extension platform through getBrowserAPI()
@@ -26,5 +27,19 @@ describe('background worker platform access', () => {
         expect(code).toContain('browserAPI.runtime.onMessage.addListener');
         expect(code).toContain('browserAPI.runtime.onInstalled.addListener');
         expect(code).toContain('browserAPI.storage.session');
+    });
+});
+
+describe('background worker leaks nothing into the debug log', () => {
+    it('does not log the OAuth authorisation URL', () => {
+        // It carries state and the PKCE challenge, and debug_logs sits readable
+        // in storage.local.
+        expect(code).not.toMatch(/logToStorage\([^)]*\burl:\s*data\.url/);
+    });
+
+    it('does not mirror the access token to a second storage key', () => {
+        // The adapter is the only writer supabase-js goes through.
+        const adapter = adapterSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+        expect(adapter).not.toContain('supabaseAccessToken');
     });
 });

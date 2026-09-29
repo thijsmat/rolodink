@@ -4,12 +4,9 @@ import { chromeStorageAdapter, getSupabaseStorageKey } from './storageAdapter';
 /**
  * The adapter supabase-js writes every session through.
  *
- * Worth testing on its own because of the mirroring it does: the content script
- * cannot reach the Supabase client, so the adapter copies the access token to a
- * flat `supabaseAccessToken` key for it. That coupling is invisible from either
- * side and it made a session bug worse than it looked - when auth-js discarded a
- * malformed session and called removeItem, the content script lost its token in
- * the same breath and stopped being able to talk to the API at all.
+ * Kept deliberately thin: it stores exactly what supabase-js hands it. It once
+ * mirrored the access token to a flat key for the content script; see the
+ * describe block below for why that is gone.
  */
 
 const SESSION_KEY = 'sb-adacfwaslbcimqgvbpqd-auth-token';
@@ -50,54 +47,39 @@ describe('getSupabaseStorageKey', () => {
     });
 });
 
-describe('mirroring the access token for the content script', () => {
-    it('copies access_token out of a stored session', async () => {
+describe('sessions are stored as-is', () => {
+    // The adapter used to copy access_token to a flat `supabaseAccessToken` key
+    // for the content script. The content script goes through the worker now,
+    // and a second copy of the token in storage.local - readable from the page
+    // side of the extension - had no remaining reader.
+    it('writes the session under its own key and nothing else', async () => {
         await chromeStorageAdapter.setItem(
             SESSION_KEY,
             JSON.stringify({ access_token: 'abc123', refresh_token: 'r', expires_at: 1 })
         );
 
         expect(store[SESSION_KEY]).toBeTypeOf('string');
-        expect(store.supabaseAccessToken).toBe('abc123');
-    });
-
-    it('leaves unrelated keys alone', async () => {
-        await chromeStorageAdapter.setItem('rolodink_data_key', 'not-a-session');
-        expect(store.supabaseAccessToken).toBeUndefined();
+        expect(Object.keys(store)).toEqual([SESSION_KEY]);
     });
 
     it('does not throw on a value that is not JSON', async () => {
         await expect(
             chromeStorageAdapter.setItem(SESSION_KEY, 'null-ish garbage')
         ).resolves.toBeUndefined();
-        expect(store.supabaseAccessToken).toBeUndefined();
-    });
-
-    it('does not mirror when the session has no access_token', async () => {
-        await chromeStorageAdapter.setItem(SESSION_KEY, JSON.stringify({ refresh_token: 'r' }));
-        expect(store.supabaseAccessToken).toBeUndefined();
     });
 });
 
 describe('removing a session', () => {
-    // The behaviour that turned a discarded session into a content script with
-    // no token. Correct - a stale mirrored token would be worse - but it means
-    // anything that makes auth-js drop the session takes the content script
-    // down with it, which is why writing a session by hand was so damaging.
-    it('removes the mirrored token together with the session', async () => {
+    it('removes the session key', async () => {
         store[SESSION_KEY] = 'session';
-        store.supabaseAccessToken = 'abc123';
-
         await chromeStorageAdapter.removeItem(SESSION_KEY);
-
         expect(store[SESSION_KEY]).toBeUndefined();
-        expect(store.supabaseAccessToken).toBeUndefined();
     });
 
-    it('leaves the mirrored token alone when removing something else', async () => {
-        store.supabaseAccessToken = 'abc123';
+    it('leaves other keys alone', async () => {
+        store.rolodink_other = 'keep';
         await chromeStorageAdapter.removeItem('rolodink_data_key');
-        expect(store.supabaseAccessToken).toBe('abc123');
+        expect(store.rolodink_other).toBe('keep');
     });
 });
 
