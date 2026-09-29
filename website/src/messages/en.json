@@ -363,7 +363,8 @@
                             "No more passphrase: your data is encrypted automatically once you're signed in.",
                             "Encryption uses a secure per-account key managed by the server.",
                             "Security fix: saving can no longer silently fall back to unencrypted data.",
-                            "Key management is tied to your account; the key is cleared on logout."
+                            "Key management is tied to your account; the key is cleared on logout.",
+                            "Note: since this version the key is managed by the server, so encryption is no longer end-to-end. Notes are still encrypted before they are stored."
                         ]
                     }
                 ]
@@ -682,7 +683,7 @@
             },
             "free": {
                 "question": "Is Rolodink really free?",
-                "answer": "Yes, Rolodink is completely free to use as a Chrome extension. No credit card required, no limits."
+                "answer": "Yes, Rolodink is completely free to use as a browser extension for Chrome, Edge and Firefox. No credit card required, no limits."
             },
             "security": {
                 "question": "How secure are my notes?",
@@ -690,11 +691,11 @@
             },
             "mobile": {
                 "question": "Does Rolodink work on mobile?",
-                "answer": "Currently, Rolodink is available as a Chrome extension. A mobile version is in development."
+                "answer": "Not yet. Rolodink is a browser extension for Chrome, Edge and Firefox on desktop. A mobile version is in development."
             },
             "export": {
                 "question": "Can I export my notes?",
-                "answer": "Yes, you can export all your notes to various formats for backup and transfer."
+                "answer": "Yes, you can export all your data as a JSON file for backup and transfer."
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",

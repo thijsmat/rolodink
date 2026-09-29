@@ -363,7 +363,8 @@
                             "Wachtwoordzin niet meer nodig: je gegevens worden automatisch versleuteld zodra je bent ingelogd.",
                             "Versleuteling gebeurt met een beveiligde sleutel per account, beheerd door de server.",
                             "Beveiligingsfix: opslaan kan niet langer stilletjes terugvallen op onversleutelde data.",
-                            "Sleutelbeheer gekoppeld aan je account; bij uitloggen wordt de sleutel gewist."
+                            "Sleutelbeheer gekoppeld aan je account; bij uitloggen wordt de sleutel gewist.",
+                            "Let op: vanaf deze versie beheert de server de sleutel, waardoor de versleuteling niet meer end-to-end is. Notities worden nog steeds versleuteld voordat ze worden opgeslagen."
                         ]
                     }
                 ]
@@ -682,7 +683,7 @@
             },
             "free": {
                 "question": "Is Rolodink echt gratis?",
-                "answer": "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie. Geen creditcard nodig, geen limits."
+                "answer": "Ja, Rolodink is volledig gratis te gebruiken als browserextensie voor Chrome, Edge en Firefox. Geen creditcard nodig, geen limieten."
             },
             "security": {
                 "question": "Hoe veilig zijn mijn notities?",
@@ -690,11 +691,11 @@
             },
             "mobile": {
                 "question": "Werkt Rolodink ook op mobiel?",
-                "answer": "Momenteel is Rolodink beschikbaar als Chrome extensie. Een mobiele versie is in ontwikkeling."
+                "answer": "Nog niet. Rolodink is een browserextensie voor Chrome, Edge en Firefox op de desktop. Een mobiele versie is in ontwikkeling."
             },
             "export": {
                 "question": "Kan ik mijn notities exporteren?",
-                "answer": "Ja, je kunt al je notities exporteren naar verschillende formaten voor backup en overdracht."
+                "answer": "Ja, je kunt al je data exporteren als JSON-bestand voor back-up en overdracht."
             },
             "visibility": {
                 "question": "Zien anderen mijn notities op LinkedIn?",
