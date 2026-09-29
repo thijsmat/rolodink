@@ -143,11 +143,26 @@ describe.each(MANIFESTS)('%s asks for no more than it uses', (_name, raw) => {
     it('does not declare the tabs permission', () => {
         // It is only needed to read url/title of arbitrary tabs. The popup reads
         // the active tab, which activeTab covers on the click that opens it, and
-        // the LinkedIn hosts are covered by host_permissions. tabs.update and
-        // tabs.create need no permission at all. Carrying it costs a broader
-        // store-review surface and a scarier install prompt for nothing.
+        // the LinkedIn hosts are covered by host_permissions (see below).
+        // tabs.update and tabs.create need no permission at all. Carrying it
+        // costs a broader store-review surface and a scarier install prompt
+        // for nothing.
         expect(manifest.permissions).not.toContain('tabs');
         expect(manifest.permissions).toContain('activeTab');
+    });
+
+    it('grants host permission on every host the content script runs on', () => {
+        // Without `tabs`, tabs.query only returns url and title for a tab the
+        // extension has host permission on (or activeTab for). Measured in
+        // Chromium: with only www.linkedin.com listed here, the popup on an
+        // nl.linkedin.com profile got url null, while the content script ran
+        // there fine. A content-script match is not a host permission for
+        // tabs.query. Listing the same patterns here adds no install warning,
+        // since the content script already claims them.
+        const matches = manifest.content_scripts.flatMap((cs: { matches: string[] }) => cs.matches);
+        for (const pattern of matches) {
+            expect(manifest.host_permissions).toContain(pattern);
+        }
     });
 
     it('exposes no web-accessible resources', () => {
