@@ -6,27 +6,36 @@ import { chromeStorageAdapter } from '../utils/storageAdapter';
 import { importDataKey, encryptText, decryptText } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 
-// 1. Immediate Alive Check
-console.log('Background script loading (restored)...');
 const browserAPI = getBrowserAPI();
-if (browserAPI?.storage?.local) {
-    browserAPI.storage.local.set({ 'bg_alive_restored': Date.now() });
-}
 
-// Helper to log to storage
-async function logToStorage(message: string, data?: any) {
-    try {
-        const timestamp = new Date().toISOString();
-        const logEntry = `[${timestamp}] ${message} ${data ? JSON.stringify(data) : ''}`;
-        const result = await browserAPI.storage.local.get('debug_logs');
-        const logs = result.debug_logs || [];
-        logs.push(logEntry);
-        if (logs.length > 50) logs.shift();
-        await browserAPI.storage.local.set({ debug_logs: logs });
-        console.log(logEntry);
-    } catch (e) {
-        console.error('Failed to log to storage:', e);
-    }
+// Een sessietoken die oudere versies naar een vaste sleutel spiegelden voor het
+// content script. Niets leest hem nog - het content script gaat via de worker -
+// dus bij het opstarten opruimen zodat hij niet blijft rondslingeren.
+browserAPI?.storage?.local?.remove('supabaseAccessToken').catch(() => { });
+
+// Helper to log to storage.
+//
+// Serialised: elk bericht leest de hele log, voegt toe en schrijft terug, dus
+// twee gelijktijdige aanroepen overschreven elkaars regel. Bewaar hier nooit
+// URL's met OAuth-state of tokens; de log staat leesbaar in storage.local.
+let logChain: Promise<void> = Promise.resolve();
+
+function logToStorage(message: string, data?: unknown): Promise<void> {
+    logChain = logChain.then(async () => {
+        try {
+            const timestamp = new Date().toISOString();
+            const logEntry = `[${timestamp}] ${message} ${data ? JSON.stringify(data) : ''}`;
+            const result = await browserAPI.storage.local.get('debug_logs');
+            const logs: string[] = result.debug_logs || [];
+            logs.push(logEntry);
+            if (logs.length > 50) logs.shift();
+            await browserAPI.storage.local.set({ debug_logs: logs });
+            console.log(logEntry);
+        } catch (e) {
+            console.error('Failed to log to storage:', e);
+        }
+    });
+    return logChain;
 }
 
 // Wrap in IIFE to avoid top-level await issues in some environments
@@ -99,7 +108,7 @@ async function handleAuth() {
         if (authError) throw authError;
         if (!data?.url) throw new Error('No auth URL generated');
 
-        await logToStorage('Auth URL generated', { url: data.url });
+        await logToStorage('Auth URL generated');
 
         // 2. Launch Web Auth Flow
         const responseUrl = await browserAPI.identity.launchWebAuthFlow({
@@ -109,9 +118,10 @@ async function handleAuth() {
 
         await logToStorage('WebAuthFlow completed');
 
-        if (typeof chrome !== 'undefined' && chrome.runtime?.lastError) {
-            throw new Error(chrome.runtime.lastError.message || 'Login cancelled');
-        }
+        // No lastError check here: launchWebAuthFlow is awaited, so a cancelled
+        // or failed flow arrives as a rejection on both platforms. Reading
+        // chrome.runtime.lastError after an await is always null in Chrome and
+        // does not exist as a signal in Firefox.
 
         if (!responseUrl) {
             throw new Error('Login cancelled');
@@ -206,7 +216,7 @@ async function clearDataKeyCache(): Promise<void> {
     keyPromise = null;
     keyPromiseUserId = null;
     try {
-        await chrome.storage.session.remove([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+        await browserAPI.storage.session.remove([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
     } catch (e) {
         console.warn('Kon sleutelcache niet wissen:', e);
     }
@@ -257,13 +267,13 @@ async function getDataKey(): Promise<CryptoKey> {
     keyPromiseUserId = userId;
     keyPromise = (async () => {
         try {
-            const stored = await chrome.storage.session.get([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+            const stored = await browserAPI.storage.session.get([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
             let rawKey: string | undefined =
                 stored?.[DATA_KEY_USER_STORAGE] === userId ? stored?.[DATA_KEY_STORAGE] : undefined;
 
             if (!rawKey) {
                 rawKey = await fetchDataKeyFromServer(token);
-                await chrome.storage.session.set({
+                await browserAPI.storage.session.set({
                     [DATA_KEY_STORAGE]: rawKey,
                     [DATA_KEY_USER_STORAGE]: userId,
                 });
@@ -364,8 +374,8 @@ async function performApiRequest(message: {
 }
 
 // Luister naar berichten van de UI en content scripts
-if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+if (browserAPI.runtime?.onMessage) {
+    browserAPI.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (message.type === 'START_AUTH') {
             handleAuth()
                 .then(() => sendResponse({ success: true }))
@@ -429,11 +439,11 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
 }
 
 // Handle installation
-if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
-    chrome.runtime.onInstalled.addListener(async (details) => {
+if (browserAPI.runtime?.onInstalled) {
+    browserAPI.runtime.onInstalled.addListener(async (details) => {
         if (details.reason === 'install') {
             // Get user locale
-            const uiLang = chrome.i18n.getUILanguage() || 'en';
+            const uiLang = browserAPI.i18n.getUILanguage() || 'en';
             const locale = uiLang.startsWith('nl') ? 'nl' : 'en';
 
             // Website URL
@@ -441,7 +451,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
             const onboardingUrl = `${websiteUrl}/${locale}/onboarding`;
 
             await logToStorage(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);
-            chrome.tabs.create({ url: onboardingUrl });
+            browserAPI.tabs.create({ url: onboardingUrl });
         }
     });
 }
