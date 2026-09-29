@@ -64,7 +64,7 @@
             },
             "privacy": {
                 "title": "Your notes stay private",
-                "description": "All your notes are securely stored with encryption and are only visible to you. GDPR-compliant, no data is shared with third parties."
+                "description": "All your notes are securely stored with encryption and are only visible to you. Built on GDPR principles; we never sell your data or share it for anyone else's purposes."
             },
             "quickAdd": {
                 "title": "Quick add with one click",
@@ -613,7 +613,7 @@
             {
                 "title": "Your data, your control",
                 "paragraphs": [
-                    "You can export all your data or delete your account and everything stored with it at any time. Your notes are private: the people you write about cannot see them, and we do not share your data with third parties."
+                    "You can export all your data or delete your account and everything stored with it at any time. Your notes are private: the people you write about cannot see them, and we never sell your data or share it for anyone else's purposes. We use Supabase and Vercel to host Rolodink."
                 ]
             },
             {
@@ -707,7 +707,7 @@
             },
             "legal": {
                 "question": "Does Rolodink comply with privacy laws?",
-                "answer": "Yes, Rolodink complies with GDPR and all relevant privacy legislation. Your data is never shared with third parties."
+                "answer": "Rolodink is built on GDPR principles: we collect only what the service needs, you can export or delete your data at any time, and we never sell it or share it for anyone else's purposes. We use hosting and database providers (Supabase and Vercel) to run the service."
             },
             "support": {
                 "question": "What about updates and support?",
