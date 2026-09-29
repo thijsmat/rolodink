@@ -64,7 +64,7 @@
             },
             "privacy": {
                 "title": "Je notities blijven privé",
-                "description": "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. GDPR-compliant, geen gegevens worden gedeeld met derden."
+                "description": "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. Gebouwd volgens de AVG/GDPR-principes; we verkopen je data nooit en delen die niet voor andermans doeleinden."
             },
             "quickAdd": {
                 "title": "Snel toevoegen met één klik",
@@ -613,7 +613,7 @@
             {
                 "title": "Jouw data, jouw controle",
                 "paragraphs": [
-                    "Je kunt op elk moment al je data exporteren of je account en alles wat daarbij is opgeslagen verwijderen. Je notities zijn privé: de mensen over wie je schrijft kunnen ze niet zien en we delen je data niet met derden."
+                    "Je kunt op elk moment al je data exporteren of je account en alles wat daarbij is opgeslagen verwijderen. Je notities zijn privé: de mensen over wie je schrijft kunnen ze niet zien en we verkopen je data nooit en delen die niet voor andermans doeleinden. Voor de hosting van Rolodink gebruiken we Supabase en Vercel."
                 ]
             },
             {
@@ -707,7 +707,7 @@
             },
             "legal": {
                 "question": "Voldoet Rolodink aan privacy- en veiligheidswetten?",
-                "answer": "Ja, Rolodink voldoet aan GDPR, AVG, en alle relevante privacywetgeving. Je data wordt nooit gedeeld met derden."
+                "answer": "Rolodink is gebouwd volgens de AVG/GDPR-principes: we verzamelen alleen wat de dienst nodig heeft, je kunt je data op elk moment exporteren of verwijderen, en we verkopen die nooit en delen die niet voor andermans doeleinden. Voor hosting en database gebruiken we Supabase en Vercel."
             },
             "support": {
                 "question": "Hoe zit het met updates en ondersteuning?",
