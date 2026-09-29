@@ -27,122 +27,11 @@ Opgesteld op 2026-09-29 op basis van de repo (video, website-teksten, `docs/SECU
 
 Alle teksten zijn kladversies. Hashtags maximaal 3.
 
-### Post 1 – Launch, alleen video + tekst (dag 1, dinsdag)
+### Posts 1 t/m 6
 
-Bijlage: `rolodink-explainer.mp4` (19 s).
-
-```
-You meet someone great at a conference. Two months later you're staring at their LinkedIn profile thinking: who was that again?
-
-We built Rolodink for that moment.
-
-It adds a private note field right on the LinkedIn profile. Where you met. What you talked about. That they restore sailboats.
-
-Then you search "sail" and find Sanne.
-
-19 seconds. Free for Chrome, Edge & Firefox.
-
-What do you do today to remember the people you meet?
-
-#networking #LinkedIn #productivity
-```
-
-Eerste reactie: `Try it (free): https://rolodink.app/?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=video`
-
-### Post 2 – Why we built it (dag 4)
-
-Bijlage: geen video; één beeld (screenshot van een profiel met notitie) of puur tekst. De persoonlijke anekdote hoort in de repost-intro van de eigenaar (§2b).
-
-```
-Most of us have hundreds or thousands of LinkedIn connections. We can name the job title of a handful.
-
-The details that actually matter, like "her daughter just started university" or "wants an intro to a CFO", live nowhere.
-
-We tried spreadsheets. We tried a full CRM. Both died within a month, because they live somewhere we never are.
-
-The conversation happens on LinkedIn. So the memory should too.
-
-That's why we built Rolodink: not a CRM, just a notes layer on top of the profile you're already looking at.
-
-What's the most embarrassing "sorry, remind me who you are?" you've had?
-```
-
-*("We tried spreadsheets and a full CRM" is een aanname over jullie verhaal: pas aan of schrap als het niet klopt.)*
-
-### Post 3 – Why there's no app (yet) (dag 8)
-
-```
-"Is there a Rolodink app?"
-
-We get this question a lot. Honest answer: not yet, and here's why.
-
-Rolodink is a browser extension because that's where the LinkedIn profile is. An extension can add a note field to the page you're already reading, without copy-pasting or switching apps. The LinkedIn mobile app doesn't allow that kind of add-on, so a phone version has to be a different product, not a port.
-
-We'd rather make the desktop experience great first than ship a mediocre app.
-
-A mobile version is in development. If you want it, tell us how you'd use it on your phone: after an event? Before a call? That decides what we build first.
-
-#buildinpublic #productdevelopment
-```
-
-*(Alleen posten als "in development" nog klopt. Zo niet: "on the roadmap" of weglaten.)*
-
-### Post 4 – What we do about security (dag 11)
-
-```
-Notes about people are sensitive. Here is what we do to protect yours, and what we don't claim.
-
-What we do:
-→ Notes, meeting place, email and phone are encrypted before they are stored (AES-256-GCM)
-→ Every user gets their own encryption key
-→ Row-level security in the database: your rows are only readable by your account
-→ Rate limiting on the API against abuse
-→ Automated secret scanning and dependency checks in our CI
-→ No tracking inside the extension
-
-What we don't claim: end-to-end encryption. Our servers manage the keys so your notes work across devices, which means this is encryption at rest, not zero-knowledge. We'd rather tell you that than a buzzword.
-
-Your notes are never visible to the people you write about.
-
-Full details on the security page of our site. Questions welcome, especially hard ones.
-
-#security #privacy #GDPR
-```
-
-*(Elke regel is gecontroleerd tegen `docs/SECURITY.md` en de encryptie-sectie in CHANGELOG/`SENSITIVE_FIELDS`; vraag de developer om "no tracking in the extension" en "secret scanning in CI" nog eens te bevestigen voordat je post. De Engelse securitypagina is gemerged in #96; controleer na de deploy dat `/en/security` live staat voordat je post 4 plaatst.)*
-
-### Post 5 – Use case / tip (dag 15)
-
-```
-3 things worth writing down right after a conversation:
-
-1. Where you met (event, intro, cold message)
-2. One personal detail, not work-related
-3. The follow-up you promised
-
-Takes 20 seconds. Saves you the awkward "so, remind me…" for years.
-
-That's the whole idea behind Rolodink: write it on the profile, find it by any word later.
-
-Which of these do you forget most often?
-```
-
-Optioneel: carrousel met dezelfde drie punten.
-
-### Post 6 – Feedback / community (dag 18)
-
-```
-Rolodink is 3 weeks into people using it. What we've learned:
-
-[2–3 echte inzichten of aantallen invullen, alleen wat je kunt onderbouwen]
-
-Next up: [volgende feature]. What should we build first?
-
-→ Follow-up reminders
-→ Export
-→ Mobile
-→ Something else (tell us)
-```
+De definitieve teksten, eerste reacties, plantijden en een importbestand staan in
+[`linkedin-posts.md`](linkedin-posts.md) en [`linkedin-schedule.csv`](linkedin-schedule.csv). Onderwerpen:
+1 launch met video, 2 waarom we het bouwden, 3 waarom er nog geen app is, 4 beveiliging, 5 tip, 6 peiling over wat er hierna komt.
 
 ### 2b. Repost-intro's voor het eigen profiel
 
@@ -194,5 +83,4 @@ Besloten: afzender is de bedrijfspagina met repost door de eigenaar, alleen orga
 
 Nog open:
 1. Is `/en/security` live na de deploy van #96 (vóór post 4)?
-2. Zijn er echte gebruikerscijfers of quotes voor post 6?
-3. Klopt het "we tried spreadsheets and a CRM"-verhaal in post 2?
+2. Kloppen de vier peilingopties van post 6 met jullie echte plannen?
