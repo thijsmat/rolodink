@@ -1,0 +1,61 @@
+post,publish_at,timezone,text,first_comment,note
+2,2026-10-06 08:30,Europe/Amsterdam,"Most of us have hundreds or thousands of LinkedIn connections. We can name the job title of a handful.
+
+The details that actually matter, like ""her daughter just started university"" or ""wants an intro to a CFO"", live nowhere.
+
+A spreadsheet or a full CRM rarely fixes that. Not because they are bad tools, but because they live somewhere you never are.
+
+The conversation happens on LinkedIn. So the memory should too.
+
+That is why we built Rolodink: not a CRM, just a private notes layer on top of the profile you are already looking at.
+
+What is the most embarrassing ""sorry, remind me who you are?"" moment you have had?
+
+#networking #LinkedIn","See how it works (free for Chrome, Edge & Firefox): https://rolodink.app/en?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-2",
+3,2026-10-08 08:30,Europe/Amsterdam,"""Is there a Rolodink app?""
+
+We get this question a lot. The honest answer: not yet, and here is why.
+
+Rolodink is a browser extension because that is where the LinkedIn profile is. An extension can add a note field to the page you are already reading, without copy-pasting or switching apps. The LinkedIn mobile app does not allow that kind of add-on, so a phone version would not be a port. It would be a different product.
+
+We would rather make the desktop experience great first than ship a mediocre app.
+
+A mobile version is in development. If you would use it, tell us how: after an event? Right before a call? That decides what we build first.
+
+#buildinpublic #productdevelopment","Rolodink is free for Chrome, Edge & Firefox: https://rolodink.app/en/download?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-3",
+4,2026-10-13 08:30,Europe/Amsterdam,"Notes about people are sensitive. Here is how we protect yours, and what we do not claim.
+
+What we do:
+→ Notes, meeting place, company, email and phone number are encrypted (AES-256-GCM) in the extension before they are stored
+→ Every account has its own encryption key
+→ Row-level security in the database: an account can only read its own rows
+→ Rate limiting on the API, and an allowlist of approved origins
+→ Every commit is scanned for leaked secrets, and dependencies are checked for known vulnerabilities
+
+What we do not claim: end-to-end encryption. We manage the keys so your notes work on every device you sign in on. That makes this encryption at rest, not zero-knowledge. We would rather say that plainly than use a buzzword.
+
+The people you write about cannot see your notes, and you can export or delete your data at any time.
+
+Details in the first comment. Hard questions welcome.
+
+#security #privacy #buildinpublic",Full details on our security page: https://rolodink.app/en/security?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-4,
+5,2026-10-15 08:30,Europe/Amsterdam,"3 things worth writing down right after a conversation:
+
+1. Where you met (event, intro, cold message)
+2. One personal detail that is not about work
+3. The follow-up you promised
+
+It takes 20 seconds. It saves you the awkward ""so, remind me…"" for years.
+
+That is the whole idea behind Rolodink: write it on the profile, find it by any word later.
+
+Which of these do you forget most often?
+
+#networking #productivity #LinkedIn","Try it, free for Chrome, Edge & Firefox: https://rolodink.app/en?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-5",
+6,2026-10-20 08:30,Europe/Amsterdam,"We are building Rolodink in the open, so you get a say in what comes next.
+
+If you use it, or would like to: which of these would help you most?
+
+We cannot promise an order, but your votes decide what we look at first. Tell us in the comments what we missed.
+
+#buildinpublic #productdevelopment","Not using it yet? Free for Chrome, Edge & Firefox: https://rolodink.app/en?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-6",poll (4 options)
