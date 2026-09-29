@@ -363,7 +363,8 @@
                             "Wachtwoordzin niet meer nodig: je gegevens worden automatisch versleuteld zodra je bent ingelogd.",
                             "Versleuteling gebeurt met een beveiligde sleutel per account, beheerd door de server.",
                             "Beveiligingsfix: opslaan kan niet langer stilletjes terugvallen op onversleutelde data.",
-                            "Sleutelbeheer gekoppeld aan je account; bij uitloggen wordt de sleutel gewist."
+                            "Sleutelbeheer gekoppeld aan je account; bij uitloggen wordt de sleutel gewist.",
+                            "Let op: vanaf deze versie beheert de server de sleutel, waardoor de versleuteling niet meer end-to-end is. Notities worden nog steeds versleuteld voordat ze worden opgeslagen."
                         ]
                     }
                 ]
@@ -579,7 +580,50 @@
     "SecurityPage": {
         "title": "Beveiliging",
         "lastUpdated": "Laatst bijgewerkt",
-        "notice": ""
+        "notice": "",
+        "updatedOn": "29 september 2026",
+        "intro": "Notities over de mensen in je netwerk zijn persoonlijk. Op deze pagina lees je hoe Rolodink ze beschermt, en waar de grenzen liggen.",
+        "sections": [
+            {
+                "title": "Versleuteling",
+                "paragraphs": [
+                    "Je notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer worden in de browserextensie versleuteld met AES-256-GCM voordat ze naar ons worden gestuurd. De database bewaart alleen de versleutelde waarden. Het verkeer tussen de extensie en onze servers loopt via HTTPS.",
+                    "Elk account heeft een eigen sleutel. Die genereren we bij eerste gebruik en slaan we op, ingepakt met een hoofdsleutel die als geheim in onze hostingomgeving staat, los van de database. De extensie bewaart je sleutel alleen in het geheugen en in de sessieopslag zolang je bent ingelogd, en wist hem bij uitloggen.",
+                    "Wat dit niet is: end-to-end- of zero-knowledge-versleuteling. Doordat wij de sleutels beheren, zijn je notities beschikbaar op elk apparaat waarop je inlogt, maar het betekent ook dat iemand met toegang tot zowel onze database als onze hoofdsleutel ze zou kunnen ontsleutelen. Dat zeggen we liever eerlijk dan dat we het mooier voorstellen."
+                ]
+            },
+            {
+                "title": "Toegangsbeheer",
+                "paragraphs": [
+                    "Op de database staat Row-Level Security aan, zodat een account alleen zijn eigen rijen kan lezen, ook als een andere laag zou falen. Inloggen loopt via Supabase-authenticatie met sessies op basis van tokens."
+                ]
+            },
+            {
+                "title": "Bescherming tegen misbruik",
+                "paragraphs": [
+                    "Alle API-routes hebben een rate limit van 100 verzoeken per IP-adres per uur. De API accepteert alleen verzoeken van goedgekeurde origins (CORS-allowlist) en invoer wordt gevalideerd voordat die wordt verwerkt."
+                ]
+            },
+            {
+                "title": "Geheimen en afhankelijkheden",
+                "paragraphs": [
+                    "API-sleutels en geheimen staan in omgevingsvariabelen en worden nooit in de code opgeslagen. Elke commit wordt automatisch gescand op gelekte geheimen en onze afhankelijkheden worden in de build-pipeline gecontroleerd op bekende kwetsbaarheden."
+                ]
+            },
+            {
+                "title": "Jouw data, jouw controle",
+                "paragraphs": [
+                    "Je kunt op elk moment al je data exporteren of je account en alles wat daarbij is opgeslagen verwijderen. Je notities zijn privé: de mensen over wie je schrijft kunnen ze niet zien en we delen je data niet met derden."
+                ]
+            },
+            {
+                "title": "Een kwetsbaarheid melden",
+                "paragraphs": [
+                    "Een beveiligingsprobleem gevonden, of een vraag over hoe we met je data omgaan? Mail ons, dan reageren we zo snel mogelijk."
+                ],
+                "email": true
+            }
+        ]
     },
     "Testimonials": {
         "title": "Zo gebruiken professionals Rolodink",
@@ -639,19 +683,19 @@
             },
             "free": {
                 "question": "Is Rolodink echt gratis?",
-                "answer": "Ja, Rolodink is volledig gratis te gebruiken als Chrome extensie. Geen creditcard nodig, geen limits."
+                "answer": "Ja, Rolodink is volledig gratis te gebruiken als browserextensie voor Chrome, Edge en Firefox. Geen creditcard nodig, geen limieten."
             },
             "security": {
                 "question": "Hoe veilig zijn mijn notities?",
-                "answer": "Je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. We gebruiken end-to-end encryptie en voldoen aan GDPR en AVG-richtlijnen."
+                "answer": "Je notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen, en alleen jij ziet ze in Rolodink. Elk account heeft een eigen sleutel. Wij beheren die sleutels zodat je notities op elk apparaat werken, waardoor dit geen end-to-end-versleuteling in strikte zin is. Lees de details op onze beveiligingspagina."
             },
             "mobile": {
                 "question": "Werkt Rolodink ook op mobiel?",
-                "answer": "Momenteel is Rolodink beschikbaar als Chrome extensie. Een mobiele versie is in ontwikkeling."
+                "answer": "Nog niet. Rolodink is een browserextensie voor Chrome, Edge en Firefox op de desktop. Een mobiele versie is in ontwikkeling."
             },
             "export": {
                 "question": "Kan ik mijn notities exporteren?",
-                "answer": "Ja, je kunt al je notities exporteren naar verschillende formaten voor backup en overdracht."
+                "answer": "Ja, je kunt al je data exporteren als JSON-bestand voor back-up en overdracht."
             },
             "visibility": {
                 "question": "Zien anderen mijn notities op LinkedIn?",

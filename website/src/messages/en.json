@@ -363,7 +363,8 @@
                             "No more passphrase: your data is encrypted automatically once you're signed in.",
                             "Encryption uses a secure per-account key managed by the server.",
                             "Security fix: saving can no longer silently fall back to unencrypted data.",
-                            "Key management is tied to your account; the key is cleared on logout."
+                            "Key management is tied to your account; the key is cleared on logout.",
+                            "Note: since this version the key is managed by the server, so encryption is no longer end-to-end. Notes are still encrypted before they are stored."
                         ]
                     }
                 ]
@@ -579,7 +580,50 @@
     "SecurityPage": {
         "title": "Security",
         "lastUpdated": "Last updated",
-        "notice": "This document is currently only available in Dutch."
+        "notice": "",
+        "updatedOn": "September 29, 2026",
+        "intro": "Notes about the people in your network are personal. This page explains how Rolodink protects them, and where the limits are.",
+        "sections": [
+            {
+                "title": "Encryption",
+                "paragraphs": [
+                    "Your notes, meeting place, company, email and phone number are encrypted with AES-256-GCM inside the browser extension before they are sent to us. The database only ever stores the encrypted values. Traffic between the extension and our servers runs over HTTPS.",
+                    "Every account has its own encryption key. We generate it on first use and store it wrapped with a master key that is kept as a secret in our hosting environment, separate from the database. The extension keeps your key in memory and session storage only while you are signed in, and clears it when you sign out.",
+                    "What this is not: end-to-end or zero-knowledge encryption. Because we manage the keys, your notes are available on every device you sign in on, but it also means that someone with access to both our database and our master key could decrypt them. We would rather say that plainly than overstate it."
+                ]
+            },
+            {
+                "title": "Access control",
+                "paragraphs": [
+                    "Row-Level Security is enabled on the database, so an account can only read its own rows, even if another layer were to fail. Sign-in runs through Supabase authentication with token-based sessions."
+                ]
+            },
+            {
+                "title": "Protection against abuse",
+                "paragraphs": [
+                    "All API routes are rate limited to 100 requests per IP address per hour. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
+                ]
+            },
+            {
+                "title": "Secrets and dependencies",
+                "paragraphs": [
+                    "API keys and secrets are stored as environment variables and are never committed to the code. Every commit is automatically scanned for leaked secrets, and our dependencies are checked for known vulnerabilities as part of our build pipeline."
+                ]
+            },
+            {
+                "title": "Your data, your control",
+                "paragraphs": [
+                    "You can export all your data or delete your account and everything stored with it at any time. Your notes are private: the people you write about cannot see them, and we do not share your data with third parties."
+                ]
+            },
+            {
+                "title": "Reporting a vulnerability",
+                "paragraphs": [
+                    "Found a security issue, or have a question about how we handle your data? Email us and we will respond as soon as we can."
+                ],
+                "email": true
+            }
+        ]
     },
     "Testimonials": {
         "title": "How professionals use Rolodink",
@@ -639,19 +683,19 @@
             },
             "free": {
                 "question": "Is Rolodink really free?",
-                "answer": "Yes, Rolodink is completely free to use as a Chrome extension. No credit card required, no limits."
+                "answer": "Yes, Rolodink is completely free to use as a browser extension for Chrome, Edge and Firefox. No credit card required, no limits."
             },
             "security": {
                 "question": "How secure are my notes?",
-                "answer": "Your notes are securely stored with encryption and are only visible to you. We use end-to-end encryption and comply with GDPR guidelines."
+                "answer": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. Every account has its own key. We manage those keys so your notes work on every device, which means this is not end-to-end encryption in the strict sense. Read the details on our security page."
             },
             "mobile": {
                 "question": "Does Rolodink work on mobile?",
-                "answer": "Currently, Rolodink is available as a Chrome extension. A mobile version is in development."
+                "answer": "Not yet. Rolodink is a browser extension for Chrome, Edge and Firefox on desktop. A mobile version is in development."
             },
             "export": {
                 "question": "Can I export my notes?",
-                "answer": "Yes, you can export all your notes to various formats for backup and transfer."
+                "answer": "Yes, you can export all your data as a JSON file for backup and transfer."
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",
