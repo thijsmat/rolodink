@@ -186,7 +186,7 @@ describe('typing a note is a request to save it', () => {
         // was not in the CRM yet, discarding what had just been typed. The
         // code carried a note about it - "Optional: Auto-create connection?" -
         // that never became anything.
-        expect(code).toContain('createConnectionForCurrentProfile');
+        expect(code).toContain('createConnectionForProfile');
     });
 
     it('keeps one profile-name selector list, in profile.ts', () => {
@@ -198,5 +198,32 @@ describe('typing a note is a request to save it', () => {
         expect(code).toContain('extractRawProfileName');
         expect(code).not.toContain('text-heading-xlarge');
         expect(code).not.toContain('data-test-id="profile-name"');
+    });
+});
+
+describe('a delayed save belongs to the profile it was typed on', () => {
+    it('does not read the page for url or name once a save is in flight', () => {
+        // The debounce fires a second after typing. If the user has navigated
+        // on by then, window.location and document.title describe the next
+        // profile, and creating "the current profile" would attach the
+        // previous profile's note to somebody else.
+        const create = code.slice(code.indexOf('async function createConnectionForProfile'));
+        const body = create.slice(0, create.indexOf('\n}\n'));
+        expect(body).not.toContain('window.location');
+        expect(body).not.toContain('document.title');
+        expect(code).toContain('findConnectionId(cardUrl)');
+        expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName())');
+    });
+
+    it('keeps the textarea closed until the existing note has loaded', () => {
+        // loadNote assigns textarea.value; anything typed before it lands is
+        // silently overwritten.
+        expect(code).toContain('textarea.disabled = true;');
+        expect(code).toContain("if (status.innerText !== 'Locked') textarea.disabled = false;");
+    });
+
+    it('flushes a pending save when the page is hidden or unloaded', () => {
+        expect(code).toContain("addEventListener('pagehide', flushSave)");
+        expect(code).toContain("addEventListener('visibilitychange', flushOnHide)");
     });
 });
