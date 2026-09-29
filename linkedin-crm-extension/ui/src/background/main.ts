@@ -109,9 +109,10 @@ async function handleAuth() {
 
         await logToStorage('WebAuthFlow completed');
 
-        if (typeof chrome !== 'undefined' && chrome.runtime?.lastError) {
-            throw new Error(chrome.runtime.lastError.message || 'Login cancelled');
-        }
+        // No lastError check here: launchWebAuthFlow is awaited, so a cancelled
+        // or failed flow arrives as a rejection on both platforms. Reading
+        // chrome.runtime.lastError after an await is always null in Chrome and
+        // does not exist as a signal in Firefox.
 
         if (!responseUrl) {
             throw new Error('Login cancelled');
@@ -206,7 +207,7 @@ async function clearDataKeyCache(): Promise<void> {
     keyPromise = null;
     keyPromiseUserId = null;
     try {
-        await chrome.storage.session.remove([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+        await browserAPI.storage.session.remove([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
     } catch (e) {
         console.warn('Kon sleutelcache niet wissen:', e);
     }
@@ -257,13 +258,13 @@ async function getDataKey(): Promise<CryptoKey> {
     keyPromiseUserId = userId;
     keyPromise = (async () => {
         try {
-            const stored = await chrome.storage.session.get([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
+            const stored = await browserAPI.storage.session.get([DATA_KEY_STORAGE, DATA_KEY_USER_STORAGE]);
             let rawKey: string | undefined =
                 stored?.[DATA_KEY_USER_STORAGE] === userId ? stored?.[DATA_KEY_STORAGE] : undefined;
 
             if (!rawKey) {
                 rawKey = await fetchDataKeyFromServer(token);
-                await chrome.storage.session.set({
+                await browserAPI.storage.session.set({
                     [DATA_KEY_STORAGE]: rawKey,
                     [DATA_KEY_USER_STORAGE]: userId,
                 });
@@ -364,8 +365,8 @@ async function performApiRequest(message: {
 }
 
 // Luister naar berichten van de UI en content scripts
-if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+if (browserAPI.runtime?.onMessage) {
+    browserAPI.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (message.type === 'START_AUTH') {
             handleAuth()
                 .then(() => sendResponse({ success: true }))
@@ -429,11 +430,11 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
 }
 
 // Handle installation
-if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
-    chrome.runtime.onInstalled.addListener(async (details) => {
+if (browserAPI.runtime?.onInstalled) {
+    browserAPI.runtime.onInstalled.addListener(async (details) => {
         if (details.reason === 'install') {
             // Get user locale
-            const uiLang = chrome.i18n.getUILanguage() || 'en';
+            const uiLang = browserAPI.i18n.getUILanguage() || 'en';
             const locale = uiLang.startsWith('nl') ? 'nl' : 'en';
 
             // Website URL
@@ -441,7 +442,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
             const onboardingUrl = `${websiteUrl}/${locale}/onboarding`;
 
             await logToStorage(`Extension installed. Redirecting to onboarding: ${onboardingUrl}`);
-            chrome.tabs.create({ url: onboardingUrl });
+            browserAPI.tabs.create({ url: onboardingUrl });
         }
     });
 }
