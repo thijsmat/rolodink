@@ -1,11 +1,11 @@
-# LinkedIn posts 2 t/m 6: definitieve teksten om te plannen
+# LinkedIn posts 1 t/m 6: definitieve teksten om te plannen
 
 Plaatsen als **bedrijfspagina** (wij-vorm); de eigenaar reposet met de intro uit `linkedin-campaign.md` §2b.
-Tijden zijn Europe/Amsterdam (CEST tot en met 25 okt). De datums gaan ervan uit dat **post 1 op donderdag 1 oktober 2026**
-staat. Schuift post 1, schuif dan alles met dezelfde afstand op (steeds di + do, 08:30).
+Tijden zijn Europe/Amsterdam (CEST tot en met 25 okt). Schuift post 1, schuif dan alles met dezelfde afstand op (steeds di + do, 08:30).
 
 | Post | Datum en tijd | Onderwerp | Bijlage | Let op vóór plannen |
 |---|---|---|---|---|
+| 1 | do 1 okt 2026, 08:30 | Launch met video | `website/public/video/rolodink-explainer.mp4` (19 s, native uploaden) | Niets open. |
 | 2 | di 6 okt 2026, 08:30 | Waarom we het bouwden | geen (alleen tekst) | Niets open. |
 | 3 | do 8 okt 2026, 08:30 | Waarom er nog geen app is | geen | Alleen plaatsen zolang "mobiel in ontwikkeling" klopt (bevestigd op 29 sep). |
 | 4 | di 13 okt 2026, 08:30 | Beveiliging | geen | Controleer dat `https://rolodink.app/en/security` live staat (de eerste reactie linkt ernaar). |
@@ -16,6 +16,31 @@ Regels voor elke post: link **niet** in de post zelf maar in de eerste reactie, 
 in het eerste uur, en repost binnen 5 minuten met eigen intro.
 
 ---
+
+## Post 1: launch met video
+
+Plaats: do 1 okt 2026, 08:30. Bijlage: `website/public/video/rolodink-explainer.mp4` (native uploaden, geen YouTube-link). Hashtags: #networking #LinkedIn #productivity
+
+```
+You meet someone great at a conference. Two months later you're staring at their LinkedIn profile thinking: who was that again?
+
+We built Rolodink for that moment.
+
+It adds a private note field right on the LinkedIn profile. Where you met. What you talked about. That they restore sailboats.
+
+Then you search "sail" and find Sanne.
+
+19 seconds. Free for Chrome, Edge & Firefox.
+
+What do you do today to remember the people you meet?
+
+#networking #LinkedIn #productivity
+```
+
+Eerste reactie:
+```
+Try it (free): https://rolodink.app/en?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=post-1
+```
 
 ## Post 2: waarom we het bouwden
 

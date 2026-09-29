@@ -27,33 +27,11 @@ Opgesteld op 2026-09-29 op basis van de repo (video, website-teksten, `docs/SECU
 
 Alle teksten zijn kladversies. Hashtags maximaal 3.
 
-### Post 1 – Launch, alleen video + tekst (dag 1, dinsdag)
-
-Bijlage: `rolodink-explainer.mp4` (19 s).
-
-```
-You meet someone great at a conference. Two months later you're staring at their LinkedIn profile thinking: who was that again?
-
-We built Rolodink for that moment.
-
-It adds a private note field right on the LinkedIn profile. Where you met. What you talked about. That they restore sailboats.
-
-Then you search "sail" and find Sanne.
-
-19 seconds. Free for Chrome, Edge & Firefox.
-
-What do you do today to remember the people you meet?
-
-#networking #LinkedIn #productivity
-```
-
-Eerste reactie: `Try it (free): https://rolodink.app/?utm_source=linkedin&utm_medium=organic&utm_campaign=launch&utm_content=video`
-
-### Posts 2 t/m 6
+### Posts 1 t/m 6
 
 De definitieve teksten, eerste reacties, plantijden en een importbestand staan in
-[`linkedin-posts-2-6.md`](linkedin-posts-2-6.md) en [`linkedin-schedule.csv`](linkedin-schedule.csv). Onderwerpen:
-2 waarom we het bouwden, 3 waarom er nog geen app is, 4 beveiliging, 5 tip, 6 peiling over wat er hierna komt.
+[`linkedin-posts.md`](linkedin-posts.md) en [`linkedin-schedule.csv`](linkedin-schedule.csv). Onderwerpen:
+1 launch met video, 2 waarom we het bouwden, 3 waarom er nog geen app is, 4 beveiliging, 5 tip, 6 peiling over wat er hierna komt.
 
 ### 2b. Repost-intro's voor het eigen profiel
 
