@@ -132,10 +132,10 @@ async function apiRequest({ path, method = 'GET', query, body }) {
  * aanroepers behandelen "niet gevonden" en "kon niet kijken" allebei als "nog
  * niet toevoegbaar", en een fout hier mag het typen niet onderbreken.
  */
-async function findConnectionId() {
+async function findConnectionId(profileUrl = window.location.href) {
     try {
         // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-        const normalizedUrl = legacyNormalizeLinkedInUrl(window.location.href);
+        const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
         const resp = await apiRequest({
             path: '/api/connections',
             query: { url: normalizedUrl },
@@ -156,7 +156,9 @@ async function findConnectionId() {
  * notitiekaart worden door verschillende functies gebouwd, en sinds het
  * notitieveld zelf een connectie kan aanmaken moet de knop dat kunnen volgen.
  */
-function markButtonAsAdded() {
+function markButtonAsAdded(profilePath) {
+    // Alleen als we nog op het profiel staan waar de aanmaak voor was.
+    if (currentProfilePath(location.pathname) !== profilePath) return;
     const button = document.getElementById('crm-add-button');
     if (!button) return;
     const label = button.querySelector(':scope > span > span');
@@ -176,11 +178,13 @@ function markButtonAsAdded() {
  * Geeft null terug als het niet lukt; de aanroeper vertelt de gebruiker wat er
  * aan de hand is. Gooit niet: een mislukte aanmaak mag het typen niet
  * onderbreken.
+ *
+ * Url en naam komen van de aanroeper en worden niet hier van de pagina gelezen:
+ * een opslag die pas na een SPA-navigatie afgaat, zou anders het nieuwe
+ * profiel aanmaken en de notitie van het oude eraan hangen.
  */
-async function createConnectionForCurrentProfile() {
+async function createConnectionForProfile(profileUrl, name) {
     try {
-        const rawName = extractRawProfileName(document, document.title);
-        const name = rawName ? cleanProfileName(rawName) : '';
         if (!name) {
             console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
             return null;
@@ -189,18 +193,18 @@ async function createConnectionForCurrentProfile() {
         const resp = await apiRequest({
             path: '/api/connections',
             method: 'POST',
-            body: { name, url: window.location.href },
+            body: { name, url: profileUrl },
         });
 
         // 409 betekent dat hij er al in staat - in een ander tabblad, of door
         // een klik op de knop tussen het opzoeken en het aanmaken door. Dat is
         // geen fout, alleen een reden om het id alsnog op te halen.
-        if (resp.status === 409) return await findConnectionId();
+        if (resp.status === 409) return await findConnectionId(profileUrl);
         if (!resp.ok) {
             console.error('Rolodink: kon de connectie niet aanmaken:', resp.status, resp.data);
             return null;
         }
-        return resp.data?.id ?? await findConnectionId();
+        return resp.data?.id ?? await findConnectionId(profileUrl);
     } catch (error) {
         console.error('Rolodink: kon de connectie niet aanmaken:', error);
         return null;
@@ -630,6 +634,28 @@ async function injectContextField() {
             let connectionId = null;
             let debounceTimer = null;
 
+            // Het profiel waar deze kaart bij hoort, vastgelegd nu. Opslaan gebeurt
+            // later (debounce, flush) en kan na een SPA-navigatie afgaan; dan
+            // mogen url en naam niet meer van de pagina gelezen worden, want die
+            // is dan van iemand anders.
+            const cardPath = currentProfilePath(location.pathname);
+            const cardUrl = window.location.href;
+            const rawCardName = extractRawProfileName(document, document.title);
+            let cardName = rawCardName ? cleanProfileName(rawCardName) : '';
+            const resolveCardName = () => {
+                // Nog leeg bij het plaatsen (naam rendert soms later): alleen
+                // aanvullen zolang we nog op hetzelfde profiel staan.
+                if (!cardName && currentProfilePath(location.pathname) === cardPath) {
+                    const raw = extractRawProfileName(document, document.title);
+                    cardName = raw ? cleanProfileName(raw) : '';
+                }
+                return cardName;
+            };
+
+            // Geen invoer tot de bestaande notitie binnen is: wat je er intussen
+            // in typt zou anders door loadNote overschreven worden.
+            textarea.disabled = true;
+
             const loadNote = async () => {
                 try {
                     status.innerText = 'Loading...';
@@ -686,77 +712,117 @@ async function injectContextField() {
                 }
             };
 
-            await loadNote();
+            try {
+                await loadNote();
+            } finally {
+                // 'Locked' (ontsleutelen mislukt) houdt hem bewust dicht.
+                if (status.innerText !== 'Locked') textarea.disabled = false;
+            }
 
             // 7. Save Logic
+            let dirty = false;
+            let saveChain = Promise.resolve();
+
+            const saveNote = async () => {
+                status.innerText = 'Saving...';
+                try {
+                    // connectionId komt uit loadNote, dat één keer draait bij
+                    // het plaatsen van de kaart. Stond het profiel toen nog
+                    // niet in de CRM, dan bleef dit voor altijd null - ook
+                    // nadat de gebruiker op "Add to Rldnk" had geklikt en het
+                    // profiel er wél in stond. De kaart weigerde dan met "Add
+                    // to CRM first" en de getypte notitie was weg.
+                    //
+                    // Daarom hier opnieuw ophalen in plaats van vertrouwen op
+                    // wat we bij het laden zagen. Dat haalt de volgorde-eis
+                    // tussen knop en kaart helemaal weg.
+                    if (!connectionId) {
+                        connectionId = await findConnectionId(cardUrl);
+                    }
+
+                    // Staat het profiel er nog niet in, dan voegen we het
+                    // toe in plaats van de gebruiker terug te sturen naar
+                    // een knop. Typen is de vraag om op te slaan.
+                    if (!connectionId) {
+                        status.innerText = 'Adding to Rldnk...';
+                        connectionId = await createConnectionForProfile(cardUrl, resolveCardName());
+                        if (connectionId) markButtonAsAdded(cardPath);
+                    }
+
+                    if (!connectionId) {
+                        // Alleen nog bereikbaar als het aanmaken zelf
+                        // mislukte - geen naam op de pagina, of de API
+                        // onbereikbaar. createConnectionForProfile
+                        // logt waarom.
+                        status.innerText = 'Add to Rldnk first';
+                        return;
+                    }
+
+                    // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
+                    // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
+                    let notesPayload;
+                    try {
+                        notesPayload = await encryptNoteText(textarea.value);
+                    } catch (encryptError) {
+                        console.error('Error encrypting note:', encryptError);
+                        status.innerText = 'Save failed';
+                        return;
+                    }
+
+                    const resp = await apiRequest({
+                        path: '/api/connections',
+                        method: 'PATCH',
+                        body: { id: connectionId, notes: notesPayload },
+                    });
+
+                    if (resp.status === 401) {
+                        status.innerText = 'Not logged in';
+                    } else if (resp.ok) {
+                        status.innerText = 'Saved';
+                    } else {
+                        status.innerText = 'Save failed';
+                    }
+                } catch (e) {
+                    console.error('Error saving note:', e);
+                    status.innerText = 'Error';
+                }
+            };
+
+            // Saves lopen achter elkaar: versleutelen en PATCH zijn async, en twee
+            // tegelijk lopende saves konden in de verkeerde volgorde landen. Elke
+            // save leest textarea.value pas als hij aan de beurt is, dus de
+            // laatst getypte tekst wint altijd.
+            const flushSave = () => {
+                if (!dirty) return;
+                dirty = false;
+                clearTimeout(debounceTimer);
+                saveChain = saveChain.then(saveNote);
+            };
+
             textarea.addEventListener('input', () => {
+                dirty = true;
                 status.innerText = 'Typing...';
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(async () => {
-                    status.innerText = 'Saving...';
-                    try {
-                        // connectionId komt uit loadNote, dat één keer draait bij
-                        // het plaatsen van de kaart. Stond het profiel toen nog
-                        // niet in de CRM, dan bleef dit voor altijd null - ook
-                        // nadat de gebruiker op "Add to Rldnk" had geklikt en het
-                        // profiel er wél in stond. De kaart weigerde dan met "Add
-                        // to CRM first" en de getypte notitie was weg.
-                        //
-                        // Daarom hier opnieuw ophalen in plaats van vertrouwen op
-                        // wat we bij het laden zagen. Dat haalt de volgorde-eis
-                        // tussen knop en kaart helemaal weg.
-                        if (!connectionId) {
-                            connectionId = await findConnectionId();
-                        }
-
-                        // Staat het profiel er nog niet in, dan voegen we het
-                        // toe in plaats van de gebruiker terug te sturen naar
-                        // een knop. Typen is de vraag om op te slaan.
-                        if (!connectionId) {
-                            status.innerText = 'Adding to Rldnk...';
-                            connectionId = await createConnectionForCurrentProfile();
-                            if (connectionId) markButtonAsAdded();
-                        }
-
-                        if (!connectionId) {
-                            // Alleen nog bereikbaar als het aanmaken zelf
-                            // mislukte - geen naam op de pagina, of de API
-                            // onbereikbaar. createConnectionForCurrentProfile
-                            // logt waarom.
-                            status.innerText = 'Add to Rldnk first';
-                            return;
-                        }
-
-                        // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
-                        // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
-                        let notesPayload;
-                        try {
-                            notesPayload = await encryptNoteText(textarea.value);
-                        } catch (encryptError) {
-                            console.error('Error encrypting note:', encryptError);
-                            status.innerText = 'Save failed';
-                            return;
-                        }
-
-                        const resp = await apiRequest({
-                            path: '/api/connections',
-                            method: 'PATCH',
-                            body: { id: connectionId, notes: notesPayload },
-                        });
-
-                        if (resp.status === 401) {
-                            status.innerText = 'Not logged in';
-                        } else if (resp.ok) {
-                            status.innerText = 'Saved';
-                        } else {
-                            status.innerText = 'Save failed';
-                        }
-                    } catch (e) {
-                        console.error('Error saving note:', e);
-                        status.innerText = 'Error';
-                    }
-                }, 1000); // 1 second debounce
+                debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
             });
+
+            // Wie binnen de seconde debounce het tabblad sluit of wegnavigeert,
+            // verloor de notitie. Best effort: het bericht naar de worker gaat nog
+            // wel de deur uit, ook als het antwoord niet meer aankomt.
+            const flushOnHide = () => {
+                if (document.visibilityState === 'hidden') flushSave();
+            };
+            document.addEventListener('visibilitychange', flushOnHide);
+            globalThis.addEventListener('pagehide', flushSave);
+            // De kaart wordt bij navigatie weggehaald; de luisteraars horen dan
+            // mee te gaan, anders stapelen ze zich op per bezocht profiel.
+            new MutationObserver((_records, observer) => {
+                if (container.isConnected) return;
+                observer.disconnect();
+                flushSave();
+                document.removeEventListener('visibilitychange', flushOnHide);
+                globalThis.removeEventListener('pagehide', flushSave);
+            }).observe(document.body, { childList: true, subtree: true });
         }
 
         // Reset injection flag (success)
