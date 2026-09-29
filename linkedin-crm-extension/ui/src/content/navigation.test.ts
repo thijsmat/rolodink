@@ -86,8 +86,6 @@ describe('the two manifests agree on where the script runs', () => {
             'background',
             // Different default_icon path per store.
             'action',
-            // Firefox additionally exposes icons/*, which its action icon needs.
-            'web_accessible_resources',
         ]);
 
         const [[, chromeRaw], [, firefoxRaw]] = MANIFESTS;
@@ -136,5 +134,26 @@ describe('removeInjectedElements', () => {
       <button id="crm-add-button">b</button>`;
         expect(removeInjectedElements(document)).toBe(2);
         expect(document.querySelectorAll('#crm-add-button')).toHaveLength(0);
+    });
+});
+
+describe.each(MANIFESTS)('%s asks for no more than it uses', (_name, raw) => {
+    const manifest = JSON.parse(raw);
+
+    it('does not declare the tabs permission', () => {
+        // It is only needed to read url/title of arbitrary tabs. The popup reads
+        // the active tab, which activeTab covers on the click that opens it, and
+        // the LinkedIn hosts are covered by host_permissions. tabs.update and
+        // tabs.create need no permission at all. Carrying it costs a broader
+        // store-review surface and a scarier install prompt for nothing.
+        expect(manifest.permissions).not.toContain('tabs');
+        expect(manifest.permissions).toContain('activeTab');
+    });
+
+    it('exposes no web-accessible resources', () => {
+        // Anything listed here can be requested by any LinkedIn page, which is
+        // enough to detect the extension. The content script loads nothing via
+        // runtime.getURL, so nothing needs to be exposed.
+        expect(manifest.web_accessible_resources).toBeUndefined();
     });
 });
