@@ -7,11 +7,11 @@
   "permissions": [
     "activeTab",
     "storage",
-    "tabs",
     "identity"
   ],
   "host_permissions": [
-    "https://www.linkedin.com/*",
+    "https://*.linkedin.com/*",
+    "https://linkedin.com/*",
     "https://api.rolodink.app/*"
   ],
   "action": {
@@ -39,21 +39,6 @@
         "content.js"
       ],
       "run_at": "document_end"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "assets/*",
-        "icons/*",
-        "*.js",
-        "*.css",
-        "*.html",
-        "index.html"
-      ],
-      "matches": [
-        "https://www.linkedin.com/*"
-      ]
     }
   ],
   "browser_specific_settings": {
