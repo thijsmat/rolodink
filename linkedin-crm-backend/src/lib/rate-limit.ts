@@ -1,5 +1,13 @@
 // Rate limiting utility for API routes
-// Limits: 100 requests per IP per hour (strict)
+// Limits: 600 requests per IP per hour.
+//
+// Was 100. Every LinkedIn profile visit costs two GETs from the extension and
+// every typing pause in the note card a PATCH, so an active user hit 429 after
+// roughly 35-50 profiles an hour - and colleagues behind one office NAT share
+// the budget. A 429 on the note card's initial load is also what exposes the
+// note-overwrite path in the content script. The counter lives per serverless
+// instance anyway (see the store below), so this is a coarse brake, not a
+// precise quota; a Vercel WAF rule is the planned replacement.
 
 import { isIP } from 'net';
 import { getAllowedOrigin } from './cors';
@@ -35,12 +43,12 @@ export interface RateLimitResult {
 }
 
 /**
- * Rate limit check - 100 requests per IP per hour
+ * Rate limit check - 600 requests per IP per hour
  * @param identifier - IP address or user ID
  * @returns RateLimitResult with success status and remaining requests
  */
 export function checkRateLimit(identifier: string): RateLimitResult {
-  const limit = 100;
+  const limit = 600;
   const windowMs = 60 * 60 * 1000; // 1 hour in milliseconds
   const now = Date.now();
 
