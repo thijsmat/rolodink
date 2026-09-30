@@ -1,5 +1,5 @@
 // Rate limiting utility for API routes
-// Limits: 600 requests per IP per hour.
+// Limits: 600 requests per IP per hour; sign-in and sign-up 100 (see below).
 //
 // Was 100. Every LinkedIn profile visit costs two GETs from the extension and
 // every typing pause in the note card a PATCH, so an active user hit 429 after
@@ -8,6 +8,12 @@
 // note-overwrite path in the content script. The counter lives per serverless
 // instance anyway (see the store below), so this is a coarse brake, not a
 // precise quota; a Vercel WAF rule is the planned replacement.
+//
+// Password sign-in and sign-up do NOT get the raise: they keep the old 100 per
+// IP per hour, in a counter of their own (AUTH_RATE_LIMIT below). The extra
+// room for profile visits must not become a 6x larger budget for password
+// guessing or sign-up spam, and ordinary API traffic must not be able to lock
+// anyone out of logging in (or the other way round).
 
 import { isIP } from 'net';
 import { getAllowedOrigin } from './cors';
@@ -42,13 +48,26 @@ export interface RateLimitResult {
   limit: number;
 }
 
+export interface RateLimitOptions {
+  /** Separate counter namespace; omit for the shared API counter. */
+  bucket?: string;
+  /** Requests per IP per hour for this counter. Defaults to DEFAULT_RATE_LIMIT. */
+  limit?: number;
+}
+
+/** Shared API counter: requests per IP per hour. */
+export const DEFAULT_RATE_LIMIT = 600;
+
+/** /api/auth/signin and /api/auth/signup: the pre-raise budget, counted apart. */
+export const AUTH_RATE_LIMIT: Readonly<RateLimitOptions> = Object.freeze({ bucket: 'auth', limit: 100 });
+
 /**
- * Rate limit check - 600 requests per IP per hour
- * @param identifier - IP address or user ID
+ * Rate limit check - `limit` requests per identifier per hour
+ * @param identifier - IP address or user ID, optionally prefixed with a bucket
+ * @param limit - requests allowed per window (default DEFAULT_RATE_LIMIT)
  * @returns RateLimitResult with success status and remaining requests
  */
-export function checkRateLimit(identifier: string): RateLimitResult {
-  const limit = 600;
+export function checkRateLimit(identifier: string, limit: number = DEFAULT_RATE_LIMIT): RateLimitResult {
   const windowMs = 60 * 60 * 1000; // 1 hour in milliseconds
   const now = Date.now();
 
@@ -133,7 +152,7 @@ function isValidIP(ip: string): boolean {
  * SECURITY: Uses secure CORS headers with origin whitelisting
  * Based on Gemini Code Assist recommendation: block requests if IP cannot be determined
  */
-export function rateLimitMiddleware(request: Request): Response | null {
+export function rateLimitMiddleware(request: Request, options: RateLimitOptions = {}): Response | null {
   const ip = getClientIP(request);
 
   // If IP cannot be determined, block the request for security
@@ -165,7 +184,10 @@ export function rateLimitMiddleware(request: Request): Response | null {
     );
   }
 
-  const result = checkRateLimit(ip);
+  // A named bucket gets its own key ("auth:<ip>"). getClientIP only returns
+  // validated IPs, which never start with "auth:", so the keys cannot collide.
+  const key = options.bucket ? `${options.bucket}:${ip}` : ip;
+  const result = checkRateLimit(key, options.limit ?? DEFAULT_RATE_LIMIT);
 
   if (!result.success) {
     // Use secure CORS headers with origin whitelisting
