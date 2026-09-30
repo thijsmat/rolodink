@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { act } from 'react';
+import { createDomHarness } from '../test/domHarness';
 import App from '../App';
 import { SettingsView } from './SettingsView';
 import { ConnectionView } from './ConnectionView';
@@ -59,54 +59,10 @@ vi.mock('../context/UpdateContext', () => ({
     }),
 }));
 
-let container: HTMLDivElement;
-let root: Root | null = null;
-let current: (() => unknown) | null = null;
+const dom = createDomHarness();
+const { render, settle, button, click, type, rerender } = dom;
 
-async function render(component: () => unknown) {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
-    current = component;
-    await act(async () => {
-        root?.render(createElement(component as () => null));
-    });
-    await settle();
-}
-
-// Same component again: a re-render with whatever the context now holds.
-async function rerender() {
-    await act(async () => {
-        if (current) root?.render(createElement(current as () => null));
-    });
-}
-
-const settle = () => act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0));
-});
-
-function button(text: string): HTMLButtonElement {
-    const found = [...container.querySelectorAll('button')].find(b => b.textContent?.trim() === text);
-    if (!found) throw new Error(`no button "${text}"`);
-    return found;
-}
-
-async function click(el: HTMLElement) {
-    await act(async () => {
-        el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    await settle();
-}
-
-async function type(input: HTMLInputElement, value: string) {
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    await act(async () => {
-        setter?.call(input, value);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-}
-
-const meetingPlace = () => container.querySelector<HTMLInputElement>('#meetingPlace');
+const meetingPlace = () => dom.container.querySelector<HTMLInputElement>('#meetingPlace');
 
 beforeEach(() => {
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
@@ -135,9 +91,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-    await act(async () => root?.unmount());
-    root = null;
-    container.remove();
+    await dom.unmount();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
 });
@@ -150,16 +104,16 @@ describe('the popup outside a LinkedIn profile', () => {
     it('shows a start screen, not an error or a personal profile link', async () => {
         await render(App);
 
-        expect(container.textContent).toContain('start_description');
-        expect(container.innerHTML).not.toContain('matthijsgoes');
-        expect(container.querySelector('a[href*="linkedin.com/in/"]')).toBeNull();
-        expect(container.textContent).not.toContain('invalid-profile-page');
-        expect(container.querySelector('[role="alert"]')).toBeNull();
+        expect(dom.container.textContent).toContain('start_description');
+        expect(dom.container.innerHTML).not.toContain('matthijsgoes');
+        expect(dom.container.querySelector('a[href*="linkedin.com/in/"]')).toBeNull();
+        expect(dom.container.textContent).not.toContain('invalid-profile-page');
+        expect(dom.container.querySelector('[role="alert"]')).toBeNull();
     });
 
     it('opens the existing list view from the start screen', async () => {
         await render(App);
-        const inStartScreen = [...container.querySelectorAll('button')]
+        const inStartScreen = [...dom.container.querySelectorAll('button')]
             .filter(b => b.textContent?.trim() === 'show_all_connections_button');
         // One in the header, one on the start screen.
         expect(inStartScreen).toHaveLength(2);
@@ -173,28 +127,28 @@ describe('the popup outside a LinkedIn profile', () => {
         await render(App);
 
         expect(context.fetchAllConnections).toHaveBeenCalledWith(true);
-        expect(container.textContent).toContain('start_first_step_hint');
+        expect(dom.container.textContent).toContain('start_first_step_hint');
     });
 
     it('leaves the first step out for a user who has connections', async () => {
         context.allConnections = [{ id: 'conn-1', name: 'Jane Doe' }];
         await render(App);
 
-        expect(container.textContent).not.toContain('start_first_step_hint');
+        expect(dom.container.textContent).not.toContain('start_first_step_hint');
     });
 
     it('still shows a real error as an error', async () => {
         context.error = 'Kon de connectie-data niet ophalen.';
         await render(App);
 
-        expect(container.textContent).toContain('Kon de connectie-data niet ophalen.');
-        expect(container.textContent).not.toContain('start_description');
+        expect(dom.container.textContent).toContain('Kon de connectie-data niet ophalen.');
+        expect(dom.container.textContent).not.toContain('start_description');
     });
 });
 
 describe('sending feedback', () => {
     function feedbackLink(): HTMLAnchorElement {
-        const link = [...container.querySelectorAll('a')].find(a => a.textContent?.trim() === 'feedback_button');
+        const link = [...dom.container.querySelectorAll('a')].find(a => a.textContent?.trim() === 'feedback_button');
         if (!link) throw new Error('no feedback link');
         return link;
     }
@@ -250,18 +204,18 @@ describe('editing a connection', () => {
         await startEditing();
 
         await act(async () => {
-            container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         });
         await settle();
 
         expect(context.handleUpdate).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }));
         expect(meetingPlace()?.value).toBe('Slush 2025');
-        expect(container.querySelector('[role="alert"]')?.textContent).toBe('connection_update_failed');
+        expect(dom.container.querySelector('[role="alert"]')?.textContent).toBe('connection_update_failed');
 
         // And the retry goes through.
         context.handleUpdate.mockResolvedValue(undefined);
         await act(async () => {
-            container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         });
         await settle();
 
