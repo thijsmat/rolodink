@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.3.6 • Free",
+        "version": "Version 1.3.7 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -241,6 +241,34 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.7",
+                "date": "September 30, 2026",
+                "sections": [
+                    {
+                        "title": "Your notes",
+                        "items": [
+                            "If the note field can't load your existing note (the server is busy, your session expired), it now stays closed and offers Retry. It used to open empty, and what you typed replaced your saved note.",
+                            "A note still being saved when you moved on to the next profile could end up on that profile. It now stays with the profile you wrote it on."
+                        ]
+                    },
+                    {
+                        "title": "In the popup",
+                        "items": [
+                            "Editing a connection no longer clears its email and phone.",
+                            "A note that couldn't be decrypted is no longer overwritten when you save an edit.",
+                            "Deleting a connection no longer leaves your notes unencrypted in your browser's storage.",
+                            "Deleting your account works in English too: it asked for \"DELETE\" but only accepted \"VERWIJDER\"."
+                        ]
+                    },
+                    {
+                        "title": "Permissions",
+                        "items": [
+                            "Rolodink asks for fewer permissions: it no longer needs access to your browser tabs."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.6",
                 "date": "August 24, 2026",

@@ -14,6 +14,16 @@ on:
         description: 'Version to package, without the ext-v prefix (e.g. 1.3.3). Must match manifest.json.'
         required: true
         type: string
+      # For releasing without the GitHub UI (a Claude Code session cannot push
+      # tags or publish a draft). A release this workflow publishes starts no
+      # other workflow - GitHub does not let GITHUB_TOKEN events trigger runs,
+      # workflow_dispatch aside - so run publish-chrome/edge/firefox.yml with
+      # tag ext-v<version> afterwards. A tag push still makes a draft.
+      publish:
+        description: 'Publish right away (creates the tag) instead of a draft. Then run the three publish workflows with this tag.'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release:
@@ -123,7 +133,10 @@ jobs:
 
       # tag_name is explicit because on a manual run GITHUB_REF is a branch, not
       # the tag. For a draft the tag is only created when you publish, so this
-      # also fills in a draft that was started by hand in the UI.
+      # also fills in a draft that was started by hand in the UI. With the
+      # publish input the release goes out at once and the tag is created on
+      # the commit this run built; on a tag push inputs.publish is empty and
+      # the release stays a draft, as before.
       - name: Create Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
@@ -135,5 +148,5 @@ jobs:
             dist/Rolodink-firefox-*.zip
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
-          draft: true
+          draft: ${{ !inputs.publish }}
           prerelease: false

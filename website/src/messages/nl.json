@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.3.6 • Gratis",
+        "version": "Versie 1.3.7 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -241,6 +241,34 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.7",
+                "date": "30 september 2026",
+                "sections": [
+                    {
+                        "title": "Je notities",
+                        "items": [
+                            "Kan het notitieveld je bestaande notitie niet ophalen (de server heeft het druk, je sessie is verlopen), dan blijft het nu dicht en kun je het opnieuw proberen. Voorheen ging het leeg open, en verving wat je typte je opgeslagen notitie.",
+                            "Een notitie die nog werd opgeslagen terwijl je doorklikte naar het volgende profiel, kon op dat profiel belanden. Hij blijft nu bij het profiel waarop je hem schreef."
+                        ]
+                    },
+                    {
+                        "title": "In de popup",
+                        "items": [
+                            "Een connectie bewerken wist niet langer het e-mailadres en telefoonnummer.",
+                            "Een notitie die niet te ontsleutelen was, wordt niet meer overschreven als je een wijziging opslaat.",
+                            "Na het verwijderen van een connectie staan je notities niet meer onversleuteld in de opslag van je browser.",
+                            "Je account verwijderen werkt nu ook in het Engels: de extensie vroeg om \"DELETE\" maar accepteerde alleen \"VERWIJDER\"."
+                        ]
+                    },
+                    {
+                        "title": "Rechten",
+                        "items": [
+                            "Rolodink vraagt minder rechten: toegang tot je browsertabbladen is niet meer nodig."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.6",
                 "date": "24 augustus 2026",
