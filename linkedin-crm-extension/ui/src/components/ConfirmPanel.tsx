@@ -31,7 +31,7 @@ export function ConfirmPanel({
   onCancel,
   busy = false,
   typedConfirmation,
-}: ConfirmPanelProps) {
+}: Readonly<ConfirmPanelProps>) {
   const [typed, setTyped] = useState('');
   const messageId = useId();
   const canConfirm = !busy && (!typedConfirmation || typedConfirmation.isValid(typed));
