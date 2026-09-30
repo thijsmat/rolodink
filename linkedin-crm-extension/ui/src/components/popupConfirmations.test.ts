@@ -147,6 +147,10 @@ describe('changing the password', () => {
         expect(auth.updateUser).toHaveBeenCalledWith({ password: 'new-secret-1' });
         expect(auth.signInWithPassword.mock.invocationCallOrder[0])
             .toBeLessThan(auth.updateUser.mock.invocationCallOrder[0]);
+        // Other sessions end after the change; this one stays.
+        expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' });
+        expect(auth.updateUser.mock.invocationCallOrder[0])
+            .toBeLessThan(auth.signOut.mock.invocationCallOrder[0]);
         expect(fetchMock).not.toHaveBeenCalled();
         expect(context.setToastMessage).toHaveBeenCalledWith('msg_password_change_success');
     });

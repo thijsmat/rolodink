@@ -138,7 +138,12 @@ export function SettingsView() {
         return;
       }
 
-      // Tokens are automatically persisted by the client
+      // End every other session of this account: those include the one the
+      // check above replaced here, and any on another device that may belong
+      // to whoever knew the old password. This session stays signed in. A
+      // failure here does not undo the change, so it is only logged.
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' });
+      if (signOutError) console.error('Could not end other sessions:', signOutError);
 
       setToastMessage(t('msg_password_change_success'));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
