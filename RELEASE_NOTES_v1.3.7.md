@@ -13,6 +13,10 @@ Dat kan niet meer. Het veld gaat pas open als Rolodink weet wat er staat: je
 notitie, of dat dit profiel nog niet in je Rldnk staat. Anders blijft het
 dicht, zegt het waarom, en staat er een knop **Retry**.
 
+Kwam er intussen via de popup of een ander tabblad een notitie op hetzelfde
+profiel, dan bewaart het notitieveld beide: eerst wat er al stond, daarna wat
+jij typte.
+
 ## Je notitie blijft bij het juiste profiel
 
 Klikte je door naar het volgende profiel terwijl je notitie nog werd
