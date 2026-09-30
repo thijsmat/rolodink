@@ -304,7 +304,7 @@ function injectCRMButton(anchorButton) {
         crmButton.style.justifyContent = "center";
 
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
-        (async () => {
+        void (async () => {
             try {
                 const profileUrl = window.location.href;
                 // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
@@ -606,14 +606,11 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
                 body: { id: connectionId, notes: notesPayload },
             });
 
-            if (resp.status === 401) {
-                status.innerText = 'Not logged in';
-            } else if (resp.ok) {
+            if (resp.ok) {
                 status.innerText = 'Saved';
                 return true;
-            } else {
-                status.innerText = 'Save failed';
             }
+            status.innerText = resp.status === 401 ? 'Not logged in' : 'Save failed';
             return false;
         } catch (e) {
             console.error('Error saving note:', e);
@@ -632,7 +629,8 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
     // daarna luistert er niets meer.
     const flushSave = () => {
         clearTimeout(debounceTimer);
-        card.flush();
+        // Wordt nooit rejected: card.flush vangt een mislukte save zelf af.
+        void card.flush();
     };
 
     textarea.addEventListener('input', () => {
