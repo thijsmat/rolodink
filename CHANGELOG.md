@@ -1,3 +1,24 @@
+## v1.3.7 (2026-09-30) - Your Notes Stay Put
+
+Everything in this release is about what you type staying where you put it,
+and staying encrypted where it is kept.
+
+### Fixed
+- **A note that failed to load could be overwritten.** The note card opened its text field after every load attempt, including the failed ones: a busy server (429), a server error, an expired session, a timeout. The field was empty then, and the first save replaced the stored note with whatever had been typed. The field now opens only once the card knows what is stored - your note, or that the profile is not in Rldnk yet. Otherwise it stays closed, says why, and offers Retry
+- **A note could land on the next profile.** A save still pending when you clicked through to another profile could create or update that one instead. The card now records its profile's URL and name when it is placed, keeps its field closed until the existing note has loaded, saves one change at a time, and flushes when you leave the page, switch tabs or the card is removed
+- **Editing a connection in the popup cleared its email and phone.** The edit form has no inputs for either and sent both as empty. Only the fields the form has are sent now
+- **Saving an edit could overwrite a note that could not be decrypted.** The popup showed "🔒 [Encrypted - Passphrase Required]" in its place and saved that text over the note. A field holding it is now left as it is on the server
+- **Deleting a connection wrote your notes to browser storage in plain text.** The popup rebuilt its cache from the decrypted list; it now filters the encrypted copy it already had
+- **Deleting your account did not work in English.** The prompt asked for "DELETE" and only "VERWIJDER" was accepted. Both are now, in any case
+- The background worker uses the cross-browser API throughout. It no longer mirrors the access token into extension storage, and no longer writes the OAuth authorization URL to its debug log
+
+### Changed
+- **Fewer permissions.** `tabs` and `web_accessible_resources` are gone from both manifests; `host_permissions` now cover every LinkedIn host the content script runs on
+
+### Tests
+- The note card's load, retry and save decisions live in `note-card.ts` and are tested against real DOM elements, including every failure status that used to reopen the field
+- The popup's edit and delete run against a fake API and fake extension storage, asserting what a PATCH sends and what the cache holds afterwards
+
 ## v1.3.6 (2026-08-24) - One Extension, Three Browsers
 
 **Firefox gets the inline note card.** It never had one: Firefox ran a separate
