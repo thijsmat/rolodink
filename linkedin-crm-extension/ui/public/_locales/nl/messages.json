@@ -716,5 +716,51 @@
     },
     "gdpr_opt_in_label": {
         "message": "Ja, houd me af en toe op de hoogte van belangrijke Rolodink updates en nieuwe functies."
+    },
+    "start_title": {
+        "message": "Welkom bij Rolodink"
+    },
+    "start_description": {
+        "message": "Open een LinkedIn-profiel om iemand toe te voegen."
+    },
+    "start_first_step_hint": {
+        "message": "Eerste stap: ga naar linkedin.com, open het profiel van iemand die je onlangs hebt ontmoet en klik daar op het Rolodink-icoon."
+    },
+    "connection_update_failed": {
+        "message": "Kon de wijzigingen niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
+    },
+    "feedback_section_title": {
+        "message": "Feedback"
+    },
+    "feedback_title": {
+        "message": "Feedback sturen"
+    },
+    "feedback_description": {
+        "message": "Opent een e-mail aan het Rolodink-team. Alleen de extensieversie en je browser worden ingevuld."
+    },
+    "feedback_button": {
+        "message": "✉️ Feedback sturen"
+    },
+    "feedback_mail_subject": {
+        "message": "Rolodink-feedback (v$VERSION$, $BROWSER$)",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
+    },
+    "feedback_mail_body": {
+        "message": "Hallo Rolodink-team,\n\n\n\n---\nExtensieversie: $VERSION$\nBrowser: $BROWSER$",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
     }
 }

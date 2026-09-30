@@ -716,5 +716,51 @@
     },
     "gdpr_opt_in_label": {
         "message": "Yes, occasionally keep me informed about important Rolodink updates and new features."
+    },
+    "start_title": {
+        "message": "Welcome to Rolodink"
+    },
+    "start_description": {
+        "message": "Open a LinkedIn profile to add someone."
+    },
+    "start_first_step_hint": {
+        "message": "First step: go to linkedin.com, open the profile of someone you met recently and click the Rolodink icon there."
+    },
+    "connection_update_failed": {
+        "message": "Could not save your changes. Your text is still here, so you can try again."
+    },
+    "feedback_section_title": {
+        "message": "Feedback"
+    },
+    "feedback_title": {
+        "message": "Send feedback"
+    },
+    "feedback_description": {
+        "message": "Opens an email to the Rolodink team. Only the extension version and your browser are filled in."
+    },
+    "feedback_button": {
+        "message": "✉️ Send feedback"
+    },
+    "feedback_mail_subject": {
+        "message": "Rolodink feedback (v$VERSION$, $BROWSER$)",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
+    },
+    "feedback_mail_body": {
+        "message": "Hi Rolodink team,\n\n\n\n---\nExtension version: $VERSION$\nBrowser: $BROWSER$",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
     }
 }

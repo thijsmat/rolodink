@@ -10,6 +10,7 @@ import { Toast } from './components/Toast';
 import { AllConnectionsView } from './components/AllConnectionsView';
 import { SettingsView } from './components/SettingsView';
 import { HelpView } from './components/HelpView';
+import { StartScreen } from './components/StartScreen';
 import { UpdateNotification } from './components/UpdateNotification';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorMessage, OfflineError } from './components/ErrorMessage';
@@ -50,48 +51,32 @@ function Content() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isLoggedIn, isListView, connection, showListView, hideListView, handleLogout]);
 
+  const renderError = (message: string) => (
+    <div className={styles.errorContainer}>
+      {isOffline ? (
+        <OfflineError onRetry={fetchData} onDismiss={() => setToastMessage('')} />
+      ) : (
+        <ErrorMessage
+          error={message}
+          onRetry={fetchData}
+          onDismiss={() => {
+            clearError();
+            setToastMessage('');
+          }}
+          showRetry={true}
+          type="error"
+        />
+      )}
+    </div>
+  );
+
   const renderContent = () => {
     if (isLoading) return <p className={styles.loading}>{t('loading')}</p>;
     if (!isLoggedIn) return <LoginView />;
-    if (error) {
-      const isProfilePageWarning = error === INVALID_PROFILE_PAGE_ERROR;
-
-      return (
-        <div className={styles.errorContainer}>
-          {isOffline ? (
-            <OfflineError onRetry={fetchData} onDismiss={() => setToastMessage('')} />
-          ) : (
-            <ErrorMessage
-              error={error}
-              onRetry={isProfilePageWarning ? clearError : fetchData}
-              onDismiss={() => {
-                clearError();
-                setToastMessage('');
-              }}
-              showRetry={true}
-              retryLabel={isProfilePageWarning ? 'OK' : undefined}
-              type={isProfilePageWarning ? 'info' : 'error'}
-              description={
-                isProfilePageWarning ? (
-                  <>
-                    Open een LinkedIn profiel om connecties te bekijken. Niet zeker waar te beginnen? Bekijk{' '}
-                    <a
-                      href="https://www.linkedin.com/in/matthijsgoes"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      mijn profiel
-                    </a>{' '}
-                    als voorbeeld.
-                  </>
-                ) : undefined
-              }
-              variant={isProfilePageWarning ? 'profileHint' : undefined}
-            />
-          )}
-        </div>
-      );
-    }
+    // Not being on a profile is not an error: it gets the start screen, and
+    // the list, settings and help can still be opened over it.
+    const isOutsideProfile = error === INVALID_PROFILE_PAGE_ERROR;
+    if (error && !isOutsideProfile) return renderError(error);
 
     if (isListView) {
       return (
@@ -108,6 +93,10 @@ function Content() {
 
     if (isHelpView) {
       return <HelpView />;
+    }
+
+    if (isOutsideProfile && !connection) {
+      return <StartScreen />;
     }
 
     // Contextual view: either a specific connection or new connection form

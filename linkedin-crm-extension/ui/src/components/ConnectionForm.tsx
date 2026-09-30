@@ -5,27 +5,24 @@ import { useConnection, type ConnectionFormData } from '../context/ConnectionCon
 import { SkeletonForm } from './Skeleton';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
-export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {
+export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error }: {
   initialData?: ConnectionFormData;
   onSubmit?: (data: ConnectionFormData) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   submitText?: string;
+  error?: string | null;
 }) {
   const { t } = useExtensionTranslation();
   const { handleCreateConnection, connection } = useConnection();
-  const [meetingPlace, setMeetingPlace] = useState('');
-  const [userCompany, setUserCompany] = useState('');
-  const [notes, setNotes] = useState('');
+  // initialData is read once, when the form mounts. It used to be copied in
+  // again on every new object, and any re-render upstream (a toast, a token
+  // refresh) replaced it and wiped what the user had typed. To start over for
+  // another connection, the parent gives the form a new key.
+  const [meetingPlace, setMeetingPlace] = useState(initialData?.meetingPlace || '');
+  const [userCompany, setUserCompany] = useState(initialData?.userCompanyAtTheTime || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
   const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (initialData) {
-      setMeetingPlace(initialData.meetingPlace || '');
-      setUserCompany(initialData.userCompanyAtTheTime || '');
-      setNotes(initialData.notes || '');
-    }
-  }, [initialData]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -191,6 +188,10 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                   </div>
                 </div>
               </div>
+
+              {error && (
+                <div className={styles.error} role="alert">{error}</div>
+              )}
 
               <div className={styles.buttonGroup}>
                 <button

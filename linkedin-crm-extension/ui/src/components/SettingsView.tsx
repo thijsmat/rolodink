@@ -8,11 +8,18 @@ import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
 import { ConfirmPanel } from './ConfirmPanel';
+import { buildFeedbackMailto, detectBrowserName } from '../utils/feedback';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
   const { t } = useExtensionTranslation();
   const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
+  const extensionVersion = getCurrentVersion();
+  const browserName = detectBrowserName(typeof navigator === 'undefined' ? '' : navigator.userAgent);
+  const feedbackHref = buildFeedbackMailto(
+    t('feedback_mail_subject', [extensionVersion, browserName]),
+    t('feedback_mail_body', [extensionVersion, browserName]),
+  );
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -473,6 +480,25 @@ export function SettingsView() {
               className={styles.actionButton}
             >
               {t('privacy_policy_button')}
+            </a>
+          </div>
+        </div>
+
+        {/* Feedback: version and browser only, nothing about pages or the account. */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t('feedback_section_title')}</h3>
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <h4 className={styles.settingName}>{t('feedback_title')}</h4>
+              <p className={styles.settingDescription}>{t('feedback_description')}</p>
+            </div>
+            <a
+              href={feedbackHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.actionButton}
+            >
+              {t('feedback_button')}
             </a>
           </div>
         </div>
