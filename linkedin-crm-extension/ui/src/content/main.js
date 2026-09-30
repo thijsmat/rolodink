@@ -915,6 +915,20 @@ function observeAndInject() {
         }
     };
 
+    // De heartbeat loopt alleen op een profiel in een zichtbaar tabblad. Op de
+    // feed of in zoekresultaten keert elke tick meteen terug, en in een
+    // verborgen tabblad ziet niemand wat hij zou herstellen: daar is hij
+    // alleen een timer die de pagina elke paar seconden wekt. De
+    // MutationObserver blijft verzoeken doen, dus een navigatie naar een
+    // profiel wordt nog steeds opgemerkt en zet hem weer aan.
+    const syncHeartbeat = (path) => {
+        if (path && document.visibilityState !== 'hidden') {
+            scheduler.resume();
+        } else {
+            scheduler.pause();
+        }
+    };
+
     // Serialisatie en herhaling liggen bij de scheduler, niet hier: die
     // garandeert dat rondes elkaar niet overlappen én dat er altijd nog een
     // ronde komt. Wat hier stond - `if (isChecking) return;` met een lock die
@@ -926,6 +940,7 @@ function observeAndInject() {
         try {
             const path = currentProfilePath(location.pathname);
             handleNavigation(path);
+            syncHeartbeat(path);
 
             // Feed, search, company pages: nothing to do here. The early
             // return keeps the observer cheap on LinkedIn's noisiest pages.
@@ -964,6 +979,11 @@ function observeAndInject() {
     // zwijgt zodra LinkedIn klaar is met renderen, en juist dan staat de hero
     // er eindelijk. Zie scheduler.ts voor wat dat kostte.
     const scheduler = createInjectionScheduler({ run: checkAndInject });
+
+    document.addEventListener('visibilitychange', () => {
+        if (window.rolodinkExtensionInvalidated) return;
+        syncHeartbeat(currentProfilePath(location.pathname));
+    });
 
     // Helper for visual debugging
     function showDebugBanner(message, color = 'red') {
