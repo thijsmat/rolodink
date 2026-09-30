@@ -13,7 +13,7 @@ description: Release- en operationele kennis voor de Rolodink-monorepo (extensie
 ## Releaseproces (volledig geautomatiseerd sinds juli 2026)
 
 1. `./scripts/bump-version.sh X.Y.Z` — bumpt 6 JSON-bestanden (beide manifests, extension package.json's, backend- en website-package.json) én `linkedin-crm-backend/src/lib/version.ts`, de versie die `/api/version` aan de update-melding in de extensie meldt. Die laatste stond lang los van het script en dreef weg: bij 1.3.5 stond hij nog op 1.3.3, en bij een eerdere release op 1.0.10 terwijl 1.3.0 live was — ouder dan de uitgebrachte versie, dus de melding ging helemaal nooit af. `version.test.ts` faalt nu de build als hij niet meer met beide manifests overeenkomt. Werk daarna `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md` én de website-changelog (`website/src/messages/{nl,en}.json` → `ChangelogPage.releases` + `DownloadPage.version`) bij. Alles via PR naar `main`.
-2. Tag `ext-vX.Y.Z` op `main` → `release.yml` bouwt drie zips (`Rolodink-{chrome,edge,firefox}-vX.Y.Z.zip`) en maakt een **draft**-release. De tekst komt uit `RELEASE_NOTES_vX.Y.Z.md`; ontbreekt dat bestand, dan valt hij terug op `.github/RELEASE_TEMPLATE.md` en zegt de release dat zelf. (Tot 2026-08-18 werd de template altijd gebruikt en gingen v1.3.4's echte notes ongelezen mee de repo in.)
+2. Tag `ext-vX.Y.Z` op `main` → `release.yml` bouwt drie zips (`Rolodink-{chrome,edge,firefox}-vX.Y.Z.zip`) en maakt een **draft**-release. (Of `release.yml` handmatig starten met `version` en eventueel `publish: true`, zie "Release vanuit een Claude Code-sessie" hieronder.) De tekst komt uit `RELEASE_NOTES_vX.Y.Z.md`; ontbreekt dat bestand, dan valt hij terug op `.github/RELEASE_TEMPLATE.md` en zegt de release dat zelf. (Tot 2026-08-18 werd de template altijd gebruikt en gingen v1.3.4's echte notes ongelezen mee de repo in.)
 3. Release publiceren (GitHub UI) → `publish-{chrome,edge,firefox}.yml` uploaden automatisch naar de drie stores. Ze wachten met retries (10×30s) op de assets, dus publiceren vóórdat de build klaar is kan — maar netter is wachten op de draft.
    - **`release.yml` opnieuw draaien werkt de tekst van een bestaande draft NIET bij.** De assets wél. `softprops/action-gh-release` maakt eerst een nieuwe draft met de verse notities, ziet dan de bestaande draft voor dezelfde tag, kiest die en gooit de nieuwe weg:
 
@@ -27,7 +27,19 @@ description: Release- en operationele kennis voor de Rolodink-monorepo (extensie
    - **Eén store mislukt?** De drie publish-workflows hebben sinds 2026-08-18 een `workflow_dispatch` met een `tag`-input, dus je kunt er één los opnieuw draaien zonder de release te depubliceren. Dat werkt alléén als de oorzaak buiten het pakket lag (verlopen token, store in review). Zat de fout in het pakket zelf, dan hangen de kapotte zips nog aan de tag: **cut dan een nieuwe versie.** `release.yml` opnieuw draaien op een al gepubliceerde release is geen optie — `softprops/action-gh-release` krijgt `draft: true` mee en zet hem dan terug op draft.
 4. Volledige procesdocumentatie: `RELEASE_PROCESS.md`.
 
-Let op vanuit een Claude Code Remote-sessie: de git-proxy staat alleen pushes naar de eigen werkbranch toe — **tags pushen kan niet** en er is geen MCP-tool voor releases/tags. De gebruiker maakt de tag/release via github.com/thijsmat/rolodink/releases/new ("Create new tag on publish").
+### Release vanuit een Claude Code-sessie (zonder GitHub-UI)
+
+De git-proxy staat alleen pushes naar de eigen werkbranch toe, dus **tags pushen kan niet**. Een draft publiceren kan ook niet: er is geen MCP-tool die een release bewerkt. **Workflows starten kan wél**, met `mcp__github__actions_run_trigger` (method `run_workflow`, `ref: main`). Sinds 1.3.7 gaat een release daarmee helemaal zonder de gebruiker:
+
+1. **Store Credentials Check** (`store-credentials-check.yml`, geen inputs). Die publiceert niets. Is hij rood, stop dan; een verlopen Chrome-token kost anders een halve release.
+2. **Release** (`release.yml`) met `version: "X.Y.Z"` en `publish: true`. De release gaat direct live en de tag `ext-vX.Y.Z` komt op de gebouwde commit.
+3. Een release die `GITHUB_TOKEN` publiceert, start **geen** andere workflows. Dat is een GitHub-regel; alleen `workflow_dispatch` en `repository_dispatch` vormen een uitzondering. Start daarom zelf `publish-chrome.yml`, `publish-edge.yml` en `publish-firefox.yml`, elk met `tag: "ext-vX.Y.Z"`.
+4. Controleer daarna het volgende. Een run die slaagt zegt niets over de inhoud (zie de valkuil hierboven).
+   - Het "List Artifacts"-log van de release-run toont drie zips.
+   - De release-body is de tekst uit `RELEASE_NOTES_vX.Y.Z.md`; bekijk hem met `mcp__github__get_release_by_tag`.
+   - Alle drie de publish-runs zijn groen.
+
+Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml` maakt een draft, de gebruiker publiceert die in de UI, en de publish-workflows starten dan vanzelf.
 
 ## Store-publishing
 
