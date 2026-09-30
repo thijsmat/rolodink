@@ -6,7 +6,64 @@ on:
   pull_request:
     branches: [ main ]
 
+# A newer push to the same PR makes the running checks moot. On main every
+# commit keeps its own run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # Which parts of the monorepo this push or PR touches. A job for a part that
+  # did not change is skipped, and GitHub counts a skipped job as passed for
+  # branch protection. Plain git, no third-party action.
+  #
+  # Anything shared - packages/, the root package files, turbo.json, this
+  # workflow - counts as a change to every part. When there is nothing to
+  # compare against (a new branch, a force push), everything runs.
+  changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.diff.outputs.backend }}
+      website: ${{ steps.diff.outputs.website }}
+      extension: ${{ steps.diff.outputs.extension }}
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+
+    - name: Find changed paths
+      id: diff
+      env:
+        EVENT: ${{ github.event_name }}
+        PR_BASE: ${{ github.event.pull_request.base.sha }}
+        PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        PUSH_BEFORE: ${{ github.event.before }}
+        PUSH_AFTER: ${{ github.sha }}
+      run: |
+        if [ "$EVENT" = "pull_request" ]; then
+          RANGE="$PR_BASE...$PR_HEAD"
+        else
+          RANGE="$PUSH_BEFORE..$PUSH_AFTER"
+        fi
+        if ! FILES=$(git diff --name-only "$RANGE" 2>/dev/null); then
+          echo "No usable diff for $RANGE - running everything"
+          for part in backend website extension code; do echo "$part=true" >> "$GITHUB_OUTPUT"; done
+          exit 0
+        fi
+        echo "$FILES"
+        shared='^(packages/|package\.json$|package-lock\.json$|turbo\.json$|\.github/workflows/github-flow\.yml$)'
+        has() { if echo "$FILES" | grep -Eq "$1|$shared"; then echo true; else echo false; fi; }
+        {
+          echo "backend=$(has '^linkedin-crm-backend/')"
+          echo "website=$(has '^website/')"
+          echo "extension=$(has '^linkedin-crm-extension/')"
+          echo "code=$(has '^(linkedin-crm-backend|website|linkedin-crm-extension)/')"
+        } | tee -a "$GITHUB_OUTPUT"
+
   # Unit tests across the monorepo workspaces.
   #
   # Until this job existed, no workflow in this repository ran a single test:
@@ -22,6 +79,8 @@ jobs:
   # a workspace member, so turbo cannot see it. It now has its own vitest suite,
   # run by the `extension` job below.
   tests:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -64,6 +123,8 @@ jobs:
 
   # Website Build & Test
   website:
+    needs: changes
+    if: needs.changes.outputs.website == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -106,6 +167,8 @@ jobs:
 
   # Extension Build & Test
   extension:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -132,11 +195,6 @@ jobs:
       run: npm ci
       working-directory: ./linkedin-crm-extension/ui
       
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
-      continue-on-error: true
-      working-directory: ./linkedin-crm-extension/ui
-      
     - name: Run TypeScript type check
       run: npm run typecheck
       working-directory: ./linkedin-crm-extension/ui
@@ -156,21 +214,8 @@ jobs:
       run: npm test
       working-directory: ./linkedin-crm-extension/ui
 
-    - name: Build extension
-      run: npm run build
-      working-directory: ./linkedin-crm-extension/ui
-
-    - name: Validate extension
-      run: |
-        if [ ! -f "linkedin-crm-extension/manifest.json" ]; then
-          echo "Extension manifest not found"
-          exit 1
-        fi
-        if [ ! -d "linkedin-crm-extension/ui/dist" ]; then
-          echo "Extension build output not found"
-          exit 1
-        fi
-        echo "Extension build successful"
+    # No separate `npm run build`: build.js runs it for every target below,
+    # and fails when the UI build leaves no output.
 
     # No separate install for build.js: linkedin-crm-extension is a workspace
     # member, so its fs-extra and archiver come in with the root `npm ci` at
@@ -285,6 +330,8 @@ jobs:
 
   # Backend Build & Test
   backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -310,15 +357,10 @@ jobs:
     - name: Install dependencies (monorepo root)
       run: npm ci
       
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      working-directory: ./linkedin-crm-backend
-      
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
-      continue-on-error: true
-      working-directory: ./linkedin-crm-backend
-      
+    # No separate `prisma generate`: the backend's postinstall hook runs it
+    # during the `npm ci` above. (No `npm audit` either: it was set to never
+    # fail. Trivy in the security job is the dependency gate.)
+
     - name: Run linting
       run: npm run lint
       working-directory: ./linkedin-crm-backend
@@ -360,12 +402,33 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
+  # The one check to require in branch protection. It passes when every job
+  # above passed or was skipped for lack of changes, and fails otherwise, so
+  # the required-checks list no longer has to track which jobs exist.
+  ci-ok:
+    if: always()
+    needs: [changes, tests, website, extension, backend, security]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+    - name: All jobs passed or were skipped
+      env:
+        RESULTS: ${{ join(needs.*.result, ' ') }}
+      run: |
+        echo "Results: $RESULTS"
+        for result in $RESULTS; do
+          case "$result" in
+            success|skipped) ;;
+            *) echo "A job ended in '$result'"; exit 1 ;;
+          esac
+        done
+
   # Deploy to Staging (develop branch)
   deploy-staging:
     permissions:
       contents: read
     if: github.ref == 'refs/heads/develop'
-    needs: [tests, website, extension, backend, security]
+    needs: [ci-ok]
     runs-on: ubuntu-latest
 
     steps:
@@ -381,7 +444,7 @@ jobs:
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main'
-    needs: [tests, website, extension, backend, security]
+    needs: [ci-ok]
     runs-on: ubuntu-latest
     environment: production
     
