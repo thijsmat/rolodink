@@ -23,7 +23,7 @@ Rolodink implements multiple layers of security:
 
 **Location**: `linkedin-crm-backend/src/lib/rate-limit.ts`
 
-**Limit**: 100 requests per IP address per hour
+**Limit**: 600 requests per IP address per hour. Sign-in and sign-up (`/api/auth/signin`, `/api/auth/signup`) keep 100 per IP per hour, in a separate counter (`AUTH_RATE_LIMIT`), so ordinary API traffic neither raises the budget for password guessing nor locks anyone out of logging in
 
 **Scope**: All API routes (`/api/*`)
 
@@ -37,7 +37,7 @@ Rate limiting protects against:
 
 ### How It Works
 
-1. Each request is tracked by IP address
+1. Each request is tracked by IP address (sign-in and sign-up under their own `auth:<ip>` key)
 2. Counter resets after 1 hour window
 3. When limit is exceeded, returns `429 Too Many Requests`
 4. Response includes `Retry-After` header
@@ -45,8 +45,8 @@ Rate limiting protects against:
 ### Testing Rate Limits
 
 ```bash
-# Test rate limit (should fail after 100 requests)
-for i in {1..101}; do
+# Test rate limit (should fail after 600 requests; per serverless instance)
+for i in {1..601}; do
   curl -X GET https://your-api.vercel.app/api/version
 done
 ```
@@ -301,7 +301,7 @@ For security issues:
 
 ### Post-Deployment
 
-- [ ] Verify rate limiting works (test with >100 requests)
+- [ ] Verify rate limiting works (test with >600 requests, or >100 sign-in attempts)
 - [ ] Test RLS by attempting cross-user data access
 - [ ] Monitor logs for security warnings
 - [ ] Verify HTTPS is enforced

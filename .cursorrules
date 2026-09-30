@@ -117,7 +117,7 @@ docs(readme): update installation instructions
 4. See `docs/SECRET_SCANNING.md` for remediation steps
 
 ### Rate Limiting
-- **CRITICAL**: All API routes must have rate limiting (100 req/hour per IP)
+- **CRITICAL**: All API routes must have rate limiting (600 req/hour per IP; sign-in and sign-up 100 via `AUTH_RATE_LIMIT`)
 - Use `rateLimitMiddleware` from `@/lib/rate-limit` on all `/api/*` routes
 - Prevents bot abuse and protects against excessive API costs
 - Test rate limits before deploying: verify 429 responses after limit
@@ -149,7 +149,7 @@ docs(readme): update installation instructions
 - Test authentication: sign in/out should work securely
 
 ### Security Testing
-- Test rate limiting: make >100 requests, verify 429 response
+- Test rate limiting: make >600 requests (>100 for sign-in), verify 429 response
 - Test RLS: attempt to access another user's data, should fail
 - Test authentication: verify tokens are validated on every request
 - Review security logs regularly for suspicious activity
