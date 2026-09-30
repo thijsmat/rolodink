@@ -11,7 +11,7 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 **Key Features:**
 • Add notes directly on LinkedIn profiles
 • Remember who you spoke with and about what
-• Smart follow-up reminders
+• Works in Chrome, Edge and Firefox
 • Search and filter your network
 • Privacy-first: your data stays yours
 • Works instantly - no training needed
@@ -26,7 +26,7 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 **How it works:**
 1. Install Rolodink (30 seconds)
 2. Visit any LinkedIn profile
-3. Click "Add to CRM" to save notes
+3. Click "Add to Rldnk", or just start typing in the note card
 4. Access your organized network anytime
 
 **Privacy & Security:**
@@ -52,9 +52,9 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 - Title: "Organize your network"
 - Description: "View all your connections with notes, search, and filter"
 
-**Screenshot 3 - Follow-up Reminders:**
-- Title: "Never miss a follow-up"
-- Description: "Set reminders and track your relationship history"
+**Screenshot 3 - Note on the profile:**
+- Title: "Your note, right on their profile"
+- Description: "Type a note on any LinkedIn profile; it is saved automatically"
 
 ## Privacy Policy
 

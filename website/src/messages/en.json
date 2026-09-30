@@ -96,24 +96,24 @@
                 "description": "Their dog is named Max, they're moving to Berlin, their startup is still looking for a CTO.",
                 "benefits": [
                     "Contextual notes",
-                    "Conversation history",
-                    "Follow-up reminders"
+                    "Meeting place and company",
+                    "Follow-up reminders (on our roadmap)"
                 ]
             },
             {
                 "title": "Natural follow-up",
                 "description": "'Hi Tom, how's the new office in Amsterdam? And did you find that lead developer yet?'",
                 "benefits": [
-                    "Automatic reminders",
-                    "Follow-up templates",
-                    "Set priorities"
+                    "Your note right on their profile",
+                    "Saved automatically as you type",
+                    "Everything in one searchable list"
                 ]
             },
             {
                 "title": "Structured data",
-                "description": "Organize your network with tags, companies, and topics — just so you can find it quickly.",
+                "description": "Keep where you met and which company they were at, and find anyone again by name, company or anything in your notes.",
                 "benefits": [
-                    "Categorize connections",
+                    "Filter by recent or with notes",
                     "Store company information",
                     "Search and filter"
                 ]
@@ -179,7 +179,7 @@
             },
             {
                 "question": "Does Rolodink also work on the mobile LinkedIn app?",
-                "answer": "Currently, Rolodink only works as a Chrome Extension on desktop computers. A mobile solution is on our roadmap for the future."
+                "answer": "Rolodink currently works as a browser extension for Chrome, Edge and Firefox on desktop computers. A mobile version is on our roadmap."
             },
             {
                 "question": "I don't see the Rolodink sidebar on LinkedIn. What now?",
@@ -187,7 +187,7 @@
             },
             {
                 "question": "Can I export my data?",
-                "answer": "This functionality is currently under development. We understand the importance of data ownership and are working on an option to export all your notes and contact information."
+                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
             }
         ],
         "cta": {
@@ -221,7 +221,7 @@
             },
             {
                 "title": "Find Everything Instantly",
-                "description": "Use the search bar in the extension to search your network based on the content of your notes and tags."
+                "description": "Use the search bar in the extension to search your network by name, company, meeting place or anything in your notes."
             }
         ],
         "cta": {
@@ -581,13 +581,13 @@
         "title": "Security",
         "lastUpdated": "Last updated",
         "notice": "",
-        "updatedOn": "September 29, 2026",
+        "updatedOn": "September 30, 2026",
         "intro": "Notes about the people in your network are personal. This page explains how Rolodink protects them, and where the limits are.",
         "sections": [
             {
                 "title": "Encryption",
                 "paragraphs": [
-                    "Your notes, meeting place, company, email and phone number are encrypted with AES-256-GCM inside the browser extension before they are sent to us. The database only ever stores the encrypted values. Traffic between the extension and our servers runs over HTTPS.",
+                    "Your notes, meeting place, company, email and phone number are encrypted with AES-256-GCM inside the browser extension before they are sent to us, and that is how they are stored. Entries saved with older versions of the extension, from before this encryption was added, can still be stored unencrypted; they are encrypted as soon as you edit and save them. Traffic between the extension and our servers runs over HTTPS.",
                     "Every account has its own encryption key. We generate it on first use and store it wrapped with a master key that is kept as a secret in our hosting environment, separate from the database. The extension keeps your key in memory and session storage only while you are signed in, and clears it when you sign out.",
                     "What this is not: end-to-end or zero-knowledge encryption. Because we manage the keys, your notes are available on every device you sign in on, but it also means that someone with access to both our database and our master key could decrypt them. We would rather say that plainly than overstate it."
                 ]
@@ -601,7 +601,7 @@
             {
                 "title": "Protection against abuse",
                 "paragraphs": [
-                    "All API routes are rate limited to 100 requests per IP address per hour. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
+                    "The API applies rate limits per IP address, with a stricter limit for signing in and signing up. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
                 ]
             },
             {
@@ -613,7 +613,7 @@
             {
                 "title": "Your data, your control",
                 "paragraphs": [
-                    "You can export all your data or delete your account and everything stored with it at any time. Your notes are private: the people you write about cannot see them, and we never sell your data or share it for anyone else's purposes. We use Supabase and Vercel to host Rolodink."
+                    "You can export all your data or delete your account and everything stored with it at any time. If deleting your account from the extension does not work for you, email privacy@rolodink.app and we will delete it for you. Your notes are private: the people you write about cannot see them, and we never sell your data or share it for anyone else's purposes. We use Supabase and Vercel to host Rolodink."
                 ]
             },
             {
@@ -691,11 +691,11 @@
             },
             "mobile": {
                 "question": "Does Rolodink work on mobile?",
-                "answer": "Not yet. Rolodink is a browser extension for Chrome, Edge and Firefox on desktop. A mobile version is in development."
+                "answer": "Not yet. Rolodink is a browser extension for Chrome, Edge and Firefox on desktop. A mobile version is on our roadmap."
             },
             "export": {
                 "question": "Can I export my notes?",
-                "answer": "Yes, you can export all your data as a JSON file for backup and transfer."
+                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",
