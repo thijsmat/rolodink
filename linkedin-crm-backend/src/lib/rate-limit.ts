@@ -1,5 +1,5 @@
 // Rate limiting utility for API routes
-// Limits: 600 requests per IP per hour; sign-in and sign-up 100 (see below).
+// Limits: 600 requests per IP per hour; sign-in and sign-up 60 (see below).
 //
 // Was 100. Every LinkedIn profile visit costs two GETs from the extension and
 // every typing pause in the note card a PATCH, so an active user hit 429 after
@@ -9,8 +9,9 @@
 // instance anyway (see the store below), so this is a coarse brake, not a
 // precise quota; a Vercel WAF rule is the planned replacement.
 //
-// Password sign-in and sign-up do NOT get the raise: they keep the old 100 per
-// IP per hour, in a counter of their own (AUTH_RATE_LIMIT below). The extra
+// Password sign-in and sign-up do NOT get the raise: they get 60 per IP per
+// hour, in a counter of their own (AUTH_RATE_LIMIT below). That was 100 during
+// launch week, for sign-up bursts from shared networks. The extra
 // room for profile visits must not become a 6x larger budget for password
 // guessing or sign-up spam, and ordinary API traffic must not be able to lock
 // anyone out of logging in (or the other way round).
@@ -58,8 +59,8 @@ export interface RateLimitOptions {
 /** Shared API counter: requests per IP per hour. */
 export const DEFAULT_RATE_LIMIT = 600;
 
-/** /api/auth/signin and /api/auth/signup: the pre-raise budget, counted apart. */
-export const AUTH_RATE_LIMIT: Readonly<RateLimitOptions> = Object.freeze({ bucket: 'auth', limit: 100 });
+/** /api/auth/signin and /api/auth/signup, counted apart from the API. */
+export const AUTH_RATE_LIMIT: Readonly<RateLimitOptions> = Object.freeze({ bucket: 'auth', limit: 60 });
 
 /**
  * Rate limit check - `limit` requests per identifier per hour

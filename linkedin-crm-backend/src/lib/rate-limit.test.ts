@@ -35,9 +35,9 @@ afterEach(() => {
 });
 
 describe('limits', () => {
-  it('are 600 per IP per hour for the API and 100 for sign-in/sign-up, in its own bucket', () => {
+  it('are 600 per IP per hour for the API and 60 for sign-in/sign-up, in its own bucket', () => {
     expect(DEFAULT_RATE_LIMIT).toBe(600);
-    expect(AUTH_RATE_LIMIT).toEqual({ bucket: 'auth', limit: 100 });
+    expect(AUTH_RATE_LIMIT).toEqual({ bucket: 'auth', limit: 60 });
     expect(Object.isFrozen(AUTH_RATE_LIMIT)).toBe(true);
   });
 });
@@ -105,17 +105,17 @@ describe('rateLimitMiddleware', () => {
     expect(await res?.json()).toMatchObject({ error: 'Rate limit exceeded' });
   });
 
-  it('keeps sign-in/sign-up at 100 per IP', () => {
-    drain('203.0.113.2', 100, AUTH_RATE_LIMIT);
+  it('keeps sign-in/sign-up at 60 per IP', () => {
+    drain('203.0.113.2', 60, AUTH_RATE_LIMIT);
 
     const res = rateLimitMiddleware(request('203.0.113.2'), AUTH_RATE_LIMIT);
     expect(res?.status).toBe(429);
-    expect(res?.headers.get('X-RateLimit-Limit')).toBe('100');
+    expect(res?.headers.get('X-RateLimit-Limit')).toBe('60');
   });
 
   it('counts auth and API traffic separately, in both directions', () => {
     // A locked-out password guesser gains nothing on the API side ...
-    drain('203.0.113.3', 100, AUTH_RATE_LIMIT);
+    drain('203.0.113.3', 60, AUTH_RATE_LIMIT);
     expect(rateLimitMiddleware(request('203.0.113.3'), AUTH_RATE_LIMIT)?.status).toBe(429);
     expect(rateLimitMiddleware(request('203.0.113.3'))).toBeNull();
 
@@ -126,7 +126,7 @@ describe('rateLimitMiddleware', () => {
   });
 
   it('does not share the auth budget between IPs', () => {
-    drain('203.0.113.5', 100, AUTH_RATE_LIMIT);
+    drain('203.0.113.5', 60, AUTH_RATE_LIMIT);
     expect(rateLimitMiddleware(request('203.0.113.5'), AUTH_RATE_LIMIT)?.status).toBe(429);
     expect(rateLimitMiddleware(request('203.0.113.6'), AUTH_RATE_LIMIT)).toBeNull();
   });
