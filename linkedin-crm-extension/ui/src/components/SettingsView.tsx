@@ -6,6 +6,7 @@ import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { isDeleteConfirmation } from '../utils/deleteConfirmation';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
@@ -199,7 +200,7 @@ export function SettingsView() {
     if (!confirmed) return;
 
     const verification = prompt(t('msg_delete_prompt'));
-    if (verification !== 'VERWIJDER') {
+    if (!isDeleteConfirmation(verification)) {
       setToastMessage(t('msg_delete_cancelled'));
       return;
     }
