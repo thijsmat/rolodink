@@ -601,7 +601,7 @@
             {
                 "title": "Protection against abuse",
                 "paragraphs": [
-                    "All API routes are rate limited to 100 requests per IP address per hour. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
+                    "All API routes are rate limited per IP address. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
                 ]
             },
             {
