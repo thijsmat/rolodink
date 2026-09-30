@@ -99,9 +99,9 @@ jobs:
         cache-dependency-path: package-lock.json
 
     # --ignore-scripts: a dependency's install hook runs arbitrary code with
-    # the job's token and cache. Nothing here needs one, so they stay off. The
-    # other jobs in this file still install without it; changing them belongs
-    # with whoever verifies their builds still work.
+    # the job's token and cache. Nothing in this workflow needs one, so every
+    # job installs with them off; where a hook did real work (the backend's
+    # `prisma generate`), the job runs that step explicitly.
     - name: Install dependencies (monorepo root)
       run: npm ci --ignore-scripts
 
@@ -143,14 +143,16 @@ jobs:
         cache-dependency-path: package-lock.json
         
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
       
     - name: Run linting
       run: npm run lint
       working-directory: ./website
       
+    # The lockfile-pinned binary from the root install, not npx: npx fetches
+    # from the registry when a package is missing.
     - name: Run type checking
-      run: npx tsc --noEmit
+      run: ../node_modules/.bin/tsc --noEmit
       working-directory: ./website
       
     - name: Build website
@@ -189,10 +191,10 @@ jobs:
           linkedin-crm-extension/ui/package-lock.json
         
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
       
     - name: Install extension UI dependencies
-      run: npm ci
+      run: npm ci --ignore-scripts
       working-directory: ./linkedin-crm-extension/ui
       
     - name: Run TypeScript type check
@@ -355,18 +357,22 @@ jobs:
         cache-dependency-path: package-lock.json
         
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
       
-    # No separate `prisma generate`: the backend's postinstall hook runs it
-    # during the `npm ci` above. (No `npm audit` either: it was set to never
-    # fail. Trivy in the security job is the dependency gate.)
+    # --ignore-scripts above also skips the backend's postinstall, so the
+    # Prisma Client is generated explicitly, as in the tests job. (No `npm
+    # audit` here: it was set to never fail. Trivy in the security job is the
+    # dependency gate.)
+    - name: Generate Prisma Client
+      run: npm run prisma:generate
+      working-directory: ./linkedin-crm-backend
 
     - name: Run linting
       run: npm run lint
       working-directory: ./linkedin-crm-backend
       
     - name: Run type checking
-      run: npx tsc --noEmit
+      run: ../node_modules/.bin/tsc --noEmit
       working-directory: ./linkedin-crm-backend
       
     - name: Build backend
@@ -386,7 +392,7 @@ jobs:
         fetch-depth: 0
       
     - name: Aqua Security Trivy
-      uses: aquasecurity/trivy-action@v0.36.0
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
       with:
         scan-type: 'fs'
         scan-ref: '.'
