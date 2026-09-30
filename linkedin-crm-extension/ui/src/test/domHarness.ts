@@ -30,18 +30,18 @@ export function createDomHarness() {
             document.body.appendChild(container);
             root = createRoot(container);
             current = component;
-            await act(async () => {
+            await act(() => {
                 root?.render(createElement(component as () => null));
             });
         },
         // Same component again: a re-render with whatever the context now holds.
         async rerender() {
-            await act(async () => {
+            await act(() => {
                 if (current) root?.render(createElement(current as () => null));
             });
         },
         async unmount() {
-            await act(async () => root?.unmount());
+            await act(() => root?.unmount());
             root = null;
             current = null;
             container?.remove();
@@ -55,6 +55,9 @@ export function createDomHarness() {
         async click(target: HTMLElement) {
             await act(async () => {
                 target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                // Let the handler's own promises settle inside act, so their
+                // state updates are wrapped too.
+                await Promise.resolve();
             });
             await settle();
         },
@@ -65,6 +68,7 @@ export function createDomHarness() {
             await act(async () => {
                 setter?.call(input, value);
                 input.dispatchEvent(new Event('input', { bubbles: true }));
+                await Promise.resolve();
             });
         },
     };
