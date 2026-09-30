@@ -96,24 +96,24 @@
                 "description": "Hun hond heet Max, ze verhuizen naar Berlijn, hun startup zoekt nog een CTO.",
                 "benefits": [
                     "Contextuele notities",
-                    "Gespreksgeschiedenis",
-                    "Follow-up herinneringen"
+                    "Ontmoetingsplek en bedrijf",
+                    "Follow-up herinneringen (op onze roadmap)"
                 ]
             },
             {
                 "title": "Natuurlijke follow-up",
                 "description": "'Hoi Tom, hoe bevalt het nieuwe kantoor in Amsterdam? En heb je die lead developer al gevonden?'",
                 "benefits": [
-                    "Automatische herinneringen",
-                    "Follow-up templates",
-                    "Prioriteit instellen"
+                    "Je notitie direct op hun profiel",
+                    "Slaat automatisch op terwijl je typt",
+                    "Alles in één doorzoekbare lijst"
                 ]
             },
             {
                 "title": "Gestructureerde data",
-                "description": "Orden je netwerk met tags, bedrijven en topics — gewoon zodat jij het snel terugvindt.",
+                "description": "Leg vast waar je elkaar ontmoette en bij welk bedrijf ze zaten, en vind iedereen terug op naam, bedrijf of iets uit je notities.",
                 "benefits": [
-                    "Categoriseren van connecties",
+                    "Filteren op recent of met notitie",
                     "Bedrijfsinformatie opslaan",
                     "Zoeken en filteren"
                 ]
@@ -179,7 +179,7 @@
             },
             {
                 "question": "Werkt Rolodink ook op de mobiele LinkedIn app?",
-                "answer": "Momenteel werkt Rolodink alleen als Chrome Extensie op desktop computers. Een mobiele oplossing staat op onze roadmap voor de toekomst."
+                "answer": "Rolodink werkt momenteel als browserextensie voor Chrome, Edge en Firefox op desktopcomputers. Een mobiele versie staat op onze roadmap."
             },
             {
                 "question": "Ik zie de Rolodink zijbalk niet op LinkedIn. Wat nu?",
@@ -187,7 +187,7 @@
             },
             {
                 "question": "Kan ik mijn data exporteren?",
-                "answer": "Deze functionaliteit is momenteel in ontwikkeling. We begrijpen het belang van data-eigendom en werken aan een optie om al je notities en contactgegevens te kunnen exporteren."
+                "answer": "Ja. In de instellingen van de extensie kun je al je data downloaden als JSON-bestand. Versleutelde velden (notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer) staan daarin precies zoals ze zijn opgeslagen, dus versleuteld. Een leesbare export staat op onze roadmap."
             }
         ],
         "cta": {
@@ -221,7 +221,7 @@
             },
             {
                 "title": "Vind Alles Direct Terug",
-                "description": "Gebruik de zoekbalk in de extensie om je netwerk te doorzoeken op basis van de inhoud van je notities en tags."
+                "description": "Gebruik de zoekbalk in de extensie om je netwerk te doorzoeken op naam, bedrijf, ontmoetingsplek of iets uit je notities."
             }
         ],
         "cta": {
@@ -581,13 +581,13 @@
         "title": "Beveiliging",
         "lastUpdated": "Laatst bijgewerkt",
         "notice": "",
-        "updatedOn": "29 september 2026",
+        "updatedOn": "30 september 2026",
         "intro": "Notities over de mensen in je netwerk zijn persoonlijk. Op deze pagina lees je hoe Rolodink ze beschermt, en waar de grenzen liggen.",
         "sections": [
             {
                 "title": "Versleuteling",
                 "paragraphs": [
-                    "Je notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer worden in de browserextensie versleuteld met AES-256-GCM voordat ze naar ons worden gestuurd. De database bewaart alleen de versleutelde waarden. Het verkeer tussen de extensie en onze servers loopt via HTTPS.",
+                    "Je notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer worden in de browserextensie versleuteld met AES-256-GCM voordat ze naar ons worden gestuurd, en zo worden ze ook opgeslagen. Items die met oudere versies van de extensie zijn opgeslagen, van vóór deze versleuteling, kunnen nog onversleuteld zijn opgeslagen; ze worden versleuteld zodra je ze bewerkt en opslaat. Het verkeer tussen de extensie en onze servers loopt via HTTPS.",
                     "Elk account heeft een eigen sleutel. Die genereren we bij eerste gebruik en slaan we op, ingepakt met een hoofdsleutel die als geheim in onze hostingomgeving staat, los van de database. De extensie bewaart je sleutel alleen in het geheugen en in de sessieopslag zolang je bent ingelogd, en wist hem bij uitloggen.",
                     "Wat dit niet is: end-to-end- of zero-knowledge-versleuteling. Doordat wij de sleutels beheren, zijn je notities beschikbaar op elk apparaat waarop je inlogt, maar het betekent ook dat iemand met toegang tot zowel onze database als onze hoofdsleutel ze zou kunnen ontsleutelen. Dat zeggen we liever eerlijk dan dat we het mooier voorstellen."
                 ]
@@ -613,7 +613,7 @@
             {
                 "title": "Jouw data, jouw controle",
                 "paragraphs": [
-                    "Je kunt op elk moment al je data exporteren of je account en alles wat daarbij is opgeslagen verwijderen. Je notities zijn privé: de mensen over wie je schrijft kunnen ze niet zien en we verkopen je data nooit en delen die niet voor andermans doeleinden. Voor de hosting van Rolodink gebruiken we Supabase en Vercel."
+                    "Je kunt op elk moment al je data exporteren of je account en alles wat daarbij is opgeslagen verwijderen. Lukt het verwijderen van je account via de extensie niet, mail dan naar privacy@rolodink.app en dan verwijderen wij het voor je. Je notities zijn privé: de mensen over wie je schrijft kunnen ze niet zien en we verkopen je data nooit en delen die niet voor andermans doeleinden. Voor de hosting van Rolodink gebruiken we Supabase en Vercel."
                 ]
             },
             {
@@ -691,11 +691,11 @@
             },
             "mobile": {
                 "question": "Werkt Rolodink ook op mobiel?",
-                "answer": "Nog niet. Rolodink is een browserextensie voor Chrome, Edge en Firefox op de desktop. Een mobiele versie is in ontwikkeling."
+                "answer": "Nog niet. Rolodink is een browserextensie voor Chrome, Edge en Firefox op de desktop. Een mobiele versie staat op onze roadmap."
             },
             "export": {
                 "question": "Kan ik mijn notities exporteren?",
-                "answer": "Ja, je kunt al je data exporteren als JSON-bestand voor back-up en overdracht."
+                "answer": "Ja. In de instellingen van de extensie kun je al je data downloaden als JSON-bestand. Versleutelde velden (notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer) staan daarin precies zoals ze zijn opgeslagen, dus versleuteld. Een leesbare export staat op onze roadmap."
             },
             "visibility": {
                 "question": "Zien anderen mijn notities op LinkedIn?",
