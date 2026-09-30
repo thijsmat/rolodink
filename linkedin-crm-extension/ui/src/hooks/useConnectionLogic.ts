@@ -114,6 +114,36 @@ async function decryptConnections(connections: Connection[]): Promise<Connection
     return Promise.all(promises);
 }
 
+// The popup caches the server's rows (still encrypted) so the list shows at
+// once. The cache records whose rows they are: a cache without an owner, or
+// with another one, is never shown and is removed.
+const CACHE_KEYS = ['cachedConnections', 'cachedConnectionsOwner', 'connectionsCacheTimestamp'];
+
+async function clearConnectionsCache(): Promise<void> {
+    const storage = getStorage();
+    if (!storage) return;
+    try {
+        await storage.remove(CACHE_KEYS);
+    } catch (error) {
+        console.error('Failed to clear the connections cache:', error);
+    }
+}
+
+/** The cached rows if they belong to ownerId; otherwise none, and a foreign cache is removed. */
+async function readOwnedCache(ownerId: string | null): Promise<Connection[]> {
+    if (!ownerId) return [];
+    const storage = getStorage();
+    if (!storage) return [];
+    const result = await storage.get(['cachedConnections', 'cachedConnectionsOwner']);
+    const cached: unknown = result.cachedConnections;
+    if (!Array.isArray(cached)) return [];
+    if (result.cachedConnectionsOwner !== ownerId) {
+        await clearConnectionsCache();
+        return [];
+    }
+    return cached as Connection[];
+}
+
 function normalizeLinkedInUrl(raw: string): string {
     try {
         const u = new URL(raw);
@@ -152,7 +182,8 @@ async function handleFetchResponse(
     supabase: any,
     setConnection: (c: Connection | null) => void,
     setAllConnections: (c: Connection[]) => void,
-    setError: (e: string) => void
+    setError: (e: string) => void,
+    onUnauthorized: () => Promise<void>
 ) {
     if (response.ok) {
         const data = await response.json();
@@ -168,6 +199,7 @@ async function handleFetchResponse(
         setConnection(null);
     } else if (response.status === 401) {
         setError('Je sessie is verlopen. Log opnieuw in.');
+        await onUnauthorized();
         // scope: 'local' - see the note on the other 401 handler below.
         await supabase.auth.signOut({ scope: 'local' });
     } else {
@@ -187,6 +219,10 @@ function handleFetchError(e: unknown, setError: (e: string) => void) {
 }
 
 export function useConnectionLogic(user: User | null) {
+    // A primitive for the effects and callbacks below. The user object is
+    // replaced on every auth event (token refresh, SIGNED_IN), and with it as
+    // a dependency the cache was decrypted two or three times per popup open.
+    const userId = user?.id ?? null;
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<Connection | null>(null);
@@ -200,31 +236,38 @@ export function useConnectionLogic(user: User | null) {
     // Cache management
     const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
         try {
-            const storage = getStorage();
-            if (!storage) return [];
-            const result = await storage.get('cachedConnections');
-            return result.cachedConnections || [];
+            return await readOwnedCache(userId);
         } catch (error) {
             console.error('Failed to load cached connections:', error);
             return [];
         }
-    }, []);
+    }, [userId]);
 
     const saveConnectionsToCache = useCallback(async (connections: Connection[]) => {
+        // Without a user there is no owner to record, and an ownerless cache
+        // would be thrown away on the next read anyway.
+        if (!userId) return;
         try {
             const storage = getStorage();
             if (!storage) return;
             await storage.set({
                 cachedConnections: connections,
+                cachedConnectionsOwner: userId,
                 connectionsCacheTimestamp: Date.now(),
             });
         } catch (error) {
             console.error('Failed to save connections to cache:', error);
         }
-    }, []);
+    }, [userId]);
 
     const initializeFromCache = useCallback(async () => {
         try {
+            if (!userId) {
+                // Until auth has loaded there is no user yet, but there may be
+                // a session. Only with no session at all is the cache orphaned.
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) await clearConnectionsCache();
+            }
             const cachedConnections = await loadCachedConnections();
             if (cachedConnections.length > 0) {
                 const decryptedConnections = await decryptConnections(cachedConnections);
@@ -235,14 +278,14 @@ export function useConnectionLogic(user: User | null) {
             console.error('Failed to initialize from cache:', error);
             setIsInitialized(true);
         }
-    }, [loadCachedConnections]);
+    }, [userId, loadCachedConnections]);
 
     // Offline detection
     useEffect(() => {
         const handleOnline = () => {
             setIsOffline(false);
             setToastMessage('Internetverbinding hersteld!');
-            if (user) {
+            if (userId) {
                 setTimeout(() => {
                     const callFetch = fetchAllConnectionsRef.current;
                     if (callFetch) callFetch(true).catch(console.error);
@@ -262,13 +305,13 @@ export function useConnectionLogic(user: User | null) {
             globalThis.removeEventListener('online', handleOnline);
             globalThis.removeEventListener('offline', handleOffline);
         };
-    }, [user]);
+    }, [userId]);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            if (!user) {
+            if (!userId) {
                 setConnection(null);
                 return;
             }
@@ -290,13 +333,13 @@ export function useConnectionLogic(user: User | null) {
             }
 
             const response = await fetchConnectionData(token, currentUrl);
-            await handleFetchResponse(response, supabase, setConnection, setAllConnections, setError);
+            await handleFetchResponse(response, supabase, setConnection, setAllConnections, setError, clearConnectionsCache);
         } catch (e: unknown) {
             handleFetchError(e, setError);
         } finally {
             setIsLoading(false);
         }
-    }, [user]);
+    }, [userId]);
 
     const fetchAllConnections = useCallback(async (silent = false) => {
         if (!silent) {
@@ -304,7 +347,7 @@ export function useConnectionLogic(user: User | null) {
             setError(null);
         }
         try {
-            if (!user) throw new Error('Niet ingelogd');
+            if (!userId) throw new Error('Niet ingelogd');
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             if (!token) throw new Error('Niet ingelogd');
@@ -315,6 +358,7 @@ export function useConnectionLogic(user: User | null) {
 
             if (response.status === 401) {
                 if (!silent) setError('Je sessie is verlopen.');
+                await clearConnectionsCache();
                 // scope: 'local'. signOut() defaults to 'global' in auth-js,
                 // which asks the server to revoke every refresh token this user
                 // has - on their phone, on the website, in another browser. One
@@ -339,7 +383,7 @@ export function useConnectionLogic(user: User | null) {
         } finally {
             if (!silent) setIsLoading(false);
         }
-    }, [user, saveConnectionsToCache]);
+    }, [userId, saveConnectionsToCache]);
 
     useEffect(() => {
         fetchAllConnectionsRef.current = fetchAllConnections;
@@ -349,12 +393,12 @@ export function useConnectionLogic(user: User | null) {
     useEffect(() => {
         const initialize = async () => {
             await initializeFromCache();
-            if (user) {
+            if (userId) {
                 await fetchData();
             }
         };
         initialize().catch(console.error);
-    }, [initializeFromCache, fetchData, user]);
+    }, [initializeFromCache, fetchData, userId]);
 
     const handleCreateConnection = async (formData: ConnectionFormData) => {
         setIsLoading(true);
@@ -508,11 +552,7 @@ export function useConnectionLogic(user: User | null) {
         setIsLoading(true);
         setError(null);
         try {
-            const confirmed = globalThis.confirm('Weet je zeker dat je deze connectie wilt verwijderen?');
-            if (!confirmed) {
-                setIsLoading(false);
-                return;
-            }
+            // No confirm() here: ConnectionView asks, once, before calling this.
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             if (!token) throw new Error('Niet ingelogd');
@@ -586,10 +626,7 @@ export function useConnectionLogic(user: User | null) {
         setConnection(null);
         setAllConnections([]);
         setError(null);
-        const storage = getStorage();
-        if (storage) {
-            await storage.remove(['cachedConnections', 'connectionsCacheTimestamp']);
-        }
+        await clearConnectionsCache();
     }, []);
 
     return {

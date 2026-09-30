@@ -43,7 +43,11 @@ let rows: Connection[];
 let requests: Request[];
 let storage: Record<string, unknown>;
 let storageWrites: Record<string, unknown>[];
+let unauthorized: boolean;
+let decryptCalls: number;
+let currentUser: User;
 let root: Root | null = null;
+let probe: (() => null) | null = null;
 
 function respond(data: unknown): Response {
     return { ok: true, status: 200, statusText: 'OK', json: async () => data } as unknown as Response;
@@ -55,6 +59,9 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
     const body = typeof init.body === 'string' ? JSON.parse(init.body) : undefined;
     requests.push({ method, url: input, body });
     const url = new URL(input);
+    if (unauthorized) {
+        return { ok: false, status: 401, statusText: 'Unauthorized', json: async () => ({}) } as unknown as Response;
+    }
 
     if (method === 'GET') {
         const wanted = url.searchParams.get('url');
@@ -78,12 +85,15 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
 const fakeChrome = {
     storage: {
         local: {
-            get: async (key: string) => ({ [key]: storage[key] }),
+            get: async (keys: string | string[]) =>
+                Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(k => [k, storage[k]])),
             set: async (items: Record<string, unknown>) => {
                 storageWrites.push(structuredClone(items));
                 Object.assign(storage, items);
             },
-            remove: async () => {},
+            remove: async (keys: string | string[]) => {
+                for (const k of Array.isArray(keys) ? keys : [keys]) delete storage[k];
+            },
         },
     },
     tabs: {
@@ -95,6 +105,7 @@ const fakeChrome = {
                 return { success: true, ciphertext: encrypt(message.text ?? '') };
             }
             if (message.type === 'DECRYPT_TEXT') {
+                decryptCalls += 1;
                 if (message.ciphertext === UNDECRYPTABLE) return { success: false, error: 'Decryption failed' };
                 return { success: true, plaintext: decrypt(message.ciphertext ?? '') };
             }
@@ -120,9 +131,10 @@ function janeRow(overrides: Partial<Connection> = {}): Connection {
 async function renderHook() {
     const result: { current: ReturnType<typeof useConnectionLogic> | null } = { current: null };
     function Probe() {
-        result.current = useConnectionLogic(USER);
+        result.current = useConnectionLogic(currentUser);
         return null;
     }
+    probe = Probe;
     root = createRoot(document.createElement('div'));
     await act(async () => {
         root?.render(createElement(Probe));
@@ -144,10 +156,16 @@ beforeEach(() => {
     requests = [];
     storage = {};
     storageWrites = [];
+    unauthorized = false;
+    decryptCalls = 0;
+    currentUser = USER;
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     vi.stubGlobal('chrome', fakeChrome);
     vi.stubGlobal('fetch', fakeFetch);
-    vi.stubGlobal('confirm', () => true);
+    // The hook must not ask: ConnectionView asks once before calling it.
+    vi.stubGlobal('confirm', () => {
+        throw new Error('the hook called confirm()');
+    });
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
@@ -223,6 +241,7 @@ describe('deleting a connection in the popup', () => {
         };
         rows = [janeRow(), bob];
         storage.cachedConnections = structuredClone(rows);
+        storage.cachedConnectionsOwner = USER.id;
         const hook = await renderHook();
         // The list on screen is the decrypted copy.
         expect(hook().allConnections.map(c => c.notes)).toContain('Owes me a coffee');
@@ -233,9 +252,93 @@ describe('deleting a connection in the popup', () => {
 
         expect(requests.some(r => r.method === 'DELETE' && r.url.endsWith('/api/connections/conn-jane'))).toBe(true);
         expect(storage.cachedConnections).toEqual([bob]);
+        expect(storage.cachedConnectionsOwner).toBe(USER.id);
         const written = JSON.stringify(storageWrites);
         expect(written).not.toContain('Owes me a coffee');
         expect(written).not.toContain('bob@example.com');
         expect(hook().allConnections.map(c => c.id)).toEqual(['conn-bob']);
+    });
+});
+
+describe('the connections cache belongs to one user', () => {
+    const cachedRow = () => janeRow({ id: 'conn-cached', notes: encrypt('Someone else\'s note') });
+
+    it('does not show, and removes, a cache written for another user', async () => {
+        storage.cachedConnections = [cachedRow()];
+        storage.cachedConnectionsOwner = 'user-2';
+        const hook = await renderHook();
+
+        expect(hook().allConnections).toEqual([]);
+        expect(storage.cachedConnections).toBeUndefined();
+        expect(storage.cachedConnectionsOwner).toBeUndefined();
+    });
+
+    it('does not show a cache from before the owner was recorded', async () => {
+        storage.cachedConnections = [cachedRow()];
+        const hook = await renderHook();
+
+        expect(hook().allConnections).toEqual([]);
+        expect(storage.cachedConnections).toBeUndefined();
+    });
+
+    it('shows its own cache and records the owner when it writes', async () => {
+        storage.cachedConnections = [cachedRow()];
+        storage.cachedConnectionsOwner = USER.id;
+        rows = [janeRow()];
+        const hook = await renderHook();
+        expect(hook().allConnections.map(c => c.notes)).toEqual(["Someone else's note"]);
+
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+
+        expect(storage.cachedConnections).toEqual([janeRow()]);
+        expect(storage.cachedConnectionsOwner).toBe(USER.id);
+    });
+
+    it('is removed when the list answers 401', async () => {
+        storage.cachedConnections = [cachedRow()];
+        storage.cachedConnectionsOwner = USER.id;
+        const hook = await renderHook();
+        unauthorized = true;
+
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+
+        expect(storage.cachedConnections).toBeUndefined();
+        expect(storage.cachedConnectionsOwner).toBeUndefined();
+    });
+
+    it('is removed when the open profile answers 401', async () => {
+        storage.cachedConnections = [cachedRow()];
+        storage.cachedConnectionsOwner = USER.id;
+        unauthorized = true;
+        await renderHook();
+
+        expect(requests.some(r => r.url.includes('?url='))).toBe(true);
+        expect(storage.cachedConnections).toBeUndefined();
+    });
+});
+
+describe('opening the popup', () => {
+    it('decrypts the cache once, not again when auth hands over a new user object', async () => {
+        storage.cachedConnections = [janeRow({ id: 'conn-cached', linkedInUrl: 'https://www.linkedin.com/in/other' })];
+        storage.cachedConnectionsOwner = USER.id;
+        await renderHook();
+        const afterMount = decryptCalls;
+        expect(afterMount).toBeGreaterThan(0);
+
+        // What onAuthStateChange does on a token refresh: same user, new object.
+        currentUser = { ...USER } as User;
+        await act(async () => {
+            // Same component, so this is a re-render and not a remount.
+            if (probe) root?.render(createElement(probe));
+        });
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 0));
+        });
+
+        expect(decryptCalls).toBe(afterMount);
     });
 });

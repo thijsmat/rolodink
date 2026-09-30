@@ -339,6 +339,15 @@
     "msg_delete_error_network": {
         "message": "Could not delete account. Check your internet connection."
     },
+    "confirm_delete_connection_message": {
+        "message": "Are you sure you want to delete this connection?"
+    },
+    "confirm_delete_connection_button": {
+        "message": "Delete"
+    },
+    "delete_account_confirm_button": {
+        "message": "Delete account permanently"
+    },
     "connection_form_edit_title": {
         "message": "Edit Connection"
     },
