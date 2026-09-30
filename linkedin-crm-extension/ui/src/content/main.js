@@ -42,6 +42,7 @@ import {
 import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
 import { extractRawProfileName } from './profile';
+import { createNoteCard, readNote, textForUnseenNote } from './note-card';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -303,7 +304,7 @@ function injectCRMButton(anchorButton) {
         crmButton.style.justifyContent = "center";
 
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
-        (async () => {
+        void (async () => {
             try {
                 const profileUrl = window.location.href;
                 // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
@@ -465,7 +466,7 @@ function relocateExistingCard(topCard) {
  * injectContextField en het gedrag van de kaart zijn twee verantwoordelijkheden,
  * en samen kwam injectContextField ruim boven de toegestane complexiteit.
  */
-async function attachNoteBehaviour(container, textarea, status) {
+async function attachNoteBehaviour(container, textarea, status, retryButton) {
     // 6. Load Data
     let connectionId = null;
     let debounceTimer = null;
@@ -488,82 +489,53 @@ async function attachNoteBehaviour(container, textarea, status) {
         return cardName;
     };
 
-    // Geen invoer tot de bestaande notitie binnen is: wat je er intussen
-    // in typt zou anders door loadNote overschreven worden.
-    textarea.disabled = true;
+    // Wanneer de textarea opengaat, wanneer "Retry" verschijnt en of de kaart
+    // mag opslaan, beslist note-card.ts; daar is het getest. Alleen een load
+    // die de serverstand echt kent opent het veld: de notitie is binnen en
+    // ontsleuteld, of een ok-antwoord zegt dat het profiel er niet in staat.
+    // Wat hier stond opende het ook na een 429, een 5xx, een 401 of een
+    // time-out - leeg, terwijl er een notitie op de server kon staan, en de
+    // eerste save verving die dan door alleen het nieuw getypte.
+    //
+    // De notitie van deze kaart lezen, voor card.load en voor saveNote.
+    // cardUrl en niet window.location.href: ook een Retry of een save na een
+    // SPA-navigatie hoort bij het profiel van deze kaart.
+    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+    const readCardNote = () => readNote(
+        () => apiRequest({
+            path: '/api/connections',
+            query: { url: legacyNormalizeLinkedInUrl(cardUrl) },
+        }),
+        decryptNoteText,
+    );
+    const card = createNoteCard({
+        textarea,
+        status,
+        retry: retryButton,
+        isAttached: () => container.isConnected,
+        load: async () => {
+            const note = await readCardNote();
+            if (note.state === 'loaded') connectionId = note.connectionId;
+            return note;
+        },
+        // Pas bij aanroep opgezocht: saveNote staat hieronder.
+        save: () => saveNote(),
+    });
 
-    const loadNote = async () => {
-        try {
-            status.innerText = 'Loading...';
-
-            const profileUrl = window.location.href;
-            // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-            const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
-
-            const resp = await apiRequest({
-                path: '/api/connections',
-                query: { url: normalizedUrl },
-            });
-
-            if (resp.status === 401) {
-                status.innerText = 'Not logged in';
-                return;
-            }
-
-            if (resp.ok) {
-                const data = resp.data;
-                const conn = Array.isArray(data) ? data[0] : data;
-                if (conn) {
-                    connectionId = conn.id;
-                    try {
-                        textarea.value = await decryptNoteText(conn.notes);
-                        status.innerText = 'Saved';
-                    } catch (decryptError) {
-                        // Kan niet ontsleutelen: toon niets in plaats van de ciphertext,
-                        // en blokkeer opslaan zodat we de bestaande notitie niet overschrijven.
-                        console.error('Error decrypting note:', decryptError);
-                        textarea.value = '';
-                        textarea.disabled = true;
-                        textarea.placeholder = 'Unable to decrypt this note. Open the Rolodink popup to sign in again.';
-                        status.innerText = 'Locked';
-                    }
-                } else {
-                    // Connection doesn't exist yet in CRM
-                    status.innerText = 'Not in Rldnk yet';
-                    // Optional: Auto-create connection? Or just wait for user to add?
-                    // For now, we only allow notes if in CRM, or we could auto-add.
-                    // Let's allow typing and auto-add on save if possible, but that's complex.
-                    // Simpler: If not in CRM, show "Add to CRM to take notes" or similar.
-                    // But user wants it "always".
-                    // Let's try to auto-create or just handle it gracefully.
-                    // If we don't have an ID, we can't PATCH.
-                    // So we might need to POST first if they type.
-                }
-            } else {
-                status.innerText = 'Error loading';
-            }
-        } catch (e) {
-            console.error('Error loading note:', e);
-            status.innerText = 'Error';
-        }
-    };
-
-    try {
-        await loadNote();
-    } finally {
-        // 'Locked' (ontsleutelen mislukt) houdt hem bewust dicht.
-        if (status.innerText !== 'Locked') textarea.disabled = false;
-    }
+    await card.load();
 
     // 7. Save Logic
-    let dirty = false;
-    let saveChain = Promise.resolve();
-
+    // Geeft true alleen als de notitie op de server staat; bij false houdt
+    // card.flush de kaart dirty, zodat de volgende flush het opnieuw probeert.
     const saveNote = async () => {
+        // Tweede slot, los van de dichte textarea: een kaart die niet geladen
+        // is weet niet wat er op de server staat, en een PATCH zou die
+        // notitie vervangen door alleen wat hier getypt is.
+        if (!card.isLoaded()) return false;
         status.innerText = 'Saving...';
         try {
-            // connectionId komt uit loadNote, dat één keer draait bij
-            // het plaatsen van de kaart. Stond het profiel toen nog
+            // connectionId komt uit card.load, bij het plaatsen van
+            // de kaart of bij een Retry. Stond het profiel toen nog
             // niet in de CRM, dan bleef dit voor altijd null - ook
             // nadat de gebruiker op "Add to Rldnk" had geklikt en het
             // profiel er wél in stond. De kaart weigerde dan met "Add
@@ -572,6 +544,11 @@ async function attachNoteBehaviour(container, textarea, status) {
             // Daarom hier opnieuw ophalen in plaats van vertrouwen op
             // wat we bij het laden zagen. Dat haalt de volgorde-eis
             // tussen knop en kaart helemaal weg.
+            //
+            // unseen: is het id hier nog null, dan komt het straks niet uit
+            // card.load en heeft deze kaart de notitie van die connectie
+            // nooit getoond. Zie de controle vóór het versleutelen.
+            const unseen = !connectionId;
             if (!connectionId) {
                 connectionId = await findConnectionId(cardUrl);
             }
@@ -591,7 +568,25 @@ async function attachNoteBehaviour(container, textarea, status) {
                 // onbereikbaar. createConnectionForProfile
                 // logt waarom.
                 status.innerText = 'Add to Rldnk first';
-                return;
+                return false;
+            }
+
+            // "Not in Rldnk yet" gold bij het laden, niet voorgoed: de popup
+            // maakt de connectie mét notitie aan, een tweede tabblad ook, en
+            // een 409 hierboven betekent precies dat. Alleen het getypte
+            // PATCHen zou die notitie vervangen. Dus eerst lezen en beide
+            // bewaren (textForUnseenNote, getest in note-card.test.ts). Lukt
+            // dat lezen niet, dan niets versturen en het id vergeten: de
+            // volgende save zoekt en leest opnieuw.
+            if (unseen) {
+                const current = await readCardNote();
+                const text = textForUnseenNote(current, connectionId, textarea.value);
+                if (text === null) {
+                    connectionId = null;
+                    status.innerText = 'Save failed';
+                    return false;
+                }
+                if (text !== textarea.value) textarea.value = text;
             }
 
             // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
@@ -602,7 +597,7 @@ async function attachNoteBehaviour(container, textarea, status) {
             } catch (encryptError) {
                 console.error('Error encrypting note:', encryptError);
                 status.innerText = 'Save failed';
-                return;
+                return false;
             }
 
             const resp = await apiRequest({
@@ -611,32 +606,35 @@ async function attachNoteBehaviour(container, textarea, status) {
                 body: { id: connectionId, notes: notesPayload },
             });
 
-            if (resp.status === 401) {
-                status.innerText = 'Not logged in';
-            } else if (resp.ok) {
+            if (resp.ok) {
                 status.innerText = 'Saved';
-            } else {
-                status.innerText = 'Save failed';
+                return true;
             }
+            status.innerText = resp.status === 401 ? 'Not logged in' : 'Save failed';
+            return false;
         } catch (e) {
             console.error('Error saving note:', e);
             status.innerText = 'Error';
+            return false;
         }
     };
 
-    // Saves lopen achter elkaar: versleutelen en PATCH zijn async, en twee
-    // tegelijk lopende saves konden in de verkeerde volgorde landen. Elke
-    // save leest textarea.value pas als hij aan de beurt is, dus de
-    // laatst getypte tekst wint altijd.
+    // Saves lopen achter elkaar (card.flush): versleutelen en PATCH zijn
+    // async, en twee tegelijk lopende saves konden in de verkeerde volgorde
+    // landen. Elke save leest textarea.value pas als hij aan de beurt is,
+    // dus de laatst getypte tekst wint altijd. Een mislukte save laat de
+    // kaart dirty: de volgende input of pagehide/visibilitychange probeert
+    // het opnieuw. Bewust geen eigen timer - de rate limiter telt per IP.
+    // Niet meer na de laatste flush van een weggehaalde kaart (hieronder):
+    // daarna luistert er niets meer.
     const flushSave = () => {
-        if (!dirty) return;
-        dirty = false;
         clearTimeout(debounceTimer);
-        saveChain = saveChain.then(saveNote);
+        // Wordt nooit rejected: card.flush vangt een mislukte save zelf af.
+        void card.flush();
     };
 
     textarea.addEventListener('input', () => {
-        dirty = true;
+        card.markDirty();
         status.innerText = 'Typing...';
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
@@ -811,14 +809,37 @@ async function injectContextField() {
             textarea.style.boxSizing = 'border-box'; // Ensure padding doesn't overflow
             container.appendChild(textarea);
 
-            // Status/Save Indicator
+            // Status/Save Indicator, with a Retry button beside it for a load
+            // that failed (note-card.ts shows and hides it). A sibling, not a
+            // child: status.innerText replaces everything inside the status.
+            const footer = document.createElement('div');
+            footer.style.display = 'flex';
+            footer.style.justifyContent = 'flex-end';
+            footer.style.alignItems = 'center';
+            footer.style.gap = '8px';
+            footer.style.marginTop = '4px';
+            footer.style.height = '16px'; // Prevent layout jump
+
             const status = document.createElement('div');
             status.style.fontSize = '12px';
             status.style.color = 'gray';
-            status.style.marginTop = '4px';
             status.style.textAlign = 'right';
-            status.style.height = '16px'; // Prevent layout jump
-            container.appendChild(status);
+            footer.appendChild(status);
+
+            const retryButton = document.createElement('button');
+            retryButton.type = 'button';
+            retryButton.textContent = 'Retry';
+            retryButton.style.background = 'none';
+            retryButton.style.border = 'none';
+            retryButton.style.padding = '0';
+            retryButton.style.fontSize = '12px';
+            retryButton.style.lineHeight = '16px';
+            retryButton.style.fontFamily = 'inherit';
+            retryButton.style.color = '#0a66c2'; // LinkedIn Blue, like the title
+            retryButton.style.textDecoration = 'underline';
+            retryButton.style.cursor = 'pointer';
+            footer.appendChild(retryButton);
+            container.appendChild(footer);
 
             // Insert the card below the whole profile header.
             //
@@ -834,7 +855,7 @@ async function injectContextField() {
                 console.warn('Rolodink: profielkaart heeft geen ouder - de notitiekaart kan niet geplaatst worden');
             }
 
-            await attachNoteBehaviour(container, textarea, status);
+            await attachNoteBehaviour(container, textarea, status, retryButton);
         }
 
         // Reset injection flag (success)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import contentSource from './main.js?raw';
+import noteCardSource from './note-card.ts?raw';
 
 /**
  * The class names that stopped existing, guarded against coming back.
@@ -15,6 +16,11 @@ import contentSource from './main.js?raw';
  */
 
 const code = contentSource
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+
+// Bundled into the same content.js, so the platform rules hold for it too.
+const noteCardCode = noteCardSource
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*$/gm, '');
 
@@ -173,6 +179,13 @@ describe('one bundle runs on all three browsers', () => {
         expect(code).not.toMatch(/\bchrome\.\w/);
     });
 
+    it('keeps note-card.ts off the platform and the network as well', () => {
+        // main.js supplies its I/O; a direct call here would skip the adapter
+        // and the worker both.
+        expect(noteCardCode).not.toMatch(/\b(chrome|browser)\.\w/);
+        expect(noteCardCode).not.toMatch(/\bfetch\(/);
+    });
+
     it('does not assume the platform is there', () => {
         // The content script outlives its extension: a reload or an uninstall
         // leaves it running in a page that was never ours.
@@ -215,11 +228,84 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName())');
     });
 
-    it('keeps the textarea closed until the existing note has loaded', () => {
-        // loadNote assigns textarea.value; anything typed before it lands is
-        // silently overwritten.
-        expect(code).toContain('textarea.disabled = true;');
-        expect(code).toContain("if (status.innerText !== 'Locked') textarea.disabled = false;");
+    it('leaves opening the textarea to the tested note card', () => {
+        // What stood here pinned `if (status.innerText !== 'Locked')
+        // textarea.disabled = false;` - a finally block that opened the field
+        // after a 429, a 5xx, a 401 and a timeout too. The field was then empty
+        // while a note existed on the server, and the first save PATCHed what
+        // had been typed over it. Which loads may open the field is decided in
+        // note-card.ts, tested in note-card.test.ts; main.js must not open it
+        // on its own.
+        expect(code).toContain('createNoteCard(');
+        expect(code).toContain('await card.load();');
+        expect(code).not.toMatch(/textarea\.disabled\s*=\s*false/);
+        expect(code).not.toMatch(/status\.innerText\s*!==?\s*'Locked'/);
+        // And it loads through readNote, which is what tells a 429 from "not in
+        // the CRM": a lenient inline load here brings the bug back with every
+        // test in note-card.test.ts still green.
+        expect(code).toContain('readNote(');
+        expect(code).toContain('isAttached: () => container.isConnected');
+        // The Retry that note-card.ts shows has to be on the card to be clicked.
+        expect(code).toContain('footer.appendChild(retryButton)');
+    });
+
+    it("loads the card's own profile, also on a retry", () => {
+        // A Retry can run after an SPA navigation; the live location then
+        // belongs to the next profile.
+        expect(code).toContain('legacyNormalizeLinkedInUrl(cardUrl)');
+    });
+
+    it('checks that the card loaded before a save sends anything', () => {
+        // Defence in depth behind the closed textarea: a card that does not know
+        // what the server holds must not PATCH over it.
+        const start = code.indexOf('const saveNote = async');
+        expect(start).toBeGreaterThan(-1);
+        const save = code.slice(start);
+        const gate = save.indexOf('if (!card.isLoaded()) return false;');
+        expect(gate).toBeGreaterThan(-1);
+        for (const call of ['findConnectionId(', 'createConnectionForProfile(', 'encryptNoteText(', 'apiRequest(']) {
+            expect(save.indexOf(call)).toBeGreaterThan(gate);
+        }
+    });
+
+    it('reads a connection the card did not load before saving over its note', () => {
+        // "Not in Rldnk yet" holds when the card loads, not for good: the popup
+        // can create the connection with a note after that, and so can a second
+        // tab. The save that then found the id PATCHed what had been typed here
+        // over that note. textForUnseenNote decides what may be sent (see
+        // note-card.test.ts); this pins that saveNote asks it after finding the
+        // id and before encrypting anything, and forgets an id it could not
+        // check, so the next save reads again instead of PATCHing straight over.
+        // "Did not load" is read off connectionId, so the load has to set it:
+        // without this line every first save would read the note it already
+        // showed and put it in the field twice.
+        expect(code).toContain("if (note.state === 'loaded') connectionId = note.connectionId;");
+        const save = code.slice(code.indexOf('const saveNote = async'));
+        const unseen = save.indexOf('const unseen = !connectionId;');
+        const check = save.indexOf('textForUnseenNote(');
+        const encrypt = save.indexOf('encryptNoteText(');
+        expect(unseen).toBeGreaterThan(-1);
+        expect(save.indexOf('findConnectionId(')).toBeGreaterThan(unseen);
+        expect(check).toBeGreaterThan(save.indexOf('createConnectionForProfile('));
+        expect(encrypt).toBeGreaterThan(check);
+        expect(save).toMatch(/if \(unseen\) \{\s*const current = await readCardNote\(\);/);
+        // The kept text goes into the field, which is what gets encrypted -
+        // now and in every later save to this id.
+        expect(save.slice(check, encrypt)).toContain('textarea.value = text;');
+        expect(save.slice(check, encrypt)).toContain('connectionId = null;');
+    });
+
+    it('keeps a failed save dirty by saving through the card', () => {
+        // flushSave used to clear its own `dirty` before the save ran, so a
+        // failed save was never tried again.
+        expect(code).toContain('card.markDirty()');
+        expect(code).toContain('card.flush()');
+        expect(code).not.toMatch(/\bdirty\s*=/);
+        // That only works while saveNote answers true exactly when the note is
+        // on the server: after an ok PATCH, and nowhere else.
+        const save = code.slice(code.indexOf('const saveNote = async'), code.indexOf('const flushSave'));
+        expect(save.match(/return true;/g)).toHaveLength(1);
+        expect(save).toMatch(/status\.innerText = 'Saved';\s*return true;/);
     });
 
     it('flushes a pending save when the page is hidden or unloaded', () => {
