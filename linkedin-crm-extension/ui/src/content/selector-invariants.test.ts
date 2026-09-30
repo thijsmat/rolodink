@@ -313,3 +313,28 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(code).toContain("addEventListener('visibilitychange', flushOnHide)");
     });
 });
+
+describe('one GET per profile visit', () => {
+    // shared-lookup.test.ts proves the helper sends one request for two
+    // callers. These pin that main.js routes both callers through it, and
+    // that the save path does not.
+    it('shares the lookup between the button and the card load', () => {
+        expect(code).toContain('createInFlightSharing()');
+        expect(code).toContain('await lookupConnection(window.location.href)');
+        expect(code).toContain('readNote(() => lookupConnection(cardUrl), decryptNoteText)');
+    });
+
+    it('keeps the save path on a fresh GET', () => {
+        const find = code.slice(code.indexOf('async function findConnectionId'));
+        const body = find.slice(0, find.indexOf('\n}\n'));
+        expect(body).not.toContain('lookupConnection');
+        expect(body).toContain('apiRequest(');
+    });
+
+    it('moves a misplaced button instead of rebuilding it', () => {
+        // A rebuilt button asks the API again for an answer it already shows.
+        expect(code).not.toMatch(/existingButton\.remove\(\)/);
+        expect(code).toContain('placeButton(existingButton, anchorButton, container)');
+        expect(code).toContain('styleButtonLike(existingButton, anchorButton)');
+    });
+});
