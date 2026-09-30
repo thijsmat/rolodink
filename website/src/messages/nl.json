@@ -601,7 +601,7 @@
             {
                 "title": "Bescherming tegen misbruik",
                 "paragraphs": [
-                    "Alle API-routes hebben een rate limit per IP-adres. De API accepteert alleen verzoeken van goedgekeurde origins (CORS-allowlist) en invoer wordt gevalideerd voordat die wordt verwerkt."
+                    "De API hanteert rate limits per IP-adres, met een strengere limiet voor inloggen en registreren. De API accepteert alleen verzoeken van goedgekeurde origins (CORS-allowlist) en invoer wordt gevalideerd voordat die wordt verwerkt."
                 ]
             },
             {

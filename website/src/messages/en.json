@@ -601,7 +601,7 @@
             {
                 "title": "Protection against abuse",
                 "paragraphs": [
-                    "All API routes are rate limited per IP address. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
+                    "The API applies rate limits per IP address, with a stricter limit for signing in and signing up. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
                 ]
             },
             {
