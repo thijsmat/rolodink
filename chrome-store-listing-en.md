@@ -6,7 +6,7 @@
 **Summary:** Your note layer on top of LinkedIn, your modern rolodex.  
 **Description:** 
 
-Rolodink transforms your LinkedIn into a powerful, organized network. Save notes on every connection, remember conversations, and follow up smarter - all without leaving LinkedIn.
+Rolodink turns LinkedIn into your own organized network. Save a note on every connection, remember where you met and what you talked about, and find anyone again in seconds, all without leaving LinkedIn.
 
 **Key Features:**
 • Add notes directly on LinkedIn profiles
@@ -14,7 +14,6 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 • Works in Chrome, Edge and Firefox
 • Search and filter your network
 • Privacy-first: your data stays yours
-• Works instantly - no training needed
 
 **Perfect for:**
 - Recruiters and talent acquisition
@@ -31,22 +30,21 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 
 **Privacy & Security:**
 - No tracking in the extension
-- Secure cloud storage
-- Full control over your data
-- Open source transparency
+- Notes are encrypted before they are stored
+- Export or delete your data anytime
 
 Stop forgetting conversations. Start building meaningful relationships with Rolodink.
 
 **Category:** Productivity  
 **Language:** English  
-**Website:** https://rolodink.app  
+**Homepage URL:** https://rolodink.app (exact zo, en geverifieerd in Google Search Console)  
 **Support:** hello@rolodink.app
 
 ## Screenshots
 
 **Screenshot 1 - LinkedIn Integration:**
 - Title: "Add notes directly on LinkedIn"
-- Description: "Click 'Add to CRM' on any LinkedIn profile to save notes and context"
+- Description: "Click 'Add to Rldnk' on any LinkedIn profile to save notes and context"
 
 **Screenshot 2 - Note Management:**
 - Title: "Organize your network"
@@ -64,13 +62,12 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 - Privacy-friendly website analytics only
 
 **Permissions:**
-- LinkedIn access: to show the "Add to CRM" button
+- LinkedIn access: to show the "Add to Rldnk" button and the note card
 - Local storage: for settings and UI preferences
 - No data sharing with third parties
 
 **Your Rights:**
 - Export or delete your data anytime
-- Full transparency via open source code
 - Contact: hello@rolodink.app
 
 ## Support Information
@@ -82,9 +79,9 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 
 ## Technical Details
 
-**Version:** 1.0.2  
+**Version:** 1.3.7  
 **Size:** ~2MB  
-**Permissions:** activeTab, scripting, storage, tabs  
+**Permissions:** activeTab, storage, identity  
 **Host permissions:** linkedin.com, api.rolodink.app  
 **Manifest:** v3  
 **Compatibility:** Chrome, Edge, Brave (Chromium-based browsers)
