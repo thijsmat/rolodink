@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { buildCorsHeaders } from '@/lib/cors';
+import { revalidateTag } from 'next/cache';
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
@@ -58,6 +59,14 @@ export async function POST(request: NextRequest) {
         updatedCount++;
         updates.push({ id: connection.id, originalName, cleanedName });
       }
+    }
+
+    // The connection list is served through unstable_cache tagged per user
+    // (connections/route.ts). Every other writer expires that tag; this one
+    // did not, so renamed connections kept their old names in the popup until
+    // the cache revalidated on its own.
+    if (updatedCount > 0) {
+      revalidateTag(`connections-${user.id}`, { expire: 0 });
     }
 
     return NextResponse.json(
