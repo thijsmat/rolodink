@@ -5,10 +5,10 @@
  * exactly what the prompt asked for got "Account deletion cancelled." and had
  * no way to delete their account from the extension.
  */
-const CONFIRMATION_WORDS = ['DELETE', 'VERWIJDER'];
+const CONFIRMATION_WORDS = new Set(['DELETE', 'VERWIJDER']);
 
 /** Whether the prompt's answer confirms deletion. null is the Cancel button. */
 export function isDeleteConfirmation(answer: string | null | undefined): boolean {
     if (typeof answer !== 'string') return false;
-    return CONFIRMATION_WORDS.includes(answer.trim().toUpperCase());
+    return CONFIRMATION_WORDS.has(answer.trim().toUpperCase());
 }

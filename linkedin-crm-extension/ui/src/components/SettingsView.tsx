@@ -231,7 +231,7 @@ export function SettingsView() {
 
       // Log user out after successful deletion
       setTimeout(() => {
-        handleLogout();
+        handleLogout().catch(console.error);
       }, 2000);
 
     } catch (e) {

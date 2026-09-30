@@ -353,7 +353,7 @@ export function useConnectionLogic(user: User | null) {
                 await fetchData();
             }
         };
-        initialize();
+        initialize().catch(console.error);
     }, [initializeFromCache, fetchData, user]);
 
     const handleCreateConnection = async (formData: ConnectionFormData) => {
