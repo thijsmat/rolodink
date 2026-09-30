@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
         // resolve.
         //
         // Keep in sync with `paths` in tsconfig.app.json and with the alias in
-        // vite.background.config.ts.
+        // vite.background.config.ts and vitest.config.ts.
         '@rolodink/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
       },
     },

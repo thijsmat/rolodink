@@ -6,6 +6,7 @@ import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
+import { LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
 
 // Helper functions (copied from ConnectionContext)
 const warnOnce = (() => {
@@ -100,10 +101,10 @@ async function decryptConnections(connections: Connection[]): Promise<Connection
                     const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
                     (decrypted as Record<string, unknown>)[field] = response?.success
                         ? response.plaintext
-                        : '🔒 [Encrypted - Passphrase Required]';
+                        : LOCKED_FIELD_PLACEHOLDER;
                 } catch (e) {
                     console.warn(`[Decryption] Failed for field '${field}':`, e);
-                    (decrypted as Record<string, unknown>)[field] = '🔒 [Encrypted - Passphrase Required]';
+                    (decrypted as Record<string, unknown>)[field] = LOCKED_FIELD_PLACEHOLDER;
                 }
             }
         }
@@ -352,7 +353,7 @@ export function useConnectionLogic(user: User | null) {
                 await fetchData();
             }
         };
-        initialize();
+        initialize().catch(console.error);
     }, [initializeFromCache, fetchData, user]);
 
     const handleCreateConnection = async (formData: ConnectionFormData) => {
@@ -455,21 +456,15 @@ export function useConnectionLogic(user: User | null) {
                 throw new Error('Connection ID ontbreekt.');
             }
 
-            const encryptedForm = await encryptFormData({
-                meetingPlace: formData.meetingPlace,
-                userCompanyAtTheTime: formData.userCompanyAtTheTime,
-                notes: formData.notes,
-                email: formData.email,
-                phone: formData.phone,
-            });
+            // Only what the form actually has, minus anything it showed as locked.
+            // A field left out of a PATCH stays as it is on the server; null
+            // would clear it. See pickFieldsToUpdate.
+            const { fields, skippedUnreadable } = pickFieldsToUpdate(formData, SENSITIVE_FIELDS);
+            const encryptedFields = await encryptFormData(fields);
 
             const payload = {
                 id: idToUse,
-                meetingPlace: encryptedForm.meetingPlace ?? null,
-                userCompanyAtTheTime: encryptedForm.userCompanyAtTheTime ?? null,
-                notes: encryptedForm.notes ?? null,
-                email: encryptedForm.email ?? null,
-                phone: encryptedForm.phone ?? null,
+                ...encryptedFields,
             };
 
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
@@ -497,7 +492,9 @@ export function useConnectionLogic(user: User | null) {
             const newCached = cachedConnections.map((conn: Connection) => conn.id === updated.id ? updated : conn);
             await saveConnectionsToCache(newCached);
 
-            setToastMessage('Connectie bijgewerkt.');
+            setToastMessage(skippedUnreadable.length > 0
+                ? 'Connectie bijgewerkt. Vergrendelde velden zijn niet gewijzigd.'
+                : 'Connectie bijgewerkt.');
         } catch (e: unknown) {
             console.error('Fout bij bijwerken:', e);
             setError('Kon de connectie niet bijwerken.');
@@ -534,9 +531,13 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error('Verwijderen mislukt');
             setConnection(null);
 
-            const updatedConnections = allConnections.filter(conn => conn.id !== idToUse);
-            setAllConnections(updatedConnections);
-            await saveConnectionsToCache(updatedConnections);
+            setAllConnections(allConnections.filter(conn => conn.id !== idToUse));
+
+            // The cache holds the server's encrypted rows. allConnections is the
+            // decrypted copy for display, and writing that back put every note
+            // in plain text into browser storage.
+            const cachedConnections = await loadCachedConnections();
+            await saveConnectionsToCache(cachedConnections.filter((conn: Connection) => conn.id !== idToUse));
 
             setToastMessage('Connectie verwijderd.');
         } catch (e) {

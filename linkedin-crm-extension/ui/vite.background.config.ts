@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     return {
         resolve: {
             alias: {
-                // Keep in sync with vite.config.ts and tsconfig.app.json.
+                // Keep in sync with vite.config.ts, vitest.config.ts and tsconfig.app.json.
                 // See the note there for why this is an alias rather than a
                 // workspace dependency.
                 '@rolodink/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),

@@ -18,8 +18,8 @@
 
     /* @rolodink/core is source-only TypeScript in the monorepo, reached by
        path rather than by dependency - `ui` has its own lockfile and is not a
-       workspace member. Mirrors the resolve.alias in vite.config.ts and
-       vite.background.config.ts; all three must agree.
+       workspace member. Mirrors the resolve.alias in vite.config.ts,
+       vite.background.config.ts and vitest.config.ts; all four must agree.
 
        No baseUrl needed: relative paths are allowed under moduleResolution
        "bundler". `include` deliberately stays ["src"] - TypeScript pulls the
