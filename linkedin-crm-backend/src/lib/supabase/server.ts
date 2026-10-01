@@ -51,8 +51,13 @@ export interface GetUserOptions {
 	strict?: boolean;
 }
 
-function expectedIssuer(): string {
-	return `${new URL(supabaseUrl).origin}/auth/v1`;
+// The issuer must be a Supabase Auth endpoint. It is not compared with
+// NEXT_PUBLIC_SUPABASE_URL: with a custom Auth domain the two differ and every
+// request would get a 401. Which project signed the token is already settled
+// by the signature, checked against this project's JWKS (or, for HS256, by the
+// Auth server itself).
+function isAuthIssuer(iss: unknown): boolean {
+	return typeof iss === 'string' && iss.endsWith('/auth/v1');
 }
 
 function hasAuthenticatedAudience(aud: unknown): boolean {
@@ -74,7 +79,7 @@ function isWithinValidity(claims: JwtPayload, nowSeconds: number): boolean {
 export function userFromClaims(claims: JwtPayload | null | undefined, nowSeconds = Math.floor(Date.now() / 1000)): AuthUser | null {
 	if (!claims || typeof claims.sub !== 'string' || claims.sub === '') return null;
 	if (claims.role !== AUTHENTICATED || !hasAuthenticatedAudience(claims.aud)) return null;
-	if (claims.iss !== expectedIssuer() || !isWithinValidity(claims, nowSeconds)) return null;
+	if (!isAuthIssuer(claims.iss) || !isWithinValidity(claims, nowSeconds)) return null;
 	return { id: claims.sub, email: typeof claims.email === 'string' ? claims.email : undefined };
 }
 
