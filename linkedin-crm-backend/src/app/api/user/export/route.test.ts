@@ -8,6 +8,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 import { GET } from './route';
+import { getUserFromRequest } from '@/lib/supabase/server';
 
 // Mirrors SENSITIVE_FIELDS in packages/core/src/fields.ts. A field added there
 // has to be exported too (GDPR data portability).
@@ -52,6 +53,7 @@ describe('GET /api/user/export', () => {
   it('exports every sensitive field, exactly as stored', async () => {
     const res = await GET(exportRequest('203.0.113.30'));
     expect(res.status).toBe(200);
+    expect(getUserFromRequest).toHaveBeenCalledWith(expect.anything(), { strict: true });
     expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'user-1' } }));
     const body = await res.json();
 
