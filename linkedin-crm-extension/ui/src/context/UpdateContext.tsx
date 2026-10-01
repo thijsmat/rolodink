@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config';
+import { getBrowserAPI } from '../utils/browser';
+import { isStaleUpdate, shouldCheckForUpdates, UPDATE_CHECK_INTERVAL_MS } from '../utils/updateCheck';
 
 interface VersionInfo {
   latest: string;
@@ -33,26 +35,40 @@ const warnOnce = (() => {
   };
 })();
 
-const getChromeStorage = () => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    warnOnce(
-      'update-storage',
-      '[UpdateContext] chrome.storage.local is unavailable. Running outside the extension environment.'
-    );
+// Through getBrowserAPI, not a bare chrome.*: in Firefox that global is a
+// callback-style shim and an await on it yields undefined instead of the data.
+// Outside the extension (vite dev, tests) neither global exists and
+// getBrowserAPI throws a ReferenceError on `chrome`; that is "no platform".
+const getPlatform = (): typeof chrome | null => {
+  try {
+    return getBrowserAPI() ?? null;
+  } catch {
     return null;
   }
-  return chrome.storage.local;
 };
 
-const getChromeRuntime = () => {
-  if (typeof chrome === 'undefined' || !chrome.runtime?.getManifest) {
+const getExtensionStorage = () => {
+  const storage = getPlatform()?.storage?.local;
+  if (!storage) {
     warnOnce(
-      'update-runtime',
-      '[UpdateContext] chrome.runtime is unavailable. Running outside the extension environment.'
+      'update-storage',
+      '[UpdateContext] storage.local is unavailable. Running outside the extension environment.'
     );
     return null;
   }
-  return chrome.runtime;
+  return storage;
+};
+
+const getExtensionRuntime = () => {
+  const runtime = getPlatform()?.runtime;
+  if (!runtime?.getManifest) {
+    warnOnce(
+      'update-runtime',
+      '[UpdateContext] runtime is unavailable. Running outside the extension environment.'
+    );
+    return null;
+  }
+  return runtime;
 };
 
 export function UpdateProvider({ children }: { children: React.ReactNode }) {
@@ -63,7 +79,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const getCurrentVersion = useCallback(() => {
     // Get version from Chrome extension manifest
     try {
-      const runtime = getChromeRuntime();
+      const runtime = getExtensionRuntime();
       if (!runtime) {
         return '0.0.0';
       }
@@ -97,7 +113,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       
       // Check if this is a new update (different from previously dismissed)
-      const storage = getChromeStorage();
+      const storage = getExtensionStorage();
       const result = storage ? await storage.get(['dismissedVersion']) : {};
       const isNewUpdate = data.updateAvailable && data.latest !== result?.dismissedVersion;
       
@@ -109,13 +125,16 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       
       setVersionInfo(data);
 
-      // Store update info in chrome storage for persistence
+      // Record every successful check, not only one that found an update.
+      // Written only in that case, the 24-hour limit below never applied to
+      // anyone already on the latest version: every popup open asked again.
       if (storage) {
+        await storage.set({
+          lastUpdateCheck: Date.now(),
+          lastCheckedVersion: currentVersion,
+        });
         if (data.updateAvailable) {
-          await storage.set({
-            updateInfo: data,
-            lastUpdateCheck: Date.now(),
-          });
+          await storage.set({ updateInfo: data });
         } else {
           // Clear any existing update info if no update available
           await storage.remove(['updateInfo']);
@@ -137,7 +156,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
     // Store dismissal in chrome storage first to ensure consistency
     try {
-      const storage = getChromeStorage();
+      const storage = getExtensionStorage();
       if (!storage) {
         return;
       }
@@ -156,57 +175,55 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize update system (load cached data and check for updates)
   useEffect(() => {
+    const scheduleCheck = () => {
+      // Delay initial check to not interfere with login
+      setTimeout(() => {
+        void checkForUpdates();
+      }, 3000);
+    };
+
     const initializeUpdateSystem = async () => {
       try {
-        const storage = getChromeStorage();
+        const storage = getExtensionStorage();
         if (!storage) {
           return;
         }
-        const result = await storage.get(['dismissedVersion', 'updateInfo', 'lastUpdateCheck']);
+        const result = await storage.get([
+          'dismissedVersion',
+          'updateInfo',
+          'lastUpdateCheck',
+          'lastCheckedVersion',
+        ]);
         const currentVersion = getCurrentVersion();
         console.log('Initializing update system, current version:', currentVersion);
-        
-        // Load cached update info if available
-        if (result.updateInfo) {
-          setVersionInfo(result.updateInfo);
-          
-          // Check if this specific update was previously dismissed
-          if (result.dismissedVersion === result.updateInfo.latest) {
-            setUpdateDismissed(true);
-            console.log('Update notification dismissed for version:', result.updateInfo.latest);
-          } else {
-            // If cached update is different from dismissed version, it's a newer update
-            setUpdateDismissed(false);
-            console.log('New update available (different from dismissed):', result.updateInfo.latest);
-          }
+
+        const cached: VersionInfo | undefined = result.updateInfo;
+        if (cached && isStaleUpdate(currentVersion, cached.latest)) {
+          // The banner offered a version that is installed by now.
+          await storage.remove(['updateInfo']);
+        } else if (cached) {
+          setVersionInfo(cached);
+          // Dismissed only for this exact version; a newer one shows again.
+          setUpdateDismissed(result.dismissedVersion === cached.latest);
         }
-        
-        // Always check for updates if enough time has passed, regardless of dismissal state
-        // This ensures users get notified of newer versions even after dismissing older ones
-        const lastCheck = result.lastUpdateCheck || 0;
+
+        // Once a day, whether or not the last check found an update, and at
+        // once after the extension itself was updated.
         const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-        const shouldCheck = !result.updateInfo || (now - lastCheck > oneDay);
-        
-        if (shouldCheck) {
-          // Delay initial check to not interfere with login
-          setTimeout(() => {
-            checkForUpdates();
-          }, 3000);
+        if (shouldCheckForUpdates(result, currentVersion, now)) {
+          scheduleCheck();
         } else {
-          console.log('Using cached update info, next check in', Math.round((oneDay - (now - lastCheck)) / (60 * 60 * 1000)), 'hours');
+          const hoursLeft = Math.round((UPDATE_CHECK_INTERVAL_MS - (now - result.lastUpdateCheck)) / (60 * 60 * 1000));
+          console.log('Using cached update info, next check in', hoursLeft, 'hours');
         }
-        
       } catch (error) {
         console.warn('Error initializing update system:', error);
         // Fallback: check for updates after delay
-        setTimeout(() => {
-          checkForUpdates();
-        }, 3000);
+        scheduleCheck();
       }
     };
 
-    initializeUpdateSystem();
+    void initializeUpdateSystem();
   }, [getCurrentVersion, checkForUpdates]);
 
   // Periodic update check (every hour, but only if no update is currently available)
@@ -218,17 +235,13 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        const storage = getChromeStorage();
+        const storage = getExtensionStorage();
         if (!storage) {
           return;
         }
-        const result = await storage.get(['lastUpdateCheck']);
-        const lastCheck = result.lastUpdateCheck || 0;
-        const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-        if (now - lastCheck > oneDay) {
-          checkForUpdates();
+        const result = await storage.get(['lastUpdateCheck', 'lastCheckedVersion']);
+        if (shouldCheckForUpdates(result, getCurrentVersion(), Date.now())) {
+          await checkForUpdates();
         }
       } catch (error) {
         console.warn('Error in periodic update check:', error);
@@ -236,10 +249,12 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Set up interval for periodic checks (every hour)
-    const interval = setInterval(checkPeriodically, 60 * 60 * 1000);
+    const interval = setInterval(() => {
+      void checkPeriodically();
+    }, 60 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [versionInfo, checkForUpdates]);
+  }, [versionInfo, checkForUpdates, getCurrentVersion]);
 
   const value: UpdateContextState = {
     versionInfo,

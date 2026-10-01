@@ -290,4 +290,137 @@ describe('createInjectionScheduler', () => {
         expect(runs).toBe(atStop);
         expect(clock.pendingCount).toBe(0);
     });
+    it('keeps a single heartbeat chain when a run restarts from inside a beat', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        // What main.js does: a heartbeat tick notices an SPA navigation and
+        // calls restart() from within the run.
+        const scheduler: ReturnType<typeof createInjectionScheduler> = createInjectionScheduler({
+            run: () => {
+                runs++;
+                if (runs === 2) scheduler.restart();
+            },
+            cooldownMs: 10,
+            settlingIntervalMs: 1_000,
+            settlingTicks: 100,
+            idleIntervalMs: 1_000,
+            timers: clock.timers,
+        });
+
+        await clock.advance(1_000); // first beat: run 1
+        await clock.advance(1_000); // second beat: run 2 restarts
+        // One armed beat plus at most a cooldown, never two beats.
+        await clock.advance(10_000);
+        const before = runs;
+        await clock.advance(10_000);
+        // One chain at 1 s gives ten runs in ten seconds; two chains twenty.
+        expect(runs - before).toBe(10);
+
+        scheduler.stop();
+    });
+
+    it('does not tick while paused, and leaves no heartbeat armed', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        const scheduler = createInjectionScheduler({
+            run: () => { runs++; },
+            cooldownMs: 10,
+            settlingIntervalMs: 1_000,
+            idleIntervalMs: 5_000,
+            timers: clock.timers,
+        });
+
+        scheduler.pause();
+        // Off a profile, or a hidden tab: no timer left to wake the page.
+        expect(clock.pendingCount).toBe(0);
+        await clock.advance(60_000);
+        expect(runs).toBe(0);
+
+        scheduler.stop();
+    });
+
+    it('still runs requests while paused, so a navigation is noticed', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        const scheduler = createInjectionScheduler({
+            run: () => { runs++; },
+            cooldownMs: 10,
+            settlingIntervalMs: 1_000,
+            timers: clock.timers,
+        });
+
+        scheduler.pause();
+        scheduler.request();
+        expect(runs).toBe(1);
+        await clock.advance(60_000);
+        expect(runs).toBe(1);
+
+        scheduler.stop();
+    });
+
+    it('does not re-arm the heartbeat on a restart while paused', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        const scheduler = createInjectionScheduler({
+            run: () => { runs++; },
+            cooldownMs: 10,
+            settlingIntervalMs: 1_000,
+            timers: clock.timers,
+        });
+
+        scheduler.pause();
+        // Navigation from one non-profile page to another.
+        scheduler.restart();
+        expect(runs).toBe(1);
+        await clock.advance(60_000);
+        expect(runs).toBe(1);
+        expect(clock.pendingCount).toBe(0);
+
+        scheduler.stop();
+    });
+
+    it('checks at once and resumes the heartbeat on resume', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        const scheduler = createInjectionScheduler({
+            run: () => { runs++; },
+            cooldownMs: 10,
+            settlingIntervalMs: 1_000,
+            settlingTicks: 100,
+            timers: clock.timers,
+        });
+
+        scheduler.pause();
+        scheduler.pause();
+        await clock.advance(10_000);
+        expect(runs).toBe(0);
+
+        scheduler.resume();
+        expect(runs).toBe(1);
+        // A second resume is a no-op: no extra run, no second chain.
+        scheduler.resume();
+        await clock.advance(20);
+        expect(runs).toBe(1);
+
+        await clock.advance(5_000);
+        expect(runs).toBe(1 + 5);
+
+        scheduler.stop();
+    });
+
+    it('stays stopped when resumed after stop', async () => {
+        const clock = new FakeClock();
+        let runs = 0;
+        const scheduler = createInjectionScheduler({
+            run: () => { runs++; },
+            timers: clock.timers,
+        });
+
+        scheduler.pause();
+        scheduler.stop();
+        scheduler.resume();
+        await clock.advance(60_000);
+        expect(runs).toBe(0);
+        expect(clock.pendingCount).toBe(0);
+    });
 });

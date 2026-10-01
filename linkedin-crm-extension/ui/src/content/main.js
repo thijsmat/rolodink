@@ -43,6 +43,7 @@ import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
 import { extractRawProfileName } from './profile';
 import { createNoteCard, readNote, textForUnseenNote } from './note-card';
+import { createInFlightSharing } from './shared-lookup';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -124,6 +125,33 @@ async function apiRequest({ path, method = 'GET', query, body }) {
         throw new Error(response?.error || 'API request failed');
     }
     return response;
+}
+
+/**
+ * Lopende GET's op /api/connections?url=, per genormaliseerde url.
+ *
+ * De knop en de notitiekaart vragen op elk profiel in dezelfde ronde exact
+ * hetzelfde; wie als tweede komt, hangt aan het verzoek van de eerste. Alleen
+ * zolang het loopt: een afgerond antwoord wordt nooit bewaard, dus geen 401,
+ * 429 of 5xx die een Retry terugkrijgt en geen notitie of ciphertext in het
+ * geheugen. Zie shared-lookup.ts.
+ */
+const sharedLookup = createInFlightSharing();
+
+/**
+ * Of dit profiel in de CRM staat, voor de knop en voor het laden van de kaart.
+ *
+ * Niet voor het opslaan: findConnectionId hieronder doet altijd een verse
+ * GET, want een antwoord dat liep vóór er getypt werd, kan ouder zijn dan een
+ * connectie die intussen ergens anders is aangemaakt.
+ */
+function lookupConnection(profileUrl) {
+    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+    const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
+    return sharedLookup(normalizedUrl, () => apiRequest({
+        path: '/api/connections',
+        query: { url: normalizedUrl },
+    }));
 }
 
 /**
@@ -260,10 +288,15 @@ function injectCRMButton(anchorButton) {
     // findProfileHeader now picks the tallest candidate and the hero can render
     // after the sticky header - so the first tick may legitimately choose the
     // sticky one and a later tick a better one.
+    //
+    // Moved, not rebuilt: a rebuilt button asks the API again whether the
+    // profile is in the CRM, and forgets the answer it already shows.
     const existingButton = document.getElementById('crm-add-button');
     if (existingButton) {
         if (container.contains(existingButton)) return;
-        existingButton.remove();
+        styleButtonLike(existingButton, anchorButton);
+        placeButton(existingButton, anchorButton, container);
+        return;
     }
 
     {
@@ -276,11 +309,8 @@ function injectCRMButton(anchorButton) {
         // button with the right box and a label rendered as small grey text
         // beside a properly styled Message button - visible in a screenshot, and
         // not something any assertion about the outer element would have caught.
-        const labelClasses = findLabelClassNames(anchorButton);
         const labelWrapper = document.createElement("span");
-        labelWrapper.className = labelClasses.wrapper;
         const labelText = document.createElement("span");
-        labelText.className = labelClasses.text;
         labelWrapper.appendChild(labelText);
         crmButton.appendChild(labelWrapper);
 
@@ -289,13 +319,7 @@ function injectCRMButton(anchorButton) {
         const setButtonLabel = (text) => { labelText.textContent = text; };
         setButtonLabel("Add to Rldnk");
 
-        // Copy the neighbouring action's classes so the button matches whatever
-        // LinkedIn currently looks like. This is the one place where not knowing
-        // the class names is an advantage: the hashes change every build, and
-        // copying them is immune to that. The old code also force-added
-        // 'artdeco-button' and demoted 'artdeco-button--primary' to secondary;
-        // neither class exists any more, so both are gone.
-        crmButton.className = anchorButton.className;
+        styleButtonLike(crmButton, anchorButton);
 
         // Only apply layout spacing, let classes handle the rest
         crmButton.style.marginLeft = "8px";
@@ -306,17 +330,13 @@ function injectCRMButton(anchorButton) {
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
         void (async () => {
             try {
-                const profileUrl = window.location.href;
-                // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-                const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
-
                 // Geen tokencontrole meer hier: de worker weet of er een sessie
                 // is en antwoordt anders met 401, wat hieronder gewoon "niets
                 // doen" betekent — de knop blijft actief.
-                const resp = await apiRequest({
-                    path: '/api/connections',
-                    query: { url: normalizedUrl },
-                });
+                //
+                // Gedeeld met het laden van de notitiekaart, die in dezelfde
+                // ronde hetzelfde vraagt: één GET per profielbezoek.
+                const resp = await lookupConnection(window.location.href);
 
                 if (!resp.ok) return; // bij 404/401 etc. niets doen
 
@@ -399,33 +419,68 @@ function injectCRMButton(anchorButton) {
             }
         };
 
-        // Insert the button right after the anchor's slot, so it lands in the
-        // action row beside the other buttons.
-        //
-        // The branch that used to be here referenced `entryPointWrapper`, a
-        // variable whose definition went with the dead `.entry-point` lookup
-        // while these lines stayed behind. It threw a ReferenceError on every
-        // observer tick, before this insert, so the button never appeared for
-        // anyone. eslint now covers this file with no-undef; it did not before.
-        //
-        // The old fallback was wrong too, in a way that would have survived the
-        // ReferenceError being fixed on its own: appending to
-        // anchorButton.parentElement puts our button inside another action's
-        // [data-display-contents] slot, which is exactly what findActionContainer
-        // climbs past. findInsertionReference returns the slot itself, which is a
-        // direct child of the container.
-        const reference = findInsertionReference(anchorButton);
-        if (reference.parentElement === container) {
-            // .after(), not insertAdjacentElement('afterend', …): same result,
-            // and the ChildNode method is the one that reads as what it does
-            // (SonarCloud S7768).
-            reference.after(crmButton);
-        } else {
-            // Reachable if LinkedIn re-parents between the query and the insert.
-            // appendChild on the container is the safe answer: worst case the
-            // button sits at the end of the row rather than beside Message.
-            container.appendChild(crmButton);
-        }
+        placeButton(crmButton, anchorButton, container);
+    }
+}
+
+/**
+ * Gives our button the neighbouring action's look, on the outer element and on
+ * the nested label spans.
+ *
+ * Copying the classes means the button matches whatever LinkedIn currently
+ * looks like. This is the one place where not knowing the class names is an
+ * advantage: the hashes change every build, and copying them is immune to that.
+ * The old code also force-added 'artdeco-button' and demoted
+ * 'artdeco-button--primary' to secondary; neither class exists any more, so
+ * both are gone.
+ *
+ * The label goes in the same nested spans LinkedIn uses, because that is where
+ * the typography lives. Copying only the outer className gave a button with the
+ * right box and a label rendered as small grey text beside a properly styled
+ * Message button.
+ *
+ * Run again when the button moves between rows: the sticky header and the hero
+ * do not necessarily share classes.
+ */
+function styleButtonLike(button, anchorButton) {
+    button.className = anchorButton.className;
+    const labelClasses = findLabelClassNames(anchorButton);
+    const labelWrapper = button.querySelector(':scope > span');
+    const labelText = labelWrapper?.querySelector(':scope > span');
+    if (labelWrapper) labelWrapper.className = labelClasses.wrapper;
+    if (labelText) labelText.className = labelClasses.text;
+}
+
+/**
+ * Puts the button right after the anchor's slot, so it lands in the action row
+ * beside the other buttons. Used for a new button and for moving an existing
+ * one; moving keeps its state ("Already added") and its click handler.
+ *
+ * The branch that used to be here referenced `entryPointWrapper`, a variable
+ * whose definition went with the dead `.entry-point` lookup while these lines
+ * stayed behind. It threw a ReferenceError on every observer tick, before this
+ * insert, so the button never appeared for anyone. eslint now covers this file
+ * with no-undef; it did not before.
+ *
+ * The old fallback was wrong too, in a way that would have survived the
+ * ReferenceError being fixed on its own: appending to
+ * anchorButton.parentElement puts our button inside another action's
+ * [data-display-contents] slot, which is exactly what findActionContainer
+ * climbs past. findInsertionReference returns the slot itself, which is a
+ * direct child of the container.
+ */
+function placeButton(button, anchorButton, container) {
+    const reference = findInsertionReference(anchorButton);
+    if (reference.parentElement === container) {
+        // .after(), not insertAdjacentElement('afterend', …): same result,
+        // and the ChildNode method is the one that reads as what it does
+        // (SonarCloud S7768).
+        reference.after(button);
+    } else {
+        // Reachable if LinkedIn re-parents between the query and the insert.
+        // appendChild on the container is the safe answer: worst case the
+        // button sits at the end of the row rather than beside Message.
+        container.appendChild(button);
     }
 }
 
@@ -508,13 +563,18 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
         }),
         decryptNoteText,
     );
+    // Het laden deelt een lopende GET met de knop, die in dezelfde ronde
+    // hetzelfde vraagt (lookupConnection). readCardNote hierboven blijft vers:
+    // saveNote leest daarmee een connectie die deze kaart nooit toonde, en dat
+    // antwoord moet van ná het typen zijn.
+    const loadCardNote = () => readNote(() => lookupConnection(cardUrl), decryptNoteText);
     const card = createNoteCard({
         textarea,
         status,
         retry: retryButton,
         isAttached: () => container.isConnected,
         load: async () => {
-            const note = await readCardNote();
+            const note = await loadCardNote();
             if (note.state === 'loaded') connectionId = note.connectionId;
             return note;
         },
@@ -915,6 +975,20 @@ function observeAndInject() {
         }
     };
 
+    // De heartbeat loopt alleen op een profiel in een zichtbaar tabblad. Op de
+    // feed of in zoekresultaten keert elke tick meteen terug, en in een
+    // verborgen tabblad ziet niemand wat hij zou herstellen: daar is hij
+    // alleen een timer die de pagina elke paar seconden wekt. De
+    // MutationObserver blijft verzoeken doen, dus een navigatie naar een
+    // profiel wordt nog steeds opgemerkt en zet hem weer aan.
+    const syncHeartbeat = (path) => {
+        if (path && document.visibilityState !== 'hidden') {
+            scheduler.resume();
+        } else {
+            scheduler.pause();
+        }
+    };
+
     // Serialisatie en herhaling liggen bij de scheduler, niet hier: die
     // garandeert dat rondes elkaar niet overlappen én dat er altijd nog een
     // ronde komt. Wat hier stond - `if (isChecking) return;` met een lock die
@@ -926,6 +1000,7 @@ function observeAndInject() {
         try {
             const path = currentProfilePath(location.pathname);
             handleNavigation(path);
+            syncHeartbeat(path);
 
             // Feed, search, company pages: nothing to do here. The early
             // return keeps the observer cheap on LinkedIn's noisiest pages.
@@ -964,6 +1039,11 @@ function observeAndInject() {
     // zwijgt zodra LinkedIn klaar is met renderen, en juist dan staat de hero
     // er eindelijk. Zie scheduler.ts voor wat dat kostte.
     const scheduler = createInjectionScheduler({ run: checkAndInject });
+
+    document.addEventListener('visibilitychange', () => {
+        if (window.rolodinkExtensionInvalidated) return;
+        syncHeartbeat(currentProfilePath(location.pathname));
+    });
 
     // Helper for visual debugging
     function showDebugBanner(message, color = 'red') {

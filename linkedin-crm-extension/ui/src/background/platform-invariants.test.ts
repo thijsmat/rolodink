@@ -43,3 +43,14 @@ describe('background worker leaks nothing into the debug log', () => {
         expect(adapter).not.toContain('supabaseAccessToken');
     });
 });
+
+describe('background worker is allowed to sleep', () => {
+    it('does not run the auth-js auto-refresh ticker', () => {
+        // With autoRefreshToken on, auth-js ticks every 30 s, reads storage on
+        // each tick and so keeps the MV3 service worker from ever stopping -
+        // plus a token refresh roughly every hour, all day. getSession()
+        // refreshes an expired token on demand, which is all the worker needs.
+        expect(code).toMatch(/autoRefreshToken:\s*false/);
+        expect(code).not.toMatch(/autoRefreshToken:\s*true/);
+    });
+});
