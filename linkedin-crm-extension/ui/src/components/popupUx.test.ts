@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act } from 'react';
+import { act, createElement } from 'react';
 import { createDomHarness } from '../test/domHarness';
 import App from '../App';
 import { SettingsView } from './SettingsView';
 import { ConnectionView } from './ConnectionView';
+import { ConnectionForm } from './ConnectionForm';
 
 /**
  * Three review findings in the popup: outside a profile it showed an error
@@ -157,7 +158,8 @@ describe('sending feedback', () => {
         await render(SettingsView);
         const href = feedbackLink().getAttribute('href') ?? '';
 
-        expect(href.startsWith('mailto:hallo@rolodink.app?')).toBe(true);
+        // English UI (see beforeEach): the English address.
+        expect(href.startsWith('mailto:hello@rolodink.app?')).toBe(true);
         const params = new URLSearchParams(href.slice(href.indexOf('?') + 1));
         expect(params.get('subject')).toContain('1.3.7');
         expect(params.get('body')).toContain('1.3.7');
@@ -166,6 +168,14 @@ describe('sending feedback', () => {
         expect(decoded).not.toMatch(/https?:\/\//);
         expect(decoded).not.toContain('linkedin');
         expect(feedbackLink().getAttribute('target')).toBe('_blank');
+    });
+
+    it('uses the Dutch address in a Dutch browser', async () => {
+        const chromeStub = (globalThis as unknown as { chrome: { i18n: { getUILanguage: () => string } } }).chrome;
+        chromeStub.i18n.getUILanguage = () => 'nl-NL';
+        await render(SettingsView);
+
+        expect(feedbackLink().getAttribute('href')?.startsWith('mailto:hallo@rolodink.app?')).toBe(true);
     });
 });
 
@@ -221,5 +231,33 @@ describe('editing a connection', () => {
 
         expect(context.handleUpdate).toHaveBeenCalledTimes(2);
         expect(meetingPlace()).toBeNull();
+    });
+});
+
+describe('adding a connection', () => {
+    const submit = async () => {
+        await act(async () => {
+            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        });
+        await settle();
+    };
+
+    it('stays open with the typed text after a failed save, and the retry goes through', async () => {
+        context.connection = null;
+        context.handleCreateConnection.mockRejectedValue(new Error('Opslaan mislukt'));
+        await render(() => createElement(ConnectionForm));
+        await type(meetingPlace()!, 'Slush 2025');
+
+        await submit();
+
+        expect(context.handleCreateConnection).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }));
+        expect(meetingPlace()?.value).toBe('Slush 2025');
+        expect(dom.container.querySelector('[role="alert"]')?.textContent).toBe('connection_create_failed');
+
+        context.handleCreateConnection.mockResolvedValue(undefined);
+        await submit();
+
+        expect(context.handleCreateConnection).toHaveBeenCalledTimes(2);
+        expect(dom.container.querySelector('[role="alert"]')).toBeNull();
     });
 });

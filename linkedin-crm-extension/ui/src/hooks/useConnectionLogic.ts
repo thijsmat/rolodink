@@ -403,9 +403,11 @@ export function useConnectionLogic(user: User | null) {
         initialize().catch(console.error);
     }, [initializeFromCache, fetchData, userId]);
 
+    // Like handleUpdate: no global isLoading or error, because App swaps the
+    // whole view for either and the new-connection form would unmount with
+    // the text the user typed. The form shows its own progress, and a failure
+    // is thrown so the form stays up for another try.
     const handleCreateConnection = async (formData: ConnectionFormData) => {
-        setIsLoading(true);
-        setError(null);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -459,10 +461,8 @@ export function useConnectionLogic(user: User | null) {
             setToastMessage('Connectie opgeslagen.');
         } catch (e) {
             console.error('Fout bij opslaan:', e);
-            setError('Kon de connectie niet opslaan.');
             setToastMessage('Kon de connectie niet opslaan.');
-        } finally {
-            setIsLoading(false);
+            throw e;
         }
     };
 

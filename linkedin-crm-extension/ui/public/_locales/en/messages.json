@@ -726,6 +726,9 @@
     "start_first_step_hint": {
         "message": "First step: go to linkedin.com, open the profile of someone you met recently and click the Rolodink icon there."
     },
+    "connection_create_failed": {
+        "message": "Could not save this connection. Your text is still here, so you can try again."
+    },
     "connection_update_failed": {
         "message": "Could not save your changes. Your text is still here, so you can try again."
     },

@@ -8,7 +8,7 @@ import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
 import { ConfirmPanel } from './ConfirmPanel';
-import { buildFeedbackMailto, detectBrowserName } from '../utils/feedback';
+import { buildFeedbackMailto, detectBrowserName, supportEmailFor } from '../utils/feedback';
 
 /** A setting row whose action opens a link in a new tab. */
 function LinkSetting({ title, description, href, label }: Readonly<{
@@ -36,7 +36,9 @@ export function SettingsView() {
   const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
   const extensionVersion = getCurrentVersion();
   const browserName = detectBrowserName(typeof navigator === 'undefined' ? '' : navigator.userAgent);
+  const uiLanguage = (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : 'nl').split('-')[0];
   const feedbackHref = buildFeedbackMailto(
+    supportEmailFor(uiLanguage),
     t('feedback_mail_subject', [extensionVersion, browserName]),
     t('feedback_mail_body', [extensionVersion, browserName]),
   );
@@ -489,7 +491,7 @@ export function SettingsView() {
           <LinkSetting
             title={t('privacy_policy_title')}
             description={t('privacy_policy_description')}
-            href={`https://rolodink.app/${(typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : 'nl').split('-')[0]}/privacy`}
+            href={`https://rolodink.app/${uiLanguage}/privacy`}
             label={t('privacy_policy_button')}
           />
         </div>

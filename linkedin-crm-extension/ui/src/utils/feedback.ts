@@ -1,12 +1,15 @@
 /**
  * The "Send feedback" link in the settings.
  *
- * The address is the one the website lists as its contact address (footer,
- * terms, security page). The mail carries only what helps to reproduce a
- * problem: the extension version and the browser. No page URLs, no profile,
- * no account details.
+ * The website lists hallo@rolodink.app as its contact address; the English
+ * texts use hello@rolodink.app. Both reach the same inbox, so the link uses the
+ * one that matches the language the extension shows. The mail carries only
+ * what helps to reproduce a problem: the extension version and the browser.
+ * No page URLs, no profile, no account details.
  */
-export const SUPPORT_EMAIL = 'hallo@rolodink.app';
+export function supportEmailFor(uiLanguage: string): string {
+    return uiLanguage.toLowerCase().startsWith('nl') ? 'hallo@rolodink.app' : 'hello@rolodink.app';
+}
 
 export type BrowserName = 'Chrome' | 'Edge' | 'Firefox';
 
@@ -17,6 +20,6 @@ export function detectBrowserName(userAgent: string): BrowserName {
     return 'Chrome';
 }
 
-export function buildFeedbackMailto(subject: string, body: string): string {
-    return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+export function buildFeedbackMailto(address: string, subject: string, body: string): string {
+    return `mailto:${address}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

@@ -252,6 +252,28 @@ describe('editing a connection in the popup', () => {
         expect(hook().connection?.id).toBe('conn-jane');
         expect(rows[0].meetingPlace).toBe(encrypt('Web Summit'));
     });
+
+    it('throws a failed create back to the form instead of swapping the view', async () => {
+        rows = [];
+        const hook = await renderHook();
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        // The fake API has no POST, so the request fails like a server error.
+        let thrown: unknown = null;
+        await act(async () => {
+            try {
+                await hook().handleCreateConnection({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Hiring' });
+            } catch (e) {
+                thrown = e;
+            }
+        });
+
+        expect(thrown).toBeInstanceOf(Error);
+        expect(requests.some(r => r.method === 'POST')).toBe(true);
+        // Either of these makes App replace the new-connection form.
+        expect(hook().error).toBeNull();
+        expect(hook().isLoading).toBe(false);
+    });
 });
 
 describe('deleting a connection in the popup', () => {
