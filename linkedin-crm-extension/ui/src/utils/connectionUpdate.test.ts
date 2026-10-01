@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ConnectionFormData } from '../context/ConnectionContext';
-import { LOCKED_FIELD_PLACEHOLDER, isUnreadableValue, pickFieldsToUpdate } from './connectionUpdate';
+import { LOCKED_FIELD_PLACEHOLDER, contactFieldEdits, isUnreadableValue, pickFieldsToUpdate } from './connectionUpdate';
 
 // The same five fields as SENSITIVE_FIELDS in @rolodink/core, spelled out so
 // this file needs nothing beyond the module under test.
@@ -8,7 +8,7 @@ const FIELDS = ['notes', 'meetingPlace', 'userCompanyAtTheTime', 'email', 'phone
 
 describe('pickFieldsToUpdate', () => {
     it('leaves out the fields the edit form does not have', () => {
-        // Exactly what ConnectionForm submits: three fields, no email or phone.
+        // What ConnectionForm submits when email and phone were not touched.
         const { fields } = pickFieldsToUpdate(
             { meetingPlace: 'Conf', userCompanyAtTheTime: 'Acme', notes: 'Met at the booth' },
             FIELDS,
@@ -80,5 +80,41 @@ describe('isUnreadableValue', () => {
 
     it('does not treat the ciphertext prefix in the middle of a note as ciphertext', () => {
         expect(isUnreadableValue('see rolodink-enc: docs')).toBe(false);
+    });
+});
+
+describe('contactFieldEdits', () => {
+    const stored = { email: 'jane@example.com', phone: '+31 6 1234 5678' };
+
+    it('sends nothing for fields the user did not touch', () => {
+        expect(contactFieldEdits(stored, { ...stored })).toEqual({});
+    });
+
+    it('sends nothing when only surrounding whitespace changed', () => {
+        expect(contactFieldEdits(stored, { email: ' jane@example.com ', phone: '+31 6 1234 5678\t' })).toEqual({});
+    });
+
+    it('sends a changed field, trimmed, and leaves the other out', () => {
+        expect(contactFieldEdits(stored, { email: ' jane@acme.com ', phone: stored.phone })).toEqual({ email: 'jane@acme.com' });
+    });
+
+    it('sends null for a field the user emptied, which clears it', () => {
+        expect(contactFieldEdits(stored, { email: '', phone: '   ' })).toEqual({ email: null, phone: null });
+    });
+
+    it('does not clear what the form was opened without', () => {
+        // A baseline without these fields: the inputs start empty and stay so.
+        expect(contactFieldEdits({}, { email: '', phone: '' })).toEqual({});
+        expect(contactFieldEdits(undefined, { email: '', phone: '' })).toEqual({});
+    });
+
+    it('leaves an untouched locked field out', () => {
+        const locked = { email: LOCKED_FIELD_PLACEHOLDER, phone: stored.phone };
+        expect(contactFieldEdits(locked, { ...locked })).toEqual({});
+    });
+
+    it('sends both when a new connection gets them', () => {
+        expect(contactFieldEdits(undefined, { email: 'bob@example.com', phone: '0612345678' }))
+            .toEqual({ email: 'bob@example.com', phone: '0612345678' });
     });
 });
