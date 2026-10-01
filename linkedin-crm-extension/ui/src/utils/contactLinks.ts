@@ -46,11 +46,14 @@ export function mailtoHref(value: string | null | undefined): string | null {
 /**
  * A tel: link for a phone number, or null when it has fewer than three digits.
  * Only digits and a leading + go into the link; spaces, dashes, brackets and
- * anything else are dropped.
+ * anything else are dropped. In the common "+31 (0)6 …" notation the (0) is
+ * the trunk prefix for dialling within the country and must not be dialled
+ * after the country code, so it is dropped as well.
  */
 export function telHref(value: string | null | undefined): string | null {
     const phone = value?.trim() ?? '';
-    const digits = onlyDigits(phone);
+    const international = phone.startsWith('+');
+    const digits = onlyDigits(international ? phone.replace(/\(\s*0\s*\)/, '') : phone);
     if (digits.length < 3) return null;
-    return `tel:${phone.startsWith('+') ? '+' : ''}${digits}`;
+    return `tel:${international ? '+' : ''}${digits}`;
 }

@@ -5,7 +5,7 @@ import { useConnection, type ConnectionFormData } from '../context/ConnectionCon
 import { SkeletonForm } from './Skeleton';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { FormField } from './FormField';
-import { contactFieldEdits } from '../utils/connectionUpdate';
+import { contactFieldEdits, isUnreadableValue } from '../utils/connectionUpdate';
 import { isOddEmail } from '../utils/contactLinks';
 import { useFormShortcuts } from '../hooks/useFormShortcuts';
 
@@ -82,7 +82,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   // The format hint waits until the user leaves the field, so it does not
   // flash while an address is still being typed. It never blocks the save.
   const [emailBlurred, setEmailBlurred] = useState(false);
-  const emailWarning = emailBlurred && isOddEmail(email) ? t('warning_email_format') : null;
+  const emailWarning = emailBlurred && !isUnreadableValue(email) && isOddEmail(email) ? t('warning_email_format') : null;
   // Only used when the form creates a connection itself (no onSubmit from a
   // parent): its progress and failure stay inside the form.
   const [isCreating, setIsCreating] = useState(false);

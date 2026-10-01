@@ -47,8 +47,15 @@ describe('mailtoHref', () => {
 
 describe('telHref', () => {
     it('keeps only digits and a leading plus', () => {
-        expect(telHref('+31 (0)6-1234 5678')).toBe('tel:+310612345678');
+        expect(telHref('+31 6-1234 5678')).toBe('tel:+31612345678');
         expect(telHref('06 12 34 56 78')).toBe('tel:0612345678');
+    });
+
+    it('drops the (0) trunk prefix after a country code', () => {
+        expect(telHref('+31 (0)6-1234 5678')).toBe('tel:+31612345678');
+        expect(telHref('+44 ( 0 )20 7946 0000')).toBe('tel:+442079460000');
+        // Without a country code the 0 is part of the number.
+        expect(telHref('(0)6 1234 5678')).toBe('tel:0612345678');
     });
 
     it('drops anything that is not a digit', () => {
