@@ -86,6 +86,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError,
     fetchData,
     fetchAllConnections,
+    showCachedConnections,
     handleCreateConnection,
     handleUpdate,
     handleDelete,
@@ -122,12 +123,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const showListView = useCallback(async () => {
     setIsListView(true);
-    if (allConnections.length > 0) {
-      fetchAllConnections(true);
+    // The list is loaded the first time it is opened: from the cache at once
+    // when there is one, then refreshed from the server in the background.
+    const hasList = allConnections.length > 0 || await showCachedConnections();
+    if (hasList) {
+      fetchAllConnections(true).catch(console.error);
     } else {
       await fetchAllConnections();
     }
-  }, [allConnections.length, fetchAllConnections]);
+  }, [allConnections.length, fetchAllConnections, showCachedConnections]);
 
   const hideListView = () => setIsListView(false);
 

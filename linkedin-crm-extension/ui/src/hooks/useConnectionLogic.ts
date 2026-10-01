@@ -7,6 +7,7 @@ import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
 import { LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
+import { clearDecryptMemo, getDecrypted, rememberDecrypted } from '../utils/decryptMemo';
 
 // Helper functions (copied from ConnectionContext)
 const warnOnce = (() => {
@@ -86,32 +87,41 @@ async function encryptFormData<T extends Partial<Record<SensitiveField, string |
     return encrypted;
 }
 
+type Runtime = NonNullable<ReturnType<typeof getRuntime>>;
+
+/** Decrypt one value, from the memo when this owner has decrypted it before. */
+async function decryptValue(runtime: Runtime, ownerId: string | null, field: string, ciphertext: string): Promise<string> {
+    const known = ownerId ? getDecrypted(ownerId, ciphertext) : undefined;
+    if (known !== undefined) return known;
+    try {
+        const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext });
+        if (!response?.success) return LOCKED_FIELD_PLACEHOLDER;
+        // Only successes are kept: a locked field may open once the key is there.
+        if (ownerId) rememberDecrypted(ownerId, ciphertext, response.plaintext);
+        return response.plaintext;
+    } catch (e) {
+        console.warn(`[Decryption] Failed for field '${field}':`, e);
+        return LOCKED_FIELD_PLACEHOLDER;
+    }
+}
+
 /** Decrypt all sensitive fields in a connection. */
-async function decryptConnections(connections: Connection[]): Promise<Connection[]> {
+async function decryptConnections(connections: Connection[], ownerId: string | null): Promise<Connection[]> {
     const runtime = getRuntime();
     if (!runtime) return connections;
 
-    const promises = connections.map(async (conn) => {
+    // Every field of every row at once. Field by field, each row waited for
+    // one round trip to the background script per encrypted field in turn.
+    return Promise.all(connections.map(async (conn) => {
         const decrypted: Connection = { ...conn };
-
-        for (const field of SENSITIVE_FIELDS) {
+        await Promise.all(SENSITIVE_FIELDS.map(async (field) => {
             const raw = (conn as Record<string, unknown>)[field];
             if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
-                try {
-                    const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
-                    (decrypted as Record<string, unknown>)[field] = response?.success
-                        ? response.plaintext
-                        : LOCKED_FIELD_PLACEHOLDER;
-                } catch (e) {
-                    console.warn(`[Decryption] Failed for field '${field}':`, e);
-                    (decrypted as Record<string, unknown>)[field] = LOCKED_FIELD_PLACEHOLDER;
-                }
+                (decrypted as Record<string, unknown>)[field] = await decryptValue(runtime, ownerId, field, raw);
             }
-        }
-
+        }));
         return decrypted;
-    });
-    return Promise.all(promises);
+    }));
 }
 
 // The popup caches the server's rows (still encrypted) so the list shows at
@@ -177,24 +187,27 @@ async function fetchConnectionData(token: string, url: string) {
     });
 }
 
+const isProfileUrl = (url: string | null) => !!url?.includes('linkedin.com/in/');
+
 async function handleFetchResponse(
     response: Response,
     supabase: any,
+    ownerId: string | null,
+    isCurrent: () => boolean,
     setConnection: (c: Connection | null) => void,
-    setAllConnections: (c: Connection[]) => void,
     setError: (e: string) => void,
     onUnauthorized: () => Promise<void>
 ) {
     if (response.ok) {
-        const data = await response.json();
-        const picked = pickFirstConnection(data);
-        if (picked) {
-            const decArray = await decryptConnections([picked]);
-            setConnection(decArray[0]);
-        } else {
-            setConnection(null);
-            setAllConnections([]);
-        }
+        // A profile without a saved connection says nothing about the list,
+        // so the list stays as it is.
+        const picked = pickFirstConnection(await response.json());
+        const decrypted = picked ? (await decryptConnections([picked], ownerId))[0] : null;
+        if (isCurrent()) setConnection(decrypted);
+    } else if (!isCurrent()) {
+        // A newer load, or another account, owns the popup now. Not even a
+        // 401: signing out on an old token could sign out the new account.
+        return;
     } else if (response.status === 404) {
         setConnection(null);
     } else if (response.status === 401) {
@@ -233,6 +246,14 @@ export function useConnectionLogic(user: User | null) {
 
     const fetchAllConnectionsRef = useRef<((silent?: boolean) => Promise<void>) | null>(null);
 
+    // Load generations. Every load takes the next number and, after each
+    // await, writes to state only while its number is still the latest. A new
+    // load, an account switch and sign-out all move the number on, so an
+    // answer that arrives late can never overwrite newer data or show the
+    // previous owner's.
+    const listGenRef = useRef(0);
+    const profileGenRef = useRef(0);
+
     // Cache management
     const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
         try {
@@ -260,6 +281,22 @@ export function useConnectionLogic(user: User | null) {
         }
     }, [userId]);
 
+    /** Show the cached list, decrypted. True when it put a list on screen. */
+    const showCachedConnections = useCallback(async (): Promise<boolean> => {
+        const gen = ++listGenRef.current;
+        setIsLoading(true);
+        try {
+            const cachedConnections = await loadCachedConnections();
+            if (cachedConnections.length === 0) return false;
+            const decryptedConnections = await decryptConnections(cachedConnections, userId);
+            if (gen !== listGenRef.current) return false;
+            setAllConnections(decryptedConnections);
+            return true;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [userId, loadCachedConnections]);
+
     const initializeFromCache = useCallback(async () => {
         try {
             if (!userId) {
@@ -267,18 +304,18 @@ export function useConnectionLogic(user: User | null) {
                 // a session. Only with no session at all is the cache orphaned.
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) await clearConnectionsCache();
+                return;
             }
-            const cachedConnections = await loadCachedConnections();
-            if (cachedConnections.length > 0) {
-                const decryptedConnections = await decryptConnections(cachedConnections);
-                setAllConnections(decryptedConnections);
-            }
-            setIsInitialized(true);
+            // The list is decrypted when it is opened (see showListView), not
+            // on every popup open: on a profile the popup shows one connection.
+            // Only the start screen uses the list at once, for its first-step hint.
+            if (!isProfileUrl(await getCurrentTabUrl())) await showCachedConnections();
         } catch (error) {
             console.error('Failed to initialize from cache:', error);
+        } finally {
             setIsInitialized(true);
         }
-    }, [userId, loadCachedConnections]);
+    }, [userId, showCachedConnections]);
 
     // Offline detection
     useEffect(() => {
@@ -308,6 +345,8 @@ export function useConnectionLogic(user: User | null) {
     }, [userId]);
 
     const fetchData = useCallback(async () => {
+        const gen = ++profileGenRef.current;
+        const isCurrent = () => gen === profileGenRef.current;
         setIsLoading(true);
         setError(null);
         try {
@@ -320,28 +359,31 @@ export function useConnectionLogic(user: User | null) {
             if (!token) return;
 
             const currentUrl = await getCurrentTabUrl();
+            if (!isCurrent()) return;
             if (!currentUrl) {
                 setError('Deze functionaliteit werkt alleen binnen de Rolodink-extensie.');
                 setConnection(null);
                 return;
             }
 
-            if (!currentUrl.includes('linkedin.com/in/')) {
+            if (!isProfileUrl(currentUrl)) {
                 setError(INVALID_PROFILE_PAGE_ERROR);
                 setConnection(null);
                 return;
             }
 
             const response = await fetchConnectionData(token, currentUrl);
-            await handleFetchResponse(response, supabase, setConnection, setAllConnections, setError, clearConnectionsCache);
+            await handleFetchResponse(response, supabase, userId, isCurrent, setConnection, setError, clearConnectionsCache);
         } catch (e: unknown) {
-            handleFetchError(e, setError);
+            if (isCurrent()) handleFetchError(e, setError);
         } finally {
             setIsLoading(false);
         }
     }, [userId]);
 
     const fetchAllConnections = useCallback(async (silent = false) => {
+        const gen = ++listGenRef.current;
+        const isCurrent = () => gen === listGenRef.current;
         if (!silent) {
             setIsLoading(true);
             // "Not a profile" describes the open tab, not this request. Keep
@@ -358,6 +400,7 @@ export function useConnectionLogic(user: User | null) {
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!isCurrent()) return;
 
             if (response.status === 401) {
                 if (!silent) setError('Je sessie is verlopen.');
@@ -374,12 +417,14 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
 
             const connections = await response.json();
-            const decryptedConnections = await decryptConnections(connections);
+            const decryptedConnections = await decryptConnections(connections, userId);
+            if (!isCurrent()) return;
             setAllConnections(decryptedConnections);
             await saveConnectionsToCache(connections); // save raw (encrypted) to cache
         } catch (e) {
             console.error('Fout bij ophalen van alle connecties:', e);
-            if (!silent) {
+            // The last good list stays on screen; only the error is new.
+            if (!silent && isCurrent()) {
                 setError('Kon de connecties niet ophalen.');
                 setToastMessage('Kon de connecties niet ophalen.');
             }
@@ -391,6 +436,16 @@ export function useConnectionLogic(user: User | null) {
     useEffect(() => {
         fetchAllConnectionsRef.current = fetchAllConnections;
     }, [fetchAllConnections]);
+
+    // An account switch invalidates every load still under way and every
+    // remembered plaintext, and the list on screen belonged to the previous
+    // owner. Declared before the effect below, so it runs first.
+    useEffect(() => {
+        listGenRef.current += 1;
+        profileGenRef.current += 1;
+        clearDecryptMemo();
+        setAllConnections(prev => (prev.length > 0 ? [] : prev));
+    }, [userId]);
 
     // Initialize
     useEffect(() => {
@@ -449,11 +504,12 @@ export function useConnectionLogic(user: User | null) {
 
             if (!response.ok) throw new Error('Opslaan mislukt');
             const newConnection: Connection = await response.json();
-            const decArray = await decryptConnections([newConnection]);
+            const decArray = await decryptConnections([newConnection], userId);
             setConnection(decArray[0]);
 
-            const updatedConnections = [...allConnections, decArray[0]];
-            setAllConnections(updatedConnections);
+            // A list not loaded yet stays unloaded: a list of one would show
+            // when it is opened. The cache below gets the new row either way.
+            if (allConnections.length > 0) setAllConnections([...allConnections, decArray[0]]);
             // Re-cache encrypted version from response
             const cachedConnections = await loadCachedConnections();
             await saveConnectionsToCache([...cachedConnections, newConnection]);
@@ -528,7 +584,7 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error(`Update mislukt`);
 
             const updated: Connection = await response.json();
-            const decArray = await decryptConnections([updated]);
+            const decArray = await decryptConnections([updated], userId);
             setConnection(decArray[0]);
 
             const updatedConnections = allConnections.map(conn =>
@@ -625,7 +681,12 @@ export function useConnectionLogic(user: User | null) {
         }
     }, [fetchAllConnections]);
 
+    // Sign-out: the previous owner's data goes, and so does anything still
+    // loading for them.
     const clearConnectionState = useCallback(async () => {
+        listGenRef.current += 1;
+        profileGenRef.current += 1;
+        clearDecryptMemo();
         setConnection(null);
         setAllConnections([]);
         setError(null);
@@ -645,6 +706,7 @@ export function useConnectionLogic(user: User | null) {
         setError,
         fetchData,
         fetchAllConnections,
+        showCachedConnections,
         handleCreateConnection,
         handleUpdate,
         handleDelete,

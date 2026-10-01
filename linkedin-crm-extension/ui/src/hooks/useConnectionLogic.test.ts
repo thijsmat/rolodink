@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { User } from '@supabase/supabase-js';
 import type { Connection } from '../context/ConnectionContext';
 import { LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
+import { clearDecryptMemo, decryptMemoSize } from '../utils/decryptMemo';
 import { useConnectionLogic } from './useConnectionLogic';
 
 /**
@@ -35,6 +36,7 @@ const decrypt = (ciphertext: string) => [...ciphertext.slice(PREFIX.length)].rev
 const UNDECRYPTABLE = `${PREFIX}sealed-under-another-key`;
 
 const PROFILE_URL = 'https://www.linkedin.com/in/jane-doe';
+const FEED_URL = 'https://www.linkedin.com/feed/';
 const USER = { id: 'user-1' } as User;
 
 type Request = { method: string; url: string; body?: Record<string, unknown> };
@@ -46,9 +48,24 @@ let storageWrites: Record<string, unknown>[];
 let unauthorized: boolean;
 let failPatch: boolean;
 let decryptCalls: number;
+let failList: boolean;
+let tabUrl: string;
+// While set, the next list request waits for it, to finish after a newer one.
+let holdList: Promise<void> | null;
+// While set, every decryption waits for it; inFlight counts those waiting.
+let holdDecrypt: Promise<void> | null;
+let decryptsInFlight: number;
+let maxDecryptsInFlight: number;
 let currentUser: User;
 let root: Root | null = null;
 let probe: (() => null) | null = null;
+
+/** A promise the test resolves when it chooses to. */
+function newGate() {
+    let release = () => {};
+    const promise = new Promise<void>(resolve => { release = resolve; });
+    return { promise, release: () => release() };
+}
 
 function respond(data: unknown): Response {
     return { ok: true, status: 200, statusText: 'OK', json: async () => data } as unknown as Response;
@@ -66,7 +83,13 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
 
     if (method === 'GET') {
         const wanted = url.searchParams.get('url');
-        return respond(wanted ? rows.filter(r => r.linkedInUrl === wanted) : rows);
+        if (wanted) return respond(rows.filter(r => r.linkedInUrl === wanted));
+        if (failList) throw new TypeError('Failed to fetch');
+        const answer = structuredClone(rows);
+        const hold = holdList;
+        holdList = null;
+        if (hold) await hold;
+        return respond(answer);
     }
     if (method === 'PATCH') {
         if (failPatch) {
@@ -101,7 +124,7 @@ const fakeChrome = {
         },
     },
     tabs: {
-        query: async () => [{ url: PROFILE_URL, title: 'Jane Doe | LinkedIn' }],
+        query: async () => [{ url: tabUrl, title: 'Jane Doe | LinkedIn' }],
     },
     runtime: {
         sendMessage: async (message: { type: string; text?: string; ciphertext?: string }) => {
@@ -110,6 +133,10 @@ const fakeChrome = {
             }
             if (message.type === 'DECRYPT_TEXT') {
                 decryptCalls += 1;
+                decryptsInFlight += 1;
+                maxDecryptsInFlight = Math.max(maxDecryptsInFlight, decryptsInFlight);
+                if (holdDecrypt) await holdDecrypt;
+                decryptsInFlight -= 1;
                 if (message.ciphertext === UNDECRYPTABLE) return { success: false, error: 'Decryption failed' };
                 return { success: true, plaintext: decrypt(message.ciphertext ?? '') };
             }
@@ -163,7 +190,15 @@ beforeEach(() => {
     unauthorized = false;
     failPatch = false;
     decryptCalls = 0;
+    failList = false;
+    tabUrl = PROFILE_URL;
+    holdList = null;
+    holdDecrypt = null;
+    decryptsInFlight = 0;
+    maxDecryptsInFlight = 0;
     currentUser = USER;
+    // Module state: without this, one test's plaintexts answer the next one's.
+    clearDecryptMemo();
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     vi.stubGlobal('chrome', fakeChrome);
     vi.stubGlobal('fetch', fakeFetch);
@@ -292,6 +327,9 @@ describe('deleting a connection in the popup', () => {
         storage.cachedConnections = structuredClone(rows);
         storage.cachedConnectionsOwner = USER.id;
         const hook = await renderHook();
+        await act(async () => {
+            await hook().showCachedConnections();
+        });
         // The list on screen is the decrypted copy.
         expect(hook().allConnections.map(c => c.notes)).toContain('Owes me a coffee');
 
@@ -316,6 +354,9 @@ describe('the connections cache belongs to one user', () => {
         storage.cachedConnections = [cachedRow()];
         storage.cachedConnectionsOwner = 'user-2';
         const hook = await renderHook();
+        await act(async () => {
+            await hook().showCachedConnections();
+        });
 
         expect(hook().allConnections).toEqual([]);
         expect(storage.cachedConnections).toBeUndefined();
@@ -325,6 +366,9 @@ describe('the connections cache belongs to one user', () => {
     it('does not show a cache from before the owner was recorded', async () => {
         storage.cachedConnections = [cachedRow()];
         const hook = await renderHook();
+        await act(async () => {
+            await hook().showCachedConnections();
+        });
 
         expect(hook().allConnections).toEqual([]);
         expect(storage.cachedConnections).toBeUndefined();
@@ -335,6 +379,9 @@ describe('the connections cache belongs to one user', () => {
         storage.cachedConnectionsOwner = USER.id;
         rows = [janeRow()];
         const hook = await renderHook();
+        await act(async () => {
+            await hook().showCachedConnections();
+        });
         expect(hook().allConnections.map(c => c.notes)).toEqual(["Someone else's note"]);
 
         await act(async () => {
@@ -372,6 +419,8 @@ describe('the connections cache belongs to one user', () => {
 
 describe('opening the popup', () => {
     it('decrypts the cache once, not again when auth hands over a new user object', async () => {
+        // Off a profile, where the start screen uses the list at once.
+        tabUrl = FEED_URL;
         storage.cachedConnections = [janeRow({ id: 'conn-cached', linkedInUrl: 'https://www.linkedin.com/in/other' })];
         storage.cachedConnectionsOwner = USER.id;
         await renderHook();
@@ -389,5 +438,230 @@ describe('opening the popup', () => {
         });
 
         expect(decryptCalls).toBe(afterMount);
+    });
+
+    it('on a profile, leaves the cached list encrypted until the list is opened', async () => {
+        storage.cachedConnections = [janeRow({ id: 'conn-cached', linkedInUrl: 'https://www.linkedin.com/in/other' })];
+        storage.cachedConnectionsOwner = USER.id;
+        const hook = await renderHook();
+
+        // The open profile has no saved connection, so nothing was decrypted.
+        expect(decryptCalls).toBe(0);
+        expect(hook().allConnections).toEqual([]);
+
+        await act(async () => {
+            await hook().showCachedConnections();
+        });
+        expect(hook().allConnections.map(c => c.id)).toEqual(['conn-cached']);
+        expect(hook().allConnections[0].notes).toBe('Talked about hiring');
+    });
+
+    it('off a profile, shows the cached list at once for the start screen', async () => {
+        tabUrl = FEED_URL;
+        storage.cachedConnections = [janeRow({ id: 'conn-cached' })];
+        storage.cachedConnectionsOwner = USER.id;
+        const hook = await renderHook();
+
+        expect(hook().allConnections.map(c => c.id)).toEqual(['conn-cached']);
+    });
+});
+
+describe('a list load that has been overtaken', () => {
+    const bob: Connection = { id: 'conn-bob', name: 'Bob', notes: encrypt('Owes me a coffee') };
+
+    it('does not overwrite the answer of a newer load', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        const gate = newGate();
+        holdList = gate.promise;
+
+        let older: Promise<void> = Promise.resolve();
+        await act(async () => {
+            older = hook().fetchAllConnections(true);
+            await Promise.resolve();
+        });
+        rows = [janeRow(), bob];
+        await act(async () => {
+            await hook().fetchAllConnections(true);
+        });
+        expect(hook().allConnections.map(c => c.id)).toEqual(['conn-jane', 'conn-bob']);
+
+        await act(async () => {
+            gate.release();
+            await older;
+        });
+        expect(hook().allConnections.map(c => c.id)).toEqual(['conn-jane', 'conn-bob']);
+        expect(storage.cachedConnections).toEqual([janeRow(), bob]);
+    });
+
+    it('writes nothing after sign-out', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        const gate = newGate();
+        holdList = gate.promise;
+
+        let load: Promise<void> = Promise.resolve();
+        await act(async () => {
+            load = hook().fetchAllConnections();
+            await Promise.resolve();
+        });
+        await act(async () => {
+            await hook().clearConnectionState();
+        });
+        await act(async () => {
+            gate.release();
+            await load;
+        });
+
+        expect(hook().allConnections).toEqual([]);
+        expect(hook().error).toBeNull();
+        expect(hook().isLoading).toBe(false);
+        expect(storage.cachedConnections).toBeUndefined();
+    });
+
+    it('is dropped, with the list, when another account signs in', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        expect(hook().allConnections).toHaveLength(1);
+        const gate = newGate();
+        holdList = gate.promise;
+        let load: Promise<void> = Promise.resolve();
+        await act(async () => {
+            load = hook().fetchAllConnections(true);
+            await Promise.resolve();
+        });
+
+        currentUser = { id: 'user-2' } as User;
+        await act(async () => {
+            if (probe) root?.render(createElement(probe));
+        });
+        await act(async () => {
+            gate.release();
+            await load;
+        });
+
+        expect(hook().allConnections).toEqual([]);
+    });
+});
+
+describe('a failed list load', () => {
+    it('keeps the last good list and shows the error', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        failList = true;
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+
+        expect(hook().allConnections.map(c => c.id)).toEqual(['conn-jane']);
+        expect(hook().error).toBe('Kon de connecties niet ophalen.');
+    });
+
+    it('a profile without a saved connection keeps the list too', async () => {
+        rows = [janeRow({ linkedInUrl: 'https://www.linkedin.com/in/other' })];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+
+        await act(async () => {
+            await hook().fetchData();
+        });
+
+        expect(hook().connection).toBeNull();
+        expect(hook().allConnections).toHaveLength(1);
+    });
+});
+
+describe('decrypting the list', () => {
+    it('decrypts an unchanged list only once', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        const afterFirst = decryptCalls;
+        expect(afterFirst).toBeGreaterThan(0);
+
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        expect(decryptCalls).toBe(afterFirst);
+        expect(hook().allConnections[0].notes).toBe('Talked about hiring');
+    });
+
+    it('forgets every plaintext on sign-out', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        expect(decryptMemoSize()).toBeGreaterThan(0);
+
+        await act(async () => {
+            await hook().clearConnectionState();
+        });
+        expect(decryptMemoSize()).toBe(0);
+
+        const before = decryptCalls;
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        expect(decryptCalls).toBeGreaterThan(before);
+    });
+
+    it('does not remember a field it could not decrypt', async () => {
+        rows = [janeRow({ notes: UNDECRYPTABLE })];
+        const hook = await renderHook();
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        const before = decryptCalls;
+
+        await act(async () => {
+            await hook().fetchAllConnections();
+        });
+        expect(decryptCalls).toBe(before + 1);
+        expect(hook().allConnections[0].notes).toBe(LOCKED_FIELD_PLACEHOLDER);
+    });
+
+    it('asks for every field of every row at once, not one after another', async () => {
+        tabUrl = FEED_URL;
+        rows = [
+            janeRow(),
+            janeRow({
+                id: 'conn-2',
+                meetingPlace: encrypt('Slush'),
+                userCompanyAtTheTime: encrypt('Initech'),
+                notes: encrypt('Wants an intro'),
+                email: encrypt('two@example.com'),
+                phone: encrypt('+31 6 0000 0000'),
+            }),
+        ];
+        const hook = await renderHook();
+        const gate = newGate();
+        holdDecrypt = gate.promise;
+
+        let load: Promise<void> = Promise.resolve();
+        await act(async () => {
+            load = hook().fetchAllConnections();
+            await new Promise(resolve => setTimeout(resolve, 0));
+        });
+        // Two rows of five encrypted fields, all waiting together.
+        expect(maxDecryptsInFlight).toBe(10);
+
+        await act(async () => {
+            gate.release();
+            await load;
+        });
+        expect(hook().allConnections.map(c => c.email)).toEqual(['jane@example.com', 'two@example.com']);
     });
 });
