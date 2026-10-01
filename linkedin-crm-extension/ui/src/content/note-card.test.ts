@@ -327,6 +327,44 @@ describe('Retry', () => {
         expect(save).not.toHaveBeenCalled();
     });
 
+    it('ignores an answer for a card that is still on the page but no longer owns it', async () => {
+        // main.js starts the load without awaiting it, so ticks keep running
+        // while it is in flight. Between an SPA navigation and the tick that
+        // removes the card, the card is still connected while the url already
+        // belongs to the next profile: isAttached (stillOwned in main.js)
+        // answers for the profile, not only for the DOM.
+        const pending = deferred<ApiResponse>();
+        const container = document.createElement('div');
+        const textarea = document.createElement('textarea');
+        const status = document.createElement('div');
+        const retry = document.createElement('button');
+        container.append(textarea, status, retry);
+        document.body.append(container);
+        let owned = true;
+        const save = vi.fn(async () => true);
+        const card = createNoteCard({
+            textarea,
+            status,
+            retry,
+            isAttached: () => owned && container.isConnected,
+            load: () => readNote(scriptedRequest(pending.promise), decryptStored),
+            save,
+        });
+
+        const loading = card.load();
+        owned = false;
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(container.isConnected).toBe(true);
+        expect(textarea.value).toBe('');
+        expect(textarea.disabled).toBe(true);
+        expect(card.isLoaded()).toBe(false);
+        card.markDirty();
+        await card.flush();
+        expect(save).not.toHaveBeenCalled();
+    });
+
     it('does not load again once loaded, so what was typed stays', async () => {
         const request = scriptedRequest(WITH_NOTE);
         const { card, textarea } = mountCard(request);

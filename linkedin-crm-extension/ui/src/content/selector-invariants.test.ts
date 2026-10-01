@@ -152,6 +152,28 @@ describe('injection keeps checking after the page goes quiet', () => {
         expect(code).toMatch(/new MutationObserver\(\(\) => \{\s*scheduler\.request\(\)/);
     });
 
+    it('does not hold a round open while the note loads', () => {
+        // checkAndInject used to await injectContextField, which awaited
+        // attachNoteBehaviour, which awaited card.load(): a GET and a decrypt,
+        // up to 15 s each. The scheduler starts no round while one runs, so
+        // for that long nothing cleaned up after a navigation - profile A's
+        // card stayed on profile B - and the card did not move from the
+        // sticky header to the hero. The load now runs beside the round.
+        expect(code).not.toMatch(/async function attachNoteBehaviour/);
+        expect(code).not.toMatch(/await attachNoteBehaviour\(/);
+        expect(code).not.toMatch(/await card\.load\(\)/);
+        expect(code).toMatch(/card\.load\(\)\.catch\(/);
+        // And an answer that arrives later is checked against the card's own
+        // profile before anything is kept from it.
+        expect(code).toMatch(/const note = await loadCardNote\(\);\s*(\/\/.*\s*)*if \(!stillOwned\(\)\) return note;/);
+    });
+
+    it('does not fall back to the live url when looking up the connection', () => {
+        // A save can run after an SPA navigation; window.location then belongs
+        // to the next profile.
+        expect(code).toMatch(/async function findConnectionId\(profileUrl\)/);
+    });
+
     it('gives the runtime message a deadline', () => {
         // A promise that never settles blocks the scheduler's next round for
         // good, and an MV3 worker can die between send and reply.
@@ -237,14 +259,17 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         // note-card.ts, tested in note-card.test.ts; main.js must not open it
         // on its own.
         expect(code).toContain('createNoteCard(');
-        expect(code).toContain('await card.load();');
+        expect(code).toContain('card.load().catch(');
         expect(code).not.toMatch(/textarea\.disabled\s*=\s*false/);
         expect(code).not.toMatch(/status\.innerText\s*!==?\s*'Locked'/);
         // And it loads through readNote, which is what tells a 429 from "not in
         // the CRM": a lenient inline load here brings the bug back with every
         // test in note-card.test.ts still green.
         expect(code).toContain('readNote(');
-        expect(code).toContain('isAttached: () => container.isConnected');
+        expect(code).toContain('isAttached: stillOwned');
+        expect(code).toMatch(
+            /const stillOwned = \(\) => container\.isConnected && currentProfilePath\(location\.pathname\) === cardPath;/,
+        );
         // The Retry that note-card.ts shows has to be on the card to be clicked.
         expect(code).toContain('footer.appendChild(retryButton)');
     });

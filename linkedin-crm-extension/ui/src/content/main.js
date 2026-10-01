@@ -64,9 +64,11 @@ import { createInFlightSharing } from './shared-lookup';
  * MV3-workers gaan na ~30s inactiviteit uit. Normaal wekt sendMessage hem
  * weer, maar sterft hij precies tussen verzenden en antwoorden, dan komt de
  * callback nooit - en een Promise die nooit settelt houdt de aanroeper voor
- * altijd vast. injectContextField wacht op zo'n antwoord, en de scheduler
- * start geen nieuwe ronde zolang de vorige loopt: één hangend bericht zou dus
- * alle verdere injectie stilleggen.
+ * altijd vast. Een scheduler-ronde wacht daar niet meer op (het laden van de
+ * notitie loopt los, zie attachNoteBehaviour), maar het laden zelf, een save
+ * en een Retry wel: zonder deadline bleef de kaart voor altijd op
+ * "Loading..." of "Saving..." staan, en card.flush liet elke volgende save
+ * achter de hangende wachten.
  */
 const RUNTIME_MESSAGE_TIMEOUT_MS = 15000;
 
@@ -155,13 +157,17 @@ function lookupConnection(profileUrl) {
 }
 
 /**
- * Zoekt de CRM-connectie voor het profiel dat nu open staat.
+ * Zoekt de CRM-connectie voor het profiel van de kaart (profileUrl).
+ *
+ * Geen standaardwaarde meer uit window.location: een save loopt na de
+ * debounce, en kan dan na een SPA-navigatie afgaan. De aanroeper geeft altijd
+ * de url van de kaart mee.
  *
  * Geeft het id terug, of null als het profiel er niet in staat. Gooit niet: de
  * aanroepers behandelen "niet gevonden" en "kon niet kijken" allebei als "nog
  * niet toevoegbaar", en een fout hier mag het typen niet onderbreken.
  */
-async function findConnectionId(profileUrl = window.location.href) {
+async function findConnectionId(profileUrl) {
     try {
         // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
         const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
@@ -520,8 +526,16 @@ function relocateExistingCard(topCard) {
  * Een eigen functie (SonarCloud S3776): het bouwen van de kaart in
  * injectContextField en het gedrag van de kaart zijn twee verantwoordelijkheden,
  * en samen kwam injectContextField ruim boven de toegestane complexiteit.
+ *
+ * Bewust niet async, en het laden wordt gestart zonder erop te wachten. Deze
+ * functie draait binnen een scheduler-ronde, en de scheduler start geen nieuwe
+ * ronde zolang de vorige loopt. Wachtte deze ronde op het laden (een GET en
+ * een ontsleuteling, elk tot 15 s), dan lag alle injectie zolang stil: geen
+ * navigatie-opruiming, dus de kaart van profiel A bleef op profiel B staan, en
+ * geen verhuizing van de sticky header naar de hero. Of het antwoord nog
+ * ergens heen mag, beslist stillOwned na elke await.
  */
-async function attachNoteBehaviour(container, textarea, status, retryButton) {
+function attachNoteBehaviour(container, textarea, status, retryButton) {
     // 6. Load Data
     let connectionId = null;
     let debounceTimer = null;
@@ -532,6 +546,11 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
     // is dan van iemand anders.
     const cardPath = currentProfilePath(location.pathname);
     const cardUrl = window.location.href;
+    // Of deze kaart nog op de pagina staat én de pagina nog van haar profiel
+    // is. Het laden loopt los van de ronde die de kaart plaatste, en tussen
+    // een navigatie en de ronde die de kaart weghaalt zit een moment waarop
+    // de kaart er nog staat terwijl de url al van iemand anders is.
+    const stillOwned = () => container.isConnected && currentProfilePath(location.pathname) === cardPath;
     const rawCardName = extractRawProfileName(document, document.title);
     let cardName = rawCardName ? cleanProfileName(rawCardName) : '';
     const resolveCardName = () => {
@@ -572,17 +591,19 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
         textarea,
         status,
         retry: retryButton,
-        isAttached: () => container.isConnected,
+        isAttached: stillOwned,
         load: async () => {
             const note = await loadCardNote();
+            // Een antwoord voor een kaart die niet meer van dit profiel is,
+            // hoort bij geen enkele kaart: note-card.ts past het dan ook niet
+            // toe, en het id mag hier evenmin blijven hangen.
+            if (!stillOwned()) return note;
             if (note.state === 'loaded') connectionId = note.connectionId;
             return note;
         },
         // Pas bij aanroep opgezocht: saveNote staat hieronder.
         save: () => saveNote(),
     });
-
-    await card.load();
 
     // 7. Save Logic
     // Geeft true alleen als de notitie op de server staat; bij false houdt
@@ -717,6 +738,14 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
         document.removeEventListener('visibilitychange', flushOnHide);
         globalThis.removeEventListener('pagehide', flushSave);
     }).observe(document.body, { childList: true, subtree: true });
+
+    // Pas als alles hierboven aan de kaart hangt, en zonder await: zie de
+    // kop van deze functie. card.load vangt zijn eigen fouten af; de catch is
+    // er voor wat daar ooit nog doorheen glipt, zodat er geen onafgehandelde
+    // afwijzing ontstaat.
+    card.load().catch((error) => {
+        console.error('Rolodink: laden van de notitie mislukt:', error);
+    });
 }
 
 // Function to inject the Context Field (Note)
@@ -915,7 +944,8 @@ async function injectContextField() {
                 console.warn('Rolodink: profielkaart heeft geen ouder - de notitiekaart kan niet geplaatst worden');
             }
 
-            await attachNoteBehaviour(container, textarea, status, retryButton);
+            // Niet awaiten: het laden van de notitie loopt los van deze ronde.
+            attachNoteBehaviour(container, textarea, status, retryButton);
         }
 
         // Reset injection flag (success)
