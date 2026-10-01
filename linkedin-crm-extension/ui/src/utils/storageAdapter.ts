@@ -1,4 +1,4 @@
-import type { SupportedStorage } from '@supabase/supabase-js';
+import type { SupportedStorage } from '@supabase/auth-js';
 
 /**
  * Custom storage adapter for Supabase to use chrome.storage.local

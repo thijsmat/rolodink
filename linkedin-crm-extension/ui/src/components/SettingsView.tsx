@@ -9,6 +9,9 @@ import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
 import { ConfirmPanel } from './ConfirmPanel';
 import { buildFeedbackMailto, detectBrowserName, supportEmailFor } from '../utils/feedback';
+import { downloadBlob } from '../utils/download';
+import { useReadableExport } from '../hooks/useReadableExport';
+import { ReadableExportSetting } from './ReadableExportSetting';
 
 /** A setting row whose action opens a link in a new tab. */
 function LinkSetting({ title, description, href, label }: Readonly<{
@@ -46,6 +49,7 @@ export function SettingsView() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { exportingFormat, progress: exportProgress, exportReadable } = useReadableExport(t, setToastMessage);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -212,24 +216,10 @@ export function SettingsView() {
 
       // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'linkedin-crm-export.json';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
+      const filenameMatch = contentDisposition ? /filename="([^"]+)"/.exec(contentDisposition) : null;
+      const filename = filenameMatch ? filenameMatch[1] : 'linkedin-crm-export.json';
 
-      // Create blob and download
-      const blob = await response.blob();
-      const url = globalThis.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      globalThis.URL.revokeObjectURL(url);
+      downloadBlob(await response.blob(), filename);
 
       setToastMessage(t('msg_export_success'));
     } catch (e) {
@@ -453,6 +443,13 @@ export function SettingsView() {
               {isExporting ? t('exporting_button') : t('export_data_button')}
             </button>
           </div>
+
+          <ReadableExportSetting
+            t={t}
+            exportingFormat={exportingFormat}
+            progress={exportProgress}
+            onExport={(format) => void exportReadable(format)}
+          />
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>

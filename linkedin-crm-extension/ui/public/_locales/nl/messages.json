@@ -180,16 +180,64 @@
         "message": "Privacy & GDPR"
     },
     "export_data_title": {
-        "message": "Exporteer mijn data"
+        "message": "Versleutelde back-up (JSON)"
     },
     "export_data_description": {
-        "message": "Download een volledig overzicht van al je connecties en notities als JSON bestand."
+        "message": "Download al je connecties zoals ze op de server staan. Notities, e-mail en telefoon blijven versleuteld en zijn alleen met jouw sleutel in Rolodink te lezen. Bedoeld als back-up, niet om te lezen."
     },
     "export_data_button": {
-        "message": "📊 Exporteer data"
+        "message": "📦 Download back-up"
     },
     "exporting_button": {
         "message": "⏳ Exporteren..."
+    },
+    "readable_export_title": {
+        "message": "Leesbare export"
+    },
+    "readable_export_description": {
+        "message": "Download al je connecties ontsleuteld, om te lezen of in Excel te openen. Het ontsleutelen gebeurt hier in de extensie; de server krijgt je notities nooit leesbaar te zien."
+    },
+    "readable_export_warning": {
+        "message": "⚠️ Let op: dit bestand bevat je notities, e-mailadressen en telefoonnummers onversleuteld. Bewaar het op een veilige plek, deel het niet en verwijder het als je het niet meer nodig hebt."
+    },
+    "readable_export_csv_button": {
+        "message": "📄 CSV (Excel)"
+    },
+    "readable_export_json_button": {
+        "message": "🧾 JSON"
+    },
+    "readable_export_fetching": {
+        "message": "Connecties ophalen…"
+    },
+    "readable_export_progress": {
+        "message": "Ontsleutelen… $DONE$ van $TOTAL$",
+        "placeholders": {
+            "done": {
+                "content": "$1"
+            },
+            "total": {
+                "content": "$2"
+            }
+        }
+    },
+    "msg_readable_export_success": {
+        "message": "$COUNT$ connecties leesbaar geëxporteerd. Bewaar het bestand veilig.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_readable_export_partial": {
+        "message": "$COUNT$ connecties geëxporteerd, maar $FAILED$ velden konden niet worden ontsleuteld (sleutel ontbreekt of is vergrendeld). Die velden zijn leeg gelaten en staan per rij in de kolom 'Not decrypted'.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "failed": {
+                "content": "$2"
+            }
+        }
     },
     "delete_account_title": {
         "message": "Verwijder mijn account"
@@ -380,6 +428,27 @@
     },
     "help_user_company": {
         "message": "Waar werkte je toen je deze persoon ontmoette?"
+    },
+    "section_contact": {
+        "message": "Contactgegevens"
+    },
+    "label_email": {
+        "message": "E-mailadres"
+    },
+    "placeholder_email": {
+        "message": "naam@bedrijf.nl"
+    },
+    "help_contact_private": {
+        "message": "Versleuteld opgeslagen, net als je notities. Alleen jij kunt het lezen."
+    },
+    "warning_email_format": {
+        "message": "Dit lijkt geen e-mailadres. Je kunt het wel opslaan."
+    },
+    "label_phone": {
+        "message": "Telefoonnummer"
+    },
+    "placeholder_phone": {
+        "message": "+31 6 12345678"
     },
     "section_notes": {
         "message": "Notities"

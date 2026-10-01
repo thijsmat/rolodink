@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import type { Connection } from '../context/ConnectionContext';
 import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
 import { clearDecryptMemo, decryptMemoSize } from '../utils/decryptMemo';
@@ -224,12 +224,12 @@ afterEach(async () => {
 });
 
 describe('editing a connection in the popup', () => {
-    it('keeps the email and phone the edit form does not show', async () => {
+    it('keeps the email and phone when the edit did not touch them', async () => {
         rows = [janeRow()];
         const hook = await renderHook();
         expect(hook().connection?.email).toBe('jane@example.com');
 
-        // What ConnectionForm submits: its three fields and nothing else.
+        // What ConnectionForm submits when email and phone were left alone.
         await act(async () => {
             await hook().handleUpdate({ meetingPlace: 'Web Summit', userCompanyAtTheTime: 'Acme', notes: 'Hiring in Q1' });
         });
@@ -241,6 +241,54 @@ describe('editing a connection in the popup', () => {
         expect(rows[0].phone).toBe(encrypt('+31 6 1234 5678'));
         expect(rows[0].notes).toBe(encrypt('Hiring in Q1'));
         expect(hook().connection?.phone).toBe('+31 6 1234 5678');
+    });
+
+    it('sends a changed email and phone encrypted', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+
+        await act(async () => {
+            await hook().handleUpdate({
+                meetingPlace: 'Web Summit', userCompanyAtTheTime: 'Acme', notes: 'Talked about hiring',
+                email: 'jane@acme.com', phone: '+31 20 123 4567',
+            });
+        });
+
+        const body = requests.find(r => r.method === 'PATCH')?.body;
+        expect(body?.email).toBe(encrypt('jane@acme.com'));
+        expect(body?.phone).toBe(encrypt('+31 20 123 4567'));
+        expect(JSON.stringify(body)).not.toContain('jane@acme.com');
+        expect(hook().connection?.email).toBe('jane@acme.com');
+        expect(hook().connection?.phone).toBe('+31 20 123 4567');
+    });
+
+    it('clears an email the user emptied, and keeps the phone left alone', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+
+        await act(async () => {
+            await hook().handleUpdate({ meetingPlace: 'Web Summit', userCompanyAtTheTime: 'Acme', notes: 'Talked about hiring', email: null });
+        });
+
+        const body = requests.find(r => r.method === 'PATCH')?.body;
+        expect(body).toHaveProperty('email', null);
+        expect(body).not.toHaveProperty('phone');
+        expect(rows[0].email).toBeNull();
+        expect(rows[0].phone).toBe(encrypt('+31 6 1234 5678'));
+    });
+
+    it('creates a connection with its email and phone encrypted', async () => {
+        rows = [];
+        const hook = await renderHook();
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        await act(async () => {
+            await hook().handleCreateConnection({ meetingPlace: 'Slush', email: 'bob@example.com', phone: '0612345678' }).catch(() => {});
+        });
+
+        const body = requests.find(r => r.method === 'POST')?.body;
+        expect(body?.email).toBe(encrypt('bob@example.com'));
+        expect(body?.phone).toBe(encrypt('0612345678'));
     });
 
     it('still clears a field the user emptied', async () => {

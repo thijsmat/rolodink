@@ -3,6 +3,8 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './AllConnectionsView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { matchesSearch } from '../utils/connectionSearch';
+import { getBrowserAPI } from '../utils/browser';
 
 export function AllConnectionsView() {
   const { t } = useExtensionTranslation();
@@ -68,13 +70,7 @@ export function AllConnectionsView() {
 
     // Apply search filter with debounced query
     if (debouncedSearchQuery.trim()) {
-      const query = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter(conn =>
-        conn.name.toLowerCase().includes(query) ||
-        (conn.meetingPlace && conn.meetingPlace.toLowerCase().includes(query)) ||
-        (conn.userCompanyAtTheTime && conn.userCompanyAtTheTime.toLowerCase().includes(query)) ||
-        (conn.notes && conn.notes.toLowerCase().includes(query))
-      );
+      filtered = filtered.filter(conn => matchesSearch(conn, debouncedSearchQuery));
     }
 
     // Apply category filter
@@ -261,7 +257,7 @@ export function AllConnectionsView() {
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await chrome.tabs.update({ url: conn.linkedInUrl });
+                          await getBrowserAPI().tabs.update({ url: conn.linkedInUrl });
                         } catch (error) {
                           console.error('Failed to navigate to LinkedIn profile:', error);
                         }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl, readConflict, withExpectedVersion } from '@rolodink/core';
 import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
@@ -7,7 +7,8 @@ import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
 import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
-import { clearDecryptMemo, getDecrypted, rememberDecrypted } from '../utils/decryptMemo';
+import { clearDecryptMemo } from '../utils/decryptMemo';
+import { decryptWithMemo } from '../utils/decryptField';
 
 // Helper functions (copied from ConnectionContext)
 const warnOnce = (() => {
@@ -89,20 +90,9 @@ async function encryptFormData<T extends Partial<Record<SensitiveField, string |
 
 type Runtime = NonNullable<ReturnType<typeof getRuntime>>;
 
-/** Decrypt one value, from the memo when this owner has decrypted it before. */
-async function decryptValue(runtime: Runtime, ownerId: string | null, field: string, ciphertext: string): Promise<string> {
-    const known = ownerId ? getDecrypted(ownerId, ciphertext) : undefined;
-    if (known !== undefined) return known;
-    try {
-        const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext });
-        if (!response?.success) return LOCKED_FIELD_PLACEHOLDER;
-        // Only successes are kept: a locked field may open once the key is there.
-        if (ownerId) rememberDecrypted(ownerId, ciphertext, response.plaintext);
-        return response.plaintext;
-    } catch (e) {
-        console.warn(`[Decryption] Failed for field '${field}':`, e);
-        return LOCKED_FIELD_PLACEHOLDER;
-    }
+/** Decrypt one value for display: a locked field shows the lock placeholder. */
+async function decryptValue(runtime: Runtime, ownerId: string | null, ciphertext: string): Promise<string> {
+    return (await decryptWithMemo(runtime, ownerId, ciphertext)) ?? LOCKED_FIELD_PLACEHOLDER;
 }
 
 /** Decrypt all sensitive fields in a connection. */
@@ -117,7 +107,7 @@ async function decryptConnections(connections: Connection[], ownerId: string | n
         await Promise.all(SENSITIVE_FIELDS.map(async (field) => {
             const raw = (conn as Record<string, unknown>)[field];
             if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
-                (decrypted as Record<string, unknown>)[field] = await decryptValue(runtime, ownerId, field, raw);
+                (decrypted as Record<string, unknown>)[field] = await decryptValue(runtime, ownerId, raw);
             }
         }));
         return decrypted;
