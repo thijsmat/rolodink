@@ -223,47 +223,48 @@ function markButtonAsAdded(profilePath) {
 }
 
 /**
- * Voegt het profiel dat nu open staat toe aan de CRM en geeft het id terug.
+ * Voegt het profiel van de kaart toe aan de CRM, met de (al versleutelde)
+ * notitie erbij, in één POST.
  *
  * Bestaat omdat typen in het notitieveld een vraag om op te slaan is. Wie een
  * notitie intikt op een profiel dat nog niet in de CRM staat, wil die notitie
- * bewaren - eerst een knop moeten zoeken is een stap die niemand wilde. De
- * code had er al een aantekening over staan ("Optional: Auto-create
- * connection?") die nooit iets geworden is.
+ * bewaren - eerst een knop moeten zoeken is een stap die niemand wilde.
  *
- * Geeft null terug als het niet lukt; de aanroeper vertelt de gebruiker wat er
- * aan de hand is. Gooit niet: een mislukte aanmaak mag het typen niet
- * onderbreken.
+ * POST /api/connections accepteert notes al; de notitie meesturen scheelt een
+ * aparte PATCH, en er bestaat nooit een connectie zonder de notitie waarvoor
+ * hij werd aangemaakt.
+ *
+ * Geeft een uitkomst terug en gooit niet:
+ *  - created: aangemaakt, met het id (of null als het antwoord er geen had);
+ *  - exists: 409, hij staat er al in - in een ander tabblad, via de popup, of
+ *    door een klik op de knop. De aanroeper leest dan eerst wat er staat;
+ *  - no-name: geen naam om mee aan te maken; er is niets verstuurd;
+ *  - failed: de API weigerde (status erbij) of was onbereikbaar.
  *
  * Url en naam komen van de aanroeper en worden niet hier van de pagina gelezen:
  * een opslag die pas na een SPA-navigatie afgaat, zou anders het nieuwe
  * profiel aanmaken en de notitie van het oude eraan hangen.
  */
-async function createConnectionForProfile(profileUrl, name) {
+async function createConnectionForProfile(profileUrl, name, notes) {
+    if (!name) {
+        console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
+        return { outcome: 'no-name' };
+    }
     try {
-        if (!name) {
-            console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
-            return null;
-        }
-
         const resp = await apiRequest({
             path: '/api/connections',
             method: 'POST',
-            body: { name, url: profileUrl },
+            body: { name, url: profileUrl, notes },
         });
-
-        // 409 betekent dat hij er al in staat - in een ander tabblad, of door
-        // een klik op de knop tussen het opzoeken en het aanmaken door. Dat is
-        // geen fout, alleen een reden om het id alsnog op te halen.
-        if (resp.status === 409) return await findConnectionId(profileUrl);
+        if (resp.status === 409) return { outcome: 'exists' };
         if (!resp.ok) {
             console.error('Rolodink: kon de connectie niet aanmaken:', resp.status, resp.data);
-            return null;
+            return { outcome: 'failed', status: resp.status };
         }
-        return resp.data?.id ?? await findConnectionId(profileUrl);
+        return { outcome: 'created', id: resp.data?.id ?? null };
     } catch (error) {
         console.error('Rolodink: kon de connectie niet aanmaken:', error);
-        return null;
+        return { outcome: 'failed', status: null };
     }
 }
 
@@ -580,6 +581,10 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     // 6. Load Data
     let connectionId = null;
     let debounceTimer = null;
+    // De tekst waarvan vaststaat dat hij op de server staat: wat de kaart
+    // laadde, of wat de laatste geslaagde save verstuurde. null zolang de
+    // kaart niet geladen is. Een save met precies deze tekst stuurt niets.
+    let lastSavedText = null;
 
     // Het profiel waar deze kaart bij hoort, vastgelegd nu. Opslaan gebeurt
     // later (debounce, flush) en kan na een SPA-navigatie afgaan; dan
@@ -587,10 +592,6 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     // is dan van iemand anders.
     const cardPath = currentProfilePath(location.pathname);
     const cardUrl = window.location.href;
-    // Of deze kaart nog op de pagina staat én de pagina nog van haar profiel
-    // is. Het laden loopt los van de ronde die de kaart plaatste, en tussen
-    // een navigatie en de ronde die de kaart weghaalt zit een moment waarop
-    // de kaart er nog staat terwijl de url al van iemand anders is.
     // Eén Text-node die blijft staan; alleen zijn data verandert. innerText
     // zetten vervangt de kinderen van het element - een childList-mutatie, en
     // daarop start de body-observer een volledige ronde. Met "Typing..." bij
@@ -599,6 +600,10 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     const statusLine = createStatusLine(status);
     const setStatus = (text) => statusLine.set(text);
 
+    // Of deze kaart nog op de pagina staat én de pagina nog van haar profiel
+    // is. Het laden loopt los van de ronde die de kaart plaatste, en tussen
+    // een navigatie en de ronde die de kaart weghaalt zit een moment waarop
+    // de kaart er nog staat terwijl de url al van iemand anders is.
     const stillOwned = () => container.isConnected && currentProfilePath(location.pathname) === cardPath;
     const rawCardName = extractRawProfileName(document, document.title);
     let cardName = rawCardName ? cleanProfileName(rawCardName) : '';
@@ -648,6 +653,8 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
             // toe, en het id mag hier evenmin blijven hangen.
             if (!stillOwned()) return note;
             if (note.state === 'loaded') connectionId = note.connectionId;
+            if (note.state === 'loaded') lastSavedText = note.text;
+            if (note.state === 'absent') lastSavedText = '';
             return note;
         },
         // Pas bij aanroep opgezocht: saveNote staat hieronder.
@@ -662,91 +669,118 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
         // is weet niet wat er op de server staat, en een PATCH zou die
         // notitie vervangen door alleen wat hier getypt is.
         if (!card.isLoaded()) return false;
+        // Niets veranderd sinds wat er al staat (terug-getypt, of een blur
+        // zonder wijziging): geen versleuteling en geen verzoek.
+        if (textarea.value === lastSavedText) return confirmSaved(lastSavedText);
         setStatus('Saving...');
         try {
-            // connectionId komt uit card.load, bij het plaatsen van
-            // de kaart of bij een Retry. Stond het profiel toen nog
-            // niet in de CRM, dan bleef dit voor altijd null - ook
-            // nadat de gebruiker op "Add to Rldnk" had geklikt en het
-            // profiel er wél in stond. De kaart weigerde dan met "Add
-            // to CRM first" en de getypte notitie was weg.
-            //
-            // Daarom hier opnieuw ophalen in plaats van vertrouwen op
-            // wat we bij het laden zagen. Dat haalt de volgorde-eis
-            // tussen knop en kaart helemaal weg.
-            //
-            // unseen: is het id hier nog null, dan komt het straks niet uit
-            // card.load en heeft deze kaart de notitie van die connectie
-            // nooit getoond. Zie de controle vóór het versleutelen.
-            const unseen = !connectionId;
-            if (!connectionId) {
-                connectionId = await findConnectionId(cardUrl);
-            }
-
-            // Staat het profiel er nog niet in, dan voegen we het
-            // toe in plaats van de gebruiker terug te sturen naar
-            // een knop. Typen is de vraag om op te slaan.
-            if (!connectionId) {
-                setStatus('Adding to Rldnk...');
-                connectionId = await createConnectionForProfile(cardUrl, resolveCardName());
-                if (connectionId) markButtonAsAdded(cardPath);
-            }
-
-            if (!connectionId) {
-                // Alleen nog bereikbaar als het aanmaken zelf
-                // mislukte - geen naam op de pagina, of de API
-                // onbereikbaar. createConnectionForProfile
-                // logt waarom.
-                setStatus('Add to Rldnk first');
-                return false;
-            }
-
-            // "Not in Rldnk yet" gold bij het laden, niet voorgoed: de popup
-            // maakt de connectie mét notitie aan, een tweede tabblad ook, en
-            // een 409 hierboven betekent precies dat. Alleen het getypte
-            // PATCHen zou die notitie vervangen. Dus eerst lezen en beide
-            // bewaren (textForUnseenNote, getest in note-card.test.ts). Lukt
-            // dat lezen niet, dan niets versturen en het id vergeten: de
-            // volgende save zoekt en leest opnieuw.
-            if (unseen) {
-                const current = await readCardNote();
-                const text = textForUnseenNote(current, connectionId, textarea.value);
-                if (text === null) {
-                    connectionId = null;
-                    setStatus('Save failed');
-                    return false;
-                }
-                if (text !== textarea.value) textarea.value = text;
-            }
-
-            // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
-            // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
-            let notesPayload;
-            try {
-                notesPayload = await encryptNoteText(textarea.value);
-            } catch (encryptError) {
-                console.error('Error encrypting note:', encryptError);
-                setStatus('Save failed');
-                return false;
-            }
-
-            const resp = await apiRequest({
-                path: '/api/connections',
-                method: 'PATCH',
-                body: { id: connectionId, notes: notesPayload },
-            });
-
-            if (resp.ok) {
-                setStatus('Saved');
-                return true;
-            }
-            setStatus(resp.status === 401 ? 'Not logged in' : 'Save failed');
-            return false;
+            // connectionId komt uit card.load of uit een eerdere geslaagde
+            // save. Is het null, dan heeft deze kaart de notitie van geen
+            // enkele connectie getoond: zie saveUnseen.
+            if (connectionId) return await patchNote();
+            return await saveUnseen();
         } catch (e) {
             console.error('Error saving note:', e);
             setStatus('Error');
             return false;
         }
+    };
+
+    // Het profiel stond bij het laden niet in de CRM. Typen is de vraag om
+    // op te slaan, dus maken we het aan - in één POST mét de notitie: eerst
+    // versleutelen, dan versturen. Dat was GET, POST zonder notitie,
+    // versleutelen en PATCH: vier berichten, en een connectie die even zonder
+    // notitie bestond als de PATCH faalde.
+    //
+    // De GET vooraf is weg omdat de 409 hetzelfde vertelt: staat hij er
+    // intussen wél in (popup, tweede tabblad, de knop), dan weigert de server
+    // de POST op de unieke url, en dan volgt het bestaande pad
+    // (adoptExisting). Zo wordt een notitie die elders is aangemaakt nooit
+    // overschreven.
+    const saveUnseen = async () => {
+        const typed = textarea.value;
+        // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
+        // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
+        const notes = await encryptOrFail(typed);
+        if (notes === null) return false;
+        setStatus('Adding to Rldnk...');
+        const created = await createConnectionForProfile(cardUrl, resolveCardName(), notes);
+        if (created.outcome === 'created') {
+            // De notitie staat erop. Alleen als het antwoord geen id had (de
+            // backend stuurt het altijd mee) kost het nog een GET: zonder id
+            // zou de volgende save via de 409 de eigen notitie als "elders
+            // aangemaakt" lezen en hem dubbel in het veld zetten.
+            connectionId = created.id ?? await findConnectionId(cardUrl);
+            markButtonAsAdded(cardPath);
+            return confirmSaved(typed);
+        }
+        if (created.outcome === 'failed') return failSave(created.status);
+        // 409, of geen naam op de pagina om mee aan te maken: misschien staat
+        // hij er al in. Verse GET, en dan het bestaande pad.
+        return adoptExisting(created.outcome === 'exists' ? 'Save failed' : 'Add to Rldnk first');
+    };
+
+    // Een connectie die deze kaart niet geladen heeft. "Not in Rldnk yet"
+    // gold bij het laden, niet voorgoed: de popup maakt de connectie mét
+    // notitie aan, een tweede tabblad ook, en een 409 betekent precies dat.
+    // Alleen het getypte PATCHen zou die notitie vervangen. Dus eerst lezen
+    // en beide bewaren (textForUnseenNote, getest in note-card.test.ts). Lukt
+    // dat lezen niet, dan niets versturen en geen id onthouden: de volgende
+    // save zoekt en leest opnieuw.
+    const adoptExisting = async (statusWhenMissing) => {
+        const id = await findConnectionId(cardUrl);
+        if (!id) {
+            setStatus(statusWhenMissing);
+            return false;
+        }
+        const current = await readCardNote();
+        const text = textForUnseenNote(current, id, textarea.value);
+        if (text === null) {
+            setStatus('Save failed');
+            return false;
+        }
+        if (text !== textarea.value) textarea.value = text;
+        connectionId = id;
+        return patchNote();
+    };
+
+    // De notitie van een connectie die deze kaart kent, vervangen door wat er
+    // nu staat.
+    const patchNote = async () => {
+        const text = textarea.value;
+        const notes = await encryptOrFail(text);
+        if (notes === null) return false;
+        const resp = await apiRequest({
+            path: '/api/connections',
+            method: 'PATCH',
+            body: { id: connectionId, notes },
+        });
+        if (resp.ok) return confirmSaved(text);
+        return failSave(resp.status);
+    };
+
+    // null als versleutelen mislukt; dan wordt er niets verstuurd.
+    const encryptOrFail = async (text) => {
+        try {
+            return await encryptNoteText(text);
+        } catch (encryptError) {
+            console.error('Error encrypting note:', encryptError);
+            setStatus('Save failed');
+            return null;
+        }
+    };
+
+    const failSave = (httpStatus) => {
+        setStatus(httpStatus === 401 ? 'Not logged in' : 'Save failed');
+        return false;
+    };
+
+    // De enige plek die true teruggeeft: alleen aanroepen als `text` op de
+    // server staat (een ok POST of PATCH, of ongewijzigd sinds de vorige).
+    const confirmSaved = (text) => {
+        lastSavedText = text;
+        setStatus('Saved');
+        return true;
     };
 
     // Saves lopen achter elkaar (card.flush): versleutelen en PATCH zijn
@@ -769,6 +803,9 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
     });
+    // Wie het veld verlaat, is klaar met typen: niet nog een seconde wachten.
+    // Ongewijzigd sinds de laatste save kost dat niets (lastSavedText).
+    textarea.addEventListener('blur', flushSave);
 
     // Wie binnen de seconde debounce het tabblad sluit of wegnavigeert,
     // verloor de notitie. Best effort: het bericht naar de worker gaat nog

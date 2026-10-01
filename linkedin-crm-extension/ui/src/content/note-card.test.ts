@@ -57,6 +57,8 @@ const decryptStored = async (notes: unknown) => (notes ? STORED_TEXT : '');
 interface MountOptions {
     decrypt?: (notes: unknown) => Promise<string>;
     save?: () => Promise<boolean>;
+    /** Besides being on the page; stands in for main.js's "url still this profile". */
+    owned?: () => boolean;
 }
 
 /** Builds the card the way injectContextField does, and wires it the way attachNoteBehaviour does. */
@@ -75,7 +77,7 @@ function mountCard(request: () => Promise<ApiResponse>, options: MountOptions = 
         textarea,
         status: createStatusLine(status),
         retry,
-        isAttached: () => container.isConnected,
+        isAttached: () => container.isConnected && (options.owned?.() ?? true),
         load: () => readNote(request, decrypt),
         save,
     });
@@ -334,21 +336,9 @@ describe('Retry', () => {
         // belongs to the next profile: isAttached (stillOwned in main.js)
         // answers for the profile, not only for the DOM.
         const pending = deferred<ApiResponse>();
-        const container = document.createElement('div');
-        const textarea = document.createElement('textarea');
-        const status = document.createElement('div');
-        const retry = document.createElement('button');
-        container.append(textarea, status, retry);
-        document.body.append(container);
         let owned = true;
-        const save = vi.fn(async () => true);
-        const card = createNoteCard({
-            textarea,
-            status: createStatusLine(status),
-            retry,
-            isAttached: () => owned && container.isConnected,
-            load: () => readNote(scriptedRequest(pending.promise), decryptStored),
-            save,
+        const { card, container, textarea, save } = mountCard(scriptedRequest(pending.promise), {
+            owned: () => owned,
         });
 
         const loading = card.load();

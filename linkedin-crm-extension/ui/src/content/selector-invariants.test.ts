@@ -247,7 +247,7 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(body).not.toContain('window.location');
         expect(body).not.toContain('document.title');
         expect(code).toContain('findConnectionId(cardUrl)');
-        expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName())');
+        expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName(), notes)');
     });
 
     it('leaves opening the textarea to the tested note card', () => {
@@ -296,28 +296,41 @@ describe('a delayed save belongs to the profile it was typed on', () => {
     it('reads a connection the card did not load before saving over its note', () => {
         // "Not in Rldnk yet" holds when the card loads, not for good: the popup
         // can create the connection with a note after that, and so can a second
-        // tab. The save that then found the id PATCHed what had been typed here
-        // over that note. textForUnseenNote decides what may be sent (see
-        // note-card.test.ts); this pins that saveNote asks it after finding the
-        // id and before encrypting anything, and forgets an id it could not
-        // check, so the next save reads again instead of PATCHing straight over.
+        // tab. A save that then PATCHed what had been typed here replaced that
+        // note. textForUnseenNote decides what may be sent (see
+        // note-card.test.ts); this pins that the save asks it after finding the
+        // id and before the PATCH, and keeps no id it could not check, so the
+        // next save reads again instead of PATCHing straight over.
+        //
+        // Changed on purpose with the single POST (see 'a new profile is saved
+        // in one POST' below): this used to pin GET -> POST -> read -> encrypt
+        // -> PATCH. The GET in front is gone because a 409 on the POST says
+        // the same thing, and the 409 leads here.
+        //
         // "Did not load" is read off connectionId, so the load has to set it:
         // without this line every first save would read the note it already
         // showed and put it in the field twice.
         expect(code).toContain("if (note.state === 'loaded') connectionId = note.connectionId;");
-        const save = code.slice(code.indexOf('const saveNote = async'));
-        const unseen = save.indexOf('const unseen = !connectionId;');
-        const check = save.indexOf('textForUnseenNote(');
-        const encrypt = save.indexOf('encryptNoteText(');
-        expect(unseen).toBeGreaterThan(-1);
-        expect(save.indexOf('findConnectionId(')).toBeGreaterThan(unseen);
-        expect(check).toBeGreaterThan(save.indexOf('createConnectionForProfile('));
-        expect(encrypt).toBeGreaterThan(check);
-        expect(save).toMatch(/if \(unseen\) \{\s*const current = await readCardNote\(\);/);
-        // The kept text goes into the field, which is what gets encrypted -
-        // now and in every later save to this id.
-        expect(save.slice(check, encrypt)).toContain('textarea.value = text;');
-        expect(save.slice(check, encrypt)).toContain('connectionId = null;');
+        const start = code.indexOf('const adoptExisting = async');
+        expect(start).toBeGreaterThan(-1);
+        const adopt = code.slice(start, code.indexOf('\n    };\n', start));
+        const find = adopt.indexOf('findConnectionId(cardUrl)');
+        const read = adopt.indexOf('const current = await readCardNote();');
+        const check = adopt.indexOf('textForUnseenNote(current, id, textarea.value)');
+        const keep = adopt.indexOf('connectionId = id;');
+        const patch = adopt.indexOf('return patchNote();');
+        expect(find).toBeGreaterThan(-1);
+        expect(read).toBeGreaterThan(find);
+        expect(check).toBeGreaterThan(read);
+        // The kept text goes into the field, which is what patchNote encrypts.
+        expect(adopt.slice(check, patch)).toContain('textarea.value = text;');
+        // Only a checked id is kept; a null answer returns before it.
+        expect(adopt.slice(check, keep)).toMatch(/if \(text === null\) \{[^}]*return false;/);
+        expect(patch).toBeGreaterThan(keep);
+        // And nothing in the unseen path PATCHes without coming through here.
+        const unseen = code.slice(code.indexOf('const saveUnseen = async'), start);
+        expect(unseen).not.toContain('patchNote(');
+        expect(unseen).not.toContain("method: 'PATCH'");
     });
 
     it('keeps a failed save dirty by saving through the card', () => {
@@ -330,7 +343,13 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         // on the server: after an ok PATCH, and nowhere else.
         const save = code.slice(code.indexOf('const saveNote = async'), code.indexOf('const flushSave'));
         expect(save.match(/return true;/g)).toHaveLength(1);
-        expect(save).toMatch(/setStatus\('Saved'\);\s*return true;/);
+        expect(save).toMatch(/const confirmSaved = \(text\) => \{\s*lastSavedText = text;\s*setStatus\('Saved'\);\s*return true;/);
+        // ...and confirmSaved is reached only after an ok PATCH, a created
+        // POST, or with the text that is already on the server.
+        expect(save.match(/confirmSaved\(/g)).toHaveLength(3);
+        expect(save).toContain('if (resp.ok) return confirmSaved(text);');
+        expect(save).toMatch(/if \(created\.outcome === 'created'\) \{[^}]*return confirmSaved\(typed\);/);
+        expect(save).toContain('if (textarea.value === lastSavedText) return confirmSaved(lastSavedText);');
     });
 
     it('flushes a pending save when the page is hidden or unloaded', () => {
@@ -406,6 +425,49 @@ describe('a content script that outlived its extension cleans up after itself', 
         expect(alive).toBeGreaterThan(-1);
         expect(click.indexOf('apiRequest(')).toBeGreaterThan(alive);
         expect(code).toContain("alert(isPlatformAlive() ? 'Cannot reach the CRM server.' : ORPHANED_ALERT);");
+    });
+});
+
+describe('a new profile is saved in one POST', () => {
+    // The first save on a profile that was not in the CRM used to send four
+    // messages: GET, POST without notes, ENCRYPT, PATCH - while POST
+    // /api/connections accepts notes. Now: encrypt, then one POST with the
+    // note. A 409 means it exists after all; then a fresh GET and the
+    // existing path, so a note made elsewhere is read before anything is
+    // written (pinned above, under adoptExisting).
+    const start = code.indexOf('const saveUnseen = async');
+    const unseen = code.slice(start, code.indexOf('\n    };\n', start));
+
+    it('encrypts first and sends the note with the POST', () => {
+        const encrypt = unseen.indexOf('encryptOrFail(typed)');
+        const post = unseen.indexOf('createConnectionForProfile(');
+        expect(encrypt).toBeGreaterThan(-1);
+        expect(post).toBeGreaterThan(encrypt);
+        // No lookup in front of the POST.
+        expect(unseen.slice(0, post)).not.toContain('findConnectionId(');
+        const create = code.slice(code.indexOf('async function createConnectionForProfile'));
+        const body = create.slice(0, create.indexOf('\n}\n'));
+        expect(body).toContain('body: { name, url: profileUrl, notes }');
+        // A 409 is handed back, not resolved here with a bare id: the caller
+        // must read the note before it may PATCH.
+        expect(body).toContain("if (resp.status === 409) return { outcome: 'exists' };");
+        expect(body).not.toContain('findConnectionId(');
+    });
+
+    it('goes through adoptExisting on a 409', () => {
+        expect(unseen).toMatch(/return adoptExisting\(created\.outcome === 'exists'/);
+    });
+
+    it('skips a save whose text is already on the server, and flushes on blur', () => {
+        expect(code).toContain('let lastSavedText = null;');
+        expect(code).toContain("if (note.state === 'loaded') lastSavedText = note.text;");
+        expect(code).toContain("if (note.state === 'absent') lastSavedText = '';");
+        expect(code).toContain("textarea.addEventListener('blur', flushSave)");
+        // The skip comes after the loaded gate: an unloaded card answers false.
+        const save = code.slice(code.indexOf('const saveNote = async'));
+        expect(save.indexOf('textarea.value === lastSavedText')).toBeGreaterThan(
+            save.indexOf('if (!card.isLoaded()) return false;'),
+        );
     });
 });
 
