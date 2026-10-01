@@ -27,7 +27,7 @@ function getRuntime(): MessageRuntime | null {
 
 function decrypterFor(ownerId: string): DecryptFn {
     const runtime = getRuntime();
-    if (!runtime) return async () => null;
+    if (!runtime) return () => Promise.resolve(null);
     return ciphertext => decryptWithMemo(runtime, ownerId, ciphertext);
 }
 
