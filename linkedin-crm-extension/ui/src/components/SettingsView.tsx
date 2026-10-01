@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
+import { ConfirmPanel } from './ConfirmPanel';
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
@@ -22,6 +23,7 @@ export function SettingsView() {
     confirmPassword: ''
   });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contextFieldEnabled, setContextFieldEnabled] = useState(true);
 
   const loadSettings = useCallback(() => {
@@ -99,21 +101,30 @@ export function SettingsView() {
       setIsChangingPassword(true);
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session?.access_token) {
+      // The email comes from the session that is already open, never from a
+      // form field, so the check below can only sign in as the same user.
+      const email = session?.user?.email;
+      if (!session?.access_token || !email) {
         setToastMessage(t('msg_not_logged_in_password'));
         return;
       }
-      const supabaseAccessToken = session.access_token;
 
-      // Validate current password by making a test API call
-      const testResponse = await fetch(`${API_BASE_URL}/api/user/export`, {
-        headers: {
-          'Authorization': `Bearer ${supabaseAccessToken}`,
-          'Content-Type': 'application/json',
-        },
+      // Check the current password for real. The previous check was a GET on
+      // /api/user/export, which only proved the session was valid: any
+      // current password was accepted.
+      const { data: verified, error: verifyError } = await supabase.auth.signInWithPassword({
+        email,
+        password: passwordData.currentPassword,
       });
-
-      if (!testResponse.ok) {
+      if (verifyError) {
+        setToastMessage(t('msg_current_password_incorrect'));
+        return;
+      }
+      if (verified?.user?.id !== session.user.id) {
+        // Cannot happen with the session's own email, but if it ever did the
+        // client would now hold someone else's session. Drop it rather than
+        // change that account's password.
+        await supabase.auth.signOut({ scope: 'local' });
         setToastMessage(t('msg_current_password_incorrect'));
         return;
       }
@@ -127,7 +138,12 @@ export function SettingsView() {
         return;
       }
 
-      // Tokens are automatically persisted by the client
+      // End every other session of this account: those include the one the
+      // check above replaced here, and any on another device that may belong
+      // to whoever knew the old password. This session stays signed in. A
+      // failure here does not undo the change, so it is only logged.
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' });
+      if (signOutError) console.error('Could not end other sessions:', signOutError);
 
       setToastMessage(t('msg_password_change_success'));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -194,12 +210,11 @@ export function SettingsView() {
     }
   }, [setToastMessage]);
 
-  const handleDeleteAccount = useCallback(async () => {
-    const confirmed = globalThis.confirm(t('msg_delete_warning'));
-
-    if (!confirmed) return;
-
-    const verification = prompt(t('msg_delete_prompt'));
+  // Called by the inline ConfirmPanel with what the user typed. That panel
+  // replaced globalThis.confirm + prompt(), which in a Firefox popup can open
+  // as a separate window and close the popup.
+  const handleDeleteAccount = useCallback(async (verification: string) => {
+    setShowDeleteConfirm(false);
     if (!isDeleteConfirmation(verification)) {
       setToastMessage(t('msg_delete_cancelled'));
       return;
@@ -227,13 +242,11 @@ export function SettingsView() {
       }
 
       const data = await response.json();
+      // The account is gone; log out now instead of after a timer that did
+      // not run if the popup closed first. The success toast comes after, so
+      // the logout's own "logged out" toast does not replace it.
+      await handleLogout().catch(console.error);
       setToastMessage(t('msg_delete_success', [data.deletedConnections]));
-
-      // Log user out after successful deletion
-      setTimeout(() => {
-        handleLogout().catch(console.error);
-      }, 2000);
-
     } catch (e) {
       setToastMessage(t('msg_delete_error_network'));
     } finally {
@@ -421,12 +434,30 @@ export function SettingsView() {
             </div>
             <button
               className={`${styles.actionButton} ${styles.dangerButton}`}
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting || showDeleteConfirm}
             >
               {isDeleting ? t('deleting_button') : t('delete_account_button')}
             </button>
           </div>
+
+          {showDeleteConfirm && (
+            <ConfirmPanel
+              message={t('msg_delete_warning')}
+              confirmLabel={t('delete_account_confirm_button')}
+              cancelLabel={t('cancel_button')}
+              busy={isDeleting}
+              typedConfirmation={{
+                label: t('msg_delete_prompt'),
+                isValid: (verification) => isDeleteConfirmation(verification),
+              }}
+              onConfirm={(verification) => void handleDeleteAccount(verification)}
+              onCancel={() => {
+                setShowDeleteConfirm(false);
+                setToastMessage(t('msg_delete_cancelled'));
+              }}
+            />
+          )}
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>

@@ -1,12 +1,16 @@
 // src/components/ConnectionView.tsx
 import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
+import { ConfirmPanel } from './ConfirmPanel';
 import styles from './ConnectionView.module.css';
 import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();
+  const { t } = useExtensionTranslation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,8 +30,10 @@ export function ConnectionView() {
     }
   };
 
+  // The one confirmation for deleting a connection. handleDelete no longer
+  // asks itself; it used to, so the user was asked twice.
   const onDelete = async () => {
-    if (!window.confirm('Weet je zeker dat je deze connectie wilt verwijderen?')) return;
+    setIsConfirmingDelete(false);
     setIsSubmitting(true);
     setError(null);
     try {
@@ -72,9 +78,9 @@ export function ConnectionView() {
               Bewerken
             </button>
             <button 
-              onClick={onDelete}
+              onClick={() => setIsConfirmingDelete(true)}
               className={`${styles.button} ${styles.buttonDanger}`}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isConfirmingDelete}
             >
               <span className={styles.buttonIcon}>
                 {isSubmitting ? '⏳' : '🗑️'}
@@ -86,6 +92,15 @@ export function ConnectionView() {
       </div>
 
       <div className={styles.content}>
+        {isConfirmingDelete && (
+          <ConfirmPanel
+            message={t('confirm_delete_connection_message')}
+            confirmLabel={t('confirm_delete_connection_button')}
+            cancelLabel={t('cancel_button')}
+            onConfirm={() => void onDelete()}
+            onCancel={() => setIsConfirmingDelete(false)}
+          />
+        )}
         <div className={styles.profileCard}>
           <div className={styles.profileHeader}>
             <div className={styles.profileInfo}>

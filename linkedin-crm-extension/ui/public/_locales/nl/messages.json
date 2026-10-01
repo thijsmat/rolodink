@@ -339,6 +339,15 @@
     "msg_delete_error_network": {
         "message": "Kon account niet verwijderen. Controleer je internetverbinding."
     },
+    "confirm_delete_connection_message": {
+        "message": "Weet je zeker dat je deze connectie wilt verwijderen?"
+    },
+    "confirm_delete_connection_button": {
+        "message": "Verwijderen"
+    },
+    "delete_account_confirm_button": {
+        "message": "Account definitief verwijderen"
+    },
     "connection_form_edit_title": {
         "message": "Connectie Bewerken"
     },
