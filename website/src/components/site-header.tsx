@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Menu, Moon, Sun, Globe } from 'lucide-react'
-import { cn, getExtensionUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,8 +20,6 @@ import {
 } from "@/components/ui/sheet"
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/navigation';
-
-const EXTENSION_URL = getExtensionUrl();
 
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -1,12 +1,11 @@
 import NextImage from "next/image";
 import { Chrome, CirclePlay, Star } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
-import { getExtensionUrl } from "@/lib/utils";
+import { storeUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
 
 export default function Hero() {
   const t = useTranslations('Hero');
-  const extensionUrl = getExtensionUrl();
 
   return (
     <section className="pt-20 sm:pt-24 pb-12 sm:pb-24 px-4 sm:px-6 lg:px-8">
@@ -30,7 +29,7 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <a
-                href={extensionUrl}
+                href={storeUrl("chrome", "hero")}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
@@ -39,7 +38,7 @@ export default function Hero() {
                 {t('cta.addToChrome')}
               </a>
               <a
-                href="https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf"
+                href={storeUrl("edge", "hero")}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
@@ -48,7 +47,7 @@ export default function Hero() {
                 {t('cta.addToEdge')}
               </a>
               <a
-                href="https://addons.mozilla.org/addon/rolodink/"
+                href={storeUrl("firefox", "hero")}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-azure text-white text-xs sm:text-sm font-medium shadow-lg hover:bg-azure/90 transition-colors items-center justify-center gap-2"
