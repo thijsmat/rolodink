@@ -42,7 +42,7 @@ import {
 import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
 import { extractRawProfileName } from './profile';
-import { createNoteCard, readNote, textForUnseenNote } from './note-card';
+import { createNoteCard, createStatusLine, readNote, textForUnseenNote } from './note-card';
 import { createInFlightSharing } from './shared-lookup';
 
 // The API base URL is no longer resolved here. Every call goes through the
@@ -550,6 +550,14 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     // is. Het laden loopt los van de ronde die de kaart plaatste, en tussen
     // een navigatie en de ronde die de kaart weghaalt zit een moment waarop
     // de kaart er nog staat terwijl de url al van iemand anders is.
+    // Eén Text-node die blijft staan; alleen zijn data verandert. innerText
+    // zetten vervangt de kinderen van het element - een childList-mutatie, en
+    // daarop start de body-observer een volledige ronde. Met "Typing..." bij
+    // elke toetsaanslag was dat ~40 rondes per 20 s typen in plaats van 4.
+    // Zie createStatusLine in note-card.ts.
+    const statusLine = createStatusLine(status);
+    const setStatus = (text) => statusLine.set(text);
+
     const stillOwned = () => container.isConnected && currentProfilePath(location.pathname) === cardPath;
     const rawCardName = extractRawProfileName(document, document.title);
     let cardName = rawCardName ? cleanProfileName(rawCardName) : '';
@@ -589,7 +597,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     const loadCardNote = () => readNote(() => lookupConnection(cardUrl), decryptNoteText);
     const card = createNoteCard({
         textarea,
-        status,
+        status: statusLine,
         retry: retryButton,
         isAttached: stillOwned,
         load: async () => {
@@ -613,7 +621,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
         // is weet niet wat er op de server staat, en een PATCH zou die
         // notitie vervangen door alleen wat hier getypt is.
         if (!card.isLoaded()) return false;
-        status.innerText = 'Saving...';
+        setStatus('Saving...');
         try {
             // connectionId komt uit card.load, bij het plaatsen van
             // de kaart of bij een Retry. Stond het profiel toen nog
@@ -638,7 +646,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
             // toe in plaats van de gebruiker terug te sturen naar
             // een knop. Typen is de vraag om op te slaan.
             if (!connectionId) {
-                status.innerText = 'Adding to Rldnk...';
+                setStatus('Adding to Rldnk...');
                 connectionId = await createConnectionForProfile(cardUrl, resolveCardName());
                 if (connectionId) markButtonAsAdded(cardPath);
             }
@@ -648,7 +656,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
                 // mislukte - geen naam op de pagina, of de API
                 // onbereikbaar. createConnectionForProfile
                 // logt waarom.
-                status.innerText = 'Add to Rldnk first';
+                setStatus('Add to Rldnk first');
                 return false;
             }
 
@@ -664,7 +672,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
                 const text = textForUnseenNote(current, connectionId, textarea.value);
                 if (text === null) {
                     connectionId = null;
-                    status.innerText = 'Save failed';
+                    setStatus('Save failed');
                     return false;
                 }
                 if (text !== textarea.value) textarea.value = text;
@@ -677,7 +685,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
                 notesPayload = await encryptNoteText(textarea.value);
             } catch (encryptError) {
                 console.error('Error encrypting note:', encryptError);
-                status.innerText = 'Save failed';
+                setStatus('Save failed');
                 return false;
             }
 
@@ -688,14 +696,14 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
             });
 
             if (resp.ok) {
-                status.innerText = 'Saved';
+                setStatus('Saved');
                 return true;
             }
-            status.innerText = resp.status === 401 ? 'Not logged in' : 'Save failed';
+            setStatus(resp.status === 401 ? 'Not logged in' : 'Save failed');
             return false;
         } catch (e) {
             console.error('Error saving note:', e);
-            status.innerText = 'Error';
+            setStatus('Error');
             return false;
         }
     };
@@ -716,7 +724,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
 
     textarea.addEventListener('input', () => {
         card.markDirty();
-        status.innerText = 'Typing...';
+        setStatus('Typing...');
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
     });
@@ -900,7 +908,7 @@ async function injectContextField() {
 
             // Status/Save Indicator, with a Retry button beside it for a load
             // that failed (note-card.ts shows and hides it). A sibling, not a
-            // child: status.innerText replaces everything inside the status.
+            // child: the status holds exactly one Text node (createStatusLine).
             const footer = document.createElement('div');
             footer.style.display = 'flex';
             footer.style.justifyContent = 'flex-end';

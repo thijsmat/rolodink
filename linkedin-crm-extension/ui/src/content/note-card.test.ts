@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createNoteCard, readNote, textForUnseenNote, type ApiResponse } from './note-card';
+import { createNoteCard, createStatusLine, readNote, textForUnseenNote, type ApiResponse } from './note-card';
 
 /**
  * The note card against a real (jsdom) textarea, with only the I/O faked.
@@ -73,7 +73,7 @@ function mountCard(request: () => Promise<ApiResponse>, options: MountOptions = 
     const save = vi.fn(options.save ?? (async () => true));
     const card = createNoteCard({
         textarea,
-        status,
+        status: createStatusLine(status),
         retry,
         isAttached: () => container.isConnected,
         load: () => readNote(request, decrypt),
@@ -344,7 +344,7 @@ describe('Retry', () => {
         const save = vi.fn(async () => true);
         const card = createNoteCard({
             textarea,
-            status,
+            status: createStatusLine(status),
             retry,
             isAttached: () => owned && container.isConnected,
             load: () => readNote(scriptedRequest(pending.promise), decryptStored),
@@ -548,5 +548,68 @@ describe('saving to a connection the card has not shown', () => {
 
     it('sends nothing when the note read belongs to another connection', async () => {
         expect(textForUnseenNote(await read(WITH_NOTE), 'conn-2', typed)).toBeNull();
+    });
+});
+
+describe('the status line', () => {
+    // main.js watches document.body for childList mutations and answers each
+    // with a full injection round. A status written through innerText or
+    // textContent is one such mutation per keystroke.
+    function watchChildList(target: Node) {
+        const records: MutationRecord[] = [];
+        const observer = new MutationObserver((batch) => records.push(...batch));
+        observer.observe(target, { childList: true, subtree: true });
+        return {
+            childListRecords: () => {
+                records.push(...observer.takeRecords());
+                return records.filter((record) => record.type === 'childList');
+            },
+            stop: () => observer.disconnect(),
+        };
+    }
+
+    it('changes its text without adding or removing nodes', () => {
+        const element = document.createElement('div');
+        document.body.append(element);
+        const line = createStatusLine(element);
+        const watcher = watchChildList(element);
+
+        for (const text of ['Typing...', 'Typing...', 'Saving...', 'Saved', 'Typing...']) line.set(text);
+
+        expect(element.textContent).toBe('Typing...');
+        expect(line.text()).toBe('Typing...');
+        expect(watcher.childListRecords()).toHaveLength(0);
+        watcher.stop();
+    });
+
+    it('keeps text that was already there', () => {
+        const element = document.createElement('div');
+        element.textContent = 'Loading...';
+        expect(createStatusLine(element).text()).toBe('Loading...');
+        expect(element.childNodes).toHaveLength(1);
+    });
+
+    it('puts its node back once if something replaced it', () => {
+        const element = document.createElement('div');
+        const line = createStatusLine(element);
+        element.textContent = 'stray';
+        line.set('Saved');
+        expect(element.textContent).toBe('Saved');
+        expect(element.childNodes).toHaveLength(1);
+    });
+
+    it('is what the card writes through while it loads', async () => {
+        const pending = deferred<ApiResponse>();
+        const { card, status } = mountCard(scriptedRequest(pending.promise));
+        const watcher = watchChildList(status);
+
+        const loading = card.load();
+        expect(status.textContent).toBe('Loading...');
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(status.textContent).toBe('Saved');
+        expect(watcher.childListRecords()).toHaveLength(0);
+        watcher.stop();
     });
 });

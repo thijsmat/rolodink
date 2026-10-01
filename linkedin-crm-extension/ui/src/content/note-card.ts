@@ -120,9 +120,41 @@ export function textForUnseenNote(current: NoteLoad, connectionId: unknown, type
     return typed ? `${current.text}\n${typed}` : current.text;
 }
 
+/**
+ * The status line under the card, written through one Text node that stays.
+ *
+ * Assigning `innerText` or `textContent` replaces the element's children: a
+ * childList mutation, and main.js's body observer answers every one of those
+ * with a full injection round. The input handler sets "Typing..." on each
+ * keystroke, so twenty seconds of typing cost some forty rounds where four
+ * would do. Changing a Text node's `data` is a characterData mutation, which
+ * an observer watching childList does not see.
+ */
+export interface StatusLine {
+    /** Shows `text`. Does nothing when it already shows exactly that. */
+    readonly set: (text: string) => void;
+    /** What it shows now. */
+    readonly text: () => string;
+}
+
+export function createStatusLine(element: HTMLElement): StatusLine {
+    const node = element.ownerDocument.createTextNode(element.textContent ?? '');
+    element.replaceChildren(node);
+    return {
+        set: (text) => {
+            // Put back if something replaced it after all; that costs one
+            // childList mutation, once, instead of one per call.
+            if (node.parentNode !== element) element.replaceChildren(node);
+            if (node.data !== text) node.data = text;
+        },
+        text: () => node.data,
+    };
+}
+
 export interface NoteCardOptions {
     textarea: HTMLTextAreaElement;
-    status: HTMLElement;
+    /** See createStatusLine: never assign the element's text directly. */
+    status: StatusLine;
     /** Shown beside the status after a load that retrying can fix. */
     retry: HTMLButtonElement;
     /** False once the card has left the page; SPA navigation removes it. */
@@ -172,7 +204,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     };
 
     const apply = (note: NoteLoad) => {
-        status.textContent = note.status;
+        status.set(note.status);
         if (note.state === 'loaded') textarea.value = note.text;
         if (note.state === 'locked') {
             // Nothing rather than the ciphertext.
@@ -185,7 +217,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     };
 
     const run = async () => {
-        status.textContent = 'Loading...';
+        status.set('Loading...');
         textarea.disabled = true;
         showRetry(false);
         let note: NoteLoad;

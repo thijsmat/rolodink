@@ -330,12 +330,34 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         // on the server: after an ok PATCH, and nowhere else.
         const save = code.slice(code.indexOf('const saveNote = async'), code.indexOf('const flushSave'));
         expect(save.match(/return true;/g)).toHaveLength(1);
-        expect(save).toMatch(/status\.innerText = 'Saved';\s*return true;/);
+        expect(save).toMatch(/setStatus\('Saved'\);\s*return true;/);
     });
 
     it('flushes a pending save when the page is hidden or unloaded', () => {
         expect(code).toContain("addEventListener('pagehide', flushSave)");
         expect(code).toContain("addEventListener('visibilitychange', flushOnHide)");
+    });
+});
+
+describe('the status line does not start injection rounds', () => {
+    // Every keystroke set status.innerText = 'Typing...'. That replaces the
+    // element's children - a childList mutation - and the body observer
+    // answers each one with a full round: some forty rounds for twenty
+    // seconds of typing, where the heartbeat alone gives four. The status now
+    // changes the data of one Text node that stays (createStatusLine,
+    // tested in note-card.test.ts); characterData is not what the body
+    // observer watches, and that observer stays as it is (see above).
+    const STATUS_WRITE = /\bstatus\.(innerText|textContent|innerHTML)\s*=(?!=)/;
+
+    it('main.js writes the status only through setStatus', () => {
+        expect(code).not.toMatch(STATUS_WRITE);
+        expect(code).toContain('createStatusLine(status)');
+        expect(code).toContain('const setStatus = (text) => statusLine.set(text);');
+    });
+
+    it('note-card.ts writes it only through the status line too', () => {
+        expect(noteCardCode).not.toMatch(STATUS_WRITE);
+        expect(noteCardCode).toContain('node.data = text');
     });
 });
 
