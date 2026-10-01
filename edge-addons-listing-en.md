@@ -16,12 +16,8 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 • Privacy-first: your data stays yours
 • Works instantly - no training needed
 
-**Perfect for:**
-- Recruiters and talent acquisition
-- Sales professionals and business development
-- Networkers and relationship builders
-- Freelancers and consultants
-- Entrepreneurs and founders
+**Who it is for:**
+Anyone who meets a lot of people on LinkedIn and wants to remember what was said.
 
 **How it works:**
 1. Install Rolodink (30 seconds)

@@ -11,16 +11,11 @@ Rolodink turns LinkedIn into your own organized network. Save a note on every co
 **Key Features:**
 • Add notes directly on LinkedIn profiles
 • Remember who you spoke with and about what
-• Works in Chrome, Edge and Firefox
 • Search and filter your network
 • Privacy-first: your data stays yours
 
-**Perfect for:**
-- Recruiters and talent acquisition
-- Sales professionals and business development
-- Networkers and relationship builders
-- Freelancers and consultants
-- Entrepreneurs and founders
+**Who it is for:**
+Anyone who meets a lot of people on LinkedIn and wants to remember what was said.
 
 **How it works:**
 1. Install Rolodink (30 seconds)
@@ -87,6 +82,9 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 **Compatibility:** Chrome, Edge, Brave (Chromium-based browsers)
 
 ## Keywords
+
+Internal reference only. Never paste these into the store description: the Chrome Web Store rejected 1.3.7 for keyword spam ("Yellow Argon") over a list of target audiences.
+
 
 LinkedIn, CRM, notes, networking, productivity, relationship management, follow-up, professional networking, contact management, rolodex
 
