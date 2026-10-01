@@ -277,7 +277,16 @@ describe('a delayed save belongs to the profile it was typed on', () => {
     it("loads the card's own profile, also on a retry", () => {
         // A Retry can run after an SPA navigation; the live location then
         // belongs to the next profile.
-        expect(code).toContain('legacyNormalizeLinkedInUrl(cardUrl)');
+        expect(code).toContain('profileLookupUrl(cardUrl)');
+    });
+
+    it('routes every profile URL it sends through profileLookupUrl', () => {
+        // Two spellings of one profile URL were two rows: POST stored what the
+        // address bar said, /details/… and nl.linkedin.com included.
+        expect(code).not.toContain('legacyNormalizeLinkedInUrl');
+        expect(code).toContain('url: profileLookupUrl(profileUrl)');
+        expect(code).toContain('url: profileLookupUrl(window.location.href)');
+        expect(code).not.toMatch(/url:\s*(window\.location\.href|profileUrl|cardUrl)\b/);
     });
 
     it('checks that the card loaded before a save sends anything', () => {
@@ -447,7 +456,7 @@ describe('a new profile is saved in one POST', () => {
         expect(unseen.slice(0, post)).not.toContain('findConnectionId(');
         const create = code.slice(code.indexOf('async function createConnectionForProfile'));
         const body = create.slice(0, create.indexOf('\n}\n'));
-        expect(body).toContain('body: { name, url: profileUrl, notes }');
+        expect(body).toContain('body: { name, url: profileLookupUrl(profileUrl), notes }');
         // A 409 is handed back, not resolved here with a bare id: the caller
         // must read the note before it may PATCH.
         expect(body).toContain("if (resp.status === 409) return { outcome: 'exists' };");

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { SENSITIVE_FIELDS } from '@rolodink/core';
+import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl } from '@rolodink/core';
 import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
@@ -154,18 +154,6 @@ async function readOwnedCache(ownerId: string | null): Promise<Connection[]> {
     return cached as Connection[];
 }
 
-function normalizeLinkedInUrl(raw: string): string {
-    try {
-        const u = new URL(raw);
-        u.search = '';
-        u.hash = '';
-        if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
-        return u.toString();
-    } catch {
-        return raw;
-    }
-}
-
 function pickFirstConnection(data: unknown): Connection | null {
     if (Array.isArray(data)) {
         return data.length > 0 ? (data[0] as Connection) : null;
@@ -181,13 +169,14 @@ async function getCurrentTabUrl(): Promise<string | null> {
 }
 
 async function fetchConnectionData(token: string, url: string) {
-    const normalizedUrl = normalizeLinkedInUrl(url);
+    // The same key the content script and the API use - one row per profile.
+    const normalizedUrl = profileLookupUrl(url);
     return fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 }
 
-const isProfileUrl = (url: string | null) => !!url?.includes('linkedin.com/in/');
+const isProfileUrl = (url: string | null) => !!url && isLinkedInProfileUrl(url);
 
 async function handleFetchResponse(
     response: Response,
@@ -471,7 +460,8 @@ export function useConnectionLogic(user: User | null) {
             const tabsApi = getTabs();
             if (!tabsApi) throw new Error('chrome.tabs is niet beschikbaar.');
             const tabs = await tabsApi.query({ active: true, currentWindow: true });
-            const profileUrl = tabs[0]?.url;
+            const tabUrl = tabs[0]?.url;
+            const profileUrl = tabUrl ? profileLookupUrl(tabUrl) : tabUrl;
             const profileName = tabs[0]?.title?.split(' | ')[0] || 'Onbekende Naam';
 
             const encryptedForm = await encryptFormData({
