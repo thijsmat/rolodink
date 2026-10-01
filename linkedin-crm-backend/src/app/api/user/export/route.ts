@@ -41,8 +41,9 @@ export async function GET(request: NextRequest) {
 
   try {
 
-    // Authenticate user
-    const { user, error: authError } = await getUserFromRequest(request);
+    // Authenticate user. strict: hands out all of the user's data at once, so
+    // not to a signed-out session whose JWT has not expired yet.
+    const { user, error: authError } = await getUserFromRequest(request, { strict: true });
     if (authError || !user) {
       return NextResponse.json(
         { error: authError || 'Unauthorized' },

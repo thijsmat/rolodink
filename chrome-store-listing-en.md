@@ -11,16 +11,11 @@ Rolodink turns LinkedIn into your own organized network. Save a note on every co
 **Key Features:**
 • Add notes directly on LinkedIn profiles
 • Remember who you spoke with and about what
-• Works in Chrome, Edge and Firefox
 • Search and filter your network
 • Privacy-first: your data stays yours
 
-**Perfect for:**
-- Recruiters and talent acquisition
-- Sales professionals and business development
-- Networkers and relationship builders
-- Freelancers and consultants
-- Entrepreneurs and founders
+**Who it is for:**
+Anyone who meets a lot of people on LinkedIn and wants to remember what was said.
 
 **How it works:**
 1. Install Rolodink (30 seconds)
@@ -42,17 +37,17 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 
 ## Screenshots
 
-**Screenshot 1 - LinkedIn Integration:**
-- Title: "Add notes directly on LinkedIn"
-- Description: "Click 'Add to Rldnk' on any LinkedIn profile to save notes and context"
+Images: `store-assets/screenshots/chrome-edge/en/` (and `nl/` for the Dutch listing), 1280×800, with the
+headline in the image. Upload them in this order; `store-assets/README.md` explains how to re-render them.
 
-**Screenshot 2 - Note Management:**
-- Title: "Organize your network"
-- Description: "View all your connections with notes, search, and filter"
+1. `1-note-on-profile.png` - "Your notes, right on LinkedIn." (the note card on a LinkedIn profile)
+2. `2-new-connection.png` - "Remember where you met." (adding someone in the popup)
+3. `3-search.png` - "Find anyone again, even by a detail." (search finds Sanne by "sail")
+4. `4-overview.png` - "Your whole network, with context." (all connections in the popup)
+5. `5-private.png` - "Just for you, and stored encrypted." (automatic encryption in the settings)
 
-**Screenshot 3 - Note on the profile:**
-- Title: "Your note, right on their profile"
-- Description: "Type a note on any LinkedIn profile; it is saved automatically"
+Promo tiles: `store-assets/screenshots/promo/small-tile-440x280.png` (small promo tile) and
+`marquee-1400x560.png` (marquee promo tile).
 
 ## Privacy Policy
 
@@ -87,6 +82,9 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 **Compatibility:** Chrome, Edge, Brave (Chromium-based browsers)
 
 ## Keywords
+
+Internal reference only. Never paste these into the store description: the Chrome Web Store rejected 1.3.7 for keyword spam ("Yellow Argon") over a list of target audiences.
+
 
 LinkedIn, CRM, notes, networking, productivity, relationship management, follow-up, professional networking, contact management, rolodex
 

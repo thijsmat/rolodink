@@ -147,15 +147,6 @@
   border-color: var(--border-strong);
 }
 
-.profileHint {
-  background: #e3f2fd;
-  border-left-color: #2196f3;
-}
-
-.profileHint .errorIcon {
-  color: #2196f3;
-}
-
 /* Responsive adjustments */
 @media (max-width: 400px) {
   .errorMessage {

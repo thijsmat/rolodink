@@ -1,0 +1,172 @@
+/* Store-afbeeldingen van Rolodink. Eén pagina per afbeelding: ?variant=store|clean|tile-small|tile-marquee. */
+
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; src: url('fonts/inter.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 700; src: url('fonts/inter-tight-700.woff2') format('woff2'); }
+@font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 800; src: url('fonts/inter-tight-800.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; src: url('fonts/instrument-serif-italic.woff2') format('woff2'); }
+
+:root {
+  --paper: #F7F5F0;
+  --ink: #1B2951;
+  --gold: #B8860B;
+  --electric: #1263FE;
+  --li-blue: #0a66c2;
+  --li-bg: #F4F2EE;
+  --li-text: rgba(0, 0, 0, .9);
+  --li-muted: rgba(0, 0, 0, .6);
+  --skeleton: #E9E6E0;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); }
+body { font-family: 'Inter', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; overflow: hidden; }
+
+/* ---------- screenshots (1280×800) ---------- */
+
+.shot { width: 1280px; height: 800px; background: radial-gradient(90% 70% at 50% 0%, #FFFDF8 0%, var(--paper) 62%); }
+
+.headline {
+  position: absolute; left: 0; right: 0; top: 0; height: 136px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  white-space: nowrap; padding-bottom: 4px;
+}
+.headline .h1 { font: 800 47px/1 'Inter Tight', sans-serif; letter-spacing: -.035em; color: var(--ink); }
+.headline .h2 { font: italic 400 58px/1 'Instrument Serif', serif; letter-spacing: -.01em; color: var(--gold); transform: translateY(1px); }
+
+.win {
+  position: absolute; left: 56px; top: 136px; width: 1168px; height: 720px;
+  overflow: hidden; border-radius: 14px 14px 0 0; background: #fff;
+  box-shadow: 0 0 0 1px rgba(27, 41, 81, .09), 0 34px 80px -24px rgba(27, 41, 81, .42);
+}
+.clean .win { left: 0; top: 0; width: 1280px; height: 800px; border-radius: 0; box-shadow: none; }
+
+/* browserbalk: neutraal, zonder merk, zodat hij in alle drie de stores klopt */
+.bar {
+  position: absolute; left: 0; right: 0; top: 0; height: 52px;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px 0 18px;
+  background: #F1F3F5; border-bottom: 1px solid #DFE2E6;
+}
+.dots { display: flex; gap: 8px; margin-right: 14px; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; background: #FF5F57; }
+.dots i:nth-child(2) { background: #FEBC2E; }
+.dots i:nth-child(3) { background: #28C840; }
+.nav { display: flex; gap: 14px; margin-right: 8px; color: #5F6368; }
+.nav svg, .url svg { display: block; }
+.url {
+  flex: 1; height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 16px;
+  border-radius: 17px; background: #fff; border: 1px solid #DFE1E5;
+  font: 400 14px/1 'Inter', sans-serif; color: #202124; letter-spacing: -.005em;
+}
+.url svg { color: #5F6368; }
+.ext { width: 34px; height: 34px; margin-left: 4px; display: grid; place-items: center; border-radius: 50%; }
+.ext.open { background: #D9DCE1; }
+.ext img { width: 20px; height: 20px; border-radius: 5px; display: block; }
+.me { width: 28px; height: 28px; border-radius: 50%; background: #DADDE2; display: grid; place-items: center; color: #4D5156; }
+
+/* ---------- LinkedIn-profiel (nagebouwd, fictieve personen) ---------- */
+
+.page { position: absolute; left: 0; right: 0; top: 52px; bottom: 0; overflow: hidden; background: var(--li-bg); font-family: 'Inter', sans-serif; color: var(--li-text); }
+.linav { position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 52px; background: #fff; border-bottom: 1px solid #E8E4DD; }
+.linav .in { width: 1128px; height: 100%; margin: 0 auto; display: flex; align-items: center; }
+.search { width: 280px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 4px; background: #EDF3F8; font-size: 14px; color: var(--li-muted); }
+.items { margin-left: auto; display: flex; }
+.item { width: 80px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; color: var(--li-muted); }
+.item svg { display: block; color: #666; }
+.item.me-item .face { width: 24px; height: 24px; border-radius: 50%; background: #C9CED6; }
+
+.scroller { position: absolute; left: 0; right: 0; top: 52px; }
+.layout { width: 1128px; margin: 24px auto 0; display: flex; gap: 24px; align-items: flex-start; }
+.col { width: 804px; display: flex; flex-direction: column; gap: 8px; }
+.rail { width: 300px; display: flex; flex-direction: column; gap: 8px; }
+.card { position: relative; overflow: hidden; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px rgba(140, 140, 140, .2); }
+
+.banner { height: 201px; background:
+  radial-gradient(45% 120% at 86% 0%, hsl(calc(var(--h) + 30) 85% 88% / .95) 0%, transparent 70%),
+  radial-gradient(55% 130% at 8% 100%, hsl(calc(var(--h) - 25) 70% 72% / .75) 0%, transparent 72%),
+  linear-gradient(115deg, hsl(var(--h) 58% 80%) 0%, hsl(calc(var(--h) + 25) 52% 66%) 100%); }
+.avatar {
+  position: absolute; left: 24px; top: 125px; width: 152px; height: 152px; border-radius: 50%;
+  border: 4px solid #fff; display: grid; place-items: center;
+  background: linear-gradient(140deg, hsl(var(--h) 64% 58%), hsl(calc(var(--h) + 18) 58% 41%));
+  font: 600 52px/1 'Inter', sans-serif; letter-spacing: .01em; color: #fff;
+}
+.info { padding: 88px 24px 24px; }
+.name { font-size: 24px; line-height: 1.25; font-weight: 600; letter-spacing: -.01em; }
+.name .deg { font-size: 14px; font-weight: 400; color: var(--li-muted); letter-spacing: 0; }
+.li-headline { margin-top: 2px; font-size: 16px; line-height: 1.4; }
+.meta { margin-top: 6px; font-size: 14px; line-height: 1.4; color: var(--li-muted); }
+.meta .link, .conns { color: var(--li-blue); font-weight: 600; }
+.conns { margin-top: 4px; font-size: 14px; }
+.actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.li-btn {
+  height: 32px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 16px; border: 0;
+  font: 600 16px/1 'Inter', sans-serif; white-space: nowrap;
+}
+.li-btn.primary { background: var(--li-blue); color: #fff; }
+.li-btn.muted { background: #fff; color: rgba(0, 0, 0, .75); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6); }
+/* main.js zet de knop op disabled zodra iemand al in Rolodink staat.
+   De achtergrond is zwart op 8% over de witte kaart, dekkend uitgeschreven. De tekst blijft
+   doorzichtig, zodat ook de ✔️-emoji gedimd is. */
+.li-btn.primary:disabled { background: #EBEBEB; color: rgba(0, 0, 0, .6); }
+
+.card .body { padding: 24px; }
+.card h2 { margin: 0 0 16px; font-size: 20px; line-height: 1.2; font-weight: 600; letter-spacing: -.005em; }
+.line { height: 12px; margin-top: 12px; border-radius: 6px; background: var(--skeleton); }
+.line.w94 { width: 94%; } .line.w86 { width: 86%; } .line.w60 { width: 60%; } .line.w40 { width: 40%; }
+.person { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid #EFEDE9; }
+.person:first-of-type { border-top: 0; padding-top: 0; }
+.person .pic { width: 48px; height: 48px; flex: none; border-radius: 50%; background: hsl(var(--h) 45% 72%); }
+.person .lines { flex: 1; }
+.person .line { margin-top: 6px; height: 10px; }
+.person .line:first-child { margin-top: 4px; height: 12px; background: #DDD9D2; }
+.person .pill { width: 96px; height: 28px; margin-top: 10px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35); }
+
+#rolodink-context-field.spot { box-shadow: 0 0 0 4px rgba(184, 134, 11, .26), 0 16px 40px -14px rgba(184, 134, 11, .55); }
+
+/* ---------- de popup van de extensie: de echte, als iframe ---------- */
+
+.popup {
+  position: absolute; z-index: 5; top: 56px; right: 46px; width: 380px; height: 600px;
+  overflow: hidden; border-radius: 10px; background: #fff;
+  box-shadow: 0 0 0 1px rgba(16, 24, 40, .10), 0 22px 60px -10px rgba(16, 24, 40, .38);
+}
+.popup iframe { display: block; width: 380px; height: 600px; border: 0; }
+
+/* ---------- promotegels ---------- */
+
+.tile { color: #fff; background:
+  radial-gradient(70% 90% at 12% 0%, rgba(120, 170, 255, .55) 0%, transparent 70%),
+  radial-gradient(60% 80% at 100% 100%, rgba(10, 30, 110, .55) 0%, transparent 70%),
+  var(--electric); }
+.tile-small { width: 440px; height: 280px; }
+.tile-marquee { width: 1400px; height: 560px; }
+.lockup { position: absolute; display: flex; align-items: center; }
+.appicon { flex: none; overflow: hidden; border-radius: 22.5%; box-shadow: 0 18px 40px -14px rgba(5, 15, 60, .55); }
+.appicon img { display: block; width: 100%; height: 100%; }
+.wordmark { font: 800 1px/1 'Inter Tight', sans-serif; letter-spacing: -.045em; color: #fff; }
+.tile-small .lockup { left: 0; right: 0; top: 0; bottom: 0; justify-content: center; gap: 16px; }
+.tile-small .appicon { width: 104px; height: 104px; }
+.tile-small .wordmark { font-size: 56px; }
+.tile-marquee .lockup { left: 124px; top: 0; bottom: 0; gap: 30px; }
+.tile-marquee .appicon { width: 172px; height: 172px; }
+.tile-marquee .wordmark { font-size: 112px; }
+
+/* rolodexkaartjes op de marquee: geen tekst, zoals Chrome aanraadt */
+.deck { position: absolute; left: 820px; top: 64px; width: 470px; height: 432px; }
+.rcard {
+  position: absolute; width: 400px; height: 236px; padding: 26px 28px; border-radius: 22px; background: #fff;
+  box-shadow: 0 30px 60px -22px rgba(4, 14, 60, .6);
+}
+.rcard .top { display: flex; align-items: center; gap: 16px; }
+.rcard .dot { width: 58px; height: 58px; flex: none; border-radius: 50%; background: linear-gradient(140deg, hsl(var(--h) 62% 60%), hsl(calc(var(--h) + 16) 55% 42%)); }
+.rcard .nm { flex: 1; }
+.rcard .nm i { display: block; height: 14px; border-radius: 7px; background: #D8DCE6; }
+.rcard .nm i + i { width: 62%; margin-top: 10px; height: 11px; background: #E6E9EF; }
+.rcard .note { margin-top: 24px; padding: 16px 18px; border-left: 5px solid var(--gold); border-radius: 12px; background: #F3F6F8; }
+.rcard .note i { display: block; height: 11px; border-radius: 6px; background: #D5DAE2; }
+.rcard .note i + i { width: 74%; margin-top: 10px; }
+.rcard.c1 { left: 0; top: 150px; transform: rotate(-9deg); opacity: .96; }
+.rcard.c2 { left: 40px; top: 84px; transform: rotate(-2.5deg); }
+.rcard.c3 { left: 70px; top: 16px; transform: rotate(5deg); }
+.drop { position: absolute; left: 1250px; top: 360px; width: 64px; height: 64px; border-radius: 0 50% 50% 50%; transform: rotate(45deg); background: #3BFDCB; box-shadow: 0 16px 34px -12px rgba(4, 14, 60, .5); }

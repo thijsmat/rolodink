@@ -158,7 +158,14 @@ Every API request requires:
 Authorization: Bearer <access_token>
 ```
 
-Token is validated via Supabase Auth API before processing request.
+`getUserFromRequest` in `linkedin-crm-backend/src/lib/supabase/server.ts` checks the token in one of two ways:
+
+- **Default: `supabase.auth.getClaims(token)`.** With asymmetric signing keys (ES256/RS256) the signature is verified locally against the project's JWKS (`/auth/v1/.well-known/jwks.json`, cached for 10 minutes), so there is no Auth call per request. With the legacy HS256 secret, `getClaims` itself falls back to `getUser` on the Auth server. On top of the signature and `exp`, the backend requires `role = authenticated`, `aud` containing `authenticated`, a non-empty `sub`, an `iss` that is a Supabase Auth endpoint (`…/auth/v1`; which project signed it is settled by the signature, so a custom Auth domain keeps working) and (if present) `nbf` in the past. The anon and service_role keys are therefore rejected.
+- **Strict: `getUserFromRequest(request, { strict: true })` → `supabase.auth.getUser(token)`.** Only the Auth server knows whether a session was signed out or a user deleted; a locally verified JWT stays valid until it expires (1 hour by default). Strict mode is used for `/api/user/key` (hands out the data key), `/api/user/delete` and `/api/user/export`. The connection routes use the default.
+
+Any failure gives no user, and the route answers 401.
+
+**Owner action (one-time):** Supabase Dashboard → Project Settings → JWT Keys: migrate to asymmetric signing keys (ES256), then rotate so the new key signs tokens. Until then nothing changes in behaviour: `getClaims` falls back to the Auth server call, exactly as before. After the rotation, previously issued HS256 tokens keep working through the same fallback until they expire.
 
 ### CORS Configuration
 

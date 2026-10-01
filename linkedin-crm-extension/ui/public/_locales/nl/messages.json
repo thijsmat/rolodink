@@ -339,6 +339,15 @@
     "msg_delete_error_network": {
         "message": "Kon account niet verwijderen. Controleer je internetverbinding."
     },
+    "confirm_delete_connection_message": {
+        "message": "Weet je zeker dat je deze connectie wilt verwijderen?"
+    },
+    "confirm_delete_connection_button": {
+        "message": "Verwijderen"
+    },
+    "delete_account_confirm_button": {
+        "message": "Account definitief verwijderen"
+    },
     "connection_form_edit_title": {
         "message": "Connectie Bewerken"
     },
@@ -420,7 +429,7 @@
         "message": "Zoekopdracht wissen"
     },
     "search_results_count": {
-        "message": "$COUNT$ resultaat resultaten voor \"$QUERY$\"",
+        "message": "Zoekresultaten voor \"$QUERY$\": $COUNT$",
         "placeholders": {
             "count": {
                 "content": "$1"
@@ -707,5 +716,63 @@
     },
     "gdpr_opt_in_label": {
         "message": "Ja, houd me af en toe op de hoogte van belangrijke Rolodink updates en nieuwe functies."
+    },
+    "start_title": {
+        "message": "Welkom bij Rolodink"
+    },
+    "start_description": {
+        "message": "Open een LinkedIn-profiel om iemand toe te voegen."
+    },
+    "start_first_step_hint": {
+        "message": "Eerste stap: ga naar linkedin.com, open het profiel van iemand die je onlangs hebt ontmoet en klik daar op het Rolodink-icoon."
+    },
+    "connection_create_failed": {
+        "message": "Kon de connectie niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
+    },
+    "connection_update_failed": {
+        "message": "Kon de wijzigingen niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
+    },
+    "connection_conflict_message": {
+        "message": "Deze connectie is intussen elders gewijzigd. Je wijzigingen staan nog in het formulier."
+    },
+    "connection_conflict_load_latest": {
+        "message": "Laatste versie laden"
+    },
+    "connection_conflict_overwrite": {
+        "message": "Toch opslaan (overschrijven)"
+    },
+    "feedback_section_title": {
+        "message": "Feedback"
+    },
+    "feedback_title": {
+        "message": "Feedback sturen"
+    },
+    "feedback_description": {
+        "message": "Opent een e-mail aan het Rolodink-team. Alleen de extensieversie en je browser worden ingevuld."
+    },
+    "feedback_button": {
+        "message": "✉️ Feedback sturen"
+    },
+    "feedback_mail_subject": {
+        "message": "Rolodink-feedback (v$VERSION$, $BROWSER$)",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
+    },
+    "feedback_mail_body": {
+        "message": "Hallo Rolodink-team,\n\n\n\n---\nExtensieversie: $VERSION$\nBrowser: $BROWSER$",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
     }
 }

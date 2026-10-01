@@ -53,6 +53,11 @@ Rolodink consists of three main components, each requiring different environment
 - **Default**: `https://rolodink.app/auth/callback`
 - **When to change**: Only if the public website domain changes
 
+#### `SUPABASE_SERVICE_ROLE_KEY`
+- **Description**: Supabase service-role key. Used only by `DELETE /api/user/delete`, to remove the login through the Auth admin API (sessions and identities go with it). Without it, the route deletes the `auth.users` row through the database role instead.
+- **Where to get**: Supabase Dashboard → Project Settings → API Keys → `service_role` (legacy) or a secret key (`sb_secret_...`)
+- **Security**: bypasses RLS. Server-only: never give it a `NEXT_PUBLIC_` name, never put it in the extension or website, and set it only on the backend project (Production and Preview).
+
 #### `NODE_ENV`
 - **Description**: Node environment (`development`, `production`, `test`)
 - **Default**: `development`

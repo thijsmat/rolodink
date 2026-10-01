@@ -11,6 +11,7 @@
 
 import type { Connection, ConnectionInput, ConnectionPatch } from './types.js';
 import { buildLookupCandidates } from './url.js';
+import { readConflict, type VersionedRow } from './conflict.js';
 
 export class RolodinkApiError extends Error {
     readonly status: number;
@@ -37,6 +38,20 @@ export class DuplicateConnectionError extends RolodinkApiError {
     constructor(body: unknown) {
         super('A connection with this LinkedIn URL already exists', 409, body);
         this.name = 'DuplicateConnectionError';
+    }
+}
+
+/**
+ * 409 — the connection changed since the `expectedUpdatedAt` that was sent.
+ * `current` is the row as stored now, still encrypted; see conflict.ts.
+ */
+export class ConnectionConflictError extends RolodinkApiError {
+    readonly current: VersionedRow;
+
+    constructor(body: unknown, current: VersionedRow) {
+        super('The connection was changed elsewhere', 409, body);
+        this.name = 'ConnectionConflictError';
+        this.current = current;
     }
 }
 
@@ -127,6 +142,8 @@ export class RolodinkClient {
         if (response.ok) return body as T;
 
         if (response.status === 401) throw new UnauthorizedError(body);
+        const conflict = readConflict(response.status, body);
+        if (conflict) throw new ConnectionConflictError(body, conflict);
         if (response.status === 409) throw new DuplicateConnectionError(body);
         if (response.status === 429) {
             const retryAfter = Number(response.headers.get('Retry-After'));
@@ -147,8 +164,9 @@ export class RolodinkClient {
     /**
      * Looks up a connection by LinkedIn URL.
      *
-     * The server does NOT normalize the `url` query parameter — it is an exact
-     * string match — so each plausible normalization is tried in turn. A miss
+     * The current API canonicalises the `url` query parameter and finds rows in
+     * older spellings; an older API did an exact string match, so each
+     * plausible normalization is still tried in turn. A miss
      * here is not proof the contact is absent: fall back to matching on the
      * profile slug against the locally cached list.
      */
@@ -171,7 +189,11 @@ export class RolodinkClient {
         });
     }
 
-    /** Updates a connection. The id goes in the body — that is the API's shape, not a typo. */
+    /**
+     * Updates a connection. The id goes in the body — that is the API's shape,
+     * not a typo. With `patch.expectedUpdatedAt` the update only applies to
+     * that version; otherwise it throws ConnectionConflictError.
+     */
     async updateConnection(id: string, patch: ConnectionPatch): Promise<Connection> {
         return this.request<Connection>('/api/connections', {
             method: 'PATCH',

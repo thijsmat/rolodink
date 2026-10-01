@@ -12,19 +12,18 @@
  * conversion safe. This PR only changes where the code lives and how it is
  * packaged.
  *
- * legacyNormalizeLinkedInUrl, not normalizeLinkedInUrl: GET
- * /api/connections?url= is an exact string match and the server does not
- * normalize the parameter. Rows in the database were stored with the
- * host-preserving legacy form (nl.linkedin.com rows exist). Switching to the
- * canonical www-rewriting form would make every non-www row unfindable: the
- * button stops saying "Already added", the note card claims the profile is not
- * in the CRM, and a typed note cannot be saved. Core's url.test.ts pins the
- * difference between the two forms for exactly this reason.
+ * Every profile URL goes through profileLookupUrl from @rolodink/core before it
+ * is used: for the lookup, for the POST that creates the connection, and as the
+ * key that sharedLookup dedupes on. One key per person, whatever the address
+ * bar says (nl.linkedin.com, /details/…, ?originalSubdomain=, case, %-encoding).
+ * The API canonicalises the same way and still finds rows stored before it
+ * did, so sending the canonical form never hides an old nl.linkedin.com row.
  */
 import {
     isEncryptedString,
     cleanProfileName,
-    legacyNormalizeLinkedInUrl,
+    profileLookupUrl,
+    versionOf,
 } from '@rolodink/core';
 // Extensionless, like the rest of ui. Not './anchors.js': Vite only retries a
 // .js specifier as .ts when the importing file is itself TypeScript, and this
@@ -42,7 +41,8 @@ import {
 import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
 import { extractRawProfileName } from './profile';
-import { createNoteCard, readNote, textForUnseenNote } from './note-card';
+import { createNoteCard, createNoteVersion, createStatusLine, readNote, textForUnseenNote } from './note-card';
+import { createInFlightSharing } from './shared-lookup';
 
 // The API base URL is no longer resolved here. Every call goes through the
 // background worker now, and that is where the base URL belongs - it is the
@@ -63,9 +63,11 @@ import { createNoteCard, readNote, textForUnseenNote } from './note-card';
  * MV3-workers gaan na ~30s inactiviteit uit. Normaal wekt sendMessage hem
  * weer, maar sterft hij precies tussen verzenden en antwoorden, dan komt de
  * callback nooit - en een Promise die nooit settelt houdt de aanroeper voor
- * altijd vast. injectContextField wacht op zo'n antwoord, en de scheduler
- * start geen nieuwe ronde zolang de vorige loopt: één hangend bericht zou dus
- * alle verdere injectie stilleggen.
+ * altijd vast. Een scheduler-ronde wacht daar niet meer op (het laden van de
+ * notitie loopt los, zie attachNoteBehaviour), maar het laden zelf, een save
+ * en een Retry wel: zonder deadline bleef de kaart voor altijd op
+ * "Loading..." of "Saving..." staan, en card.flush liet elke volgende save
+ * achter de hangende wachten.
  */
 const RUNTIME_MESSAGE_TIMEOUT_MS = 15000;
 
@@ -78,6 +80,27 @@ const RUNTIME_MESSAGE_TIMEOUT_MS = 15000;
  * extensie herladen of verwijderd is, en de pagina eromheen is niet van ons.
  */
 const platform = getBrowserApi();
+
+/**
+ * Of de extensie achter dit script er nog is (isAlive in browser-api.ts).
+ *
+ * Na een update of herlaad laten Chrome en Edge dit script in elke open tab
+ * doordraaien, losgekoppeld: elk bericht faalt dan. Elke ronde vraagt dit eerst
+ * en ruimt anders alles op (teardownOrphan). In Firefox loopt dit pad niet op
+ * dezelfde manier; daar blijft dit true zolang het script draait.
+ */
+const isPlatformAlive = () => Boolean(platform?.isAlive());
+
+// Engels, zoals de rest van de kaart en de knop.
+const ORPHANED_CARD_MESSAGE = 'Extension updated – copy your note and reload the page';
+const ORPHANED_ALERT = 'Rolodink was updated. Please reload the page and try again.';
+
+/**
+ * Per notitiekaart die nog leeft: de functie die haar read-only zet en haar
+ * luisteraars weghaalt. teardownOrphan roept ze allemaal aan; een kaart die
+ * door navigatie verdwijnt, haalt zichzelf eruit.
+ */
+const retireCardHandlers = new Set();
 
 function sendRuntimeMessage(message) {
     if (!platform) {
@@ -127,16 +150,47 @@ async function apiRequest({ path, method = 'GET', query, body }) {
 }
 
 /**
- * Zoekt de CRM-connectie voor het profiel dat nu open staat.
+ * Lopende GET's op /api/connections?url=, per genormaliseerde url.
+ *
+ * De knop en de notitiekaart vragen op elk profiel in dezelfde ronde exact
+ * hetzelfde; wie als tweede komt, hangt aan het verzoek van de eerste. Alleen
+ * zolang het loopt: een afgerond antwoord wordt nooit bewaard, dus geen 401,
+ * 429 of 5xx die een Retry terugkrijgt en geen notitie of ciphertext in het
+ * geheugen. Zie shared-lookup.ts.
+ */
+const sharedLookup = createInFlightSharing();
+
+/**
+ * Of dit profiel in de CRM staat, voor de knop en voor het laden van de kaart.
+ *
+ * Niet voor het opslaan: findConnectionId hieronder doet altijd een verse
+ * GET, want een antwoord dat liep vóór er getypt werd, kan ouder zijn dan een
+ * connectie die intussen ergens anders is aangemaakt.
+ */
+function lookupConnection(profileUrl) {
+    // Eén sleutel per profiel - zie de kop van dit bestand.
+    const normalizedUrl = profileLookupUrl(profileUrl);
+    return sharedLookup(normalizedUrl, () => apiRequest({
+        path: '/api/connections',
+        query: { url: normalizedUrl },
+    }));
+}
+
+/**
+ * Zoekt de CRM-connectie voor het profiel van de kaart (profileUrl).
+ *
+ * Geen standaardwaarde meer uit window.location: een save loopt na de
+ * debounce, en kan dan na een SPA-navigatie afgaan. De aanroeper geeft altijd
+ * de url van de kaart mee.
  *
  * Geeft het id terug, of null als het profiel er niet in staat. Gooit niet: de
  * aanroepers behandelen "niet gevonden" en "kon niet kijken" allebei als "nog
  * niet toevoegbaar", en een fout hier mag het typen niet onderbreken.
  */
-async function findConnectionId(profileUrl = window.location.href) {
+async function findConnectionId(profileUrl) {
     try {
-        // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-        const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
+        // Eén sleutel per profiel - zie de kop van dit bestand.
+        const normalizedUrl = profileLookupUrl(profileUrl);
         const resp = await apiRequest({
             path: '/api/connections',
             query: { url: normalizedUrl },
@@ -168,47 +222,49 @@ function markButtonAsAdded(profilePath) {
 }
 
 /**
- * Voegt het profiel dat nu open staat toe aan de CRM en geeft het id terug.
+ * Voegt het profiel van de kaart toe aan de CRM, met de (al versleutelde)
+ * notitie erbij, in één POST.
  *
  * Bestaat omdat typen in het notitieveld een vraag om op te slaan is. Wie een
  * notitie intikt op een profiel dat nog niet in de CRM staat, wil die notitie
- * bewaren - eerst een knop moeten zoeken is een stap die niemand wilde. De
- * code had er al een aantekening over staan ("Optional: Auto-create
- * connection?") die nooit iets geworden is.
+ * bewaren - eerst een knop moeten zoeken is een stap die niemand wilde.
  *
- * Geeft null terug als het niet lukt; de aanroeper vertelt de gebruiker wat er
- * aan de hand is. Gooit niet: een mislukte aanmaak mag het typen niet
- * onderbreken.
+ * POST /api/connections accepteert notes al; de notitie meesturen scheelt een
+ * aparte PATCH, en er bestaat nooit een connectie zonder de notitie waarvoor
+ * hij werd aangemaakt.
+ *
+ * Geeft een uitkomst terug en gooit niet:
+ *  - created: aangemaakt, met het id (of null als het antwoord er geen had)
+ *    en de updatedAt waar de volgende PATCH op voortbouwt;
+ *  - exists: 409, hij staat er al in - in een ander tabblad, via de popup, of
+ *    door een klik op de knop. De aanroeper leest dan eerst wat er staat;
+ *  - no-name: geen naam om mee aan te maken; er is niets verstuurd;
+ *  - failed: de API weigerde (status erbij) of was onbereikbaar.
  *
  * Url en naam komen van de aanroeper en worden niet hier van de pagina gelezen:
  * een opslag die pas na een SPA-navigatie afgaat, zou anders het nieuwe
  * profiel aanmaken en de notitie van het oude eraan hangen.
  */
-async function createConnectionForProfile(profileUrl, name) {
+async function createConnectionForProfile(profileUrl, name, notes) {
+    if (!name) {
+        console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
+        return { outcome: 'no-name' };
+    }
     try {
-        if (!name) {
-            console.warn('Rolodink: geen profielnaam gevonden - de connectie wordt niet aangemaakt');
-            return null;
-        }
-
         const resp = await apiRequest({
             path: '/api/connections',
             method: 'POST',
-            body: { name, url: profileUrl },
+            body: { name, url: profileLookupUrl(profileUrl), notes },
         });
-
-        // 409 betekent dat hij er al in staat - in een ander tabblad, of door
-        // een klik op de knop tussen het opzoeken en het aanmaken door. Dat is
-        // geen fout, alleen een reden om het id alsnog op te halen.
-        if (resp.status === 409) return await findConnectionId(profileUrl);
+        if (resp.status === 409) return { outcome: 'exists' };
         if (!resp.ok) {
             console.error('Rolodink: kon de connectie niet aanmaken:', resp.status, resp.data);
-            return null;
+            return { outcome: 'failed', status: resp.status };
         }
-        return resp.data?.id ?? await findConnectionId(profileUrl);
+        return { outcome: 'created', id: resp.data?.id ?? null, updatedAt: versionOf(resp.data) };
     } catch (error) {
         console.error('Rolodink: kon de connectie niet aanmaken:', error);
-        return null;
+        return { outcome: 'failed', status: null };
     }
 }
 
@@ -260,10 +316,15 @@ function injectCRMButton(anchorButton) {
     // findProfileHeader now picks the tallest candidate and the hero can render
     // after the sticky header - so the first tick may legitimately choose the
     // sticky one and a later tick a better one.
+    //
+    // Moved, not rebuilt: a rebuilt button asks the API again whether the
+    // profile is in the CRM, and forgets the answer it already shows.
     const existingButton = document.getElementById('crm-add-button');
     if (existingButton) {
         if (container.contains(existingButton)) return;
-        existingButton.remove();
+        styleButtonLike(existingButton, anchorButton);
+        placeButton(existingButton, anchorButton, container);
+        return;
     }
 
     {
@@ -276,11 +337,8 @@ function injectCRMButton(anchorButton) {
         // button with the right box and a label rendered as small grey text
         // beside a properly styled Message button - visible in a screenshot, and
         // not something any assertion about the outer element would have caught.
-        const labelClasses = findLabelClassNames(anchorButton);
         const labelWrapper = document.createElement("span");
-        labelWrapper.className = labelClasses.wrapper;
         const labelText = document.createElement("span");
-        labelText.className = labelClasses.text;
         labelWrapper.appendChild(labelText);
         crmButton.appendChild(labelWrapper);
 
@@ -289,13 +347,7 @@ function injectCRMButton(anchorButton) {
         const setButtonLabel = (text) => { labelText.textContent = text; };
         setButtonLabel("Add to Rldnk");
 
-        // Copy the neighbouring action's classes so the button matches whatever
-        // LinkedIn currently looks like. This is the one place where not knowing
-        // the class names is an advantage: the hashes change every build, and
-        // copying them is immune to that. The old code also force-added
-        // 'artdeco-button' and demoted 'artdeco-button--primary' to secondary;
-        // neither class exists any more, so both are gone.
-        crmButton.className = anchorButton.className;
+        styleButtonLike(crmButton, anchorButton);
 
         // Only apply layout spacing, let classes handle the rest
         crmButton.style.marginLeft = "8px";
@@ -306,17 +358,13 @@ function injectCRMButton(anchorButton) {
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
         void (async () => {
             try {
-                const profileUrl = window.location.href;
-                // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-                const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
-
                 // Geen tokencontrole meer hier: de worker weet of er een sessie
                 // is en antwoordt anders met 401, wat hieronder gewoon "niets
                 // doen" betekent — de knop blijft actief.
-                const resp = await apiRequest({
-                    path: '/api/connections',
-                    query: { url: normalizedUrl },
-                });
+                //
+                // Gedeeld met het laden van de notitiekaart, die in dezelfde
+                // ronde hetzelfde vraagt: één GET per profielbezoek.
+                const resp = await lookupConnection(window.location.href);
 
                 if (!resp.ok) return; // bij 404/401 etc. niets doen
 
@@ -331,101 +379,156 @@ function injectCRMButton(anchorButton) {
             }
         })();
 
-        crmButton.onclick = async () => {
-            try {
-
-                // De selectorketen die hier stond woont nu in profile.ts, waar
-                // hij getest is en waar de notitiekaart hem ook kan gebruiken.
-                // Twee kopieën van een selectorlijst tegen een site die zijn
-                // markup herschrijft is precies hoe augustus 2026 misging.
-                const rawName = extractRawProfileName(document, document.title);
-                const profileName = rawName ? cleanProfileName(rawName) : '';
-
-                // Final fallback - show error if no name found
-                if (!profileName) {
-                    console.error('No profile name found');
-                    alert('Could not find profile name. Please refresh the page.');
-                    return;
-                }
-
-                const profileUrl = window.location.href;
-
-                // Het token wordt niet meer hier opgehaald: de worker haalt het
-                // uit zijn eigen sessie en antwoordt 401 als die er niet is.
-                // Dat scheelt het hele storage-pad, inclusief de "extension
-                // invalidated"-afhandeling eromheen - een dode worker komt nu
-                // naar boven als een afgewezen bericht, afgevangen in de catch
-                // hieronder.
-                const requestBody = { name: profileName, url: profileUrl };
-
-                try {
-                    const response = await apiRequest({
-                        path: '/api/connections',
-                        method: 'POST',
-                        body: requestBody,
-                    });
-
-                    if (response.ok) {
-                        alert(`${profileName} has been successfully added!`);
-                        setButtonLabel("Added ✔️");
-                        crmButton.disabled = true;
-                    } else {
-                        const errorData = response.data || {};
-                        console.error('Error response:', errorData);
-                        if (response.status === 401) {
-                            alert('Session expired. Please log in again via the extension.');
-                            // TODO: Open de login-pagina van de extensie.
-                        } else if (response.status === 409) {
-                            // Bestaat al: markeer als toegevoegd zonder foutmelding
-                            setButtonLabel("Already added ✔️");
-                            crmButton.disabled = true;
-                            // Eventueel een zachte notificatie
-                        } else {
-                            alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
-                        }
-                    }
-                } catch (error) {
-                    console.error('API Fout:', error);
-                    alert('Cannot reach the CRM server.');
-                }
-            } catch (err) {
-                console.error('Onherstelbare fout in click handler:', err);
-                const message = err instanceof Error ? err.message : String(err);
-                if (message && message.toLowerCase().includes('invalidated')) {
-                    alert('Extension reloaded. Please refresh the page and try again.');
-                } else {
-                    alert('Something went wrong. Please refresh the page and try again.');
-                }
-            }
+        // Een eigen functie (SonarCloud S3776): de klik zat met al zijn
+        // takken binnen injectCRMButton en tilde die boven de grens.
+        crmButton.onclick = () => {
+            void addProfileFromButton(crmButton, setButtonLabel);
         };
 
-        // Insert the button right after the anchor's slot, so it lands in the
-        // action row beside the other buttons.
-        //
-        // The branch that used to be here referenced `entryPointWrapper`, a
-        // variable whose definition went with the dead `.entry-point` lookup
-        // while these lines stayed behind. It threw a ReferenceError on every
-        // observer tick, before this insert, so the button never appeared for
-        // anyone. eslint now covers this file with no-undef; it did not before.
-        //
-        // The old fallback was wrong too, in a way that would have survived the
-        // ReferenceError being fixed on its own: appending to
-        // anchorButton.parentElement puts our button inside another action's
-        // [data-display-contents] slot, which is exactly what findActionContainer
-        // climbs past. findInsertionReference returns the slot itself, which is a
-        // direct child of the container.
-        const reference = findInsertionReference(anchorButton);
-        if (reference.parentElement === container) {
-            // .after(), not insertAdjacentElement('afterend', …): same result,
-            // and the ChildNode method is the one that reads as what it does
-            // (SonarCloud S7768).
-            reference.after(crmButton);
-        } else {
-            // Reachable if LinkedIn re-parents between the query and the insert.
-            // appendChild on the container is the safe answer: worst case the
-            // button sits at the end of the row rather than beside Message.
-            container.appendChild(crmButton);
+        placeButton(crmButton, anchorButton, container);
+    }
+}
+
+/**
+ * De klik op "Add to Rldnk": het profiel dat nu open staat aan de CRM toevoegen.
+ *
+ * Eerst de vraag of de extensie er nog is. Na een update draait dit script in
+ * Chrome en Edge losgekoppeld door, en dan faalt elk bericht met "Extension
+ * context invalidated". Dat kwam hier binnen als een gewone fout van
+ * apiRequest en werd gemeld als "Cannot reach the CRM server" - wie dat las,
+ * ging de server of de verbinding na, niet de pagina herladen. De knop wordt
+ * dan weggehaald; die mutatie laat de volgende ronde de rest opruimen
+ * (teardownOrphan in observeAndInject).
+ */
+async function addProfileFromButton(crmButton, setButtonLabel) {
+    if (!isPlatformAlive()) {
+        alert(ORPHANED_ALERT);
+        crmButton.remove();
+        return;
+    }
+    try {
+        // De selectorketen die hier stond woont nu in profile.ts, waar
+        // hij getest is en waar de notitiekaart hem ook kan gebruiken.
+        // Twee kopieën van een selectorlijst tegen een site die zijn
+        // markup herschrijft is precies hoe augustus 2026 misging.
+        const rawName = extractRawProfileName(document, document.title);
+        const profileName = rawName ? cleanProfileName(rawName) : '';
+
+        // Final fallback - show error if no name found
+        if (!profileName) {
+            console.error('No profile name found');
+            alert('Could not find profile name. Please refresh the page.');
+            return;
         }
+
+        // Het token wordt niet meer hier opgehaald: de worker haalt het
+        // uit zijn eigen sessie en antwoordt 401 als die er niet is.
+        const requestBody = { name: profileName, url: profileLookupUrl(window.location.href) };
+
+        let response;
+        try {
+            response = await apiRequest({
+                path: '/api/connections',
+                method: 'POST',
+                body: requestBody,
+            });
+        } catch (error) {
+            console.error('API Fout:', error);
+            // Pas hier gevraagd: de extensie kan tijdens het bericht zijn
+            // bijgewerkt.
+            alert(isPlatformAlive() ? 'Cannot reach the CRM server.' : ORPHANED_ALERT);
+            return;
+        }
+        applyAddResponse(response, profileName, (label) => {
+            setButtonLabel(label);
+            crmButton.disabled = true;
+        });
+    } catch (err) {
+        console.error('Onherstelbare fout in click handler:', err);
+        const message = err instanceof Error ? err.message : String(err);
+        alert(message.toLowerCase().includes('invalidated')
+            ? ORPHANED_ALERT
+            : 'Something went wrong. Please refresh the page and try again.');
+    }
+}
+
+/** Wat de knop doet met het antwoord op zijn POST. */
+function applyAddResponse(response, profileName, markAdded) {
+    if (response.ok) {
+        alert(`${profileName} has been successfully added!`);
+        markAdded("Added ✔️");
+        return;
+    }
+    const errorData = response.data || {};
+    console.error('Error response:', errorData);
+    if (response.status === 401) {
+        alert('Session expired. Please log in again via the extension.');
+    } else if (response.status === 409) {
+        // Bestaat al: markeer als toegevoegd zonder foutmelding
+        markAdded("Already added ✔️");
+    } else {
+        alert(`Something went wrong: ${errorData.error || 'Unknown error'}`);
+    }
+}
+
+/**
+ * Gives our button the neighbouring action's look, on the outer element and on
+ * the nested label spans.
+ *
+ * Copying the classes means the button matches whatever LinkedIn currently
+ * looks like. This is the one place where not knowing the class names is an
+ * advantage: the hashes change every build, and copying them is immune to that.
+ * The old code also force-added 'artdeco-button' and demoted
+ * 'artdeco-button--primary' to secondary; neither class exists any more, so
+ * both are gone.
+ *
+ * The label goes in the same nested spans LinkedIn uses, because that is where
+ * the typography lives. Copying only the outer className gave a button with the
+ * right box and a label rendered as small grey text beside a properly styled
+ * Message button.
+ *
+ * Run again when the button moves between rows: the sticky header and the hero
+ * do not necessarily share classes.
+ */
+function styleButtonLike(button, anchorButton) {
+    button.className = anchorButton.className;
+    const labelClasses = findLabelClassNames(anchorButton);
+    const labelWrapper = button.querySelector(':scope > span');
+    const labelText = labelWrapper?.querySelector(':scope > span');
+    if (labelWrapper) labelWrapper.className = labelClasses.wrapper;
+    if (labelText) labelText.className = labelClasses.text;
+}
+
+/**
+ * Puts the button right after the anchor's slot, so it lands in the action row
+ * beside the other buttons. Used for a new button and for moving an existing
+ * one; moving keeps its state ("Already added") and its click handler.
+ *
+ * The branch that used to be here referenced `entryPointWrapper`, a variable
+ * whose definition went with the dead `.entry-point` lookup while these lines
+ * stayed behind. It threw a ReferenceError on every observer tick, before this
+ * insert, so the button never appeared for anyone. eslint now covers this file
+ * with no-undef; it did not before.
+ *
+ * The old fallback was wrong too, in a way that would have survived the
+ * ReferenceError being fixed on its own: appending to
+ * anchorButton.parentElement puts our button inside another action's
+ * [data-display-contents] slot, which is exactly what findActionContainer
+ * climbs past. findInsertionReference returns the slot itself, which is a
+ * direct child of the container.
+ */
+function placeButton(button, anchorButton, container) {
+    const reference = findInsertionReference(anchorButton);
+    if (reference.parentElement === container) {
+        // .after(), not insertAdjacentElement('afterend', …): same result,
+        // and the ChildNode method is the one that reads as what it does
+        // (SonarCloud S7768).
+        reference.after(button);
+    } else {
+        // Reachable if LinkedIn re-parents between the query and the insert.
+        // appendChild on the container is the safe answer: worst case the
+        // button sits at the end of the row rather than beside Message.
+        container.appendChild(button);
     }
 }
 
@@ -465,11 +568,30 @@ function relocateExistingCard(topCard) {
  * Een eigen functie (SonarCloud S3776): het bouwen van de kaart in
  * injectContextField en het gedrag van de kaart zijn twee verantwoordelijkheden,
  * en samen kwam injectContextField ruim boven de toegestane complexiteit.
+ *
+ * Bewust niet async, en het laden wordt gestart zonder erop te wachten. Deze
+ * functie draait binnen een scheduler-ronde, en de scheduler start geen nieuwe
+ * ronde zolang de vorige loopt. Wachtte deze ronde op het laden (een GET en
+ * een ontsleuteling, elk tot 15 s), dan lag alle injectie zolang stil: geen
+ * navigatie-opruiming, dus de kaart van profiel A bleef op profiel B staan, en
+ * geen verhuizing van de sticky header naar de hero. Of het antwoord nog
+ * ergens heen mag, beslist stillOwned na elke await.
  */
-async function attachNoteBehaviour(container, textarea, status, retryButton) {
+function attachNoteBehaviour(container, textarea, status, buttons) {
     // 6. Load Data
     let connectionId = null;
+    // De versie (updatedAt) van de connectie waar de tekst op de kaart op
+    // voortbouwt. Elke PATCH stuurt hem mee als expectedUpdatedAt; staat er
+    // op de server intussen een nieuwere (popup, ander apparaat), dan komt er
+    // een 409 in plaats van een stille overschrijving. Saves lopen achter
+    // elkaar (card.flush) en elke save neemt de versie uit het antwoord van
+    // de vorige, dus autosave botst nooit met zichzelf. Zie note-card.ts.
+    const noteVersion = createNoteVersion();
     let debounceTimer = null;
+    // De tekst waarvan vaststaat dat hij op de server staat: wat de kaart
+    // laadde, of wat de laatste geslaagde save verstuurde. null zolang de
+    // kaart niet geladen is. Een save met precies deze tekst stuurt niets.
+    let lastSavedText = null;
 
     // Het profiel waar deze kaart bij hoort, vastgelegd nu. Opslaan gebeurt
     // later (debounce, flush) en kan na een SPA-navigatie afgaan; dan
@@ -477,6 +599,19 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
     // is dan van iemand anders.
     const cardPath = currentProfilePath(location.pathname);
     const cardUrl = window.location.href;
+    // Eén Text-node die blijft staan; alleen zijn data verandert. innerText
+    // zetten vervangt de kinderen van het element - een childList-mutatie, en
+    // daarop start de body-observer een volledige ronde. Met "Typing..." bij
+    // elke toetsaanslag was dat ~40 rondes per 20 s typen in plaats van 4.
+    // Zie createStatusLine in note-card.ts.
+    const statusLine = createStatusLine(status);
+    const setStatus = (text) => statusLine.set(text);
+
+    // Of deze kaart nog op de pagina staat én de pagina nog van haar profiel
+    // is. Het laden loopt los van de ronde die de kaart plaatste, en tussen
+    // een navigatie en de ronde die de kaart weghaalt zit een moment waarop
+    // de kaart er nog staat terwijl de url al van iemand anders is.
+    const stillOwned = () => container.isConnected && currentProfilePath(location.pathname) === cardPath;
     const rawCardName = extractRawProfileName(document, document.title);
     let cardName = rawCardName ? cleanProfileName(rawCardName) : '';
     const resolveCardName = () => {
@@ -500,29 +635,54 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
     // De notitie van deze kaart lezen, voor card.load en voor saveNote.
     // cardUrl en niet window.location.href: ook een Retry of een save na een
     // SPA-navigatie hoort bij het profiel van deze kaart.
-    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+    // Eén sleutel per profiel - zie de kop van dit bestand.
     const readCardNote = () => readNote(
         () => apiRequest({
             path: '/api/connections',
-            query: { url: legacyNormalizeLinkedInUrl(cardUrl) },
+            query: { url: profileLookupUrl(cardUrl) },
         }),
         decryptNoteText,
     );
+    // Het laden deelt een lopende GET met de knop, die in dezelfde ronde
+    // hetzelfde vraagt (lookupConnection). readCardNote hierboven blijft vers:
+    // saveNote leest daarmee een connectie die deze kaart nooit toonde, en dat
+    // antwoord moet van ná het typen zijn.
+    const loadCardNote = () => readNote(() => lookupConnection(cardUrl), decryptNoteText);
     const card = createNoteCard({
         textarea,
-        status,
-        retry: retryButton,
-        isAttached: () => container.isConnected,
+        status: statusLine,
+        retry: buttons.retry,
+        isAttached: stillOwned,
         load: async () => {
-            const note = await readCardNote();
+            const note = await loadCardNote();
+            // Een antwoord voor een kaart die niet meer van dit profiel is,
+            // hoort bij geen enkele kaart: note-card.ts past het dan ook niet
+            // toe, en het id mag hier evenmin blijven hangen.
+            if (!stillOwned()) return note;
             if (note.state === 'loaded') connectionId = note.connectionId;
+            if (note.state === 'loaded') noteVersion.set(note.updatedAt);
+            if (note.state === 'loaded') lastSavedText = note.text;
+            if (note.state === 'absent') lastSavedText = '';
             return note;
         },
         // Pas bij aanroep opgezocht: saveNote staat hieronder.
         save: () => saveNote(),
+        // Een 409 omdat de notitie elders gewijzigd is: de kaart vraagt de
+        // gebruiker wat er moet gebeuren en bewaart het getypte tot dan.
+        conflict: {
+            loadOther: buttons.loadOther,
+            overwrite: buttons.overwrite,
+            undo: buttons.undo,
+            readText: (current) => decryptNoteText(current.notes),
+            adopt: (current, text) => {
+                noteVersion.set(versionOf(current));
+                // null: de kaart houdt haar eigen tekst en stuurt die, ook als
+                // hij toevallig gelijk is aan wat we het laatst opsloegen.
+                lastSavedText = text;
+            },
+            copy: copyToClipboard,
+        },
     });
-
-    await card.load();
 
     // 7. Save Logic
     // Geeft true alleen als de notitie op de server staat; bij false houdt
@@ -532,91 +692,124 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
         // is weet niet wat er op de server staat, en een PATCH zou die
         // notitie vervangen door alleen wat hier getypt is.
         if (!card.isLoaded()) return false;
-        status.innerText = 'Saving...';
+        // Niets veranderd sinds wat er al staat (terug-getypt, of een blur
+        // zonder wijziging): geen versleuteling en geen verzoek.
+        if (textarea.value === lastSavedText) return confirmSaved(lastSavedText);
+        setStatus('Saving...');
         try {
-            // connectionId komt uit card.load, bij het plaatsen van
-            // de kaart of bij een Retry. Stond het profiel toen nog
-            // niet in de CRM, dan bleef dit voor altijd null - ook
-            // nadat de gebruiker op "Add to Rldnk" had geklikt en het
-            // profiel er wél in stond. De kaart weigerde dan met "Add
-            // to CRM first" en de getypte notitie was weg.
-            //
-            // Daarom hier opnieuw ophalen in plaats van vertrouwen op
-            // wat we bij het laden zagen. Dat haalt de volgorde-eis
-            // tussen knop en kaart helemaal weg.
-            //
-            // unseen: is het id hier nog null, dan komt het straks niet uit
-            // card.load en heeft deze kaart de notitie van die connectie
-            // nooit getoond. Zie de controle vóór het versleutelen.
-            const unseen = !connectionId;
-            if (!connectionId) {
-                connectionId = await findConnectionId(cardUrl);
-            }
-
-            // Staat het profiel er nog niet in, dan voegen we het
-            // toe in plaats van de gebruiker terug te sturen naar
-            // een knop. Typen is de vraag om op te slaan.
-            if (!connectionId) {
-                status.innerText = 'Adding to Rldnk...';
-                connectionId = await createConnectionForProfile(cardUrl, resolveCardName());
-                if (connectionId) markButtonAsAdded(cardPath);
-            }
-
-            if (!connectionId) {
-                // Alleen nog bereikbaar als het aanmaken zelf
-                // mislukte - geen naam op de pagina, of de API
-                // onbereikbaar. createConnectionForProfile
-                // logt waarom.
-                status.innerText = 'Add to Rldnk first';
-                return false;
-            }
-
-            // "Not in Rldnk yet" gold bij het laden, niet voorgoed: de popup
-            // maakt de connectie mét notitie aan, een tweede tabblad ook, en
-            // een 409 hierboven betekent precies dat. Alleen het getypte
-            // PATCHen zou die notitie vervangen. Dus eerst lezen en beide
-            // bewaren (textForUnseenNote, getest in note-card.test.ts). Lukt
-            // dat lezen niet, dan niets versturen en het id vergeten: de
-            // volgende save zoekt en leest opnieuw.
-            if (unseen) {
-                const current = await readCardNote();
-                const text = textForUnseenNote(current, connectionId, textarea.value);
-                if (text === null) {
-                    connectionId = null;
-                    status.innerText = 'Save failed';
-                    return false;
-                }
-                if (text !== textarea.value) textarea.value = text;
-            }
-
-            // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
-            // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
-            let notesPayload;
-            try {
-                notesPayload = await encryptNoteText(textarea.value);
-            } catch (encryptError) {
-                console.error('Error encrypting note:', encryptError);
-                status.innerText = 'Save failed';
-                return false;
-            }
-
-            const resp = await apiRequest({
-                path: '/api/connections',
-                method: 'PATCH',
-                body: { id: connectionId, notes: notesPayload },
-            });
-
-            if (resp.ok) {
-                status.innerText = 'Saved';
-                return true;
-            }
-            status.innerText = resp.status === 401 ? 'Not logged in' : 'Save failed';
-            return false;
+            // connectionId komt uit card.load of uit een eerdere geslaagde
+            // save. Is het null, dan heeft deze kaart de notitie van geen
+            // enkele connectie getoond: zie saveUnseen.
+            if (connectionId) return await patchNote();
+            return await saveUnseen();
         } catch (e) {
             console.error('Error saving note:', e);
-            status.innerText = 'Error';
+            setStatus('Error');
             return false;
         }
+    };
+
+    // Het profiel stond bij het laden niet in de CRM. Typen is de vraag om
+    // op te slaan, dus maken we het aan - in één POST mét de notitie: eerst
+    // versleutelen, dan versturen. Dat was GET, POST zonder notitie,
+    // versleutelen en PATCH: vier berichten, en een connectie die even zonder
+    // notitie bestond als de PATCH faalde.
+    //
+    // De GET vooraf is weg omdat de 409 hetzelfde vertelt: staat hij er
+    // intussen wél in (popup, tweede tabblad, de knop), dan weigert de server
+    // de POST op de unieke url, en dan volgt het bestaande pad
+    // (adoptExisting). Zo wordt een notitie die elders is aangemaakt nooit
+    // overschreven.
+    const saveUnseen = async () => {
+        const typed = textarea.value;
+        // Versleutel vóór verzenden. Mislukt dat, dan slaan we niets op —
+        // plaintext wegschrijven zou de popup-notitie onleesbaar maken.
+        const notes = await encryptOrFail(typed);
+        if (notes === null) return false;
+        setStatus('Adding to Rldnk...');
+        const created = await createConnectionForProfile(cardUrl, resolveCardName(), notes);
+        if (created.outcome === 'created') {
+            // De notitie staat erop. Alleen als het antwoord geen id had (de
+            // backend stuurt het altijd mee) kost het nog een GET: zonder id
+            // zou de volgende save via de 409 de eigen notitie als "elders
+            // aangemaakt" lezen en hem dubbel in het veld zetten.
+            connectionId = created.id ?? await findConnectionId(cardUrl);
+            noteVersion.set(created.updatedAt);
+            markButtonAsAdded(cardPath);
+            return confirmSaved(typed);
+        }
+        if (created.outcome === 'failed') return failSave(created.status);
+        // 409, of geen naam op de pagina om mee aan te maken: misschien staat
+        // hij er al in. Verse GET, en dan het bestaande pad.
+        return adoptExisting(created.outcome === 'exists' ? 'Save failed' : 'Add to Rldnk first');
+    };
+
+    // Een connectie die deze kaart niet geladen heeft. "Not in Rldnk yet"
+    // gold bij het laden, niet voorgoed: de popup maakt de connectie mét
+    // notitie aan, een tweede tabblad ook, en een 409 betekent precies dat.
+    // Alleen het getypte PATCHen zou die notitie vervangen. Dus eerst lezen
+    // en beide bewaren (textForUnseenNote, getest in note-card.test.ts). Lukt
+    // dat lezen niet, dan niets versturen en geen id onthouden: de volgende
+    // save zoekt en leest opnieuw.
+    const adoptExisting = async (statusWhenMissing) => {
+        const id = await findConnectionId(cardUrl);
+        if (!id) {
+            setStatus(statusWhenMissing);
+            return false;
+        }
+        const current = await readCardNote();
+        const text = textForUnseenNote(current, id, textarea.value);
+        if (text === null) {
+            setStatus('Save failed');
+            return false;
+        }
+        if (text !== textarea.value) textarea.value = text;
+        connectionId = id;
+        noteVersion.set(current.updatedAt);
+        return patchNote();
+    };
+
+    // De notitie van een connectie die deze kaart kent, vervangen door wat er
+    // nu staat - alleen als dat nog de versie is waar de kaart op voortbouwt.
+    // Een 409 met de opgeslagen rij geeft { conflict } terug: niet opgeslagen,
+    // en de kaart toont "Changed elsewhere" met de keuze.
+    const patchNote = async () => {
+        const text = textarea.value;
+        const notes = await encryptOrFail(text);
+        if (notes === null) return false;
+        const resp = await apiRequest({
+            path: '/api/connections',
+            method: 'PATCH',
+            body: noteVersion.stamp({ id: connectionId, notes }),
+        });
+        const outcome = noteVersion.settle(resp);
+        if (resp.ok) return confirmSaved(text);
+        if (outcome.state === 'conflict') return { conflict: outcome.current };
+        return failSave(resp.status);
+    };
+
+    // null als versleutelen mislukt; dan wordt er niets verstuurd.
+    const encryptOrFail = async (text) => {
+        try {
+            return await encryptNoteText(text);
+        } catch (encryptError) {
+            console.error('Error encrypting note:', encryptError);
+            setStatus('Save failed');
+            return null;
+        }
+    };
+
+    const failSave = (httpStatus) => {
+        setStatus(httpStatus === 401 ? 'Not logged in' : 'Save failed');
+        return false;
+    };
+
+    // De enige plek die true teruggeeft: alleen aanroepen als `text` op de
+    // server staat (een ok POST of PATCH, of ongewijzigd sinds de vorige).
+    const confirmSaved = (text) => {
+        lastSavedText = text;
+        setStatus('Saved');
+        return true;
     };
 
     // Saves lopen achter elkaar (card.flush): versleutelen en PATCH zijn
@@ -635,10 +828,14 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
 
     textarea.addEventListener('input', () => {
         card.markDirty();
-        status.innerText = 'Typing...';
+        // In een conflict blijft de vraag staan; opslaan wacht op de keuze.
+        if (!card.isInConflict()) setStatus('Typing...');
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
     });
+    // Wie het veld verlaat, is klaar met typen: niet nog een seconde wachten.
+    // Ongewijzigd sinds de laatste save kost dat niets (lastSavedText).
+    textarea.addEventListener('blur', flushSave);
 
     // Wie binnen de seconde debounce het tabblad sluit of wegnavigeert,
     // verloor de notitie. Best effort: het bericht naar de worker gaat nog
@@ -650,13 +847,68 @@ async function attachNoteBehaviour(container, textarea, status, retryButton) {
     globalThis.addEventListener('pagehide', flushSave);
     // De kaart wordt bij navigatie weggehaald; de luisteraars horen dan
     // mee te gaan, anders stapelen ze zich op per bezocht profiel.
-    new MutationObserver((_records, observer) => {
+    const removalObserver = new MutationObserver(() => {
         if (container.isConnected) return;
-        observer.disconnect();
         flushSave();
+        detach();
+    });
+    const detach = () => {
+        removalObserver.disconnect();
         document.removeEventListener('visibilitychange', flushOnHide);
         globalThis.removeEventListener('pagehide', flushSave);
-    }).observe(document.body, { childList: true, subtree: true });
+        retireCardHandlers.delete(retire);
+    };
+    // De extensie is weg (teardownOrphan): de kaart blijft staan met wat er
+    // getypt is, read-only om te kopiëren. Geen flush - er is niemand meer
+    // om naar te versturen.
+    const retire = () => {
+        clearTimeout(debounceTimer);
+        detach();
+        card.retire(ORPHANED_CARD_MESSAGE);
+    };
+    retireCardHandlers.add(retire);
+    removalObserver.observe(document.body, { childList: true, subtree: true });
+
+    // Pas als alles hierboven aan de kaart hangt, en zonder await: zie de
+    // kop van deze functie. card.load vangt zijn eigen fouten af; de catch is
+    // er voor wat daar ooit nog doorheen glipt, zodat er geen onafgehandelde
+    // afwijzing ontstaat.
+    card.load().catch((error) => {
+        console.error('Rolodink: laden van de notitie mislukt:', error);
+    });
+}
+
+/** A small text button for the card's footer, beside the status line. */
+function createFooterButton(label, title) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if (title) button.title = title;
+    button.style.background = 'none';
+    button.style.border = 'none';
+    button.style.padding = '0';
+    button.style.fontSize = '12px';
+    button.style.lineHeight = '16px';
+    button.style.fontFamily = 'inherit';
+    button.style.color = '#0a66c2'; // LinkedIn Blue, like the title
+    button.style.textDecoration = 'underline';
+    button.style.cursor = 'pointer';
+    return button;
+}
+
+/**
+ * Zet tekst op het klembord; false als dat niet mag of kan. Alleen vanuit een
+ * klik (gebruikersgebaar), en zonder platform-API: navigator.clipboard is van
+ * de pagina en werkt in alle drie de browsers zonder extra permissie.
+ */
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch (error) {
+        console.warn('Rolodink: kopiëren naar het klembord mislukt:', error);
+        return false;
+    }
 }
 
 // Function to inject the Context Field (Note)
@@ -811,7 +1063,7 @@ async function injectContextField() {
 
             // Status/Save Indicator, with a Retry button beside it for a load
             // that failed (note-card.ts shows and hides it). A sibling, not a
-            // child: status.innerText replaces everything inside the status.
+            // child: the status holds exactly one Text node (createStatusLine).
             const footer = document.createElement('div');
             footer.style.display = 'flex';
             footer.style.justifyContent = 'flex-end';
@@ -826,19 +1078,15 @@ async function injectContextField() {
             status.style.textAlign = 'right';
             footer.appendChild(status);
 
-            const retryButton = document.createElement('button');
-            retryButton.type = 'button';
-            retryButton.textContent = 'Retry';
-            retryButton.style.background = 'none';
-            retryButton.style.border = 'none';
-            retryButton.style.padding = '0';
-            retryButton.style.fontSize = '12px';
-            retryButton.style.lineHeight = '16px';
-            retryButton.style.fontFamily = 'inherit';
-            retryButton.style.color = '#0a66c2'; // LinkedIn Blue, like the title
-            retryButton.style.textDecoration = 'underline';
-            retryButton.style.cursor = 'pointer';
-            footer.appendChild(retryButton);
+            // Retry for a failed load; the other three for a save that met a
+            // newer version (note-card.ts shows and hides each).
+            const buttons = {
+                retry: createFooterButton('Retry'),
+                loadOther: createFooterButton('Load other version', 'Show the version saved elsewhere. Your text is copied to the clipboard.'),
+                overwrite: createFooterButton('Overwrite', 'Save your text over the version saved elsewhere.'),
+                undo: createFooterButton('Undo', 'Put your text back and save it.'),
+            };
+            footer.append(buttons.retry, buttons.loadOther, buttons.overwrite, buttons.undo);
             container.appendChild(footer);
 
             // Insert the card below the whole profile header.
@@ -855,7 +1103,8 @@ async function injectContextField() {
                 console.warn('Rolodink: profielkaart heeft geen ouder - de notitiekaart kan niet geplaatst worden');
             }
 
-            await attachNoteBehaviour(container, textarea, status, retryButton);
+            // Niet awaiten: het laden van de notitie loopt los van deze ronde.
+            attachNoteBehaviour(container, textarea, status, buttons);
         }
 
         // Reset injection flag (success)
@@ -915,17 +1164,36 @@ function observeAndInject() {
         }
     };
 
+    // De heartbeat loopt alleen op een profiel in een zichtbaar tabblad. Op de
+    // feed of in zoekresultaten keert elke tick meteen terug, en in een
+    // verborgen tabblad ziet niemand wat hij zou herstellen: daar is hij
+    // alleen een timer die de pagina elke paar seconden wekt. De
+    // MutationObserver blijft verzoeken doen, dus een navigatie naar een
+    // profiel wordt nog steeds opgemerkt en zet hem weer aan.
+    const syncHeartbeat = (path) => {
+        if (path && document.visibilityState !== 'hidden') {
+            scheduler.resume();
+        } else {
+            scheduler.pause();
+        }
+    };
+
     // Serialisatie en herhaling liggen bij de scheduler, niet hier: die
     // garandeert dat rondes elkaar niet overlappen én dat er altijd nog een
     // ronde komt. Wat hier stond - `if (isChecking) return;` met een lock die
     // 500ms later viel - deed alleen het eerste. Zie scheduler.ts.
     const checkAndInject = async () => {
-        // Stop if extension context is dead
-        if (window.rolodinkExtensionInvalidated) return;
+        // Vóór handleNavigation en al het andere: een script dat zijn
+        // extensie overleefd heeft, kan niets meer opslaan of opvragen.
+        if (!isPlatformAlive()) {
+            teardownOrphan();
+            return;
+        }
 
         try {
             const path = currentProfilePath(location.pathname);
             handleNavigation(path);
+            syncHeartbeat(path);
 
             // Feed, search, company pages: nothing to do here. The early
             // return keeps the observer cheap on LinkedIn's noisiest pages.
@@ -941,23 +1209,30 @@ function observeAndInject() {
             }
             injectCRMButton(anchorButton);
             await injectContextField();
-
-            // Visual Debug: Success (only show once if we actually did something or found the card)
-            if (document.getElementById('rolodink-context-field')) {
-                // showDebugBanner('Rolodink: Field Injected Successfully', 'green');
-            }
-
         } catch (err) {
-            if (err.message && err.message.includes('Extension context invalidated')) {
-                window.rolodinkExtensionInvalidated = true;
-                showDebugBanner('Rolodink: Extension invalidated. PLEASE RELOAD PAGE.', 'red');
-                observer.disconnect();
-                scheduler.stop();
+            if (err?.message?.includes('Extension context invalidated')) {
+                teardownOrphan();
                 return;
             }
             console.error('Rolodink: Global injection error:', err);
-            // showDebugBanner(`Rolodink Error: ${err.message}`, 'red');
         }
+    };
+
+    // Een script dat zijn extensie overleefd heeft (update of herlaad in
+    // Chrome/Edge) ruimt zich op in plaats van fout na fout te geven: geen
+    // observers en geen scheduler meer, de knop weg - een klik zou alleen
+    // falen - en de notitiekaart blijft staan, read-only, met wat er getypt
+    // was en de vraag de pagina te herladen. Bewust geen debugbanner.
+    let orphaned = false;
+    const teardownOrphan = () => {
+        if (orphaned) return;
+        orphaned = true;
+        observer.disconnect();
+        scheduler.stop();
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        document.getElementById('crm-add-button')?.remove();
+        for (const retire of [...retireCardHandlers]) retire();
+        console.warn('Rolodink: de extensie is bijgewerkt of herladen - dit script stopt; herlaad de pagina');
     };
 
     // De klok van de injectie. Bewust niet alleen de MutationObserver: die
@@ -965,41 +1240,14 @@ function observeAndInject() {
     // er eindelijk. Zie scheduler.ts voor wat dat kostte.
     const scheduler = createInjectionScheduler({ run: checkAndInject });
 
-    // Helper for visual debugging
-    function showDebugBanner(message, color = 'red') {
-        // Only show debug banner if we haven't shown this specific message successfully yet
-        // or if it's an error. 
-        // Logic: specific errors update the banner. Success updates it once.
-        let banner = document.getElementById('rolodink-debug-banner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'rolodink-debug-banner';
-            banner.style.position = 'fixed';
-            banner.style.top = '0';
-            banner.style.left = '0';
-            banner.style.width = '100%';
-            banner.style.padding = '5px 10px';
-            banner.style.zIndex = '999999';
-            banner.style.color = 'white';
-            banner.style.fontFamily = 'monospace';
-            banner.style.fontSize = '12px';
-            banner.style.textAlign = 'center';
-            banner.style.pointerEvents = 'none'; // click through
-            document.body.appendChild(banner);
+    const onVisibilityChange = () => {
+        if (!isPlatformAlive()) {
+            teardownOrphan();
+            return;
         }
-
-        // Don't overwrite a red error with a green success if error persists? 
-        // Ideally just show latest state.
-        banner.style.backgroundColor = color === 'green' ? 'rgba(0, 128, 0, 0.8)' : 'rgba(255, 0, 0, 0.8)';
-        banner.textContent = message;
-
-        // Auto hide after 5s if green
-        if (color === 'green') {
-            setTimeout(() => { if (banner) banner.style.display = 'none'; }, 5000);
-        } else {
-            banner.style.display = 'block';
-        }
-    }
+        syncHeartbeat(currentProfilePath(location.pathname));
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     // Create MutationObserver to watch for DOM changes
     const observer = new MutationObserver(() => {

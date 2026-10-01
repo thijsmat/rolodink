@@ -339,6 +339,15 @@
     "msg_delete_error_network": {
         "message": "Could not delete account. Check your internet connection."
     },
+    "confirm_delete_connection_message": {
+        "message": "Are you sure you want to delete this connection?"
+    },
+    "confirm_delete_connection_button": {
+        "message": "Delete"
+    },
+    "delete_account_confirm_button": {
+        "message": "Delete account permanently"
+    },
     "connection_form_edit_title": {
         "message": "Edit Connection"
     },
@@ -707,5 +716,63 @@
     },
     "gdpr_opt_in_label": {
         "message": "Yes, occasionally keep me informed about important Rolodink updates and new features."
+    },
+    "start_title": {
+        "message": "Welcome to Rolodink"
+    },
+    "start_description": {
+        "message": "Open a LinkedIn profile to add someone."
+    },
+    "start_first_step_hint": {
+        "message": "First step: go to linkedin.com, open the profile of someone you met recently and click the Rolodink icon there."
+    },
+    "connection_create_failed": {
+        "message": "Could not save this connection. Your text is still here, so you can try again."
+    },
+    "connection_update_failed": {
+        "message": "Could not save your changes. Your text is still here, so you can try again."
+    },
+    "connection_conflict_message": {
+        "message": "This connection was changed elsewhere. Your changes are still in the form."
+    },
+    "connection_conflict_load_latest": {
+        "message": "Load latest version"
+    },
+    "connection_conflict_overwrite": {
+        "message": "Overwrite"
+    },
+    "feedback_section_title": {
+        "message": "Feedback"
+    },
+    "feedback_title": {
+        "message": "Send feedback"
+    },
+    "feedback_description": {
+        "message": "Opens an email to the Rolodink team. Only the extension version and your browser are filled in."
+    },
+    "feedback_button": {
+        "message": "✉️ Send feedback"
+    },
+    "feedback_mail_subject": {
+        "message": "Rolodink feedback (v$VERSION$, $BROWSER$)",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
+    },
+    "feedback_mail_body": {
+        "message": "Hi Rolodink team,\n\n\n\n---\nExtension version: $VERSION$\nBrowser: $BROWSER$",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
     }
 }

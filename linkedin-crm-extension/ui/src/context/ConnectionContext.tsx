@@ -15,6 +15,8 @@ export type Connection = {
   email?: string | null;
   phone?: string | null;
   linkedInUrl?: string;
+  /** The version the API sent, as it sent it; sent back as expectedUpdatedAt when saving an edit. */
+  updatedAt?: string;
   is_encrypted?: boolean;
 };
 
@@ -51,7 +53,8 @@ type ConnectionContextState = {
   hideHelpView: () => void;
   selectConnection: (connection: Connection) => void;
   handleCreateConnection: (data: ConnectionFormData) => Promise<void>;
-  handleUpdate: (data: ConnectionFormData) => Promise<void>;
+  /** Throws ConnectionChangedElsewhereError when the row is newer than expectedUpdatedAt. */
+  handleUpdate: (data: ConnectionFormData, expectedUpdatedAt?: string | null) => Promise<void>;
   handleDelete: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;
@@ -86,6 +89,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError,
     fetchData,
     fetchAllConnections,
+    showCachedConnections,
     handleCreateConnection,
     handleUpdate,
     handleDelete,
@@ -122,12 +126,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const showListView = useCallback(async () => {
     setIsListView(true);
-    if (allConnections.length > 0) {
-      fetchAllConnections(true);
+    // The list is loaded the first time it is opened: from the cache at once
+    // when there is one, then refreshed from the server in the background.
+    const hasList = allConnections.length > 0 || await showCachedConnections();
+    if (hasList) {
+      fetchAllConnections(true).catch(console.error);
     } else {
       await fetchAllConnections();
     }
-  }, [allConnections.length, fetchAllConnections]);
+  }, [allConnections.length, fetchAllConnections, showCachedConnections]);
 
   const hideListView = () => setIsListView(false);
 

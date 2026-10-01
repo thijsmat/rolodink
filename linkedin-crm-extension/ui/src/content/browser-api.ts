@@ -35,6 +35,8 @@
 type Callback<T> = (value: T) => void;
 
 export interface RuntimeApi {
+    /** The extension's id. Chrome and Edge clear it once the context is invalidated. */
+    readonly id?: string;
     sendMessage(message: unknown, callback?: Callback<unknown>): unknown;
     lastError?: { message?: string } | null;
 }
@@ -123,6 +125,21 @@ function fromPromise<T>(invoke: () => unknown): Promise<T> {
 export interface BrowserApi {
     /** True when storage is reachable. False after the extension is reloaded. */
     hasStorage(): boolean;
+    /**
+     * False once this script has outlived its extension.
+     *
+     * After an update or a reload Chrome and Edge leave the old content script
+     * running in every open tab, cut off: `runtime.id` reads undefined (or the
+     * read throws) and every call fails with "Extension context invalidated".
+     * Checking this before a round lets main.js retire the page's UI instead
+     * of failing one call at a time - a click on the button used to report
+     * "Cannot reach the CRM server", which sent people looking at the API.
+     *
+     * Same check for both calling styles: `id` is a plain property on either.
+     * Firefox does not leave an orphan running in the same way, so there this
+     * is simply true while the script runs - see the PR that added it.
+     */
+    isAlive(): boolean;
     sendMessage(message: unknown): Promise<unknown>;
     storageGet(keys: string[] | string): Promise<Record<string, unknown>>;
     storageSet(items: Record<string, unknown>): Promise<void>;
@@ -136,6 +153,16 @@ export function createBrowserApi({ api, style }: ResolvedApi): BrowserApi {
 
     return {
         hasStorage: () => Boolean(local()),
+
+        isAlive() {
+            try {
+                return typeof api.runtime?.id === 'string' && api.runtime.id.length > 0;
+            } catch {
+                // Some versions throw on touching an invalidated runtime
+                // rather than answering undefined. Either way: gone.
+                return false;
+            }
+        },
 
         sendMessage(message) {
             if (style === 'promise') {

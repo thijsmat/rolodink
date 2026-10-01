@@ -1,0 +1,3 @@
+node_modules/
+# de popup-build met demo-instellingen (render.mjs maakt hem opnieuw)
+.popup/

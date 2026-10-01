@@ -1,5 +1,9 @@
 # 📸 Screenshots Guide - Chrome Web Store
 
+> **Verouderd.** De store-screenshots worden sinds oktober 2026 gerenderd in `store-assets/`; zie
+> `store-assets/README.md` voor de eisen per store, wat waar hoort en hoe je ze opnieuw maakt. Hieronder staat
+> de handleiding uit v1.0.3, voor de geschiedenis.
+
 Complete guide voor het maken van Chrome Web Store screenshots voor Rolodink v1.0.3.
 
 ---

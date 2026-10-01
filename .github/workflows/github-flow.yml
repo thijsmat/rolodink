@@ -6,64 +6,70 @@ on:
   pull_request:
     branches: [ main ]
 
+# A newer push to the same PR makes the running checks moot. On main every
+# commit keeps its own run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  # Unit tests across the monorepo workspaces.
+  # Which parts of the monorepo this push or PR touches. A job for a part that
+  # did not change is skipped, and GitHub counts a skipped job as passed for
+  # branch protection. Plain git, no third-party action.
   #
-  # Until this job existed, no workflow in this repository ran a single test:
-  # the other jobs run lint, typecheck and build only. packages/core's 74 tests
-  # - including the fixed ciphertext vector that pins the encryption wire
-  # format - had never been executed by CI, which made them documentation
-  # rather than a gate.
-  #
-  # `turbo run test` runs every workspace that declares a `test` script, so a
-  # new suite is covered the moment it is added and this file needs no change.
-  #
-  # Not covered here: linkedin-crm-extension/ui has its own lockfile and is not
-  # a workspace member, so turbo cannot see it. It now has its own vitest suite,
-  # run by the `extension` job below.
-  tests:
+  # Anything shared - packages/, the root package files, turbo.json, this
+  # workflow - counts as a change to every part. When there is nothing to
+  # compare against (a new branch, a force push), everything runs.
+  changes:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-
+    outputs:
+      backend: ${{ steps.diff.outputs.backend }}
+      website: ${{ steps.diff.outputs.website }}
+      extension: ${{ steps.diff.outputs.extension }}
+      code: ${{ steps.diff.outputs.code }}
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
 
-    - name: Setup Node.js
-      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-      with:
-        node-version: '20.9.0'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    # --ignore-scripts: a dependency's install hook runs arbitrary code with
-    # the job's token and cache. Nothing here needs one, so they stay off. The
-    # other jobs in this file still install without it; changing them belongs
-    # with whoever verifies their builds still work.
-    - name: Install dependencies (monorepo root)
-      run: npm ci --ignore-scripts
-
-    # The backend generates its Prisma Client from a postinstall hook, which
-    # --ignore-scripts just suppressed, so it is generated explicitly here.
-    # `prisma generate` needs no database and no DATABASE_URL.
-    #
-    # `npm run` rather than `npx`: npx will fetch a package from the registry
-    # when it is not installed locally, which turns a typo or a deleted
-    # dependency into remote code execution at whatever version resolves today.
-    # `npm run` only ever executes the binary the lockfile pinned.
-    - name: Generate Prisma Client
-      run: npm run prisma:generate
-      working-directory: ./linkedin-crm-backend
-
-    # Root script, which is `turbo run test`. Same reasoning as above.
-    - name: Run tests
-      run: npm test
+    - name: Find changed paths
+      id: diff
+      env:
+        EVENT: ${{ github.event_name }}
+        PR_BASE: ${{ github.event.pull_request.base.sha }}
+        PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        PUSH_BEFORE: ${{ github.event.before }}
+        PUSH_AFTER: ${{ github.sha }}
+      run: |
+        if [ "$EVENT" = "pull_request" ]; then
+          RANGE="$PR_BASE...$PR_HEAD"
+        else
+          RANGE="$PUSH_BEFORE..$PUSH_AFTER"
+        fi
+        if ! FILES=$(git diff --name-only "$RANGE" 2>/dev/null); then
+          echo "No usable diff for $RANGE - running everything"
+          for part in backend website extension code; do echo "$part=true" >> "$GITHUB_OUTPUT"; done
+          exit 0
+        fi
+        echo "$FILES"
+        shared='^(packages/|package\.json$|package-lock\.json$|turbo\.json$|\.github/workflows/github-flow\.yml$)'
+        has() { if echo "$FILES" | grep -Eq "$1|$shared"; then echo true; else echo false; fi; }
+        # tools/ (tools/firefox-sign: the pinned web-ext for publish-firefox.yml)
+        # belongs to the extension, so a change there runs the extension job.
+        {
+          echo "backend=$(has '^linkedin-crm-backend/')"
+          echo "website=$(has '^website/')"
+          echo "extension=$(has '^(linkedin-crm-extension|tools)/')"
+          echo "code=$(has '^(linkedin-crm-backend|website|linkedin-crm-extension)/')"
+        } | tee -a "$GITHUB_OUTPUT"
 
   # Website Build & Test
   website:
+    needs: changes
+    if: needs.changes.outputs.website == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -82,14 +88,16 @@ jobs:
         cache-dependency-path: package-lock.json
         
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
       
     - name: Run linting
       run: npm run lint
       working-directory: ./website
       
+    # The lockfile-pinned binary from the root install, not npx: npx fetches
+    # from the registry when a package is missing.
     - name: Run type checking
-      run: npx tsc --noEmit
+      run: ../node_modules/.bin/tsc --noEmit
       working-directory: ./website
       
     - name: Build website
@@ -106,6 +114,8 @@ jobs:
 
   # Extension Build & Test
   extension:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -126,15 +136,10 @@ jobs:
           linkedin-crm-extension/ui/package-lock.json
         
     - name: Install dependencies (monorepo root)
-      run: npm ci
+      run: npm ci --ignore-scripts
       
     - name: Install extension UI dependencies
-      run: npm ci
-      working-directory: ./linkedin-crm-extension/ui
-      
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
-      continue-on-error: true
+      run: npm ci --ignore-scripts
       working-directory: ./linkedin-crm-extension/ui
       
     - name: Run TypeScript type check
@@ -151,42 +156,105 @@ jobs:
 
     # The content script's DOM logic, tested against real captures of LinkedIn's
     # markup. `ui` is not an npm workspace member, so `turbo run test` in the
-    # `tests` job does not reach it - it has to be run here or not at all.
+    # `backend` job does not reach it - it has to be run here or not at all.
     - name: Run tests (extension UI)
       run: npm test
       working-directory: ./linkedin-crm-extension/ui
 
-    - name: Build extension
-      run: npm run build
-      working-directory: ./linkedin-crm-extension/ui
-
-    - name: Validate extension
-      run: |
-        if [ ! -f "linkedin-crm-extension/manifest.json" ]; then
-          echo "Extension manifest not found"
-          exit 1
-        fi
-        if [ ! -d "linkedin-crm-extension/ui/dist" ]; then
-          echo "Extension build output not found"
-          exit 1
-        fi
-        echo "Extension build successful"
+    # No separate `npm run build`: build.js runs it once for all three
+    # targets below, and fails when the UI build leaves no output.
 
     # No separate install for build.js: linkedin-crm-extension is a workspace
     # member, so its fs-extra and archiver come in with the root `npm ci` at
     # the top of this job and resolve up the directory tree. A `npm install`
     # here would be both redundant and unlocked (Sonar S8543/S6505).
 
-    # Package with the REAL release script and prove the content script in the
-    # package is the Vite bundle, not the raw source. This guards the failure
-    # mode that used to be invisible: a copy step silently replacing the bundle
-    # after the build, leaving a green build with the old content script in the
-    # zip. Packaging previously only ever ran on an ext-v* tag, so a broken
-    # package surfaced at the worst possible moment - during a release.
-    - name: Package extension (chrome) and verify the content script bundle
+    # Package with the REAL release script. Packaging previously only ever ran
+    # on an ext-v* tag, so a broken package surfaced at the worst possible
+    # moment - during a release.
+    #
+    # One call for all three targets: the UI is built once and packaged three
+    # times, and the Firefox post-build rewrites only Firefox's own copy.
+    # release.yml still calls build.js once per target; both paths produce
+    # byte-identical packages.
+    #
+    # The VITE_ values are dummies, and they are what makes this the bundle
+    # users get. Without them the Supabase client is dead code (`supabase` is
+    # null when the URL is missing) and Vite drops it: CI then checked an 8 KB
+    # background.js while the release shipped 226 KB. Every VITE_ variable
+    # release.yml passes is covered, plus VITE_WEBSITE_URL, which the source
+    # reads with a fallback. They are public client configuration, not
+    # secrets; the dummies point at nothing.
+    - name: Package extension (chrome, edge, firefox) with one UI build
+      working-directory: ./linkedin-crm-extension
+      env:
+        VITE_SUPABASE_URL: 'https://dummy.supabase.co'
+        VITE_SUPABASE_ANON_KEY: 'dummy-anon-key'
+        VITE_API_BASE_URL: 'https://dummy.rolodink.app'
+        VITE_WEBSITE_URL: 'https://dummy.rolodink.app'
+      run: node build.js chrome edge firefox
+
+    # The bundle has to be the real one, and it has to stay within budget.
+    #
+    # Floor: background.js must contain the Supabase auth client and weigh at
+    # least 100 KB. If not, the env above stopped reaching the build and every
+    # check below is looking at the stripped bundle, not the one users install.
+    #
+    # Ceilings: measured on 2026-10-01 with the env above, plus 10%.
+    #   background.js             226064 -> 248670
+    #   content.js                 17661 ->  19427
+    #   popup assets/index-*.js   438906 -> 482797
+    # Growing past one is allowed, but as a decision: raise the number here in
+    # the same PR and say why.
+    #
+    # Raised: content.js 19427 -> 22000. The note card now sends the version
+    # it last saw with every save, and on a 409 ("changed elsewhere") offers
+    # Load other version / Overwrite / Undo instead of silently overwriting a
+    # note saved in the popup or on another device. Measured 21859 bytes with
+    # that (19106 before it), so the new ceiling is that plus a small margin,
+    # not another 10%.
+    - name: Verify the real bundle and the size budget
+      run: |
+        fail=0
+        check_max() { # file max label
+          size=$(stat -c%s "$1")
+          if [ "$size" -gt "$2" ]; then
+            echo "::error::$3 is $size bytes, over its budget of $2"
+            fail=1
+          else
+            echo "$3: $size bytes (budget $2)"
+          fi
+        }
+        for t in chrome edge firefox; do
+          dir="dist/tmp/$t"
+          bg="$dir/background.js"
+          if ! grep -q GoTrueClient "$bg"; then
+            echo "::error::$t background.js has no GoTrueClient - the Supabase client was eliminated, this is not the bundle users get"
+            fail=1
+          fi
+          bg_size=$(stat -c%s "$bg")
+          if [ "$bg_size" -lt 102400 ]; then
+            echo "::error::$t background.js is $bg_size bytes, under the 100 KB floor - not the real bundle"
+            fail=1
+          fi
+          check_max "$bg" 248670 "$t background.js"
+          check_max "$dir/content.js" 22000 "$t content.js"
+          popups=$(find "$dir/assets" -maxdepth 1 -name 'index-*.js')
+          if [ "$(printf '%s\n' "$popups" | grep -c .)" -ne 1 ]; then
+            echo "::error::expected exactly one popup bundle in $dir/assets, found: $popups"
+            fail=1
+          fi
+          for f in $popups; do check_max "$f" 482797 "$t popup $(basename "$f")"; done
+        done
+        exit $fail
+
+    # Prove the content script in the package is the Vite bundle, not the raw
+    # source. This guards the failure mode that used to be invisible: a copy
+    # step silently replacing the bundle after the build, leaving a green
+    # build with the old content script in the zip.
+    - name: Verify the chrome package (content script bundle, manifest key)
       working-directory: ./linkedin-crm-extension
       run: |
-        node build.js chrome
         CONTENT=../dist/tmp/chrome/content.js
         test -f "$CONTENT" || { echo "content.js missing from package"; exit 1; }
         SIZE=$(stat -c%s "$CONTENT")
@@ -222,10 +290,9 @@ jobs:
     # validation while Chrome accepted the same field without complaint. That
     # only surfaced after the release was published, because packaging in CI
     # only ever built the chrome target.
-    - name: Package extension (edge) and verify it carries no manifest key
+    - name: Verify the edge package carries no manifest key
       working-directory: ./linkedin-crm-extension
       run: |
-        node build.js edge
         node -e '
           const m = require("../dist/tmp/edge/manifest.json");
           if (m.key) {
@@ -242,23 +309,21 @@ jobs:
           console.log("edge package carries no key and is otherwise identical to chrome");
         '
 
-    # Firefox packaged in CI for the first time. It used to overwrite the
-    # bundle with its own content-firefox.js, so "does the Firefox package
-    # contain the same content script as the others" had no answer that CI
-    # could give - and the answer was no, for as long as anyone had been
-    # shipping fixes to it.
-    - name: Package extension (firefox) and verify it ships the same bundle
+    # Firefox used to overwrite the bundle with its own content-firefox.js, so
+    # "does the Firefox package contain the same content script as the others"
+    # had no answer that CI could give - and the answer was no, for as long as
+    # anyone had been shipping fixes to it.
+    - name: Verify the firefox package ships the same bundle
       working-directory: ./linkedin-crm-extension
       run: |
-        node build.js firefox
         FIREFOX=../dist/tmp/firefox/content.js
         CHROME=../dist/tmp/chrome/content.js
         test -f "$FIREFOX" || { echo "content.js missing from the firefox package"; exit 1; }
         # Checked on content rather than by comparing bytes: firefox-postbuild
-        # .cjs rewrites dist for AMO's linter (block comments stripped,
-        # .innerHTML= rewritten), so byte equality is not something to depend
-        # on even when it happens to hold. What must hold is that Firefox
-        # ships the bundle rather than a hand-maintained fork.
+        # .cjs rewrites the firefox copy for AMO's linter (block comments
+        # stripped, .innerHTML= rewritten), so byte equality is not something
+        # to depend on even when it happens to hold. What must hold is that
+        # Firefox ships the bundle rather than a hand-maintained fork.
         grep -q "rolodink-enc:" "$FIREFOX" || { echo "encryption prefix missing - wrong file in package"; exit 1; }
         grep -q "rolodink-context-field" "$FIREFOX" || {
           echo "the note card is missing from the firefox package - is this the old content-firefox.js?"
@@ -283,8 +348,29 @@ jobs:
         '
         echo "firefox ships the bundle ($SIZE bytes against chrome's $CHROME_SIZE)"
 
-  # Backend Build & Test
+  # Unit tests for the monorepo workspaces, plus the backend's lint,
+  # typecheck and build. One job, one root install, one `prisma generate`.
+  #
+  # The tests used to be a job of their own that repeated this job's install
+  # and Prisma step word for word. `turbo run test` reaches exactly two
+  # workspaces - linkedin-crm-backend and packages/core - and both are served
+  # by this install, so a second runner bought nothing but a second install.
+  #
+  # The job runs on any code change, not only a backend one: the backend's
+  # version.test.ts compares LATEST_EXTENSION_VERSION with both extension
+  # manifests, so an extension-only version bump has to reach the tests. The
+  # backend-only steps (lint, typecheck, build) keep their own `backend`
+  # condition below. packages/core's tests - including the fixed ciphertext
+  # vector that pins the encryption wire format - run on every code change.
+  #
+  # `turbo run test` runs every workspace that declares a `test` script, so a
+  # new suite is covered the moment it is added and this file needs no change.
+  # Not covered here: linkedin-crm-extension/ui has its own lockfile and is not
+  # a workspace member, so turbo cannot see it; the `extension` job runs it.
   backend:
+    name: backend + tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -307,27 +393,43 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
         
+    # --ignore-scripts: a dependency's install hook runs arbitrary code with
+    # the job's token and cache. Nothing in this workflow needs one, so every
+    # job installs with them off; where a hook did real work (the backend's
+    # `prisma generate`), the job runs that step explicitly.
     - name: Install dependencies (monorepo root)
-      run: npm ci
-      
+      run: npm ci --ignore-scripts
+
+    # --ignore-scripts above also skips the backend's postinstall, so the
+    # Prisma Client is generated explicitly. `prisma generate` needs no
+    # database. (No `npm audit` here: it was set to never fail. Trivy in the
+    # security job is the dependency gate.)
+    #
+    # `npm run` rather than `npx`: npx will fetch a package from the registry
+    # when it is not installed locally, which turns a typo or a deleted
+    # dependency into remote code execution at whatever version resolves today.
+    # `npm run` only ever executes the binary the lockfile pinned.
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: npm run prisma:generate
       working-directory: ./linkedin-crm-backend
-      
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate || echo "⚠️ npm audit found vulnerabilities - review output above"
-      continue-on-error: true
-      working-directory: ./linkedin-crm-backend
-      
+
+    # Root script, which is `turbo run test`: linkedin-crm-backend and
+    # packages/core. Runs on every code change (see the job comment).
+    - name: Run tests (backend and packages/core)
+      run: npm test
+
     - name: Run linting
+      if: needs.changes.outputs.backend == 'true'
       run: npm run lint
       working-directory: ./linkedin-crm-backend
-      
+
     - name: Run type checking
-      run: npx tsc --noEmit
+      if: needs.changes.outputs.backend == 'true'
+      run: ../node_modules/.bin/tsc --noEmit
       working-directory: ./linkedin-crm-backend
-      
+
     - name: Build backend
+      if: needs.changes.outputs.backend == 'true'
       run: npm run build
       working-directory: ./linkedin-crm-backend
 
@@ -344,7 +446,7 @@ jobs:
         fetch-depth: 0
       
     - name: Aqua Security Trivy
-      uses: aquasecurity/trivy-action@v0.36.0
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
       with:
         scan-type: 'fs'
         scan-ref: '.'
@@ -360,12 +462,33 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
+  # The one check to require in branch protection. It passes when every job
+  # above passed or was skipped for lack of changes, and fails otherwise, so
+  # the required-checks list no longer has to track which jobs exist.
+  ci-ok:
+    if: always()
+    needs: [changes, website, extension, backend, security]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+    - name: All jobs passed or were skipped
+      env:
+        RESULTS: ${{ join(needs.*.result, ' ') }}
+      run: |
+        echo "Results: $RESULTS"
+        for result in $RESULTS; do
+          case "$result" in
+            success|skipped) ;;
+            *) echo "A job ended in '$result'"; exit 1 ;;
+          esac
+        done
+
   # Deploy to Staging (develop branch)
   deploy-staging:
     permissions:
       contents: read
     if: github.ref == 'refs/heads/develop'
-    needs: [tests, website, extension, backend, security]
+    needs: [ci-ok]
     runs-on: ubuntu-latest
 
     steps:
@@ -381,7 +504,7 @@ jobs:
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main'
-    needs: [tests, website, extension, backend, security]
+    needs: [ci-ok]
     runs-on: ubuntu-latest
     environment: production
     

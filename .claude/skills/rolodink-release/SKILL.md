@@ -59,8 +59,9 @@ Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml
 
 - SonarCloud Quality Gate faalt op "Security Rating on New Code" bij: `${{ }}` in run-blokken, niet-gepinde actions, of secrets als CLI-argumenten. De SonarCloud-API is vanuit de sessie-proxy niet bereikbaar; vraag de gebruiker om het dashboard.
 - GitHub Actions-logs verlopen na ~90 dagen; job-metadata (stappen + timing) blijft wel opvraagbaar.
-- Trivy draait als `security`-job en voedt de code-scanning-alerts; die zijn vrijwel allemaal npm-dependency-CVE's en te reproduceren met `npm audit` per lockfile (root + `linkedin-crm-extension/ui`).
-- npm `overrides` in de root-package.json forceren gepatchte transitieve versies (sharp/postcss in next, shell-quote in web-ext, e.d.) — bij dependency-updates checken of upstream ze inmiddels zelf bumpt.
+- Trivy draait als `security`-job en voedt de code-scanning-alerts; die zijn vrijwel allemaal npm-dependency-CVE's en te reproduceren met `npm audit` per lockfile (root, `linkedin-crm-extension/ui` en `tools/firefox-sign`).
+- npm `overrides` in de root-package.json forceren gepatchte transitieve versies (sharp/postcss in next, e.d.) — bij dependency-updates checken of upstream ze inmiddels zelf bumpt.
+- web-ext zit niet meer in de root-workspace maar in `tools/firefox-sign/` (exact gepind, eigen lockfile; `publish-firefox.yml` installeert daaruit met `npm ci --ignore-scripts`). Die lockfile is een derde om met `npm audit` te controleren. Bijwerken: versie in `tools/firefox-sign/package.json` aanpassen en daar `npm install --package-lock-only --ignore-scripts` draaien.
 
 ## Vercel & Supabase
 

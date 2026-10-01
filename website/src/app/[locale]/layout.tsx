@@ -87,11 +87,14 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <head>
-        {/* Plausible Analytics */}
+        {/* Plausible Analytics. The outbound-links variant also records a click
+            on any external link (the store buttons included) as an
+            "Outbound Link: Click" event with its URL; it needs that goal in
+            the Plausible dashboard to show up. */}
         <script
           defer
           data-domain="rolodink.app"
-          src="https://plausible.io/js/script.js"
+          src="https://plausible.io/js/script.outbound-links.js"
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
