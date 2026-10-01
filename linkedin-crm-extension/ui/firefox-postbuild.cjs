@@ -4,25 +4,15 @@
 // 1. Remove block comments (/* ... */) but keep line comments (//) for AMO validation
 // 2. Replace .innerHTML= assignments with ["innerHTML"]= to avoid linter false positives with minified React code
 //
-// Usage: node firefox-postbuild.cjs [dir]
+// Usage: node firefox-postbuild.cjs   (rewrites ui/dist in place)
 //
-// `dir` is the directory to rewrite in place. build.js passes the Firefox
-// package's own copy (dist/tmp/firefox), so ui/dist - shared by every target
-// packaged in the same run - keeps the unmodified bundle for chrome and edge.
-// Without an argument it rewrites ui/dist, as it always did.
+// build.js instead requires this module and calls rewriteFirefoxBundle() on
+// the Firefox package's own copy (dist/tmp/firefox), so ui/dist - shared by
+// every target packaged in the same run - keeps the unmodified bundle for
+// chrome and edge. The directory is never taken from the command line.
 
 const fs = require('fs');
 const path = require('path');
-
-// The directory is rewritten in place, so it must sit inside this repository:
-// a stray argument must not be able to rewrite JavaScript anywhere else.
-const repoRoot = path.resolve(__dirname, '..', '..');
-const distDir = process.argv[2] ? path.resolve(process.argv[2]) : path.join(__dirname, 'dist');
-const relativeToRepo = path.relative(repoRoot, distDir);
-if (relativeToRepo === '' || relativeToRepo.startsWith('..') || path.isAbsolute(relativeToRepo)) {
-    console.error(`Refusing to rewrite ${distDir}: it is not inside ${repoRoot}`);
-    process.exit(1);
-}
 
 function cleanContent(content) {
     // 1. Remove block comments
@@ -37,7 +27,7 @@ function cleanContent(content) {
     return newContent;
 }
 
-function processFile(filePath) {
+function processFile(filePath, distDir) {
     const content = fs.readFileSync(filePath, 'utf8');
     const cleaned = cleanContent(content);
 
@@ -47,7 +37,7 @@ function processFile(filePath) {
     }
 }
 
-function processDirectory(dir) {
+function processDirectory(dir, distDir) {
     if (!fs.existsSync(dir)) {
         console.log(`Warning: Directory not found ${dir}`);
         return;
@@ -59,13 +49,21 @@ function processDirectory(dir) {
         const fullPath = path.join(dir, entry.name);
 
         if (entry.isDirectory()) {
-            processDirectory(fullPath);
+            processDirectory(fullPath, distDir);
         } else if (entry.isFile() && entry.name.endsWith('.js')) {
-            processFile(fullPath);
+            processFile(fullPath, distDir);
         }
     }
 }
 
-console.log(`🧹 Running Firefox post-build processing in ${distDir}...`);
-processDirectory(distDir);
-console.log('✅ Done!');
+function rewriteFirefoxBundle(distDir) {
+    console.log(`🧹 Running Firefox post-build processing in ${distDir}...`);
+    processDirectory(distDir, distDir);
+    console.log('✅ Done!');
+}
+
+module.exports = { rewriteFirefoxBundle };
+
+if (require.main === module) {
+    rewriteFirefoxBundle(path.join(__dirname, 'dist'));
+}

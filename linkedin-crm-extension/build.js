@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const archiver = require('archiver');
 const crypto = require('node:crypto');
-const { execSync, execFileSync } = require('child_process');
+const { execSync } = require('child_process');
 
 // One or more targets: `node build.js chrome` packages one, `node build.js
 // chrome edge firefox` builds the UI once and packages it three times. The UI
@@ -101,7 +101,7 @@ async function packageTarget(target) {
   // packaged in this run, and chrome and edge must keep the unmodified bundle.
   if (target === 'firefox') {
     console.log(`==> [${target}] Running Firefox specific post-build steps...`);
-    execFileSync(process.execPath, ['firefox-postbuild.cjs', tmpDir], { cwd: uiDir, stdio: 'inherit' });
+    require(path.join(uiDir, 'firefox-postbuild.cjs')).rewriteFirefoxBundle(tmpDir);
   }
 
   console.log(`==> [${target}] Copying extension assets...`);
