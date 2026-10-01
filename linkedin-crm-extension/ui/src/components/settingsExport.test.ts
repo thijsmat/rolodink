@@ -57,6 +57,12 @@ function apiRow(i: number, overrides: Record<string, unknown> = {}) {
     };
 }
 
+// t() returns the key, plus its substitutions, so tests can match on both.
+const i18n = {
+    getMessage: (key: string, subs?: string[]) => (subs ? `${key}:${subs.join('|')}` : key),
+    getUILanguage: () => 'en',
+};
+
 function respondWith(rows: unknown[]) {
     fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => rows });
 }
@@ -69,13 +75,7 @@ beforeEach(() => {
         const body = message.ciphertext.slice(ENC.length);
         return body.includes('locked') ? { success: false, error: 'No key' } : { success: true, plaintext: body };
     });
-    vi.stubGlobal('chrome', {
-        i18n: {
-            getMessage: (key: string, subs?: string[]) => (subs ? `${key}:${subs.join('|')}` : key),
-            getUILanguage: () => 'en',
-        },
-        runtime: { sendMessage },
-    });
+    vi.stubGlobal('chrome', { i18n, runtime: { sendMessage } });
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     auth.getSession.mockResolvedValue({ data: { session: { access_token: 'token', user: { id: 'user-1' } } } });
@@ -84,7 +84,7 @@ beforeEach(() => {
     revoked = [];
     let blobCount = 0;
     const blobs = new Map<string, Blob>();
-    // jsdom has neither, so they are defined here and removed after each test.
+    // jsdom has neither, so they are defined here for each test.
     Object.assign(URL, {
         createObjectURL: vi.fn((blob: Blob) => {
             const url = `blob:test/${++blobCount}`;
@@ -101,9 +101,9 @@ beforeEach(() => {
 afterEach(async () => {
     await dom.unmount();
     vi.restoreAllMocks();
-    const urlStatics = URL as unknown as Record<string, unknown>;
-    delete urlStatics.createObjectURL;
-    delete urlStatics.revokeObjectURL;
+    // A revoke timer from the last download may still be pending, so keep a
+    // harmless revokeObjectURL until this file's environment is torn down.
+    Object.assign(URL, { createObjectURL: undefined, revokeObjectURL: () => {} });
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     vi.useRealTimers();
@@ -215,9 +215,7 @@ describe('readable export', () => {
     });
 
     it('treats every encrypted field as undecryptable when the extension API is missing', async () => {
-        vi.stubGlobal('chrome', {
-            i18n: { getMessage: (key: string, subs?: string[]) => (subs ? `${key}:${subs.join('|')}` : key), getUILanguage: () => 'en' },
-        });
+        vi.stubGlobal('chrome', { i18n });
         respondWith([apiRow(1)]);
         await render(SettingsView);
         await click(button('readable_export_csv_button'));
