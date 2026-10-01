@@ -184,6 +184,14 @@ export interface NoteCard {
      * matters because the API's rate limiter counts per IP address.
      */
     flush(): Promise<void>;
+    /**
+     * Retires the card for good, keeping what is on it: the extension behind
+     * this script is gone (an update or a reload), so no load or save can
+     * reach anything. The text stays selectable - read-only, not disabled -
+     * so it can be copied out, and `message` says what to do. After this the
+     * card neither loads nor saves; a pending answer is not applied.
+     */
+    retire(message: string): void;
 }
 
 const LOCKED_PLACEHOLDER = 'Unable to decrypt this note. Open the Rolodink popup to sign in again.';
@@ -192,6 +200,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     const { textarea, status, retry, isAttached } = options;
     let loaded = false;
     let dirty = false;
+    let retired = false;
     let loading: Promise<void> | null = null;
     let saving: Promise<void> = Promise.resolve();
 
@@ -229,12 +238,12 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
         }
         // Navigation took the card away while we waited. A new card gets built
         // for whatever page this is now; this answer belongs to neither.
-        if (isAttached()) apply(note);
+        if (isAttached() && !retired) apply(note);
     };
 
     const load = (): Promise<void> => {
         if (loading) return loading;
-        if (loaded || !isAttached()) return Promise.resolve();
+        if (retired || loaded || !isAttached()) return Promise.resolve();
         loading = run().finally(() => {
             loading = null;
         });
@@ -271,8 +280,15 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
             dirty = true;
         },
         isDirty: () => dirty,
+        retire: (message) => {
+            retired = true;
+            textarea.readOnly = true;
+            showRetry(false);
+            status.set(message);
+        },
         flush: () => {
-            if (!dirty) return saving;
+            // Retired: nothing can be sent, and the text stays on the card.
+            if (retired || !dirty) return saving;
             dirty = false;
             saving = saving.then(attempt);
             return saving;

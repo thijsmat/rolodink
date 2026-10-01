@@ -361,6 +361,54 @@ describe('the status line does not start injection rounds', () => {
     });
 });
 
+describe('a content script that outlived its extension cleans up after itself', () => {
+    // After an update Chrome and Edge leave the old script running in every
+    // open tab. It used to go on ticking, a click on the button said "Cannot
+    // reach the CRM server", and the branch for "Extension context
+    // invalidated" was never reached because the errors were swallowed on the
+    // way. isAlive (browser-api.test.ts) is the check; these pin its use.
+    const check = code.slice(code.indexOf('const checkAndInject = async'));
+
+    it('asks before every round, before handling navigation', () => {
+        const alive = check.indexOf('if (!isPlatformAlive()) {');
+        expect(alive).toBeGreaterThan(-1);
+        expect(check.indexOf('teardownOrphan();')).toBeGreaterThan(alive);
+        expect(check.indexOf('handleNavigation(path)')).toBeGreaterThan(alive);
+        expect(code).toContain('const isPlatformAlive = () => Boolean(platform?.isAlive());');
+    });
+
+    it('stops the observer and the scheduler, removes the button and retires the card', () => {
+        const start = code.indexOf('const teardownOrphan = () => {');
+        expect(start).toBeGreaterThan(-1);
+        const body = code.slice(start, code.indexOf('\n    };\n', start));
+        for (const step of [
+            'observer.disconnect()',
+            'scheduler.stop()',
+            "getElementById('crm-add-button')?.remove()",
+            'retireCardHandlers',
+        ]) {
+            expect(body).toContain(step);
+        }
+        // The card stays, read-only, with what was typed: card.retire in
+        // note-card.test.ts. In English, like the rest of the card.
+        expect(code).toContain("card.retire(ORPHANED_CARD_MESSAGE)");
+        expect(code).toContain("'Extension updated – copy your note and reload the page'");
+    });
+
+    it('shows no debug banner', () => {
+        expect(code).not.toContain('showDebugBanner');
+        expect(code).not.toContain('rolodink-debug-banner');
+    });
+
+    it('does not blame the server for a click on an orphaned page', () => {
+        const click = code.slice(code.indexOf('async function addProfileFromButton'));
+        const alive = click.indexOf('if (!isPlatformAlive())');
+        expect(alive).toBeGreaterThan(-1);
+        expect(click.indexOf('apiRequest(')).toBeGreaterThan(alive);
+        expect(code).toContain("alert(isPlatformAlive() ? 'Cannot reach the CRM server.' : ORPHANED_ALERT);");
+    });
+});
+
 describe('one GET per profile visit', () => {
     // shared-lookup.test.ts proves the helper sends one request for two
     // callers. These pin that main.js routes both callers through it, and

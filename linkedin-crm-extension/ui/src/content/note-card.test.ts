@@ -613,3 +613,60 @@ describe('the status line', () => {
         watcher.stop();
     });
 });
+
+describe('retiring a card whose extension is gone', () => {
+    const ORPHANED = 'Extension updated – copy your note and reload the page';
+
+    it('keeps the text, read-only, and says what to do', async () => {
+        const { card, textarea, status, retry } = mountCard(scriptedRequest(WITH_NOTE));
+        await card.load();
+        textarea.value = `${STORED_TEXT}, call back Friday`;
+
+        card.retire(ORPHANED);
+
+        expect(textarea.value).toBe(`${STORED_TEXT}, call back Friday`);
+        expect(textarea.readOnly).toBe(true);
+        // Not disabled: a disabled field cannot be selected to copy from.
+        expect(textarea.disabled).toBe(false);
+        expect(status.textContent).toBe(ORPHANED);
+        expect(retryShown(retry)).toBe(false);
+    });
+
+    it('does not save afterwards, and the text stays dirty', async () => {
+        const { card, save } = mountCard(scriptedRequest(WITH_NOTE));
+        await card.load();
+        card.markDirty();
+
+        card.retire(ORPHANED);
+        await card.flush();
+
+        expect(save).not.toHaveBeenCalled();
+        expect(card.isDirty()).toBe(true);
+    });
+
+    it('does not apply a load that answers after it', async () => {
+        const pending = deferred<ApiResponse>();
+        const { card, textarea, status } = mountCard(scriptedRequest(pending.promise));
+        const loading = card.load();
+
+        card.retire(ORPHANED);
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(status.textContent).toBe(ORPHANED);
+        expect(textarea.value).toBe('');
+        expect(card.isLoaded()).toBe(false);
+    });
+
+    it('does not start a load, also not from Retry', async () => {
+        const request = scriptedRequest(RATE_LIMITED);
+        const { card, retry } = mountCard(request);
+        await card.load();
+
+        card.retire(ORPHANED);
+        retry.click();
+        await card.load();
+
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+});
