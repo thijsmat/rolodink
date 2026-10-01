@@ -12,19 +12,17 @@
  * conversion safe. This PR only changes where the code lives and how it is
  * packaged.
  *
- * legacyNormalizeLinkedInUrl, not normalizeLinkedInUrl: GET
- * /api/connections?url= is an exact string match and the server does not
- * normalize the parameter. Rows in the database were stored with the
- * host-preserving legacy form (nl.linkedin.com rows exist). Switching to the
- * canonical www-rewriting form would make every non-www row unfindable: the
- * button stops saying "Already added", the note card claims the profile is not
- * in the CRM, and a typed note cannot be saved. Core's url.test.ts pins the
- * difference between the two forms for exactly this reason.
+ * Every profile URL goes through profileLookupUrl from @rolodink/core before it
+ * is used: for the lookup, for the POST that creates the connection, and as the
+ * key that sharedLookup dedupes on. One key per person, whatever the address
+ * bar says (nl.linkedin.com, /details/…, ?originalSubdomain=, case, %-encoding).
+ * The API canonicalises the same way and still finds rows stored before it
+ * did, so sending the canonical form never hides an old nl.linkedin.com row.
  */
 import {
     isEncryptedString,
     cleanProfileName,
-    legacyNormalizeLinkedInUrl,
+    profileLookupUrl,
 } from '@rolodink/core';
 // Extensionless, like the rest of ui. Not './anchors.js': Vite only retries a
 // .js specifier as .ts when the importing file is itself TypeScript, and this
@@ -169,8 +167,8 @@ const sharedLookup = createInFlightSharing();
  * connectie die intussen ergens anders is aangemaakt.
  */
 function lookupConnection(profileUrl) {
-    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-    const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
+    // Eén sleutel per profiel - zie de kop van dit bestand.
+    const normalizedUrl = profileLookupUrl(profileUrl);
     return sharedLookup(normalizedUrl, () => apiRequest({
         path: '/api/connections',
         query: { url: normalizedUrl },
@@ -190,8 +188,8 @@ function lookupConnection(profileUrl) {
  */
 async function findConnectionId(profileUrl) {
     try {
-        // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
-        const normalizedUrl = legacyNormalizeLinkedInUrl(profileUrl);
+        // Eén sleutel per profiel - zie de kop van dit bestand.
+        const normalizedUrl = profileLookupUrl(profileUrl);
         const resp = await apiRequest({
             path: '/api/connections',
             query: { url: normalizedUrl },
@@ -254,7 +252,7 @@ async function createConnectionForProfile(profileUrl, name, notes) {
         const resp = await apiRequest({
             path: '/api/connections',
             method: 'POST',
-            body: { name, url: profileUrl, notes },
+            body: { name, url: profileLookupUrl(profileUrl), notes },
         });
         if (resp.status === 409) return { outcome: 'exists' };
         if (!resp.ok) {
@@ -423,7 +421,7 @@ async function addProfileFromButton(crmButton, setButtonLabel) {
 
         // Het token wordt niet meer hier opgehaald: de worker haalt het
         // uit zijn eigen sessie en antwoordt 401 als die er niet is.
-        const requestBody = { name: profileName, url: window.location.href };
+        const requestBody = { name: profileName, url: profileLookupUrl(window.location.href) };
 
         let response;
         try {
@@ -628,11 +626,11 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     // De notitie van deze kaart lezen, voor card.load en voor saveNote.
     // cardUrl en niet window.location.href: ook een Retry of een save na een
     // SPA-navigatie hoort bij het profiel van deze kaart.
-    // Bewust de legacy-vorm (host blijft staan) — zie de kop van dit bestand.
+    // Eén sleutel per profiel - zie de kop van dit bestand.
     const readCardNote = () => readNote(
         () => apiRequest({
             path: '/api/connections',
-            query: { url: legacyNormalizeLinkedInUrl(cardUrl) },
+            query: { url: profileLookupUrl(cardUrl) },
         }),
         decryptNoteText,
     );

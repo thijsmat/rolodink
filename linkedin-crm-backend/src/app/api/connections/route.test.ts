@@ -2,17 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
-const { findUnique, findMany, update } = vi.hoisted(() => ({
+const { findUnique, findMany, update, create } = vi.hoisted(() => ({
   findUnique: vi.fn(),
   findMany: vi.fn(),
   update: vi.fn(),
+  create: vi.fn(),
 }));
-vi.mock('@/lib/prisma', () => ({ prisma: { connection: { findUnique, findMany, update } } }));
+vi.mock('@/lib/prisma', () => ({ prisma: { connection: { findUnique, findMany, update, create } } }));
 vi.mock('@/lib/supabase/server', () => ({
   getUserFromRequest: vi.fn(async () => ({ user: { id: 'user-1' }, error: null })),
 }));
 
-import { GET, PATCH } from './route';
+import { PROFILE_URL_VECTORS } from '@rolodink/core/url-vectors';
+import { GET, PATCH, POST } from './route';
 
 // Every request its own documentation-range IP (RFC 5737): the limiter's store
 // is module-global.
@@ -23,6 +25,10 @@ const get = (query = '') => new NextRequest(`https://api.rolodink.app/api/connec
 const patch = (body: unknown) =>
   new NextRequest('https://api.rolodink.app/api/connections', { method: 'PATCH', headers: headers(), body: JSON.stringify(body) });
 
+const post = (body: unknown) =>
+  new NextRequest('https://api.rolodink.app/api/connections', { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+const lookup = (url: string) => get('?url=' + encodeURIComponent(url));
+
 const notFound = () => new PrismaClientKnownRequestError('No record found', { code: 'P2025', clientVersion: '5.22.0' });
 
 const row = { id: 'c1', ownerId: 'user-1', name: 'Jan', linkedInUrl: 'https://www.linkedin.com/in/jan' };
@@ -32,20 +38,20 @@ beforeEach(() => {
 });
 
 describe('GET /api/connections', () => {
-  it('looks one profile up by the unique (owner, url) pair and answers with a list', async () => {
-    findUnique.mockResolvedValue(row);
+  it('looks one profile up among the owner\'s rows by its canonical key and answers with a list', async () => {
+    findMany.mockResolvedValue([row]);
 
-    const res = await GET(get('?url=' + encodeURIComponent('https://www.linkedin.com/in/jan/?trk=x')));
+    const res = await GET(lookup('https://www.linkedin.com/in/jan/?trk=x'));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([row]);
-    expect(findUnique).toHaveBeenCalledWith({
-      where: { ownerId_linkedInUrl: { ownerId: 'user-1', linkedInUrl: 'https://www.linkedin.com/in/jan' } },
-    });
+    const { where } = findMany.mock.calls[0][0];
+    expect(where.ownerId).toBe('user-1');
+    expect(where.OR).toContainEqual({ linkedInUrl: 'https://www.linkedin.com/in/jan' });
   });
 
   it('answers an empty list for a profile that is not stored', async () => {
-    findUnique.mockResolvedValue(null);
+    findMany.mockResolvedValue([]);
 
     const res = await GET(get('?url=' + encodeURIComponent('https://www.linkedin.com/in/nobody')));
 
@@ -62,7 +68,146 @@ describe('GET /api/connections', () => {
   });
 });
 
+// Every profile vector from the shared table: whatever spelling the client
+// sends, the row stored under the canonical key is found.
+const profileVectors = PROFILE_URL_VECTORS.filter((v) => v.expected.startsWith('https://www.linkedin.com/in/'));
+
+describe('GET /api/connections?url= with URL variants', () => {
+  it.each(profileVectors.map((v) => [v.label, v.input, v.expected] as const))(
+    'finds the canonical row for %s',
+    async (_label, input, expected) => {
+      const stored = { ...row, linkedInUrl: expected };
+      findMany.mockResolvedValue([stored]);
+
+      const res = await GET(lookup(input));
+
+      expect(await res.json()).toEqual([stored]);
+      expect(findMany.mock.calls[0][0].where.OR).toContainEqual({ linkedInUrl: expected });
+    },
+  );
+
+  it.each([
+    'https://nl.linkedin.com/in/jan',
+    'https://www.linkedin.com/in/jan/details/experience',
+    'https://www.linkedin.com/in/Jan',
+    'https://linkedin.com/in/jan',
+  ])('still finds a row stored before canonicalisation as %s', async (legacy) => {
+    const stored = { ...row, linkedInUrl: legacy };
+    findMany.mockResolvedValue([stored]);
+
+    const res = await GET(lookup('https://www.linkedin.com/in/jan/'));
+
+    expect(await res.json()).toEqual([stored]);
+    // The pre-filter has to be able to return that row at all.
+    expect(findMany.mock.calls[0][0].where.OR).toEqual(
+      expect.arrayContaining([
+        { linkedInUrl: { endsWith: '/in/jan', mode: 'insensitive' } },
+        { linkedInUrl: { contains: '/in/jan/', mode: 'insensitive' } },
+      ]),
+    );
+  });
+
+  it('finds an old client\'s exact non-canonical lookup of a legacy row', async () => {
+    const stored = { ...row, linkedInUrl: 'https://nl.linkedin.com/in/jan' };
+    findMany.mockResolvedValue([stored]);
+
+    expect(await (await GET(lookup('https://nl.linkedin.com/in/jan'))).json()).toEqual([stored]);
+  });
+
+  it('ignores rows the pre-filter let through that are another profile', async () => {
+    findMany.mockResolvedValue([
+      { ...row, id: 'c2', linkedInUrl: 'https://www.linkedin.com/in/jan-2' },
+      { ...row, id: 'c3', linkedInUrl: 'https://www.linkedin.com/in/ACoAAJan' },
+    ]);
+
+    expect(await (await GET(lookup('https://www.linkedin.com/in/jan'))).json()).toEqual([]);
+  });
+
+  it('prefers the canonical row when a legacy duplicate also exists', async () => {
+    const legacy = { ...row, id: 'old', linkedInUrl: 'https://nl.linkedin.com/in/jan' };
+    findMany.mockResolvedValue([legacy, row]);
+
+    expect(await (await GET(lookup('https://de.linkedin.com/in/JAN/'))).json()).toEqual([row]);
+  });
+
+  it('keeps an exact match for a LinkedIn URL that is not a profile', async () => {
+    findUnique.mockResolvedValue(null);
+
+    await GET(lookup('https://www.linkedin.com/company/rolodink/?trk=x'));
+
+    expect(findMany).not.toHaveBeenCalled();
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { ownerId_linkedInUrl: { ownerId: 'user-1', linkedInUrl: 'https://www.linkedin.com/company/rolodink' } },
+    });
+  });
+});
+
+describe('POST /api/connections', () => {
+  it.each(profileVectors.filter((v) => /^https?:\/\//.test(v.input)).map((v) => [v.label, v.input, v.expected] as const))(
+    'stores %s under the canonical key',
+    async (_label, input, expected) => {
+      findMany.mockResolvedValue([]);
+      create.mockResolvedValue({ ...row, linkedInUrl: expected });
+
+      const res = await POST(post({ name: 'Jan', url: input }));
+
+      expect(res.status).toBe(201);
+      expect(create.mock.calls[0][0].data.linkedInUrl).toBe(expected);
+    },
+  );
+
+  it('answers 409 without creating when a legacy row is the same profile', async () => {
+    findMany.mockResolvedValue([{ ...row, linkedInUrl: 'https://nl.linkedin.com/in/jan/details/experience' }]);
+
+    const res = await POST(post({ name: 'Jan', url: 'https://www.linkedin.com/in/Jan/' }));
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Connectie bestaat al voor deze URL.' });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('answers the same 409 when the unique index catches a race', async () => {
+    findMany.mockResolvedValue([]);
+    create.mockRejectedValue(new PrismaClientKnownRequestError('Unique', { code: 'P2002', clientVersion: '5.22.0' }));
+
+    const res = await POST(post({ name: 'Jan', url: 'https://www.linkedin.com/in/jan' }));
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Connectie bestaat al voor deze URL.' });
+  });
+});
+
 describe('PATCH /api/connections', () => {
+  it('refuses a url that would make the row a duplicate of another', async () => {
+    findMany.mockResolvedValue([{ ...row, id: 'c2', linkedInUrl: 'https://nl.linkedin.com/in/sanne' }]);
+
+    const res = await PATCH(patch({ id: 'c1', url: 'https://www.linkedin.com/in/Sanne/' }));
+
+    expect(res.status).toBe(409);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('stores a new url canonically, as linkedInUrl', async () => {
+    findMany.mockResolvedValue([{ ...row, linkedInUrl: 'https://nl.linkedin.com/in/jan' }]);
+    update.mockResolvedValue(row);
+
+    const res = await PATCH(patch({ id: 'c1', url: 'https://nl.linkedin.com/in/jan/?trk=x', notes: 'x' }));
+
+    expect(res.status).toBe(200);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 'c1', ownerId: 'user-1' },
+      data: { notes: 'x', linkedInUrl: 'https://www.linkedin.com/in/jan' },
+    });
+  });
+
+  it('does not look URLs up for a patch without one', async () => {
+    update.mockResolvedValue(row);
+
+    await PATCH(patch({ id: 'c1', notes: 'x' }));
+
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
   it('updates in one query, with ownership in the filter', async () => {
     update.mockResolvedValue({ ...row, notes: 'x' });
 

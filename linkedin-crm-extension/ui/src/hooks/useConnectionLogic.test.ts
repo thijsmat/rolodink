@@ -665,3 +665,34 @@ describe('decrypting the list', () => {
         expect(hook().allConnections.map(c => c.email)).toEqual(['jane@example.com', 'two@example.com']);
     });
 });
+
+describe('the profile URL the popup sends', () => {
+    const VARIANT = 'https://nl.linkedin.com/in/Jane-Doe/details/experience/?originalSubdomain=nl';
+
+    it('looks the open profile up by its canonical key', async () => {
+        tabUrl = VARIANT;
+        rows = [janeRow()];
+        const hook = await renderHook();
+
+        const lookups = requests.filter(r => r.url.includes('?url='));
+        expect(lookups.length).toBeGreaterThan(0);
+        for (const r of lookups) {
+            expect(new URL(r.url).searchParams.get('url')).toBe(PROFILE_URL);
+        }
+        expect(hook().connection?.id).toBe('conn-jane');
+    });
+
+    it('creates under the canonical key, not the address bar', async () => {
+        tabUrl = VARIANT;
+        rows = [];
+        const hook = await renderHook();
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        await act(async () => {
+            await hook().handleCreateConnection({ notes: 'Hiring' }).catch(() => {});
+        });
+
+        const create = requests.find(r => r.method === 'POST');
+        expect(create?.body?.url).toBe(PROFILE_URL);
+    });
+});

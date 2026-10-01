@@ -8,9 +8,46 @@ import {
     extractLinkedInProfileUrl,
     buildLookupCandidates,
     isSameProfile,
+    profileLookupUrl,
+    isLinkedInProfileUrl,
 } from './url.js';
+import { PROFILE_URL_VECTORS } from './url-vectors.js';
 
 const CANONICAL = 'https://www.linkedin.com/in/jan-jansen';
+
+describe('profileLookupUrl (shared vectors)', () => {
+    it.each(PROFILE_URL_VECTORS.map((v) => [v.label, v.input, v.expected] as const))(
+        '%s',
+        (_label, input, expected) => {
+            expect(profileLookupUrl(input)).toBe(expected);
+        },
+    );
+
+    it.each(PROFILE_URL_VECTORS.map((v) => [v.label, v.expected] as const))(
+        'is idempotent: %s',
+        (_label, expected) => {
+            expect(profileLookupUrl(expected)).toBe(expected);
+        },
+    );
+
+    it('keeps the API\'s old behaviour for a LinkedIn page that is not a profile', () => {
+        // What connections/route.ts did before: URL round trip, query, hash
+        // and one trailing slash gone, host kept.
+        expect(profileLookupUrl('https://www.linkedin.com/feed/')).toBe('https://www.linkedin.com/feed');
+    });
+
+    it('keeps a slug that decodes to a path separator encoded, so the key parses back to itself', () => {
+        const key = profileLookupUrl('https://www.linkedin.com/in/a%2Fb');
+        expect(key).toBe('https://www.linkedin.com/in/a%2fb');
+        expect(profileLookupUrl(key)).toBe(key);
+    });
+
+    it('tells profile URLs apart from everything else', () => {
+        expect(isLinkedInProfileUrl('https://nl.linkedin.com/in/jan-jansen/details/x')).toBe(true);
+        expect(isLinkedInProfileUrl('https://www.linkedin.com/company/rolodink')).toBe(false);
+        expect(isLinkedInProfileUrl('https://www.linkedin.com/in/')).toBe(false);
+    });
+});
 
 describe('normalizeLinkedInUrl', () => {
     it('leaves an already-canonical desktop URL untouched', () => {
@@ -38,9 +75,13 @@ describe('normalizeLinkedInUrl', () => {
         expect(normalizeLinkedInUrl(input)).toBe(CANONICAL);
     });
 
-    it('preserves slug case, because opaque member IDs are case-sensitive', () => {
+    it('preserves the case of opaque member IDs, which are case-sensitive', () => {
         const opaque = 'https://www.linkedin.com/in/ACoAAAxYzAbC';
         expect(normalizeLinkedInUrl(opaque)).toBe(opaque);
+    });
+
+    it('lowercases vanity slugs, which LinkedIn treats case-insensitively', () => {
+        expect(normalizeLinkedInUrl('https://www.linkedin.com/in/Jan-Jansen')).toBe(CANONICAL);
     });
 
     it.each([
@@ -221,6 +262,11 @@ describe('isSameProfile', () => {
 
     it('does not match different people', () => {
         expect(isSameProfile(CANONICAL, 'https://www.linkedin.com/in/sanne-de-vries')).toBe(false);
+    });
+
+    it('matches vanity slugs regardless of case, member IDs only exactly', () => {
+        expect(isSameProfile('https://www.linkedin.com/in/Jan-Jansen', CANONICAL)).toBe(true);
+        expect(isSameProfile('https://www.linkedin.com/in/ACoAAAxYzAbC', 'https://www.linkedin.com/in/ACoAAAxYzABC')).toBe(false);
     });
 
     it('does not match when either side is not a profile', () => {
