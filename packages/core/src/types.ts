@@ -40,6 +40,12 @@ export interface ConnectionInput {
  * clear a field by sending `''`, never `null`.
  */
 export interface ConnectionPatch {
+    /**
+     * The `updatedAt` this edit is based on, exactly as the API sent it. The
+     * server then refuses (409, ConnectionConflictError) to overwrite a newer
+     * version. See conflict.ts.
+     */
+    expectedUpdatedAt?: string;
     name?: string;
     meetingPlace?: string;
     notes?: string;

@@ -23,6 +23,7 @@ import {
     isEncryptedString,
     cleanProfileName,
     profileLookupUrl,
+    versionOf,
 } from '@rolodink/core';
 // Extensionless, like the rest of ui. Not './anchors.js': Vite only retries a
 // .js specifier as .ts when the importing file is itself TypeScript, and this
@@ -40,7 +41,7 @@ import {
 import { createInjectionScheduler } from './scheduler';
 import { getBrowserApi } from './browser-api';
 import { extractRawProfileName } from './profile';
-import { createNoteCard, createStatusLine, readNote, textForUnseenNote } from './note-card';
+import { createNoteCard, createNoteVersion, createStatusLine, readNote, textForUnseenNote } from './note-card';
 import { createInFlightSharing } from './shared-lookup';
 
 // The API base URL is no longer resolved here. Every call goes through the
@@ -233,7 +234,8 @@ function markButtonAsAdded(profilePath) {
  * hij werd aangemaakt.
  *
  * Geeft een uitkomst terug en gooit niet:
- *  - created: aangemaakt, met het id (of null als het antwoord er geen had);
+ *  - created: aangemaakt, met het id (of null als het antwoord er geen had)
+ *    en de updatedAt waar de volgende PATCH op voortbouwt;
  *  - exists: 409, hij staat er al in - in een ander tabblad, via de popup, of
  *    door een klik op de knop. De aanroeper leest dan eerst wat er staat;
  *  - no-name: geen naam om mee aan te maken; er is niets verstuurd;
@@ -259,7 +261,7 @@ async function createConnectionForProfile(profileUrl, name, notes) {
             console.error('Rolodink: kon de connectie niet aanmaken:', resp.status, resp.data);
             return { outcome: 'failed', status: resp.status };
         }
-        return { outcome: 'created', id: resp.data?.id ?? null };
+        return { outcome: 'created', id: resp.data?.id ?? null, updatedAt: versionOf(resp.data) };
     } catch (error) {
         console.error('Rolodink: kon de connectie niet aanmaken:', error);
         return { outcome: 'failed', status: null };
@@ -575,9 +577,16 @@ function relocateExistingCard(topCard) {
  * geen verhuizing van de sticky header naar de hero. Of het antwoord nog
  * ergens heen mag, beslist stillOwned na elke await.
  */
-function attachNoteBehaviour(container, textarea, status, retryButton) {
+function attachNoteBehaviour(container, textarea, status, buttons) {
     // 6. Load Data
     let connectionId = null;
+    // De versie (updatedAt) van de connectie waar de tekst op de kaart op
+    // voortbouwt. Elke PATCH stuurt hem mee als expectedUpdatedAt; staat er
+    // op de server intussen een nieuwere (popup, ander apparaat), dan komt er
+    // een 409 in plaats van een stille overschrijving. Saves lopen achter
+    // elkaar (card.flush) en elke save neemt de versie uit het antwoord van
+    // de vorige, dus autosave botst nooit met zichzelf. Zie note-card.ts.
+    const noteVersion = createNoteVersion();
     let debounceTimer = null;
     // De tekst waarvan vaststaat dat hij op de server staat: wat de kaart
     // laadde, of wat de laatste geslaagde save verstuurde. null zolang de
@@ -642,7 +651,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     const card = createNoteCard({
         textarea,
         status: statusLine,
-        retry: retryButton,
+        retry: buttons.retry,
         isAttached: stillOwned,
         load: async () => {
             const note = await loadCardNote();
@@ -651,12 +660,28 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
             // toe, en het id mag hier evenmin blijven hangen.
             if (!stillOwned()) return note;
             if (note.state === 'loaded') connectionId = note.connectionId;
+            if (note.state === 'loaded') noteVersion.set(note.updatedAt);
             if (note.state === 'loaded') lastSavedText = note.text;
             if (note.state === 'absent') lastSavedText = '';
             return note;
         },
         // Pas bij aanroep opgezocht: saveNote staat hieronder.
         save: () => saveNote(),
+        // Een 409 omdat de notitie elders gewijzigd is: de kaart vraagt de
+        // gebruiker wat er moet gebeuren en bewaart het getypte tot dan.
+        conflict: {
+            loadOther: buttons.loadOther,
+            overwrite: buttons.overwrite,
+            undo: buttons.undo,
+            readText: (current) => decryptNoteText(current.notes),
+            adopt: (current, text) => {
+                noteVersion.set(versionOf(current));
+                // null: de kaart houdt haar eigen tekst en stuurt die, ook als
+                // hij toevallig gelijk is aan wat we het laatst opsloegen.
+                lastSavedText = text;
+            },
+            copy: copyToClipboard,
+        },
     });
 
     // 7. Save Logic
@@ -709,6 +734,7 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
             // zou de volgende save via de 409 de eigen notitie als "elders
             // aangemaakt" lezen en hem dubbel in het veld zetten.
             connectionId = created.id ?? await findConnectionId(cardUrl);
+            noteVersion.set(created.updatedAt);
             markButtonAsAdded(cardPath);
             return confirmSaved(typed);
         }
@@ -739,11 +765,14 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
         }
         if (text !== textarea.value) textarea.value = text;
         connectionId = id;
+        noteVersion.set(current.updatedAt);
         return patchNote();
     };
 
     // De notitie van een connectie die deze kaart kent, vervangen door wat er
-    // nu staat.
+    // nu staat - alleen als dat nog de versie is waar de kaart op voortbouwt.
+    // Een 409 met de opgeslagen rij geeft { conflict } terug: niet opgeslagen,
+    // en de kaart toont "Changed elsewhere" met de keuze.
     const patchNote = async () => {
         const text = textarea.value;
         const notes = await encryptOrFail(text);
@@ -751,9 +780,11 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
         const resp = await apiRequest({
             path: '/api/connections',
             method: 'PATCH',
-            body: { id: connectionId, notes },
+            body: noteVersion.stamp({ id: connectionId, notes }),
         });
+        const outcome = noteVersion.settle(resp);
         if (resp.ok) return confirmSaved(text);
+        if (outcome.state === 'conflict') return { conflict: outcome.current };
         return failSave(resp.status);
     };
 
@@ -797,7 +828,8 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
 
     textarea.addEventListener('input', () => {
         card.markDirty();
-        setStatus('Typing...');
+        // In een conflict blijft de vraag staan; opslaan wacht op de keuze.
+        if (!card.isInConflict()) setStatus('Typing...');
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(flushSave, 1000); // 1 second debounce
     });
@@ -844,6 +876,39 @@ function attachNoteBehaviour(container, textarea, status, retryButton) {
     card.load().catch((error) => {
         console.error('Rolodink: laden van de notitie mislukt:', error);
     });
+}
+
+/** A small text button for the card's footer, beside the status line. */
+function createFooterButton(label, title) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if (title) button.title = title;
+    button.style.background = 'none';
+    button.style.border = 'none';
+    button.style.padding = '0';
+    button.style.fontSize = '12px';
+    button.style.lineHeight = '16px';
+    button.style.fontFamily = 'inherit';
+    button.style.color = '#0a66c2'; // LinkedIn Blue, like the title
+    button.style.textDecoration = 'underline';
+    button.style.cursor = 'pointer';
+    return button;
+}
+
+/**
+ * Zet tekst op het klembord; false als dat niet mag of kan. Alleen vanuit een
+ * klik (gebruikersgebaar), en zonder platform-API: navigator.clipboard is van
+ * de pagina en werkt in alle drie de browsers zonder extra permissie.
+ */
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch (error) {
+        console.warn('Rolodink: kopiëren naar het klembord mislukt:', error);
+        return false;
+    }
 }
 
 // Function to inject the Context Field (Note)
@@ -1013,19 +1078,15 @@ async function injectContextField() {
             status.style.textAlign = 'right';
             footer.appendChild(status);
 
-            const retryButton = document.createElement('button');
-            retryButton.type = 'button';
-            retryButton.textContent = 'Retry';
-            retryButton.style.background = 'none';
-            retryButton.style.border = 'none';
-            retryButton.style.padding = '0';
-            retryButton.style.fontSize = '12px';
-            retryButton.style.lineHeight = '16px';
-            retryButton.style.fontFamily = 'inherit';
-            retryButton.style.color = '#0a66c2'; // LinkedIn Blue, like the title
-            retryButton.style.textDecoration = 'underline';
-            retryButton.style.cursor = 'pointer';
-            footer.appendChild(retryButton);
+            // Retry for a failed load; the other three for a save that met a
+            // newer version (note-card.ts shows and hides each).
+            const buttons = {
+                retry: createFooterButton('Retry'),
+                loadOther: createFooterButton('Load other version', 'Show the version saved elsewhere. Your text is copied to the clipboard.'),
+                overwrite: createFooterButton('Overwrite', 'Save your text over the version saved elsewhere.'),
+                undo: createFooterButton('Undo', 'Put your text back and save it.'),
+            };
+            footer.append(buttons.retry, buttons.loadOther, buttons.overwrite, buttons.undo);
             container.appendChild(footer);
 
             // Insert the card below the whole profile header.
@@ -1043,7 +1104,7 @@ async function injectContextField() {
             }
 
             // Niet awaiten: het laden van de notitie loopt los van deze ronde.
-            attachNoteBehaviour(container, textarea, status, retryButton);
+            attachNoteBehaviour(container, textarea, status, buttons);
         }
 
         // Reset injection flag (success)

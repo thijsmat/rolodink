@@ -5,14 +5,26 @@ import { useConnection, type ConnectionFormData } from '../context/ConnectionCon
 import { SkeletonForm } from './Skeleton';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
-export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error }: {
+/**
+ * What the form offers after a save was refused because the connection
+ * changed elsewhere. The typed text stays in the form until one is chosen.
+ */
+export type ConflictChoice = {
+  /** Starts the form over from the stored version; what was typed is dropped. */
+  onLoadLatest: () => void;
+  /** Saves what is in the form over the stored version. */
+  onOverwrite: (data: ConnectionFormData) => void | Promise<void>;
+};
+
+export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error, conflict }: Readonly<{
   initialData?: ConnectionFormData;
-  onSubmit?: (data: ConnectionFormData) => void;
+  onSubmit?: (data: ConnectionFormData) => void | Promise<void>;
   onCancel?: () => void;
   isSubmitting?: boolean;
   submitText?: string;
   error?: string | null;
-}) {
+  conflict?: ConflictChoice | null;
+}>) {
   const { t } = useExtensionTranslation();
   const { handleCreateConnection, connection } = useConnection();
   // initialData is read once, when the form mounts. It used to be copied in
@@ -64,11 +76,13 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onCancel, busy]);
 
+  const currentData = (): ConnectionFormData => ({ meetingPlace, userCompanyAtTheTime: userCompany, notes });
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const payload: ConnectionFormData = { meetingPlace, userCompanyAtTheTime: userCompany, notes };
+    const payload = currentData();
     if (onSubmit) {
-      onSubmit(payload);
+      await onSubmit(payload);
       return;
     }
     setIsCreating(true);
@@ -207,6 +221,28 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
 
               {shownError && (
                 <div className={styles.error} role="alert">{shownError}</div>
+              )}
+
+              {conflict && (
+                <div className={styles.conflict} role="alert">
+                  <p className={styles.conflictMessage}>{t('connection_conflict_message')}</p>
+                  <div className={styles.conflictActions}>
+                    <button
+                      type="button"
+                      className={`${styles.button} ${styles.buttonSecondary}`}
+                      onClick={conflict.onLoadLatest}
+                    >
+                      {t('connection_conflict_load_latest')}
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.button} ${styles.buttonPrimary}`}
+                      onClick={() => void conflict.onOverwrite(currentData())}
+                    >
+                      {t('connection_conflict_overwrite')}
+                    </button>
+                  </div>
+                </div>
               )}
 
               <div className={styles.buttonGroup}>

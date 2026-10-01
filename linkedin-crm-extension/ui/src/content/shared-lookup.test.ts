@@ -58,6 +58,7 @@ describe('one GET per profile visit', () => {
             state: 'loaded',
             status: 'Saved',
             connectionId: 'conn-1',
+            updatedAt: null,
             text: 'the note',
         });
         expect(worker.messages).toHaveLength(1);

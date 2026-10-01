@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
 import { profileLookupUrl } from '@rolodink/core/url';
+import { CONNECTION_CONFLICT_CODE } from '@rolodink/core/conflict';
 import { findOwnedConnectionByUrl } from '@/lib/connection-url';
 
 const DUPLICATE_URL_MESSAGE = 'Connectie bestaat al voor deze URL.';
@@ -36,6 +37,12 @@ const updateConnectionSchema = z.object({
   userCompanyAtTheTime: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
+  // Optimistic concurrency: the updatedAt the client last saw, exactly as this
+  // API serialised it (Date#toJSON, an ISO string with milliseconds). When it
+  // is present the update only applies if the row still has that version;
+  // otherwise the answer is a 409 carrying the current row. Absent, the update
+  // applies unconditionally (older extension builds).
+  expectedUpdatedAt: z.string().datetime({ offset: true }).optional(),
 });
 
 // Function to clean notification counts from profile names
@@ -203,7 +210,7 @@ export async function POST(request: NextRequest) {
 async function buildUpdateData(
   ownerId: string,
   id: string,
-  validated: z.infer<typeof updateConnectionSchema>,
+  validated: Omit<z.infer<typeof updateConnectionSchema>, 'expectedUpdatedAt'>,
 ): Promise<Prisma.ConnectionUpdateInput | null> {
   const { url: newUrl, ...rest } = validated;
   const data: Prisma.ConnectionUpdateInput = { ...rest };
@@ -219,6 +226,29 @@ async function buildUpdateData(
     data.name = cleanProfileName(rest.name);
   }
   return data;
+}
+
+// The update matched no row (P2025). One extra query tells why: there is no
+// such row (404), it belongs to someone else (403), or it is the caller's but
+// its version moved on since expectedUpdatedAt (409, with the current row so
+// the client can show or overwrite it - ciphertext only, as GET returns it).
+async function missedUpdateResponse(
+  id: string,
+  ownerId: string,
+  expectedUpdatedAt: string | undefined,
+  corsHeaders: Record<string, string>,
+): Promise<NextResponse> {
+  const connection = await prisma.connection.findUnique({ where: { id } });
+  if (!connection) {
+    return NextResponse.json({ error: 'Connection not found' }, { status: 404, headers: corsHeaders });
+  }
+  if (connection.ownerId === ownerId && expectedUpdatedAt !== undefined) {
+    return NextResponse.json(
+      { error: 'conflict', code: CONNECTION_CONFLICT_CODE, current: connection },
+      { status: 409, headers: corsHeaders },
+    );
+  }
+  return NextResponse.json({ error: 'No permission to update this connection' }, { status: 403, headers: corsHeaders });
 }
 
 // NIEUWE PATCH FUNCTIE
@@ -261,30 +291,28 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const data = await buildUpdateData(user.id, id, validation.data);
+    const { expectedUpdatedAt, ...fields } = validation.data;
+    const data = await buildUpdateData(user.id, id, fields);
     if (!data) {
       return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
     }
 
-    // One round-trip: ownership is part of the unique filter. Only when that
-    // finds nothing (P2025) is a second query needed, to tell 404 from 403.
+    // One round-trip: ownership (and, when given, the expected version) is
+    // part of the unique filter, so the check and the write are one atomic
+    // statement. Only when that finds nothing (P2025) is a second query
+    // needed, to tell 404, 403 and 409 apart.
+    const where: Prisma.ConnectionWhereUniqueInput = { id, ownerId: user.id };
+    if (expectedUpdatedAt !== undefined) {
+      where.updatedAt = new Date(expectedUpdatedAt);
+    }
     let updatedConnection;
     try {
-      updatedConnection = await prisma.connection.update({
-        where: { id, ownerId: user.id },
-        data,
-      });
+      updatedConnection = await prisma.connection.update({ where, data });
     } catch (updateError) {
       if (!(updateError instanceof PrismaClientKnownRequestError && updateError.code === 'P2025')) {
         throw updateError;
       }
-      const connection = await prisma.connection.findUnique({
-        where: { id },
-        select: { ownerId: true },
-      });
-      return connection
-        ? NextResponse.json({ error: 'No permission to update this connection' }, { status: 403, headers: corsHeaders })
-        : NextResponse.json({ error: 'Connection not found' }, { status: 404, headers: corsHeaders });
+      return missedUpdateResponse(id, user.id, expectedUpdatedAt, corsHeaders);
     }
 
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });

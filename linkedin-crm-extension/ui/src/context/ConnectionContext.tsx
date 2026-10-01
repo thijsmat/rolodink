@@ -15,6 +15,8 @@ export type Connection = {
   email?: string | null;
   phone?: string | null;
   linkedInUrl?: string;
+  /** The version the API sent, as it sent it; sent back as expectedUpdatedAt when saving an edit. */
+  updatedAt?: string;
   is_encrypted?: boolean;
 };
 
@@ -51,7 +53,8 @@ type ConnectionContextState = {
   hideHelpView: () => void;
   selectConnection: (connection: Connection) => void;
   handleCreateConnection: (data: ConnectionFormData) => Promise<void>;
-  handleUpdate: (data: ConnectionFormData) => Promise<void>;
+  /** Throws ConnectionChangedElsewhereError when the row is newer than expectedUpdatedAt. */
+  handleUpdate: (data: ConnectionFormData, expectedUpdatedAt?: string | null) => Promise<void>;
   handleDelete: () => Promise<void>;
   handleLogout: () => Promise<void>;
   handleLoginSuccess: () => void;

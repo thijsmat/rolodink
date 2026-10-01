@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl } from '@rolodink/core';
+import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl, readConflict, withExpectedVersion } from '@rolodink/core';
 import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
-import { LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
+import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
 import { clearDecryptMemo, getDecrypted, rememberDecrypted } from '../utils/decryptMemo';
 
 // Helper functions (copied from ConnectionContext)
@@ -533,11 +533,43 @@ export function useConnectionLogic(user: User | null) {
         }
     }
 
+    /**
+     * A row the server now holds - saved, or found in a conflict - put on
+     * screen and in the cache, which keeps the encrypted original. Returns it
+     * decrypted.
+     */
+    const showStoredRow = async (stored: Connection): Promise<Connection> => {
+        const [decrypted] = await decryptConnections([stored], userId);
+        setConnection(decrypted);
+        setAllConnections(prev => prev.map(conn => (conn.id === decrypted.id ? decrypted : conn)));
+        const cachedConnections = await loadCachedConnections();
+        await saveConnectionsToCache(cachedConnections.map((conn: Connection) => (conn.id === stored.id ? stored : conn)));
+        return decrypted;
+    };
+
+    /**
+     * Turns a refused PATCH into the error the form shows. A 409 conflict
+     * (the row changed elsewhere since `expectedUpdatedAt`) carries the
+     * stored row: that goes on screen behind the form, and back to the form
+     * so the user can load it or overwrite it.
+     */
+    const refusedUpdate = async (response: Response): Promise<Error> => {
+        const body: unknown = await response.json().catch(() => null);
+        const current = readConflict(response.status, body);
+        if (!current) return new Error('Update mislukt');
+        return new ConnectionChangedElsewhereError(await showStoredRow(current as Connection));
+    };
+
     // No global isLoading or error here: App swaps the whole view for either,
     // which unmounted the edit form and threw away what the user had typed.
     // ConnectionView shows its own progress, and a failure is thrown so the
     // form stays open with the text in it.
-    const handleUpdate = async (formData: ConnectionFormData) => {
+    //
+    // expectedUpdatedAt: the version the form was opened on. With it the
+    // server refuses to overwrite a newer save from the note card or another
+    // device (ConnectionChangedElsewhereError); without it the save is
+    // unconditional, as before.
+    const handleUpdate = async (formData: ConnectionFormData, expectedUpdatedAt?: string | null) => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -557,10 +589,7 @@ export function useConnectionLogic(user: User | null) {
             const { fields, skippedUnreadable } = pickFieldsToUpdate(formData, SENSITIVE_FIELDS);
             const encryptedFields = await encryptFormData(fields);
 
-            const payload = {
-                id: idToUse,
-                ...encryptedFields,
-            };
+            const payload = withExpectedVersion({ id: idToUse, ...encryptedFields }, expectedUpdatedAt);
 
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
                 method: 'PATCH',
@@ -571,28 +600,19 @@ export function useConnectionLogic(user: User | null) {
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error(`Update mislukt`);
+            if (!response.ok) throw await refusedUpdate(response);
 
-            const updated: Connection = await response.json();
-            const decArray = await decryptConnections([updated], userId);
-            setConnection(decArray[0]);
-
-            const updatedConnections = allConnections.map(conn =>
-                conn.id === decArray[0].id ? decArray[0] : conn
-            );
-            setAllConnections(updatedConnections);
-
-            // Re-cache raw encrypted connections
-            const cachedConnections = await loadCachedConnections();
-            const newCached = cachedConnections.map((conn: Connection) => conn.id === updated.id ? updated : conn);
-            await saveConnectionsToCache(newCached);
+            await showStoredRow(await response.json());
 
             setToastMessage(skippedUnreadable.length > 0
                 ? 'Connectie bijgewerkt. Vergrendelde velden zijn niet gewijzigd.'
                 : 'Connectie bijgewerkt.');
         } catch (e: unknown) {
-            console.error('Fout bij bijwerken:', e);
-            setToastMessage('Bijwerken mislukt.');
+            // A conflict is not a failure to report: the form explains it.
+            if (!(e instanceof ConnectionChangedElsewhereError)) {
+                console.error('Fout bij bijwerken:', e);
+                setToastMessage('Bijwerken mislukt.');
+            }
             throw e;
         }
     };

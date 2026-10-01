@@ -3,7 +3,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import type { User } from '@supabase/supabase-js';
 import type { Connection } from '../context/ConnectionContext';
-import { LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
+import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
 import { clearDecryptMemo, decryptMemoSize } from '../utils/decryptMemo';
 import { useConnectionLogic } from './useConnectionLogic';
 
@@ -95,10 +95,16 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
         if (failPatch) {
             return { ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) } as unknown as Response;
         }
-        const { id, ...changes } = body;
+        const { id, expectedUpdatedAt, ...changes } = body;
         const row = rows.find(r => r.id === id);
         if (!row) throw new Error(`PATCH for unknown id ${id}`);
+        // As route.ts: only the expected version is updated, else 409 with the row.
+        if (expectedUpdatedAt !== undefined && expectedUpdatedAt !== row.updatedAt) {
+            const conflict = { error: 'conflict', code: 'CONNECTION_CONFLICT', current: { ...row } };
+            return { ok: false, status: 409, statusText: 'Conflict', json: async () => conflict } as unknown as Response;
+        }
         Object.assign(row, changes);
+        if (row.updatedAt) row.updatedAt = new Date(Date.parse(row.updatedAt) + 1000).toISOString();
         return respond({ ...row });
     }
     if (method === 'DELETE') {
@@ -694,5 +700,70 @@ describe('the profile URL the popup sends', () => {
 
         const create = requests.find(r => r.method === 'POST');
         expect(create?.body?.url).toBe(PROFILE_URL);
+    });
+});
+
+describe('saving over a newer version', () => {
+    const OPENED = '2026-09-30T12:00:00.000Z';
+    const ELSEWHERE = '2026-09-30T12:00:07.250Z';
+
+    it('sends the version the edit is based on, and saves while it still holds', async () => {
+        rows = [janeRow({ updatedAt: OPENED })];
+        const hook = await renderHook();
+
+        await act(async () => {
+            await hook().handleUpdate({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Hiring' }, OPENED);
+        });
+
+        expect(requests.find(r => r.method === 'PATCH')?.body?.expectedUpdatedAt).toBe(OPENED);
+        expect(rows[0].meetingPlace).toBe(encrypt('Slush'));
+        expect(hook().connection?.updatedAt).not.toBe(OPENED);
+    });
+
+    it('refuses to overwrite a save made elsewhere, and hands the stored version back to the form', async () => {
+        rows = [janeRow({ updatedAt: OPENED })];
+        const hook = await renderHook();
+        // The note card saved meanwhile.
+        rows[0] = { ...rows[0], notes: encrypt('Typed on the LinkedIn page'), updatedAt: ELSEWHERE };
+
+        let thrown: unknown = null;
+        await act(async () => {
+            try {
+                await hook().handleUpdate({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Typed in the popup' }, OPENED);
+            } catch (e) {
+                thrown = e;
+            }
+        });
+
+        expect(thrown).toBeInstanceOf(ConnectionChangedElsewhereError);
+        const current = (thrown as ConnectionChangedElsewhereError<Connection>).current;
+        expect(current.notes).toBe('Typed on the LinkedIn page');
+        expect(current.updatedAt).toBe(ELSEWHERE);
+        // Nothing was written, and the popup shows what is stored.
+        expect(rows[0].notes).toBe(encrypt('Typed on the LinkedIn page'));
+        expect(hook().connection?.notes).toBe('Typed on the LinkedIn page');
+        // Neither of these: App would swap the form, and the typed text, away.
+        expect(hook().error).toBeNull();
+        expect(hook().isLoading).toBe(false);
+        expect(hook().toastMessage).not.toBe('Bijwerken mislukt.');
+
+        // Overwrite: the same edit, on the version it was refused for.
+        await act(async () => {
+            await hook().handleUpdate({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Typed in the popup' }, ELSEWHERE);
+        });
+        expect(rows[0].notes).toBe(encrypt('Typed in the popup'));
+    });
+
+    it('saves unconditionally without a version, as older callers did', async () => {
+        rows = [janeRow({ updatedAt: OPENED })];
+        const hook = await renderHook();
+        rows[0] = { ...rows[0], updatedAt: ELSEWHERE };
+
+        await act(async () => {
+            await hook().handleUpdate({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Hiring' });
+        });
+
+        expect(requests.find(r => r.method === 'PATCH')?.body).not.toHaveProperty('expectedUpdatedAt');
+        expect(rows[0].meetingPlace).toBe(encrypt('Slush'));
     });
 });

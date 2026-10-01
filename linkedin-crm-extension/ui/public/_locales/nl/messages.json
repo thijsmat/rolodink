@@ -732,6 +732,15 @@
     "connection_update_failed": {
         "message": "Kon de wijzigingen niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
     },
+    "connection_conflict_message": {
+        "message": "Deze connectie is intussen elders gewijzigd. Je wijzigingen staan nog in het formulier."
+    },
+    "connection_conflict_load_latest": {
+        "message": "Laatste versie laden"
+    },
+    "connection_conflict_overwrite": {
+        "message": "Toch opslaan (overschrijven)"
+    },
     "feedback_section_title": {
         "message": "Feedback"
     },
