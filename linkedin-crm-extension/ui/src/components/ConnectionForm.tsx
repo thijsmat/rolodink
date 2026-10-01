@@ -23,6 +23,41 @@ export type ConflictChoice = {
   onOverwrite: (data: ConnectionFormData) => void | Promise<void>;
 };
 
+/** The text each field starts with: the stored value, or empty. */
+function initialFields(data?: ConnectionFormData) {
+  return {
+    meetingPlace: data?.meetingPlace ?? '',
+    userCompany: data?.userCompanyAtTheTime ?? '',
+    notes: data?.notes ?? '',
+    email: data?.email ?? '',
+    phone: data?.phone ?? '',
+  };
+}
+
+/** Title, subtitle and save label for a new versus an edited connection. */
+function formTexts(t: (key: string) => string, isEditMode: boolean, submitText?: string) {
+  if (isEditMode) {
+    return {
+      title: t('connection_form_edit_title'),
+      subtitle: t('connection_form_edit_subtitle'),
+      submit: submitText || t('button_save_changes'),
+    };
+  }
+  return {
+    title: t('connection_form_new_title'),
+    subtitle: t('connection_form_new_subtitle'),
+    submit: submitText || t('button_save_connection'),
+  };
+}
+
+/** The notes counter turns amber near the limit and red at it. */
+function characterCountClass(length: number, max: number): string {
+  const classes = [styles.characterCount];
+  if (length > max * 0.9) classes.push(styles.characterCountWarning);
+  if (length >= max) classes.push(styles.characterCountError);
+  return classes.join(' ');
+}
+
 export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error, conflict }: Readonly<{
   initialData?: ConnectionFormData;
   onSubmit?: (data: ConnectionFormData) => void | Promise<void>;
@@ -38,11 +73,12 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   // again on every new object, and any re-render upstream (a toast, a token
   // refresh) replaced it and wiped what the user had typed. To start over for
   // another connection, the parent gives the form a new key.
-  const [meetingPlace, setMeetingPlace] = useState(initialData?.meetingPlace || '');
-  const [userCompany, setUserCompany] = useState(initialData?.userCompanyAtTheTime || '');
-  const [notes, setNotes] = useState(initialData?.notes || '');
-  const [email, setEmail] = useState(initialData?.email || '');
-  const [phone, setPhone] = useState(initialData?.phone || '');
+  const start = initialFields(initialData);
+  const [meetingPlace, setMeetingPlace] = useState(start.meetingPlace);
+  const [userCompany, setUserCompany] = useState(start.userCompany);
+  const [notes, setNotes] = useState(start.notes);
+  const [email, setEmail] = useState(start.email);
+  const [phone, setPhone] = useState(start.phone);
   // The format hint waits until the user leaves the field, so it does not
   // flash while an address is still being typed. It never blocks the save.
   const [emailBlurred, setEmailBlurred] = useState(false);
@@ -89,12 +125,13 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   const isEditMode = !!initialData;
   const notesLength = notes.length;
   const maxNotesLength = 500;
+  const texts = formTexts(t, isEditMode, submitText);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>
-          {isEditMode ? t('connection_form_edit_title') : t('connection_form_new_title')}
+          {texts.title}
         </h1>
         {/* Zonder de naam weet je bij het bewerken niet wiens gegevens je aanpast.
             De naam staat alleen in de context, niet in de formulierdata. */}
@@ -102,10 +139,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
           <p className={styles.connectionName}>{connection.name}</p>
         ) : (
           <p className={styles.subtitle}>
-            {isEditMode
-              ? t('connection_form_edit_subtitle')
-              : t('connection_form_new_subtitle')
-            }
+            {texts.subtitle}
           </p>
         )}
       </div>
@@ -200,9 +234,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                     placeholder={t('placeholder_notes')}
                     maxLength={maxNotesLength}
                   />
-                  <div className={`${styles.characterCount} ${notesLength > maxNotesLength * 0.9 ? styles.characterCountWarning : ''
-                    } ${notesLength >= maxNotesLength ? styles.characterCountError : ''
-                    }`}>
+                  <div className={characterCountClass(notesLength, maxNotesLength)}>
                     {t('chars_remaining', [notesLength.toString(), maxNotesLength.toString()])}
                   </div>
                 </div>
@@ -269,7 +301,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                   ) : (
                     <>
                       <span className={styles.buttonIcon}>💾</span>
-                      <span>{submitText || (isEditMode ? t('button_save_changes') : t('button_save_connection'))}</span>
+                      <span>{texts.submit}</span>
                     </>
                   )}
                 </button>

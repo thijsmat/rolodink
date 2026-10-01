@@ -95,13 +95,16 @@ export async function mapWithConcurrency<T, R>(
     const results = new Array<R>(items.length);
     let next = 0;
     let done = 0;
-    const worker = async () => {
-        while (next < items.length) {
-            const index = next++;
-            results[index] = await fn(items[index]);
+    // Each worker takes the next item when its previous one finishes.
+    const worker = (): Promise<void> => {
+        if (next >= items.length) return Promise.resolve();
+        const index = next++;
+        return fn(items[index]).then(result => {
+            results[index] = result;
             done++;
             onProgress?.(done, items.length);
-        }
+            return worker();
+        });
     };
     const workers = Math.max(1, Math.min(limit, items.length));
     await Promise.all(Array.from({ length: workers }, worker));
