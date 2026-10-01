@@ -1,0 +1,8 @@
+{
+  "name": "rolodink-firefox-sign",
+  "private": true,
+  "description": "web-ext, pinned exactly, for publish-firefox.yml (npm ci --ignore-scripts here, then node_modules/.bin/web-ext). Deliberately not a workspace member, so its ~330 packages stay out of the root lockfile and every CI install.",
+  "devDependencies": {
+    "web-ext": "10.7.0"
+  }
+}
