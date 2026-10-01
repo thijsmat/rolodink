@@ -13,7 +13,6 @@ interface ErrorMessageProps {
   showDismiss?: boolean;
   description?: ReactNode;
   retryLabel?: string;
-  variant?: 'default' | 'profileHint';
 }
 
 export function ErrorMessage({
@@ -25,7 +24,6 @@ export function ErrorMessage({
   showDismiss = true,
   description,
   retryLabel,
-  variant = 'default',
 }: ErrorMessageProps) {
   const { t } = useExtensionTranslation();
 
@@ -74,9 +72,6 @@ export function ErrorMessage({
   const userFriendlyError = getErrorMessage(error);
   const shouldShowTechnicalDetails = error !== userFriendlyError && error !== INVALID_PROFILE_PAGE_ERROR;
   const containerClasses = [styles.errorMessage, styles[type]];
-  if (variant === 'profileHint') {
-    containerClasses.push(styles.profileHint);
-  }
 
   return (
     <div className={containerClasses.join(' ')}>

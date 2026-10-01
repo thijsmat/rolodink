@@ -3,28 +3,57 @@ import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
 import { ConfirmPanel } from './ConfirmPanel';
 import styles from './ConnectionView.module.css';
-import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
+import { useConnection, type Connection, type ConnectionFormData } from '../context/ConnectionContext';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+
+function toFormData(connection: Connection): ConnectionFormData {
+  return {
+    meetingPlace: connection.meetingPlace || undefined,
+    userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
+    notes: connection.notes || undefined
+  };
+}
+
+/** The baseline for another connection: its own data if an edit was open, else none. */
+function baselineFor(openEdit: ConnectionFormData | null, next: Connection | null): ConnectionFormData | null {
+  return openEdit && next ? toFormData(next) : null;
+}
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();
   const { t } = useExtensionTranslation();
-  const [isEditing, setIsEditing] = useState(false);
+  // What the edit form starts from, taken once when editing begins. The
+  // connection object is replaced by unrelated updates (a toast, a token
+  // refresh), and a form that followed it lost what the user had typed.
+  // Only another connection (a different id) starts the form over.
+  const [editBaseline, setEditBaseline] = useState<ConnectionFormData | null>(null);
+  const [baselineId, setBaselineId] = useState(connection?.id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (connection?.id !== baselineId) {
+    setBaselineId(connection?.id);
+    setEditBaseline(baselineFor(editBaseline, connection));
+  }
+
   if (!connection) return null;
+
+  const startEditing = () => setEditBaseline(toFormData(connection));
+  const stopEditing = () => {
+    setEditBaseline(null);
+    setError(null);
+  };
 
   const onSubmit = async (formData: ConnectionFormData) => {
     setIsSubmitting(true);
     setError(null);
     try {
       await handleUpdate(formData);
-      setIsEditing(false);
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Kon de connectie niet bijwerken';
-      setError(errorMessage);
+      setEditBaseline(null);
+    } catch {
+      // The form stays open with the typed text; the user can try again.
+      setError(t('connection_update_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -45,20 +74,16 @@ export function ConnectionView() {
     }
   };
 
-  if (isEditing) {
-    const initialData: ConnectionFormData = {
-      meetingPlace: connection.meetingPlace || undefined,
-      userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
-      notes: connection.notes || undefined
-    };
-
+  if (editBaseline) {
     return (
       <ConnectionForm
-        initialData={initialData}
+        key={connection.id}
+        initialData={editBaseline}
         onSubmit={onSubmit}
-        onCancel={() => setIsEditing(false)}
+        onCancel={stopEditing}
         isSubmitting={isSubmitting}
         submitText="Wijzigingen Opslaan"
+        error={error}
       />
     );
   }
@@ -70,7 +95,7 @@ export function ConnectionView() {
           <h1 className={styles.title}>Connectie Details</h1>
           <div className={styles.headerActions}>
             <button 
-              onClick={() => setIsEditing(true)} 
+              onClick={startEditing}
               className={`${styles.button} ${styles.buttonPrimary}`}
               disabled={isSubmitting}
             >

@@ -5,27 +5,30 @@ import { useConnection, type ConnectionFormData } from '../context/ConnectionCon
 import { SkeletonForm } from './Skeleton';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 
-export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText }: {
+export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error }: {
   initialData?: ConnectionFormData;
   onSubmit?: (data: ConnectionFormData) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   submitText?: string;
+  error?: string | null;
 }) {
   const { t } = useExtensionTranslation();
   const { handleCreateConnection, connection } = useConnection();
-  const [meetingPlace, setMeetingPlace] = useState('');
-  const [userCompany, setUserCompany] = useState('');
-  const [notes, setNotes] = useState('');
+  // initialData is read once, when the form mounts. It used to be copied in
+  // again on every new object, and any re-render upstream (a toast, a token
+  // refresh) replaced it and wiped what the user had typed. To start over for
+  // another connection, the parent gives the form a new key.
+  const [meetingPlace, setMeetingPlace] = useState(initialData?.meetingPlace || '');
+  const [userCompany, setUserCompany] = useState(initialData?.userCompanyAtTheTime || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
+  // Only used when the form creates a connection itself (no onSubmit from a
+  // parent): its progress and failure stay inside the form.
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const busy = !!isSubmitting || isCreating;
+  const shownError = error ?? createError;
   const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (initialData) {
-      setMeetingPlace(initialData.meetingPlace || '');
-      setUserCompany(initialData.userCompanyAtTheTime || '');
-      setNotes(initialData.notes || '');
-    }
-  }, [initialData]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -36,7 +39,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         // Allow Enter to submit when in form fields (except textarea)
         if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
           event.preventDefault();
-          if (formRef.current && !isSubmitting) {
+          if (formRef.current && !busy) {
             formRef.current.requestSubmit();
           }
         }
@@ -49,7 +52,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
         onCancel();
       }
 
-      if (event.key === 'Enter' && !isSubmitting) {
+      if (event.key === 'Enter' && !busy) {
         event.preventDefault();
         if (formRef.current) {
           formRef.current.requestSubmit();
@@ -59,15 +62,25 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel, isSubmitting]);
+  }, [onCancel, busy]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const payload: ConnectionFormData = { meetingPlace, userCompanyAtTheTime: userCompany, notes };
     if (onSubmit) {
       onSubmit(payload);
-    } else {
+      return;
+    }
+    setIsCreating(true);
+    setCreateError(null);
+    try {
       await handleCreateConnection(payload);
+    } catch {
+      // The typed text is still in this form's state; say so and let the
+      // user try again.
+      setCreateError(t('connection_create_failed'));
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -96,7 +109,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
       </div>
 
       <div className={styles.content}>
-        {isSubmitting ? (
+        {busy ? (
           <SkeletonForm />
         ) : (
           <div className={styles.formCard}>
@@ -192,13 +205,17 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                 </div>
               </div>
 
+              {shownError && (
+                <div className={styles.error} role="alert">{shownError}</div>
+              )}
+
               <div className={styles.buttonGroup}>
                 <button
                   type="submit"
-                  disabled={!!isSubmitting}
+                  disabled={busy}
                   className={`${styles.button} ${styles.buttonPrimary}`}
                 >
-                  {isSubmitting ? (
+                  {busy ? (
                     <>
                       <span className={styles.buttonIcon}>⏳</span>
                       <span>{t('button_saving')}</span>
@@ -215,7 +232,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
                     type="button"
                     onClick={onCancel}
                     className={`${styles.button} ${styles.buttonSecondary}`}
-                    disabled={isSubmitting}
+                    disabled={busy}
                   >
                     <span className={styles.buttonIcon}>❌</span>
                     <span>{t('cancel_button')}</span>
