@@ -35,11 +35,15 @@ export { cleanProfileName } from './name.js';
 
 export { normalizeApiBaseUrl, resolveApiBaseUrl } from './api.js';
 
+export { CONNECTION_CONFLICT_CODE, readConflict, versionOf, withExpectedVersion } from './conflict.js';
+export type { VersionedRow } from './conflict.js';
+
 export {
     RolodinkClient,
     RolodinkApiError,
     UnauthorizedError,
     DuplicateConnectionError,
+    ConnectionConflictError,
     RateLimitedError,
 } from './client.js';
 export type { RolodinkClientOptions } from './client.js';
