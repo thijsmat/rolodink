@@ -197,6 +197,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Turns a validated PATCH body into Prisma update data. `url` is the API's
+// name for the linkedInUrl column: stored canonical, and refused (null) when it
+// would make this row a second one for a profile the owner already has.
+async function buildUpdateData(
+  ownerId: string,
+  id: string,
+  validated: z.infer<typeof updateConnectionSchema>,
+): Promise<Prisma.ConnectionUpdateInput | null> {
+  const { url: newUrl, ...rest } = validated;
+  const data: Prisma.ConnectionUpdateInput = { ...rest };
+  if (newUrl) {
+    const other = await findOwnedConnectionByUrl(ownerId, newUrl);
+    if (other && other.id !== id) {
+      return null;
+    }
+    data.linkedInUrl = profileLookupUrl(newUrl);
+  }
+  // Clean the name if it's being updated
+  if (rest.name) {
+    data.name = cleanProfileName(rest.name);
+  }
+  return data;
+}
+
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
   // Rate limiting
@@ -237,22 +261,9 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Use validated data. `url` is the API's name for the linkedInUrl column:
-    // stored canonical, and refused when it would make this row a second one
-    // for a profile the owner already has.
-    const { url: newUrl, ...validatedUpdateData } = validation.data;
-    const data: Prisma.ConnectionUpdateInput = { ...validatedUpdateData };
-    if (newUrl) {
-      const other = await findOwnedConnectionByUrl(user.id, newUrl);
-      if (other && other.id !== id) {
-        return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
-      }
-      data.linkedInUrl = profileLookupUrl(newUrl);
-    }
-
-    // Clean the name if it's being updated
-    if (validatedUpdateData.name) {
-      data.name = cleanProfileName(validatedUpdateData.name);
+    const data = await buildUpdateData(user.id, id, validation.data);
+    if (!data) {
+      return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
     }
 
     // One round-trip: ownership is part of the unique filter. Only when that

@@ -51,7 +51,7 @@ decoded AS (
                         WHEN t.m[1] ~ '^%[0-9A-Fa-f]{2}$' THEN decode(substr(t.m[1], 2), 'hex')
                         ELSE convert_to(t.m[1], 'UTF8')
                     END,
-                    ''::bytea ORDER BY t.ord
+                    ''::bytea ORDER BY t.ord ASC
                 ),
                 'UTF8'
             )
@@ -88,4 +88,4 @@ SELECT
 FROM canonical k
 GROUP BY k."ownerId", k.canonical_url
 HAVING count(*) > 1
-ORDER BY k."ownerId", k.canonical_url;
+ORDER BY k."ownerId" ASC, k.canonical_url ASC;

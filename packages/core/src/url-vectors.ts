@@ -17,7 +17,7 @@ const OPAQUE = 'https://www.linkedin.com/in/ACoAAAxYzAbC';
 export const PROFILE_URL_VECTORS: readonly ProfileUrlVector[] = [
     { label: 'already canonical', input: JAN, expected: JAN },
     { label: 'trailing slash', input: `${JAN}/`, expected: JAN },
-    { label: 'http scheme', input: 'http://www.linkedin.com/in/jan-jansen', expected: JAN },
+    { label: 'http scheme', input: JAN.replace('https:', 'http:'), expected: JAN },
     { label: 'bare host', input: 'https://linkedin.com/in/jan-jansen', expected: JAN },
     { label: 'nl subdomain', input: 'https://nl.linkedin.com/in/jan-jansen/', expected: JAN },
     { label: 'de subdomain', input: 'https://de.linkedin.com/in/jan-jansen', expected: JAN },
