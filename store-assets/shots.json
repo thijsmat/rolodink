@@ -1,0 +1,7 @@
+[
+  {"id": "1-note-on-profile", "profile": "sanne", "button": "added", "card": "saved", "popup": null, "highlight": "card"},
+  {"id": "2-new-connection", "profile": "daan", "button": "add", "card": "absent", "popup": "new"},
+  {"id": "3-search", "profile": "lotte", "button": "added", "card": "saved", "popup": "search"},
+  {"id": "4-overview", "profile": "mehmet", "button": "added", "card": "saved", "popup": "list"},
+  {"id": "5-private", "profile": "eva", "button": "added", "card": "saved", "popup": "settings"}
+]

@@ -1,0 +1,156 @@
+{
+  "headlines": {
+    "1-note-on-profile": [
+      "Jouw notities,",
+      "direct op LinkedIn."
+    ],
+    "2-new-connection": [
+      "Weet weer waar",
+      "je elkaar ontmoette."
+    ],
+    "3-search": [
+      "Vind iedereen terug,",
+      "ook op een detail."
+    ],
+    "4-overview": [
+      "Je hele netwerk,",
+      "met context."
+    ],
+    "5-private": [
+      "Alleen voor jou,",
+      "en versleuteld opgeslagen."
+    ]
+  },
+  "captions": {
+    "1-note-on-profile": "Schrijf een notitie direct op iemands LinkedIn-profiel. Hij wordt vanzelf bewaard.",
+    "2-new-connection": "Voeg iemand toe en leg vast waar jullie elkaar ontmoetten.",
+    "3-search": "Zoek op naam, bedrijf of een detail uit je notities.",
+    "4-overview": "Al je connecties, met hun context, in één overzicht.",
+    "5-private": "Je notities zijn alleen voor jou zichtbaar en worden versleuteld opgeslagen."
+  },
+  "linkedin": {
+    "message": "Bericht",
+    "more": "Meer",
+    "contactInfo": "Contactgegevens",
+    "connections": "500+ connecties",
+    "about": "Info",
+    "activity": "Activiteit",
+    "alsoViewed": "Anderen bekeken ook",
+    "degree": "1e",
+    "search": "Zoeken",
+    "nav": [
+      "Start",
+      "Mijn netwerk",
+      "Vacatures",
+      "Berichten",
+      "Meldingen",
+      "Ik"
+    ]
+  },
+  "people": {
+    "sanne": {
+      "name": "Sanne Visser",
+      "slug": "sannevisser",
+      "initials": "SV",
+      "hue": 18,
+      "headline": "Head of Talent | Bouwt teams in design en tech",
+      "location": "Amsterdam, Noord-Holland, Nederland"
+    },
+    "daan": {
+      "name": "Daan de Wit",
+      "slug": "daandewit",
+      "initials": "DW",
+      "hue": 205,
+      "headline": "Founder | Logistiek zonder papierwerk",
+      "location": "Rotterdam, Zuid-Holland, Nederland"
+    },
+    "lotte": {
+      "name": "Lotte Bakker",
+      "slug": "lottebakker",
+      "initials": "LB",
+      "hue": 165,
+      "headline": "UX Lead | Toegankelijk ontwerpen",
+      "location": "Utrecht, Nederland"
+    },
+    "mehmet": {
+      "name": "Mehmet Kaya",
+      "slug": "mehmetkaya",
+      "initials": "MK",
+      "hue": 250,
+      "headline": "Investeerder | SaaS en B2B",
+      "location": "Delft, Zuid-Holland, Nederland"
+    },
+    "eva": {
+      "name": "Eva Jansen",
+      "slug": "evajansen",
+      "initials": "EJ",
+      "hue": 330,
+      "headline": "Recruiter | Scale-ups in Amsterdam",
+      "location": "Amsterdam, Noord-Holland, Nederland"
+    }
+  },
+  "myCompany": "Studio Noord",
+  "connections": [
+    {
+      "id": "sanne",
+      "name": "Sanne Visser",
+      "slug": "sannevisser",
+      "notes": "Ontmoet op DDW. Zoekt een CTO. Restaureert zeilboten.",
+      "meetingPlace": "Dutch Design Week, Eindhoven"
+    },
+    {
+      "id": "lotte",
+      "name": "Lotte Bakker",
+      "slug": "lottebakker",
+      "notes": "Gaf een talk over toegankelijkheid. Ik beloofde haar mijn slides.",
+      "meetingPlace": "UX Meetup, Utrecht"
+    },
+    {
+      "id": "mehmet",
+      "name": "Mehmet Kaya",
+      "slug": "mehmetkaya",
+      "notes": "Investeert in SaaS. Kent Sanne nog uit Delft.",
+      "meetingPlace": "Dutch Design Week, Eindhoven"
+    },
+    {
+      "id": "eva",
+      "name": "Eva Jansen",
+      "slug": "evajansen",
+      "notes": "Recruiter bij een scale-up. Zoekt twee product designers.",
+      "meetingPlace": "Koffie in Amsterdam"
+    },
+    {
+      "id": "noor",
+      "name": "Noor El Amrani",
+      "slug": "noorelamrani",
+      "notes": "CFO. Belt in november terug over het budget.",
+      "meetingPlace": "Klantdag, Utrecht"
+    },
+    {
+      "id": "tim",
+      "name": "Tim de Groot",
+      "slug": "timdegroot",
+      "notes": "Consultant. Stuurt zijn rapport over remote teams.",
+      "meetingPlace": "Webinar"
+    },
+    {
+      "id": "iris",
+      "name": "Iris Vos",
+      "slug": "irisvos",
+      "notes": "Product manager. Zoekt hulp bij gebruikersonderzoek.",
+      "meetingPlace": "Via Lotte"
+    },
+    {
+      "id": "bram",
+      "name": "Bram Hoekstra",
+      "slug": "bramhoekstra",
+      "notes": "Engineer. Bouwde de app van de gemeente.",
+      "meetingPlace": "Hackathon, Den Haag"
+    }
+  ],
+  "newConnection": {
+    "meetingPlace": "Startup Fest, Rotterdam",
+    "notes": "Wil in Q1 praten over een pilot."
+  },
+  "search": "zeil"
+}

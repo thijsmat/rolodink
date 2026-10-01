@@ -44,17 +44,17 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 
 ## Screenshots
 
-**Screenshot 1 - LinkedIn Integration:**
-- Title: "Add notes directly on LinkedIn"
-- Description: "Click 'Add to CRM' on any LinkedIn profile to save notes and context"
+Images: `store-assets/screenshots/chrome-edge/en/` (and `nl/` for the Dutch listing), 1280×800, with the
+headline in the image. Upload them in this order; `store-assets/README.md` explains how to re-render them.
 
-**Screenshot 2 - Note Management:**
-- Title: "Organize your network"
-- Description: "View all your connections with notes, search, and filter"
+1. `1-note-on-profile.png` - "Your notes, right on LinkedIn." (the note card on a LinkedIn profile)
+2. `2-new-connection.png` - "Remember where you met." (adding someone in the popup)
+3. `3-search.png` - "Find anyone again, even by a detail." (search finds Sanne by "sail")
+4. `4-overview.png` - "Your whole network, with context." (all connections in the popup)
+5. `5-private.png` - "Just for you, and stored encrypted." (automatic encryption in the settings)
 
-**Screenshot 3 - Note on the profile:**
-- Title: "Your note, right on their profile"
-- Description: "Type a note on any LinkedIn profile; it is saved automatically"
+Promo tiles: `store-assets/screenshots/promo/small-tile-440x280.png` (small promo tile) and
+`marquee-1400x560.png` (large promotional tile).
 
 ## Privacy Policy
 
