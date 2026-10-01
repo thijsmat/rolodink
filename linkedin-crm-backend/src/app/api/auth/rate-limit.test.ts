@@ -5,8 +5,8 @@ import { NextRequest } from 'next/server';
  * The extension popup signs in and signs up through these two routes, and they
  * call Supabase from the server, so Supabase only ever sees Vercel's IP. That
  * makes this limiter the only per-client brake on password guessing and
- * sign-up spam: it has to stay at the old 100 per IP per hour, apart from the
- * 600 the rest of the API got.
+ * sign-up spam: it has to stay at 60 per IP per hour, apart from the 600 the
+ * rest of the API got.
  */
 
 const { signInWithPassword, signUp } = vi.hoisted(() => ({
@@ -41,27 +41,27 @@ beforeEach(() => {
 });
 
 describe('/api/auth rate limit', () => {
-  it('stops password guessing after 100 attempts per IP, before Supabase is called', async () => {
-    for (let i = 0; i < 100; i++) {
+  it('stops password guessing after 60 attempts per IP, before Supabase is called', async () => {
+    for (let i = 0; i < 60; i++) {
       expect((await signInPOST(post('signin', '203.0.113.20'))).status).toBe(401);
     }
 
     const blocked = await signInPOST(post('signin', '203.0.113.20'));
     expect(blocked.status).toBe(429);
-    expect(blocked.headers.get('X-RateLimit-Limit')).toBe('100');
+    expect(blocked.headers.get('X-RateLimit-Limit')).toBe('60');
     expect(blocked.headers.get('Access-Control-Allow-Origin')).toBe(EXTENSION_ORIGIN);
-    expect(signInWithPassword).toHaveBeenCalledTimes(100);
+    expect(signInWithPassword).toHaveBeenCalledTimes(60);
   });
 
-  it('gives sign-up the same 100, shared with sign-in', async () => {
-    for (let i = 0; i < 50; i++) {
+  it('gives sign-up the same 60, shared with sign-in', async () => {
+    for (let i = 0; i < 30; i++) {
       expect((await signInPOST(post('signin', '203.0.113.21'))).status).toBe(401);
       expect((await signUpPOST(post('signup', '203.0.113.21'))).status).toBe(200);
     }
 
     expect((await signUpPOST(post('signup', '203.0.113.21'))).status).toBe(429);
     expect((await signInPOST(post('signin', '203.0.113.21'))).status).toBe(429);
-    expect(signUp).toHaveBeenCalledTimes(50);
+    expect(signUp).toHaveBeenCalledTimes(30);
   });
 
   it('still lets a user sign in after they used up the API budget', async () => {

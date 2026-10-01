@@ -23,7 +23,7 @@ Rolodink implements multiple layers of security:
 
 **Location**: `linkedin-crm-backend/src/lib/rate-limit.ts`
 
-**Limit**: 600 requests per IP address per hour. Sign-in and sign-up (`/api/auth/signin`, `/api/auth/signup`) keep 100 per IP per hour, in a separate counter (`AUTH_RATE_LIMIT`), so ordinary API traffic neither raises the budget for password guessing nor locks anyone out of logging in
+**Limit**: 600 requests per IP address per hour. Sign-in and sign-up (`/api/auth/signin`, `/api/auth/signup`) get 60 per IP per hour (100 during launch week), in a separate counter (`AUTH_RATE_LIMIT`), so ordinary API traffic neither raises the budget for password guessing nor locks anyone out of logging in
 
 **Scope**: All API routes (`/api/*`)
 
