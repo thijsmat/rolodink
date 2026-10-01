@@ -4,12 +4,17 @@ const archiver = require('archiver');
 const crypto = require('node:crypto');
 const { execSync } = require('child_process');
 
-const target = process.argv[2] || 'chrome'; // chrome, firefox, edge
+// One or more targets: `node build.js chrome` packages one, `node build.js
+// chrome edge firefox` builds the UI once and packages it three times. The UI
+// build does not depend on the target - every target ships the same bundle -
+// so building it per target was the same few minutes of work three times over.
+// No argument keeps the old default of chrome.
+const KNOWN_TARGETS = ['chrome', 'edge', 'firefox'];
+const targets = process.argv.length > 2 ? process.argv.slice(2) : ['chrome'];
 const repoRoot = path.join(__dirname, '..');
 const extDir = __dirname;
 const uiDir = path.join(extDir, 'ui');
 const distDir = path.join(repoRoot, 'dist');
-const tmpDir = path.join(distDir, 'tmp', target);
 const uiBuildDir = path.join(uiDir, 'dist');
 
 // Chrome derives an extension's ID from its public key: the first 16 bytes of
@@ -42,7 +47,7 @@ const TARGETS_REJECTING_MANIFEST_KEY = new Set(['edge']);
 // Pin the packaged manifest to the store's identity. See extension-keys.json
 // for why. Recomputing the ID here means a wrong key fails the build instead of
 // producing a package that loads under some other extension's identity.
-async function applyExtensionKey(manifestPath) {
+async function applyExtensionKey(target, manifestPath) {
   const entry = require(path.join(extDir, 'extension-keys.json'))[target];
   if (!entry) {
     console.log(`==> No signing key configured for ${target}, leaving manifest identity unpinned`);
@@ -70,33 +75,41 @@ async function applyExtensionKey(manifestPath) {
   console.log(`==> Pinned ${target} extension ID to ${entry.id}`);
 }
 
-async function build() {
-  console.log(`==> Building UI for ${target}...`);
+async function buildUi() {
+  console.log(`==> Building UI once for: ${targets.join(', ')}...`);
   execSync('npm run build', { cwd: uiDir, stdio: 'inherit' });
-
-  if (target === 'firefox') {
-    console.log('==> Running Firefox specific post-build steps...');
-    execSync('npm run postbuild:firefox', { cwd: uiDir, stdio: 'inherit' });
-  }
 
   if (!(await fs.pathExists(uiBuildDir))) {
     throw new Error(`UI build output not found at ${uiBuildDir}. Did Vite finish successfully?`);
   }
-  console.log('==> Preparing clean dist folder...');
+}
+
+async function packageTarget(target) {
+  const tmpDir = path.join(distDir, 'tmp', target);
+
+  console.log(`==> [${target}] Preparing clean dist folder...`);
   await fs.emptyDir(tmpDir);
 
   // Edge uses the same manifest as Chrome (Chromium-based)
   const manifestFile = target === 'firefox' ? 'manifest-firefox.json' : 'manifest.json';
 
-  console.log('==> Copying UI build artifacts...');
+  console.log(`==> [${target}] Copying UI build artifacts...`);
   await fs.copy(uiBuildDir, tmpDir);
 
-  console.log('==> Copying extension assets...');
+  // The Firefox post-build rewrites JavaScript for AMO's linter. It runs on
+  // this target's own copy, never on ui/dist: that is shared by every target
+  // packaged in this run, and chrome and edge must keep the unmodified bundle.
+  if (target === 'firefox') {
+    console.log(`==> [${target}] Running Firefox specific post-build steps...`);
+    require(path.join(uiDir, 'firefox-postbuild.cjs')).rewriteFirefoxBundle(tmpDir);
+  }
+
+  console.log(`==> [${target}] Copying extension assets...`);
   await fs.copy(path.join(extDir, 'icons'), path.join(tmpDir, 'icons'));
   await fs.copy(path.join(extDir, manifestFile), path.join(tmpDir, 'manifest.json'));
   await fs.copy(path.join(extDir, 'icon.png'), path.join(tmpDir, 'icon.png'));
 
-  await applyExtensionKey(path.join(tmpDir, 'manifest.json'));
+  await applyExtensionKey(target, path.join(tmpDir, 'manifest.json'));
 
   // Every target ships the BUNDLED content script (ui/src/content/main.js ->
   // dist/content.js, built by build-content.cjs and copied in with the UI
@@ -118,7 +131,7 @@ async function build() {
     throw new Error('content.js missing from package - did the content script bundle build?');
   }
 
-  const version = require(path.join(tmpDir, 'manifest.json')).version;
+  const version = (await fs.readJson(path.join(tmpDir, 'manifest.json'))).version;
   const zipName = `Rolodink-${target}-v${version}.zip`;
   const zipPath = path.join(distDir, zipName);
 
@@ -131,9 +144,26 @@ async function build() {
   archive.pipe(output);
   archive.directory(tmpDir, false);
 
+  const written = new Promise((resolve, reject) => {
+    output.on('close', resolve);
+    output.on('error', reject);
+    archive.on('error', reject);
+  });
   await archive.finalize();
+  await written;
 
   console.log(`✅ Extension for ${target} successfully built: ${zipPath}`);
+}
+
+async function build() {
+  const unknown = targets.filter(t => !KNOWN_TARGETS.includes(t));
+  if (unknown.length > 0) {
+    throw new Error(`Unknown target(s): ${unknown.join(', ')}. Expected one or more of: ${KNOWN_TARGETS.join(', ')}`);
+  }
+  await buildUi();
+  // Each target packages from its own tmp dir into its own zip, so they can
+  // run side by side.
+  await Promise.all([...new Set(targets)].map(packageTarget));
 }
 
 build().catch(err => {
