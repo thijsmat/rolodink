@@ -14,7 +14,15 @@
 const fs = require('fs');
 const path = require('path');
 
+// The directory is rewritten in place, so it must sit inside this repository:
+// a stray argument must not be able to rewrite JavaScript anywhere else.
+const repoRoot = path.resolve(__dirname, '..', '..');
 const distDir = process.argv[2] ? path.resolve(process.argv[2]) : path.join(__dirname, 'dist');
+const relativeToRepo = path.relative(repoRoot, distDir);
+if (relativeToRepo === '' || relativeToRepo.startsWith('..') || path.isAbsolute(relativeToRepo)) {
+    console.error(`Refusing to rewrite ${distDir}: it is not inside ${repoRoot}`);
+    process.exit(1);
+}
 
 function cleanContent(content) {
     // 1. Remove block comments

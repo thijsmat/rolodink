@@ -161,9 +161,9 @@ async function build() {
     throw new Error(`Unknown target(s): ${unknown.join(', ')}. Expected one or more of: ${KNOWN_TARGETS.join(', ')}`);
   }
   await buildUi();
-  for (const target of new Set(targets)) {
-    await packageTarget(target);
-  }
+  // Each target packages from its own tmp dir into its own zip, so they can
+  // run side by side.
+  await Promise.all([...new Set(targets)].map(packageTarget));
 }
 
 build().catch(err => {
