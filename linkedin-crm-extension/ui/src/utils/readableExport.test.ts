@@ -212,6 +212,6 @@ describe('mapWithConcurrency after a failure', () => {
         expect(started.length).toBeLessThan(6);
         const after = progress.length;
         await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(progress.length).toBe(after);
+        expect(progress).toHaveLength(after);
     });
 });
