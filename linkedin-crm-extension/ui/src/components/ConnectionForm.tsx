@@ -4,6 +4,12 @@ import styles from './ConnectionForm.module.css';
 import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 import { SkeletonForm } from './Skeleton';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { FormField } from './FormField';
+import { contactFieldEdits } from '../utils/connectionUpdate';
+import { isOddEmail } from '../utils/contactLinks';
+
+const MAX_EMAIL_LENGTH = 254;
+const MAX_PHONE_LENGTH = 40;
 
 /**
  * What the form offers after a save was refused because the connection
@@ -34,6 +40,12 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   const [meetingPlace, setMeetingPlace] = useState(initialData?.meetingPlace || '');
   const [userCompany, setUserCompany] = useState(initialData?.userCompanyAtTheTime || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [phone, setPhone] = useState(initialData?.phone || '');
+  // The format hint waits until the user leaves the field, so it does not
+  // flash while an address is still being typed. It never blocks the save.
+  const [emailBlurred, setEmailBlurred] = useState(false);
+  const emailWarning = emailBlurred && isOddEmail(email) ? t('warning_email_format') : null;
   // Only used when the form creates a connection itself (no onSubmit from a
   // parent): its progress and failure stay inside the form.
   const [isCreating, setIsCreating] = useState(false);
@@ -76,7 +88,14 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onCancel, busy]);
 
-  const currentData = (): ConnectionFormData => ({ meetingPlace, userCompanyAtTheTime: userCompany, notes });
+  // Email and phone go along only when changed (see contactFieldEdits), so
+  // saving the other fields can never clear them.
+  const currentData = (): ConnectionFormData => ({
+    meetingPlace,
+    userCompanyAtTheTime: userCompany,
+    notes,
+    ...contactFieldEdits(initialData, { email, phone }),
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -127,48 +146,70 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
           <SkeletonForm />
         ) : (
           <div className={styles.formCard}>
-            <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
+            {/* noValidate: a type="email" field would otherwise make the browser
+                refuse the save. The format hint under the field only warns. */}
+            <form ref={formRef} onSubmit={handleSubmit} className={styles.form} noValidate>
               <div className={styles.formSection}>
                 <div className={styles.sectionHeader}>
                   <span className={styles.sectionIcon}>📍</span>
                   <h2 className={styles.sectionTitle}>{t('section_meeting_details')}</h2>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="meetingPlace" className={styles.label}>
-                    <span className={styles.labelIcon}>📍</span>
-                    {t('label_meeting_place')}
-                  </label>
-                  <input
-                    id="meetingPlace"
-                    type="text"
-                    value={meetingPlace}
-                    onChange={(e) => setMeetingPlace(e.target.value)}
-                    className={styles.input}
-                    placeholder={t('placeholder_meeting_place')}
-                  />
-                  <div className={styles.helpText}>
-                    {t('help_meeting_place')}
-                  </div>
+                <FormField
+                  id="meetingPlace"
+                  icon="📍"
+                  label={t('label_meeting_place')}
+                  value={meetingPlace}
+                  onChange={setMeetingPlace}
+                  placeholder={t('placeholder_meeting_place')}
+                  help={t('help_meeting_place')}
+                />
+
+                <FormField
+                  id="userCompany"
+                  icon="🏢"
+                  label={t('label_user_company')}
+                  value={userCompany}
+                  onChange={setUserCompany}
+                  placeholder={t('placeholder_user_company')}
+                  help={t('help_user_company')}
+                />
+              </div>
+
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <span className={styles.sectionIcon}>📇</span>
+                  <h2 className={styles.sectionTitle}>{t('section_contact')}</h2>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="userCompany" className={styles.label}>
-                    <span className={styles.labelIcon}>🏢</span>
-                    {t('label_user_company')}
-                  </label>
-                  <input
-                    id="userCompany"
-                    type="text"
-                    value={userCompany}
-                    onChange={(e) => setUserCompany(e.target.value)}
-                    className={styles.input}
-                    placeholder={t('placeholder_user_company')}
-                  />
-                  <div className={styles.helpText}>
-                    {t('help_user_company')}
-                  </div>
-                </div>
+                {/* autoComplete off: these are someone else's details, and the
+                    browser would offer the user's own address and number. */}
+                <FormField
+                  id="email"
+                  type="email"
+                  icon="✉️"
+                  label={t('label_email')}
+                  value={email}
+                  onChange={setEmail}
+                  onBlur={() => setEmailBlurred(true)}
+                  placeholder={t('placeholder_email')}
+                  help={t('help_contact_private')}
+                  autoComplete="off"
+                  maxLength={MAX_EMAIL_LENGTH}
+                  warning={emailWarning}
+                />
+
+                <FormField
+                  id="phone"
+                  type="tel"
+                  icon="📞"
+                  label={t('label_phone')}
+                  value={phone}
+                  onChange={setPhone}
+                  placeholder={t('placeholder_phone')}
+                  autoComplete="off"
+                  maxLength={MAX_PHONE_LENGTH}
+                />
               </div>
 
               <div className={styles.formSection}>

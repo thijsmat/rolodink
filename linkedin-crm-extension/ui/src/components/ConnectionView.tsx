@@ -6,13 +6,45 @@ import styles from './ConnectionView.module.css';
 import { useConnection, type Connection, type ConnectionFormData } from '../context/ConnectionContext';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { ConnectionChangedElsewhereError } from '../utils/connectionUpdate';
+import { mailtoHref, telHref } from '../utils/contactLinks';
+import { getBrowserAPI } from '../utils/browser';
 
 function toFormData(connection: Connection): ConnectionFormData {
   return {
     meetingPlace: connection.meetingPlace || undefined,
     userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
-    notes: connection.notes || undefined
+    notes: connection.notes || undefined,
+    email: connection.email || undefined,
+    phone: connection.phone || undefined,
   };
+}
+
+/**
+ * One line of the connection's details. With an href the value is a link
+ * (mailto:/tel:, built by contactLinks); React sets it as an attribute, so a
+ * stored value never becomes markup.
+ */
+function DetailRow({ icon, label, value, href }: Readonly<{
+  icon: string;
+  label: string;
+  value?: string | null;
+  href?: string | null;
+}>) {
+  return (
+    <div className={styles.detailRow}>
+      <span className={styles.detailIcon}>{icon}</span>
+      <div className={styles.detailContent}>
+        <span className={styles.detailLabel}>{label}</span>
+        {value && href && (
+          // target _blank as the feedback link in SettingsView: a popup that
+          // navigates itself to mailto: or tel: can close before the handler runs.
+          <a className={`${styles.detailValue} ${styles.detailLink}`} href={href} target="_blank" rel="noopener noreferrer">{value}</a>
+        )}
+        {value && !href && <span className={styles.detailValue}>{value}</span>}
+        {!value && <span className={styles.detailValueEmpty}>Niet opgegeven</span>}
+      </div>
+    </div>
+  );
 }
 
 /** The baseline for another connection: its own data if an edit was open, else none. */
@@ -182,7 +214,7 @@ export function ConnectionView() {
                 title="Open LinkedIn-profiel"
                 onClick={async () => {
                   try {
-                    await chrome.tabs.update({ url: connection.linkedInUrl });
+                    await getBrowserAPI().tabs.update({ url: connection.linkedInUrl });
                   } catch (error) {
                     console.error('Failed to navigate to LinkedIn profile:', error);
                   }
@@ -195,25 +227,14 @@ export function ConnectionView() {
           </div>
 
           <div className={styles.connectionDetails}>
-            <div className={styles.detailRow}>
-              <span className={styles.detailIcon}>📍</span>
-              <div className={styles.detailContent}>
-                <span className={styles.detailLabel}>Ontmoet op</span>
-                <span className={connection.meetingPlace ? styles.detailValue : styles.detailValueEmpty}>
-                  {connection.meetingPlace || 'Niet opgegeven'}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.detailRow}>
-              <span className={styles.detailIcon}>🏢</span>
-              <div className={styles.detailContent}>
-                <span className={styles.detailLabel}>Mijn bedrijf destijds</span>
-                <span className={connection.userCompanyAtTheTime ? styles.detailValue : styles.detailValueEmpty}>
-                  {connection.userCompanyAtTheTime || 'Niet opgegeven'}
-                </span>
-              </div>
-            </div>
+            <DetailRow icon="📍" label="Ontmoet op" value={connection.meetingPlace} />
+            <DetailRow icon="🏢" label="Mijn bedrijf destijds" value={connection.userCompanyAtTheTime} />
+            {connection.email && (
+              <DetailRow icon="✉️" label={t('label_email')} value={connection.email} href={mailtoHref(connection.email)} />
+            )}
+            {connection.phone && (
+              <DetailRow icon="📞" label={t('label_phone')} value={connection.phone} href={telHref(connection.phone)} />
+            )}
 
             {connection.notes && (
               <div className={styles.notesSection}>

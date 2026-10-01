@@ -158,6 +158,14 @@
   margin-top: var(--space-1);
 }
 
+/* A hint about the value's format; the form still saves it. */
+.fieldWarning {
+  font-size: var(--font-size-xs);
+  color: var(--warning);
+  line-height: var(--line-height-normal);
+  margin-top: var(--space-1);
+}
+
 .characterCount {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);

@@ -381,6 +381,27 @@
     "help_user_company": {
         "message": "Where did you work when you met this person?"
     },
+    "section_contact": {
+        "message": "Contact details"
+    },
+    "label_email": {
+        "message": "Email"
+    },
+    "placeholder_email": {
+        "message": "name@company.com"
+    },
+    "help_contact_private": {
+        "message": "Stored encrypted, like your notes. Only you can read it."
+    },
+    "warning_email_format": {
+        "message": "This doesn't look like an email address. You can still save it."
+    },
+    "label_phone": {
+        "message": "Phone"
+    },
+    "placeholder_phone": {
+        "message": "+31 6 12345678"
+    },
     "section_notes": {
         "message": "Notes"
     },

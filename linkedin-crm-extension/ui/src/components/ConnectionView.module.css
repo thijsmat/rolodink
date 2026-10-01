@@ -253,6 +253,17 @@
   font-weight: var(--font-weight-medium);
 }
 
+.detailLink {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.detailLink:hover,
+.detailLink:focus-visible {
+  color: var(--brand-primary-hover);
+  text-decoration: underline;
+}
+
 .detailValueEmpty {
   color: var(--text-tertiary);
   font-style: italic;

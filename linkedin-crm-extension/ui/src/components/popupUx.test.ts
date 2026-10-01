@@ -5,7 +5,8 @@ import App from '../App';
 import { SettingsView } from './SettingsView';
 import { ConnectionView } from './ConnectionView';
 import { ConnectionForm } from './ConnectionForm';
-import { ConnectionChangedElsewhereError } from '../utils/connectionUpdate';
+import { AllConnectionsView } from './AllConnectionsView';
+import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
 
 /**
  * Three review findings in the popup: outside a profile it showed an error
@@ -320,5 +321,160 @@ describe('adding a connection', () => {
 
         expect(context.handleCreateConnection).toHaveBeenCalledTimes(2);
         expect(dom.container.querySelector('[role="alert"]')).toBeNull();
+    });
+});
+
+describe('email and phone', () => {
+    const jane = () => ({
+        id: 'conn-jane', name: 'Jane Doe', meetingPlace: 'Web Summit', notes: 'Hiring',
+        email: 'jane@example.com', phone: '+31 6 1234 5678',
+    });
+    const email = () => dom.container.querySelector<HTMLInputElement>('#email')!;
+    const phone = () => dom.container.querySelector<HTMLInputElement>('#phone')!;
+
+    async function editJane(connection: object = jane()) {
+        context.handleUpdate.mockResolvedValue(undefined);
+        context.connection = connection;
+        await render(ConnectionView);
+        await click(button('✏️Bewerken'));
+    }
+
+    /** The form data of the last save. */
+    const saved = () => context.handleUpdate.mock.lastCall?.[0] as Record<string, unknown>;
+
+    it('are in the edit form, filled in, as email and tel inputs', async () => {
+        await editJane();
+
+        expect(email().value).toBe('jane@example.com');
+        expect(email().type).toBe('email');
+        expect(phone().value).toBe('+31 6 1234 5678');
+        expect(phone().type).toBe('tel');
+        // Someone else's details: the browser must not offer the user's own.
+        expect(email().getAttribute('autocomplete')).toBe('off');
+        expect(phone().getAttribute('autocomplete')).toBe('off');
+        expect(dom.container.querySelector('label[for="email"]')?.textContent).toContain('label_email');
+        expect(dom.container.querySelector('label[for="phone"]')?.textContent).toContain('label_phone');
+    });
+
+    it('are left out of a save that did not touch them', async () => {
+        await editJane();
+        await type(meetingPlace()!, 'Slush 2025');
+
+        await submitForm();
+
+        expect(saved()).toMatchObject({ meetingPlace: 'Slush 2025' });
+        expect(saved()).not.toHaveProperty('email');
+        expect(saved()).not.toHaveProperty('phone');
+    });
+
+    it('send only the field that was changed', async () => {
+        await editJane();
+        await type(email(), 'jane@acme.com');
+
+        await submitForm();
+
+        expect(saved()).toMatchObject({ email: 'jane@acme.com' });
+        expect(saved()).not.toHaveProperty('phone');
+    });
+
+    it('clear a field the user emptied', async () => {
+        await editJane();
+        await type(phone(), '');
+
+        await submitForm();
+
+        expect(saved()).toHaveProperty('phone', null);
+        expect(saved()).not.toHaveProperty('email');
+    });
+
+    it('cannot wipe a connection opened without them', async () => {
+        // Older rows and other clients: the form opens with both empty.
+        await editJane({ id: 'conn-jane', name: 'Jane Doe', meetingPlace: 'Web Summit' });
+        expect(email().value).toBe('');
+
+        await submitForm();
+
+        expect(saved()).not.toHaveProperty('email');
+        expect(saved()).not.toHaveProperty('phone');
+    });
+
+    it('warn about an odd email address once the field is left, and save it anyway', async () => {
+        await editJane();
+        await type(email(), 'jane at acme');
+        expect(dom.container.textContent).not.toContain('warning_email_format');
+
+        await act(async () => {
+            email().dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+        });
+        expect(dom.container.querySelector('#email-warning')?.textContent).toBe('warning_email_format');
+        expect(email().getAttribute('aria-describedby')).toContain('email-warning');
+
+        await submitForm();
+        expect(saved()).toMatchObject({ email: 'jane at acme' });
+    });
+
+    it('go along with a new connection', async () => {
+        context.handleCreateConnection.mockResolvedValue(undefined);
+        await render(() => createElement(ConnectionForm));
+        await type(email(), 'bob@example.com');
+        await type(phone(), '06 12 34 56 78');
+
+        await submitForm();
+
+        expect(context.handleCreateConnection).toHaveBeenCalledWith(
+            expect.objectContaining({ email: 'bob@example.com', phone: '06 12 34 56 78' }),
+        );
+    });
+
+    it('show as mailto: and tel: links on the connection', async () => {
+        context.connection = jane();
+        await render(ConnectionView);
+
+        const mail = dom.container.querySelector<HTMLAnchorElement>('a[href^="mailto:"]');
+        const tel = dom.container.querySelector<HTMLAnchorElement>('a[href^="tel:"]');
+        expect(mail?.getAttribute('href')).toBe('mailto:jane@example.com');
+        expect(mail?.textContent).toBe('jane@example.com');
+        expect(tel?.getAttribute('href')).toBe('tel:+31612345678');
+        expect(tel?.textContent).toBe('+31 6 1234 5678');
+    });
+
+    it('show a value that is no address as text, not as a link', async () => {
+        context.connection = { ...jane(), email: LOCKED_FIELD_PLACEHOLDER, phone: '<b>n/a</b>' };
+        await render(ConnectionView);
+
+        expect(dom.container.querySelector('a[href^="mailto:"]')).toBeNull();
+        expect(dom.container.querySelector('a[href^="tel:"]')).toBeNull();
+        expect(dom.container.textContent).toContain(LOCKED_FIELD_PLACEHOLDER);
+        expect(dom.container.textContent).toContain('<b>n/a</b>');
+        expect(dom.container.querySelector('b')).toBeNull();
+    });
+
+    it('leave out the rows when the connection has neither', async () => {
+        context.connection = { id: 'conn-bob', name: 'Bob' };
+        await render(ConnectionView);
+
+        expect(dom.container.textContent).not.toContain('label_email');
+        expect(dom.container.textContent).not.toContain('label_phone');
+    });
+
+    it('are found by the list search', async () => {
+        context.allConnections = [
+            jane(),
+            { id: 'conn-bob', name: 'Bob Smith', email: 'bob@other.org', phone: '020 765 4321' },
+        ];
+        await render(AllConnectionsView);
+        const names = () => [...dom.container.querySelectorAll('h3')].map(h => h.textContent?.replace('✓', '').trim());
+        const search = async (query: string) => {
+            await type(dom.container.querySelector<HTMLInputElement>('input')!, query);
+            // The search is debounced by 300 ms.
+            await act(() => new Promise(resolve => setTimeout(resolve, 350)));
+        };
+        expect(names()).toEqual(['Jane Doe', 'Bob Smith']);
+
+        await search('example.com');
+        expect(names()).toEqual(['Jane Doe']);
+
+        await search('7654321');
+        expect(names()).toEqual(['Bob Smith']);
     });
 });
