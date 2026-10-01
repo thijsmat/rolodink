@@ -5,7 +5,6 @@ import { getUserFromRequest } from '@/lib/supabase/server';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
-import { revalidateTag } from 'next/cache';
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
@@ -140,9 +139,6 @@ export async function DELETE(
         { status: 500, headers: corsHeaders }
       );
     }
-    // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
-
     return NextResponse.json(
       { message: 'Connection deleted' },
       { status: 200, headers: corsHeaders }
