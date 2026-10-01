@@ -429,7 +429,7 @@
         "message": "Zoekopdracht wissen"
     },
     "search_results_count": {
-        "message": "$COUNT$ resultaat resultaten voor \"$QUERY$\"",
+        "message": "Zoekresultaten voor \"$QUERY$\": $COUNT$",
         "placeholders": {
             "count": {
                 "content": "$1"
