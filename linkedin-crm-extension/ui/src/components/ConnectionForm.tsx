@@ -23,6 +23,17 @@ export type ConflictChoice = {
   onOverwrite: (data: ConnectionFormData) => void | Promise<void>;
 };
 
+/** The text each field starts with: the stored value, or empty. */
+function initialFields(data?: ConnectionFormData) {
+  return {
+    meetingPlace: data?.meetingPlace ?? '',
+    userCompany: data?.userCompanyAtTheTime ?? '',
+    notes: data?.notes ?? '',
+    email: data?.email ?? '',
+    phone: data?.phone ?? '',
+  };
+}
+
 export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, submitText, error, conflict }: Readonly<{
   initialData?: ConnectionFormData;
   onSubmit?: (data: ConnectionFormData) => void | Promise<void>;
@@ -38,11 +49,12 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   // again on every new object, and any re-render upstream (a toast, a token
   // refresh) replaced it and wiped what the user had typed. To start over for
   // another connection, the parent gives the form a new key.
-  const [meetingPlace, setMeetingPlace] = useState(initialData?.meetingPlace || '');
-  const [userCompany, setUserCompany] = useState(initialData?.userCompanyAtTheTime || '');
-  const [notes, setNotes] = useState(initialData?.notes || '');
-  const [email, setEmail] = useState(initialData?.email || '');
-  const [phone, setPhone] = useState(initialData?.phone || '');
+  const start = initialFields(initialData);
+  const [meetingPlace, setMeetingPlace] = useState(start.meetingPlace);
+  const [userCompany, setUserCompany] = useState(start.userCompany);
+  const [notes, setNotes] = useState(start.notes);
+  const [email, setEmail] = useState(start.email);
+  const [phone, setPhone] = useState(start.phone);
   // The format hint waits until the user leaves the field, so it does not
   // flash while an address is still being typed. It never blocks the save.
   const [emailBlurred, setEmailBlurred] = useState(false);
