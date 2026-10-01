@@ -8,6 +8,10 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
+import { profileLookupUrl } from '@rolodink/core/url';
+import { findOwnedConnectionByUrl } from '@/lib/connection-url';
+
+const DUPLICATE_URL_MESSAGE = 'Connectie bestaat al voor deze URL.';
 
 // Validation schema for creating a connection
 const createConnectionSchema = z.object({
@@ -90,24 +94,15 @@ export async function GET(request: NextRequest) {
 
     // Haal URL parameter op voor filtering
     const { searchParams } = new URL(request.url);
-    // Normalize the same way POST does before storing, so a client that leaves
-    // a trailing slash or tracking parameters on the URL still matches. It only
-    // ever widens the set of URLs that hit; the host is preserved, so rows
-    // stored under a localized host such as nl.linkedin.com stay findable.
+    // Straight from the database, no cache (an unstable_cache here used to
+    // go stale). Any spelling of a profile URL finds the row: the canonical
+    // key, and rows stored before writes were canonicalised - see
+    // findOwnedConnectionByUrl. Still answers with a list, which is what
+    // every client expects.
     const rawUrl = searchParams.get('url');
-    const url = rawUrl ? normalizeLinkedInUrl(rawUrl) : rawUrl;
-
-    // Straight from the database, no cache. There used to be an unstable_cache
-    // here, tagged per user: the ?url= entries almost never hit (one lookup per
-    // profile visit, each profile its own key), and every writer had to expire
-    // the tag or the popup showed stale data - clean-names once did not.
-    // (ownerId, linkedInUrl) is unique, so the lookup is one index read; it
-    // still answers with a list, which is what every client expects.
     let connections;
-    if (url) {
-      const connection = await prisma.connection.findUnique({
-        where: { ownerId_linkedInUrl: { ownerId: user.id, linkedInUrl: url } },
-      });
+    if (rawUrl) {
+      const connection = await findOwnedConnectionByUrl(user.id, rawUrl);
       connections = connection ? [connection] : [];
     } else {
       connections = await prisma.connection.findMany({
@@ -121,27 +116,6 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error('Fout bij het ophalen van connecties:', err);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
-  }
-}
-
-function normalizeLinkedInUrl(rawUrl: string): string {
-  try {
-    const url = new URL(rawUrl);
-    // Force hostname to canonical LinkedIn host
-    // Only allow linkedin.com hosts
-    if (!/\.linkedin\.com$/.test(url.hostname) && url.hostname !== 'linkedin.com') {
-      return rawUrl;
-    }
-    // Remove query and hash
-    url.search = '';
-    url.hash = '';
-    // Ensure we only keep the path to the profile and trim trailing slash
-    let pathname = url.pathname.trim();
-    if (pathname.endsWith('/')) pathname = pathname.slice(0, -1);
-    url.pathname = pathname;
-    return url.toString();
-  } catch {
-    return rawUrl;
   }
 }
 
@@ -183,7 +157,14 @@ export async function POST(request: NextRequest) {
     // Use validated data
     const { name, url, meetingPlace, notes, userCompanyAtTheTime, email, phone } = validation.data;
 
-    const normalizedUrl = normalizeLinkedInUrl(url);
+    // One key per profile (see @rolodink/core profileLookupUrl). The unique
+    // index only compares exact strings, so a row stored before this under
+    // another spelling of the same URL is checked for explicitly; it answers
+    // the same 409 a unique conflict does.
+    const normalizedUrl = profileLookupUrl(url);
+    if (await findOwnedConnectionByUrl(user.id, url)) {
+      return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
+    }
     const cleanedName = cleanProfileName(name);
 
     const newConnection = await prisma.connection.create({
@@ -205,7 +186,7 @@ export async function POST(request: NextRequest) {
     // Handle specific P2002 error with custom Dutch message for this route
     if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
       return NextResponse.json(
-        { error: 'Connectie bestaat al voor deze URL.' },
+        { error: DUPLICATE_URL_MESSAGE },
         { status: 409, headers: corsHeaders }
       );
     }
@@ -256,12 +237,22 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Use validated data
-    const validatedUpdateData = { ...validation.data };
+    // Use validated data. `url` is the API's name for the linkedInUrl column:
+    // stored canonical, and refused when it would make this row a second one
+    // for a profile the owner already has.
+    const { url: newUrl, ...validatedUpdateData } = validation.data;
+    const data: Prisma.ConnectionUpdateInput = { ...validatedUpdateData };
+    if (newUrl) {
+      const other = await findOwnedConnectionByUrl(user.id, newUrl);
+      if (other && other.id !== id) {
+        return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
+      }
+      data.linkedInUrl = profileLookupUrl(newUrl);
+    }
 
     // Clean the name if it's being updated
     if (validatedUpdateData.name) {
-      validatedUpdateData.name = cleanProfileName(validatedUpdateData.name);
+      data.name = cleanProfileName(validatedUpdateData.name);
     }
 
     // One round-trip: ownership is part of the unique filter. Only when that
@@ -270,7 +261,7 @@ export async function PATCH(request: NextRequest) {
     try {
       updatedConnection = await prisma.connection.update({
         where: { id, ownerId: user.id },
-        data: validatedUpdateData,
+        data,
       });
     } catch (updateError) {
       if (!(updateError instanceof PrismaClientKnownRequestError && updateError.code === 'P2025')) {

@@ -147,8 +147,9 @@ export class RolodinkClient {
     /**
      * Looks up a connection by LinkedIn URL.
      *
-     * The server does NOT normalize the `url` query parameter — it is an exact
-     * string match — so each plausible normalization is tried in turn. A miss
+     * The current API canonicalises the `url` query parameter and finds rows in
+     * older spellings; an older API did an exact string match, so each
+     * plausible normalization is still tried in turn. A miss
      * here is not proof the contact is absent: fall back to matching on the
      * profile slug against the locally cached list.
      */

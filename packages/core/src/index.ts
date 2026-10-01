@@ -17,6 +17,8 @@ export type { FieldCipher, SensitiveField, DecryptOptions } from './fields.js';
 
 export {
     normalizeLinkedInUrl,
+    profileLookupUrl,
+    isLinkedInProfileUrl,
     legacyNormalizeLinkedInUrl,
     getProfileSlug,
     isOpaqueProfileId,
@@ -25,6 +27,9 @@ export {
     buildLookupCandidates,
     isSameProfile,
 } from './url.js';
+
+export { PROFILE_URL_VECTORS } from './url-vectors.js';
+export type { ProfileUrlVector } from './url-vectors.js';
 
 export { cleanProfileName } from './name.js';
 
