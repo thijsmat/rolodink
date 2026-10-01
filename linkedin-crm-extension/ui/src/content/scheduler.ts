@@ -44,6 +44,12 @@
  * it), so a check that finds everything in place costs two DOM queries, and a
  * check that finds our work gone puts it back.
  *
+ * The heartbeat can be **paused**. Off a profile - the feed, search - every
+ * tick returns straight away, and in a hidden tab nobody sees what it would
+ * repair; a tick there is only a timer that wakes the page every few seconds
+ * for nothing. Paused, requests (the MutationObserver) still run, so an SPA
+ * navigation to a profile is still noticed; only the self-arming clock stops.
+ *
  * Timers are injected so the whole state machine is testable without waiting in
  * real time — the same reason MeasureHeight is injected in anchors.ts.
  */
@@ -77,6 +83,13 @@ export interface InjectionScheduler {
     request(): void;
     /** A new page: go back to the fast heartbeat and check now. */
     restart(): void;
+    /**
+     * Stop the heartbeat until resume(). Requests still run: they are how a
+     * navigation back to a profile is noticed. Idempotent.
+     */
+    pause(): void;
+    /** Re-arm the heartbeat after pause() and check now. Idempotent. */
+    resume(): void;
     /** Give up for good — the extension context died and nothing can run again. */
     stop(): void;
 }
@@ -92,6 +105,8 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
     } = options;
 
     let stopped = false;
+    /** The heartbeat is off; see pause(). */
+    let paused = false;
     let busy = false;
     /** A request arrived while busy. The whole point: this is not a dropped tick. */
     let pending = false;
@@ -132,8 +147,12 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
         start();
     };
 
+    // Idempotent: at most one beat is ever armed. A run that calls restart()
+    // from inside a heartbeat used to arm a beat of its own, after which the
+    // heartbeat callback armed a second one - two chains, doubling on every
+    // navigation.
     const scheduleHeartbeat = () => {
-        if (stopped) return;
+        if (stopped || paused || heartbeatHandle !== null) return;
         const interval = ticksLeftAtSettlingRate > 0 ? settlingIntervalMs : idleIntervalMs;
         heartbeatHandle = timers.setTimeout(() => {
             heartbeatHandle = null;
@@ -143,6 +162,13 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
         }, interval);
     };
 
+    const clearHeartbeat = () => {
+        if (heartbeatHandle !== null) {
+            timers.clearTimeout(heartbeatHandle);
+            heartbeatHandle = null;
+        }
+    };
+
     const restart = () => {
         if (stopped) return;
         ticksLeftAtSettlingRate = settlingTicks;
@@ -150,10 +176,20 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
         // spell that beat is scheduled at the *idle* interval, so a scheduler
         // that only reset the counter would go on sleeping for another five
         // seconds on a page that has just changed under it.
-        if (heartbeatHandle !== null) {
-            timers.clearTimeout(heartbeatHandle);
-            heartbeatHandle = null;
-        }
+        clearHeartbeat();
+        scheduleHeartbeat();
+        request();
+    };
+
+    const pause = () => {
+        if (stopped || paused) return;
+        paused = true;
+        clearHeartbeat();
+    };
+
+    const resume = () => {
+        if (stopped || !paused) return;
+        paused = false;
         scheduleHeartbeat();
         request();
     };
@@ -168,5 +204,5 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
     };
 
     scheduleHeartbeat();
-    return { request, restart, stop };
+    return { request, restart, pause, resume, stop };
 }

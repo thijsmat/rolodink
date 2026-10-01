@@ -68,7 +68,11 @@ function getSupabase() {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
             storage: chromeStorageAdapter,
-            autoRefreshToken: true,
+            // Uit in de worker: auth-js start anders een ticker van 30 s die
+            // storage leest, de MV3-service-worker wakker houdt en zo'n 24
+            // refreshes per dag doet. getSession() ververst een verlopen token
+            // al zelf wanneer hij nodig is. De popup houdt auto-refresh aan.
+            autoRefreshToken: false,
             persistSession: true,
             detectSessionInUrl: false,
         },
