@@ -8,6 +8,7 @@ import {
     buildReadableExport,
     readableExportFilename,
     toExportBlob,
+    csvDelimiterFor,
     type DecryptFn,
     type ReadableExportFormat,
 } from '../utils/readableExport';
@@ -22,6 +23,14 @@ function getRuntime(): MessageRuntime | null {
     } catch {
         // No extension API at all (a plain page in development).
         return null;
+    }
+}
+
+function uiLanguage(): string | undefined {
+    try {
+        return getBrowserAPI()?.i18n?.getUILanguage?.() ?? navigator.language;
+    } catch {
+        return typeof navigator === 'undefined' ? undefined : navigator.language;
     }
 }
 
@@ -73,7 +82,10 @@ export function useReadableExport(t: Translate, setToastMessage: (message: strin
             );
 
             const now = new Date();
-            downloadBlob(toExportBlob(rows, format, now), readableExportFilename(format, now));
+            downloadBlob(
+                toExportBlob(rows, format, now, csvDelimiterFor(uiLanguage())),
+                readableExportFilename(format, now),
+            );
             setToastMessage(undecryptableCount > 0
                 ? t('msg_readable_export_partial', [String(rows.length), String(undecryptableCount)])
                 : t('msg_readable_export_success', [String(rows.length)]));

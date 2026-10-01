@@ -6,6 +6,7 @@ import {
     mapWithConcurrency,
     readableExportFilename,
     toCsv,
+    csvDelimiterFor,
     toJson,
     toReadableRow,
     type ReadableRow,
@@ -75,7 +76,7 @@ describe('toCsv', () => {
 
     it('names the fields it could not decrypt in the last column', () => {
         const csv = toCsv([row({ name: 'Jane', undecryptableFields: ['notes', 'email'] })]);
-        expect(csv.split('\r\n')[1].endsWith(',Notes; Email')).toBe(true);
+        expect(csv.split('\r\n')[1].endsWith(',Notes / Email')).toBe(true);
     });
 });
 
@@ -176,5 +177,41 @@ describe('readableExportFilename', () => {
         const date = new Date(2026, 0, 5, 23, 30);
         expect(readableExportFilename('csv', date)).toBe('rolodink-readable-export-2026-01-05.csv');
         expect(readableExportFilename('json', date)).toBe('rolodink-readable-export-2026-01-05.json');
+    });
+});
+
+describe('semicolon CSV for Dutch Excel', () => {
+    it('picks the delimiter from the UI language', () => {
+        expect(csvDelimiterFor('nl')).toBe(';');
+        expect(csvDelimiterFor('nl-NL')).toBe(';');
+        expect(csvDelimiterFor('de')).toBe(';');
+        expect(csvDelimiterFor('en-US')).toBe(',');
+        expect(csvDelimiterFor(undefined)).toBe(',');
+    });
+
+    it('separates on ; and quotes cells that contain it', () => {
+        const csv = toCsv([row({ name: 'Jane', notes: 'a;b, c' })], ';');
+        const line = csv.split('\r\n')[1];
+        expect(line.startsWith('Jane;')).toBe(true);
+        expect(line).toContain('"a;b, c"');
+        expect(csv.split('\r\n')[0]).toContain('Name;LinkedIn URL;');
+    });
+});
+
+describe('mapWithConcurrency after a failure', () => {
+    it('stops starting new items and reports no more progress', async () => {
+        const started: number[] = [];
+        const progress: number[] = [];
+        const run = mapWithConcurrency([1, 2, 3, 4, 5, 6], 2, async (n) => {
+            started.push(n);
+            if (n === 2) throw new Error('boom');
+            return n;
+        }, (done) => progress.push(done));
+        await expect(run).rejects.toThrow('boom');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(started.length).toBeLessThan(6);
+        const after = progress.length;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(progress.length).toBe(after);
     });
 });
