@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl, readConflict, withExpectedVersion } from '@rolodink/core';
 import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
