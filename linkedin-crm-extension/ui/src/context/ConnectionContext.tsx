@@ -24,8 +24,12 @@ export type ConnectionFormData = {
   meetingPlace?: string;
   userCompanyAtTheTime?: string;
   notes?: string;
-  email?: string;
-  phone?: string;
+  /**
+   * Left out when the user did not touch the field, so a save leaves the
+   * stored value alone; null when they emptied it. See contactFieldEdits.
+   */
+  email?: string | null;
+  phone?: string | null;
   is_encrypted?: boolean;
 };
 
