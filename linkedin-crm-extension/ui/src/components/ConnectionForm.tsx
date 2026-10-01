@@ -1,5 +1,5 @@
 // src/components/ConnectionForm.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import styles from './ConnectionForm.module.css';
 import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
 import { SkeletonForm } from './Skeleton';
@@ -7,6 +7,7 @@ import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { FormField } from './FormField';
 import { contactFieldEdits } from '../utils/connectionUpdate';
 import { isOddEmail } from '../utils/contactLinks';
+import { useFormShortcuts } from '../hooks/useFormShortcuts';
 
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PHONE_LENGTH = 40;
@@ -54,39 +55,7 @@ export function ConnectionForm({ initialData, onSubmit, onCancel, isSubmitting, 
   const shownError = error ?? createError;
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Prevent shortcuts when typing in inputs/textarea
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        // Allow Enter to submit when in form fields (except textarea)
-        if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
-          event.preventDefault();
-          if (formRef.current && !busy) {
-            formRef.current.requestSubmit();
-          }
-        }
-        return;
-      }
-
-      // Global shortcuts
-      if (event.key === 'Escape' && onCancel) {
-        event.preventDefault();
-        onCancel();
-      }
-
-      if (event.key === 'Enter' && !busy) {
-        event.preventDefault();
-        if (formRef.current) {
-          formRef.current.requestSubmit();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel, busy]);
+  useFormShortcuts(formRef, busy, onCancel);
 
   // Email and phone go along only when changed (see contactFieldEdits), so
   // saving the other fields can never clear them.
