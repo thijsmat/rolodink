@@ -5,6 +5,7 @@ import { ConfirmPanel } from './ConfirmPanel';
 import styles from './ConnectionView.module.css';
 import { useConnection, type Connection, type ConnectionFormData } from '../context/ConnectionContext';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { ConnectionChangedElsewhereError } from '../utils/connectionUpdate';
 
 function toFormData(connection: Connection): ConnectionFormData {
   return {
@@ -31,32 +32,69 @@ export function ConnectionView() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The version the edit is based on, taken with the baseline. Sent with the
+  // save, so a newer save from the note card or another device is not
+  // overwritten without asking. Not connection.updatedAt at save time: that
+  // follows whatever the popup loaded since, the edit does not.
+  const [editVersion, setEditVersion] = useState(connection?.updatedAt);
+  // The stored row after a save was refused as a conflict, until the user
+  // chooses: load it (the form starts over from it) or overwrite it.
+  const [conflict, setConflict] = useState<Connection | null>(null);
+  // Bumped to start the form over from a new baseline for the same id.
+  const [formGeneration, setFormGeneration] = useState(0);
 
   if (connection?.id !== baselineId) {
     setBaselineId(connection?.id);
     setEditBaseline(baselineFor(editBaseline, connection));
+    setEditVersion(connection?.updatedAt);
+    setConflict(null);
   }
 
   if (!connection) return null;
 
-  const startEditing = () => setEditBaseline(toFormData(connection));
+  const startEditing = () => {
+    setEditBaseline(toFormData(connection));
+    setEditVersion(connection.updatedAt);
+  };
   const stopEditing = () => {
     setEditBaseline(null);
     setError(null);
+    setConflict(null);
   };
 
-  const onSubmit = async (formData: ConnectionFormData) => {
+  const save = async (formData: ConnectionFormData, version: string | undefined) => {
     setIsSubmitting(true);
     setError(null);
+    setConflict(null);
     try {
-      await handleUpdate(formData);
+      await handleUpdate(formData, version);
       setEditBaseline(null);
-    } catch {
-      // The form stays open with the typed text; the user can try again.
-      setError(t('connection_update_failed'));
+    } catch (e) {
+      // The form stays open with the typed text; the user can try again, or
+      // choose between the two versions.
+      if (e instanceof ConnectionChangedElsewhereError) {
+        setConflict(e.current as Connection);
+      } else {
+        setError(t('connection_update_failed'));
+      }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const onSubmit = (formData: ConnectionFormData) => save(formData, editVersion);
+
+  const conflictChoice = conflict && {
+    onLoadLatest: () => {
+      setEditBaseline(toFormData(conflict));
+      setEditVersion(conflict.updatedAt);
+      setConflict(null);
+      setFormGeneration(n => n + 1);
+    },
+    onOverwrite: (formData: ConnectionFormData) => {
+      setEditVersion(conflict.updatedAt);
+      return save(formData, conflict.updatedAt);
+    },
   };
 
   // The one confirmation for deleting a connection. handleDelete no longer
@@ -77,9 +115,10 @@ export function ConnectionView() {
   if (editBaseline) {
     return (
       <ConnectionForm
-        key={connection.id}
+        key={`${connection.id}:${formGeneration}`}
         initialData={editBaseline}
         onSubmit={onSubmit}
+        conflict={conflictChoice}
         onCancel={stopEditing}
         isSubmitting={isSubmitting}
         submitText="Wijzigingen Opslaan"

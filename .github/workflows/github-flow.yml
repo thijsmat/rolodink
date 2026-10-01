@@ -206,6 +206,13 @@ jobs:
     #   popup assets/index-*.js   438906 -> 482797
     # Growing past one is allowed, but as a decision: raise the number here in
     # the same PR and say why.
+    #
+    # Raised: content.js 19427 -> 22000. The note card now sends the version
+    # it last saw with every save, and on a 409 ("changed elsewhere") offers
+    # Load other version / Overwrite / Undo instead of silently overwriting a
+    # note saved in the popup or on another device. Measured 21859 bytes with
+    # that (19106 before it), so the new ceiling is that plus a small margin,
+    # not another 10%.
     - name: Verify the real bundle and the size budget
       run: |
         fail=0
@@ -231,7 +238,7 @@ jobs:
             fail=1
           fi
           check_max "$bg" 248670 "$t background.js"
-          check_max "$dir/content.js" 19427 "$t content.js"
+          check_max "$dir/content.js" 22000 "$t content.js"
           popups=$(find "$dir/assets" -maxdepth 1 -name 'index-*.js')
           if [ "$(printf '%s\n' "$popups" | grep -c .)" -ne 1 ]; then
             echo "::error::expected exactly one popup bundle in $dir/assets, found: $popups"

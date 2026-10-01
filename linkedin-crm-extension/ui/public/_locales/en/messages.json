@@ -732,6 +732,15 @@
     "connection_update_failed": {
         "message": "Could not save your changes. Your text is still here, so you can try again."
     },
+    "connection_conflict_message": {
+        "message": "This connection was changed elsewhere. Your changes are still in the form."
+    },
+    "connection_conflict_load_latest": {
+        "message": "Load latest version"
+    },
+    "connection_conflict_overwrite": {
+        "message": "Overwrite"
+    },
     "feedback_section_title": {
         "message": "Feedback"
     },

@@ -270,8 +270,10 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(code).toMatch(
             /const stillOwned = \(\) => container\.isConnected && currentProfilePath\(location\.pathname\) === cardPath;/,
         );
-        // The Retry that note-card.ts shows has to be on the card to be clicked.
-        expect(code).toContain('footer.appendChild(retryButton)');
+        // The Retry that note-card.ts shows has to be on the card to be clicked,
+        // and so do the three buttons of a save conflict.
+        expect(code).toContain('footer.append(buttons.retry, buttons.loadOther, buttons.overwrite, buttons.undo)');
+        expect(code).toContain('retry: buttons.retry');
     });
 
     it("loads the card's own profile, also on a retry", () => {
@@ -359,6 +361,25 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(save).toContain('if (resp.ok) return confirmSaved(text);');
         expect(save).toMatch(/if \(created\.outcome === 'created'\) \{[^}]*return confirmSaved\(typed\);/);
         expect(save).toContain('if (textarea.value === lastSavedText) return confirmSaved(lastSavedText);');
+    });
+
+    it('sends the version it last saw with every PATCH and hands a conflict to the card', () => {
+        // The popup, a second tab or another device can save the same note.
+        // Without a version the slower save silently replaced the other; with
+        // one the server answers 409 and the card asks (note-card.test.ts,
+        // 'saving against another editor').
+        const start = code.indexOf('const patchNote = async');
+        const patch = code.slice(start, code.indexOf('\n    };\n', start));
+        expect(patch).toContain('body: noteVersion.stamp({ id: connectionId, notes })');
+        expect(patch).toContain('const outcome = noteVersion.settle(resp);');
+        expect(patch.indexOf('noteVersion.settle(resp)')).toBeLessThan(patch.indexOf('if (resp.ok) return confirmSaved(text);'));
+        expect(patch).toContain("if (outcome.state === 'conflict') return { conflict: outcome.current };");
+        // Every way the card learns of a row also learns its version.
+        expect(code).toContain("if (note.state === 'loaded') noteVersion.set(note.updatedAt);");
+        expect(code).toContain('noteVersion.set(created.updatedAt);');
+        expect(code).toContain('noteVersion.set(current.updatedAt);');
+        // And it is the only PATCH in the content script.
+        expect(code.match(/method: 'PATCH'/g)).toHaveLength(1);
     });
 
     it('flushes a pending save when the page is hidden or unloaded', () => {

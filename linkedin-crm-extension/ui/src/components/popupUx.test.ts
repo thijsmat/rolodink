@@ -5,6 +5,7 @@ import App from '../App';
 import { SettingsView } from './SettingsView';
 import { ConnectionView } from './ConnectionView';
 import { ConnectionForm } from './ConnectionForm';
+import { ConnectionChangedElsewhereError } from '../utils/connectionUpdate';
 
 /**
  * Three review findings in the popup: outside a profile it showed an error
@@ -64,6 +65,14 @@ const dom = createDomHarness();
 const { render, settle, button, click, type, rerender } = dom;
 
 const meetingPlace = () => dom.container.querySelector<HTMLInputElement>('#meetingPlace');
+
+/** Submits the form on screen, as the Save button or Enter does. */
+async function submitForm() {
+    await act(async () => {
+        dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await settle();
+}
 
 beforeEach(() => {
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
@@ -213,49 +222,101 @@ describe('editing a connection', () => {
         context.handleUpdate.mockRejectedValue(new Error('Update mislukt'));
         await startEditing();
 
-        await act(async () => {
-            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        });
-        await settle();
+        await submitForm();
 
-        expect(context.handleUpdate).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }));
+        // No updatedAt on this row: the save is unconditional, as before.
+        expect(context.handleUpdate).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }), undefined);
         expect(meetingPlace()?.value).toBe('Slush 2025');
         expect(dom.container.querySelector('[role="alert"]')?.textContent).toBe('connection_update_failed');
 
         // And the retry goes through.
         context.handleUpdate.mockResolvedValue(undefined);
-        await act(async () => {
-            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        });
-        await settle();
+        await submitForm();
 
         expect(context.handleUpdate).toHaveBeenCalledTimes(2);
         expect(meetingPlace()).toBeNull();
     });
 });
 
-describe('adding a connection', () => {
-    const submit = async () => {
-        await act(async () => {
-            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        });
-        await settle();
-    };
+describe('saving an edit over a newer version', () => {
+    const OPENED = '2026-09-30T12:00:00.000Z';
+    const ELSEWHERE = '2026-09-30T12:00:07.250Z';
+    const jane = () => ({ id: 'conn-jane', name: 'Jane Doe', meetingPlace: 'Web Summit', notes: 'Hiring', updatedAt: OPENED });
+    const stored = { ...jane(), meetingPlace: 'Typed on the LinkedIn page', updatedAt: ELSEWHERE };
+    async function editIntoConflict() {
+        context.handleUpdate.mockRejectedValueOnce(new ConnectionChangedElsewhereError(stored));
+        context.connection = jane();
+        await render(ConnectionView);
+        await click(button('✏️Bewerken'));
+        await type(meetingPlace()!, 'Slush 2025');
+        await submitForm();
+    }
 
+    it('sends the version the edit was opened on', async () => {
+        context.handleUpdate.mockResolvedValue(undefined);
+        context.connection = jane();
+        await render(ConnectionView);
+        await click(button('✏️Bewerken'));
+        // The popup reloading the row meanwhile does not move the edit's base.
+        context.connection = { ...jane(), updatedAt: ELSEWHERE };
+        await rerender();
+        await submitForm();
+
+        expect(context.handleUpdate).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Web Summit' }), OPENED);
+    });
+
+    it('keeps the typed text and offers both versions after a 409', async () => {
+        await editIntoConflict();
+
+        expect(meetingPlace()?.value).toBe('Slush 2025');
+        expect(dom.container.querySelector('[role="alert"]')?.textContent).toContain('connection_conflict_message');
+        expect(button('connection_conflict_load_latest')).not.toBeNull();
+        expect(button('connection_conflict_overwrite')).not.toBeNull();
+    });
+
+    it('overwrites with the typed text, on the stored version', async () => {
+        await editIntoConflict();
+        context.handleUpdate.mockResolvedValue(undefined);
+
+        await click(button('connection_conflict_overwrite'));
+        await settle();
+
+        expect(context.handleUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }), ELSEWHERE);
+        expect(meetingPlace()).toBeNull();
+    });
+
+    it('loads the stored version into the form, and saves on top of it after that', async () => {
+        await editIntoConflict();
+
+        await click(button('connection_conflict_load_latest'));
+
+        expect(meetingPlace()?.value).toBe('Typed on the LinkedIn page');
+        expect(dom.container.querySelector('[role="alert"]')).toBeNull();
+
+        context.handleUpdate.mockResolvedValue(undefined);
+        await submitForm();
+        expect(context.handleUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({ meetingPlace: 'Typed on the LinkedIn page' }),
+            ELSEWHERE,
+        );
+    });
+});
+
+describe('adding a connection', () => {
     it('stays open with the typed text after a failed save, and the retry goes through', async () => {
         context.connection = null;
         context.handleCreateConnection.mockRejectedValue(new Error('Opslaan mislukt'));
         await render(() => createElement(ConnectionForm));
         await type(meetingPlace()!, 'Slush 2025');
 
-        await submit();
+        await submitForm();
 
         expect(context.handleCreateConnection).toHaveBeenCalledWith(expect.objectContaining({ meetingPlace: 'Slush 2025' }));
         expect(meetingPlace()?.value).toBe('Slush 2025');
         expect(dom.container.querySelector('[role="alert"]')?.textContent).toBe('connection_create_failed');
 
         context.handleCreateConnection.mockResolvedValue(undefined);
-        await submit();
+        await submitForm();
 
         expect(context.handleCreateConnection).toHaveBeenCalledTimes(2);
         expect(dom.container.querySelector('[role="alert"]')).toBeNull();

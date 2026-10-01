@@ -18,6 +18,22 @@ export function isUnreadableValue(value: unknown): boolean {
         && (value.includes(LOCKED_FIELD_PLACEHOLDER) || value.startsWith(CIPHERTEXT_PREFIX));
 }
 
+/**
+ * A save refused because the connection changed elsewhere after the form
+ * opened (the API's 409 CONNECTION_CONFLICT). `current` is the stored row,
+ * decrypted. Nothing was written: the form keeps what was typed and lets the
+ * user load `current` or overwrite it.
+ */
+export class ConnectionChangedElsewhereError<T> extends Error {
+    readonly current: T;
+
+    constructor(current: T) {
+        super('Connection changed elsewhere');
+        this.name = 'ConnectionChangedElsewhereError';
+        this.current = current;
+    }
+}
+
 export type FieldsToUpdate<F extends string> = {
     /** The fields to send, exactly as the form had them. */
     fields: Partial<Record<F, string | null>>;
