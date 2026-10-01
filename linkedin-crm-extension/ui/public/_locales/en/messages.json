@@ -180,16 +180,64 @@
         "message": "Privacy & GDPR"
     },
     "export_data_title": {
-        "message": "Export My Data"
+        "message": "Encrypted backup (JSON)"
     },
     "export_data_description": {
-        "message": "Download a complete overview of all your connections and notes as a JSON file."
+        "message": "Download all your connections as they are stored on the server. Notes, email and phone stay encrypted and can only be read in Rolodink with your key. Meant as a backup, not for reading."
     },
     "export_data_button": {
-        "message": "📊 Export Data"
+        "message": "📦 Download backup"
     },
     "exporting_button": {
         "message": "⏳ Exporting..."
+    },
+    "readable_export_title": {
+        "message": "Readable export"
+    },
+    "readable_export_description": {
+        "message": "Download all your connections decrypted, to read or open in Excel. Decryption happens here in the extension; the server never sees your notes in readable form."
+    },
+    "readable_export_warning": {
+        "message": "⚠️ Warning: this file contains your notes, email addresses and phone numbers unencrypted. Store it somewhere safe, do not share it, and delete it when you no longer need it."
+    },
+    "readable_export_csv_button": {
+        "message": "📄 CSV (Excel)"
+    },
+    "readable_export_json_button": {
+        "message": "🧾 JSON"
+    },
+    "readable_export_fetching": {
+        "message": "Fetching connections…"
+    },
+    "readable_export_progress": {
+        "message": "Decrypting… $DONE$ of $TOTAL$",
+        "placeholders": {
+            "done": {
+                "content": "$1"
+            },
+            "total": {
+                "content": "$2"
+            }
+        }
+    },
+    "msg_readable_export_success": {
+        "message": "$COUNT$ connections exported in readable form. Store the file safely.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_readable_export_partial": {
+        "message": "$COUNT$ connections exported, but $FAILED$ fields could not be decrypted (key missing or locked). Those fields were left empty and are listed per row in the 'Not decrypted' column.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "failed": {
+                "content": "$2"
+            }
+        }
     },
     "delete_account_title": {
         "message": "Delete My Account"
