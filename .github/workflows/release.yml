@@ -34,12 +34,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
           # setup-node v5 en later zetten npm-caching vanzelf aan zodra
@@ -74,13 +74,18 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "Releasing $VERSION"
 
-      - name: Install UI Dependencies
-        working-directory: linkedin-crm-extension/ui
-        run: npm ci
+      # Same installs as the extension job in github-flow.yml: lockfile only,
+      # and no install hooks (a dependency's hook would run with this job's
+      # contents: write token). build.js gets fs-extra and archiver from the
+      # root install, because linkedin-crm-extension is a workspace member;
+      # ui is not, so it has its own lockfile and install. The build itself is
+      # the explicit `node build.js` steps below. (Sonar S6505/S8543)
+      - name: Install dependencies (monorepo root)
+        run: npm ci --ignore-scripts
 
-      - name: Install Build Script Dependencies
-        working-directory: linkedin-crm-extension
-        run: npm install
+      - name: Install extension UI dependencies
+        working-directory: linkedin-crm-extension/ui
+        run: npm ci --ignore-scripts
 
       - name: Build Chrome Extension
         working-directory: linkedin-crm-extension

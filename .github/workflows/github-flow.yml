@@ -17,8 +17,9 @@ jobs:
   # did not change is skipped, and GitHub counts a skipped job as passed for
   # branch protection. Plain git, no third-party action.
   #
-  # Anything shared - packages/, the root package files, turbo.json, this
-  # workflow - counts as a change to every part. When there is nothing to
+  # Anything shared - packages/, the root scripts/, the root package files,
+  # turbo.json, any workflow in .github/workflows/ - counts as a change to
+  # every part. When there is nothing to
   # compare against (a new branch, a force push), everything runs.
   changes:
     permissions:
@@ -55,7 +56,7 @@ jobs:
           exit 0
         fi
         echo "$FILES"
-        shared='^(packages/|package\.json$|package-lock\.json$|turbo\.json$|\.github/workflows/github-flow\.yml$)'
+        shared='^(packages/|scripts/|package\.json$|package-lock\.json$|turbo\.json$|\.github/workflows/)'
         has() { if echo "$FILES" | grep -Eq "$1|$shared"; then echo true; else echo false; fi; }
         # tools/ (tools/firefox-sign: the pinned web-ext for publish-firefox.yml)
         # belongs to the extension, so a change there runs the extension job.
@@ -449,7 +450,7 @@ jobs:
     - name: Upload Trivy scan results
       # Use v4 - v1/v2 are deprecated and can fail the job, en v3 draait nog
       # op node20
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
       # Only try to upload SARIF when running in the repository (skip uploads on fork PRs)
       if: ${{ github.event_name != 'pull_request' }}
       with:
