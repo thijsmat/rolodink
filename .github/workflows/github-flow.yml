@@ -57,10 +57,12 @@ jobs:
         echo "$FILES"
         shared='^(packages/|package\.json$|package-lock\.json$|turbo\.json$|\.github/workflows/github-flow\.yml$)'
         has() { if echo "$FILES" | grep -Eq "$1|$shared"; then echo true; else echo false; fi; }
+        # tools/ (tools/firefox-sign: the pinned web-ext for publish-firefox.yml)
+        # belongs to the extension, so a change there runs the extension job.
         {
           echo "backend=$(has '^linkedin-crm-backend/')"
           echo "website=$(has '^website/')"
-          echo "extension=$(has '^linkedin-crm-extension/')"
+          echo "extension=$(has '^(linkedin-crm-extension|tools)/')"
           echo "code=$(has '^(linkedin-crm-backend|website|linkedin-crm-extension)/')"
         } | tee -a "$GITHUB_OUTPUT"
 
