@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed (Firefox)
+- **Firefox 140 or later is required** from the next release (`strict_min_version` 115.0 → 140.0). Firefox for Android is not targeted
+- The manifest now declares what the extension sends to Rolodink, for Firefox's built-in data consent: `authenticationInfo`, `personallyIdentifyingInfo`, `browsingActivity` and `websiteContent`, all required. It said `none` before, which was wrong. Firefox shows newly added required data types when the update arrives. See `docs/FIREFOX_PUBLISHING.md`
+
 ## v1.3.7 (2026-09-30) - Your Notes Stay Put
 
 Everything in this release is about what you type staying where you put it,
