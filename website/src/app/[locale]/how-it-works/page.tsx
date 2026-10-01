@@ -5,14 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, User, Edit3, Search } from "lucide-react";
-import { getExtensionUrl } from "@/lib/utils";
+import { storeUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
 
 const icons = [Download, User, Edit3, Search];
 
 export default function HowItWorksPage() {
   const t = useTranslations('HowItWorksPage');
-  const extensionUrl = getExtensionUrl();
 
   // Get steps from translations
   const steps = (t.raw('steps') as Array<{ title: string; description: string }>).map((step, index) => ({
@@ -74,7 +73,7 @@ export default function HowItWorksPage() {
             </p>
             <div className="mt-8">
               <Button asChild size="lg">
-                <a href={extensionUrl} target="_blank" rel="noreferrer">
+                <a href={storeUrl("chrome", "how-it-works")} target="_blank" rel="noreferrer">
                   {t('cta.button')}
                 </a>
               </Button>

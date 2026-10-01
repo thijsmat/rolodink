@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { getExtensionUrl } from "@/lib/utils";
+import { storeUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
 
 interface FaqItem {
@@ -18,7 +18,6 @@ interface FaqItem {
 
 export default function HelpPage() {
   const t = useTranslations('HelpPage');
-  const extensionUrl = getExtensionUrl();
 
   // Get FAQ items from translations
   const faqItems = t.raw('faq') as FaqItem[];
@@ -63,7 +62,7 @@ export default function HelpPage() {
             </p>
             <div className="mt-8">
               <Button asChild size="lg">
-                <a href={extensionUrl} target="_blank" rel="noreferrer">
+                <a href={storeUrl("chrome", "help")} target="_blank" rel="noreferrer">
                   {t('cta.button')}
                 </a>
               </Button>

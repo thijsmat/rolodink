@@ -15,14 +15,13 @@ import {
   BarChart3,
   CheckCircle
 } from 'lucide-react'
-import { getExtensionUrl } from '@/lib/utils'
+import { storeUrl } from '@/lib/utils'
 import { useTranslations } from 'next-intl';
 
 const iconMap = [Users, MessageSquare, Calendar, FileText, Shield, Zap];
 
 export default function FeaturesPage() {
   const t = useTranslations('FeaturesPage');
-  const extensionUrl = getExtensionUrl();
 
   // Get features array from translations
   const features = Array.from({ length: 6 }, (_, i) => ({
@@ -118,7 +117,7 @@ export default function FeaturesPage() {
             </p>
             <div className="flex gap-4">
               <Button asChild size="lg">
-                <a href={extensionUrl} target="_blank" rel="noreferrer">
+                <a href={storeUrl("chrome", "features")} target="_blank" rel="noreferrer">
                   {t('cta.button')}
                 </a>
               </Button>
