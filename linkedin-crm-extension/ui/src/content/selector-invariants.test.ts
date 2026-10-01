@@ -152,6 +152,28 @@ describe('injection keeps checking after the page goes quiet', () => {
         expect(code).toMatch(/new MutationObserver\(\(\) => \{\s*scheduler\.request\(\)/);
     });
 
+    it('does not hold a round open while the note loads', () => {
+        // checkAndInject used to await injectContextField, which awaited
+        // attachNoteBehaviour, which awaited card.load(): a GET and a decrypt,
+        // up to 15 s each. The scheduler starts no round while one runs, so
+        // for that long nothing cleaned up after a navigation - profile A's
+        // card stayed on profile B - and the card did not move from the
+        // sticky header to the hero. The load now runs beside the round.
+        expect(code).not.toMatch(/async function attachNoteBehaviour/);
+        expect(code).not.toMatch(/await attachNoteBehaviour\(/);
+        expect(code).not.toMatch(/await card\.load\(\)/);
+        expect(code).toMatch(/card\.load\(\)\.catch\(/);
+        // And an answer that arrives later is checked against the card's own
+        // profile before anything is kept from it.
+        expect(code).toMatch(/const note = await loadCardNote\(\);\s*(\/\/.*\s*)*if \(!stillOwned\(\)\) return note;/);
+    });
+
+    it('does not fall back to the live url when looking up the connection', () => {
+        // A save can run after an SPA navigation; window.location then belongs
+        // to the next profile.
+        expect(code).toMatch(/async function findConnectionId\(profileUrl\)/);
+    });
+
     it('gives the runtime message a deadline', () => {
         // A promise that never settles blocks the scheduler's next round for
         // good, and an MV3 worker can die between send and reply.
@@ -225,7 +247,7 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         expect(body).not.toContain('window.location');
         expect(body).not.toContain('document.title');
         expect(code).toContain('findConnectionId(cardUrl)');
-        expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName())');
+        expect(code).toContain('createConnectionForProfile(cardUrl, resolveCardName(), notes)');
     });
 
     it('leaves opening the textarea to the tested note card', () => {
@@ -237,14 +259,17 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         // note-card.ts, tested in note-card.test.ts; main.js must not open it
         // on its own.
         expect(code).toContain('createNoteCard(');
-        expect(code).toContain('await card.load();');
+        expect(code).toContain('card.load().catch(');
         expect(code).not.toMatch(/textarea\.disabled\s*=\s*false/);
         expect(code).not.toMatch(/status\.innerText\s*!==?\s*'Locked'/);
         // And it loads through readNote, which is what tells a 429 from "not in
         // the CRM": a lenient inline load here brings the bug back with every
         // test in note-card.test.ts still green.
         expect(code).toContain('readNote(');
-        expect(code).toContain('isAttached: () => container.isConnected');
+        expect(code).toContain('isAttached: stillOwned');
+        expect(code).toMatch(
+            /const stillOwned = \(\) => container\.isConnected && currentProfilePath\(location\.pathname\) === cardPath;/,
+        );
         // The Retry that note-card.ts shows has to be on the card to be clicked.
         expect(code).toContain('footer.appendChild(retryButton)');
     });
@@ -271,28 +296,41 @@ describe('a delayed save belongs to the profile it was typed on', () => {
     it('reads a connection the card did not load before saving over its note', () => {
         // "Not in Rldnk yet" holds when the card loads, not for good: the popup
         // can create the connection with a note after that, and so can a second
-        // tab. The save that then found the id PATCHed what had been typed here
-        // over that note. textForUnseenNote decides what may be sent (see
-        // note-card.test.ts); this pins that saveNote asks it after finding the
-        // id and before encrypting anything, and forgets an id it could not
-        // check, so the next save reads again instead of PATCHing straight over.
+        // tab. A save that then PATCHed what had been typed here replaced that
+        // note. textForUnseenNote decides what may be sent (see
+        // note-card.test.ts); this pins that the save asks it after finding the
+        // id and before the PATCH, and keeps no id it could not check, so the
+        // next save reads again instead of PATCHing straight over.
+        //
+        // Changed on purpose with the single POST (see 'a new profile is saved
+        // in one POST' below): this used to pin GET -> POST -> read -> encrypt
+        // -> PATCH. The GET in front is gone because a 409 on the POST says
+        // the same thing, and the 409 leads here.
+        //
         // "Did not load" is read off connectionId, so the load has to set it:
         // without this line every first save would read the note it already
         // showed and put it in the field twice.
         expect(code).toContain("if (note.state === 'loaded') connectionId = note.connectionId;");
-        const save = code.slice(code.indexOf('const saveNote = async'));
-        const unseen = save.indexOf('const unseen = !connectionId;');
-        const check = save.indexOf('textForUnseenNote(');
-        const encrypt = save.indexOf('encryptNoteText(');
-        expect(unseen).toBeGreaterThan(-1);
-        expect(save.indexOf('findConnectionId(')).toBeGreaterThan(unseen);
-        expect(check).toBeGreaterThan(save.indexOf('createConnectionForProfile('));
-        expect(encrypt).toBeGreaterThan(check);
-        expect(save).toMatch(/if \(unseen\) \{\s*const current = await readCardNote\(\);/);
-        // The kept text goes into the field, which is what gets encrypted -
-        // now and in every later save to this id.
-        expect(save.slice(check, encrypt)).toContain('textarea.value = text;');
-        expect(save.slice(check, encrypt)).toContain('connectionId = null;');
+        const start = code.indexOf('const adoptExisting = async');
+        expect(start).toBeGreaterThan(-1);
+        const adopt = code.slice(start, code.indexOf('\n    };\n', start));
+        const find = adopt.indexOf('findConnectionId(cardUrl)');
+        const read = adopt.indexOf('const current = await readCardNote();');
+        const check = adopt.indexOf('textForUnseenNote(current, id, textarea.value)');
+        const keep = adopt.indexOf('connectionId = id;');
+        const patch = adopt.indexOf('return patchNote();');
+        expect(find).toBeGreaterThan(-1);
+        expect(read).toBeGreaterThan(find);
+        expect(check).toBeGreaterThan(read);
+        // The kept text goes into the field, which is what patchNote encrypts.
+        expect(adopt.slice(check, patch)).toContain('textarea.value = text;');
+        // Only a checked id is kept; a null answer returns before it.
+        expect(adopt.slice(check, keep)).toMatch(/if \(text === null\) \{[^}]*return false;/);
+        expect(patch).toBeGreaterThan(keep);
+        // And nothing in the unseen path PATCHes without coming through here.
+        const unseen = code.slice(code.indexOf('const saveUnseen = async'), start);
+        expect(unseen).not.toContain('patchNote(');
+        expect(unseen).not.toContain("method: 'PATCH'");
     });
 
     it('keeps a failed save dirty by saving through the card', () => {
@@ -305,12 +343,131 @@ describe('a delayed save belongs to the profile it was typed on', () => {
         // on the server: after an ok PATCH, and nowhere else.
         const save = code.slice(code.indexOf('const saveNote = async'), code.indexOf('const flushSave'));
         expect(save.match(/return true;/g)).toHaveLength(1);
-        expect(save).toMatch(/status\.innerText = 'Saved';\s*return true;/);
+        expect(save).toMatch(/const confirmSaved = \(text\) => \{\s*lastSavedText = text;\s*setStatus\('Saved'\);\s*return true;/);
+        // ...and confirmSaved is reached only after an ok PATCH, a created
+        // POST, or with the text that is already on the server.
+        expect(save.match(/confirmSaved\(/g)).toHaveLength(3);
+        expect(save).toContain('if (resp.ok) return confirmSaved(text);');
+        expect(save).toMatch(/if \(created\.outcome === 'created'\) \{[^}]*return confirmSaved\(typed\);/);
+        expect(save).toContain('if (textarea.value === lastSavedText) return confirmSaved(lastSavedText);');
     });
 
     it('flushes a pending save when the page is hidden or unloaded', () => {
         expect(code).toContain("addEventListener('pagehide', flushSave)");
         expect(code).toContain("addEventListener('visibilitychange', flushOnHide)");
+    });
+});
+
+describe('the status line does not start injection rounds', () => {
+    // Every keystroke set status.innerText = 'Typing...'. That replaces the
+    // element's children - a childList mutation - and the body observer
+    // answers each one with a full round: some forty rounds for twenty
+    // seconds of typing, where the heartbeat alone gives four. The status now
+    // changes the data of one Text node that stays (createStatusLine,
+    // tested in note-card.test.ts); characterData is not what the body
+    // observer watches, and that observer stays as it is (see above).
+    const STATUS_WRITE = /\bstatus\.(innerText|textContent|innerHTML)\s*=(?!=)/;
+
+    it('main.js writes the status only through setStatus', () => {
+        expect(code).not.toMatch(STATUS_WRITE);
+        expect(code).toContain('createStatusLine(status)');
+        expect(code).toContain('const setStatus = (text) => statusLine.set(text);');
+    });
+
+    it('note-card.ts writes it only through the status line too', () => {
+        expect(noteCardCode).not.toMatch(STATUS_WRITE);
+        expect(noteCardCode).toContain('node.data = text');
+    });
+});
+
+describe('a content script that outlived its extension cleans up after itself', () => {
+    // After an update Chrome and Edge leave the old script running in every
+    // open tab. It used to go on ticking, a click on the button said "Cannot
+    // reach the CRM server", and the branch for "Extension context
+    // invalidated" was never reached because the errors were swallowed on the
+    // way. isAlive (browser-api.test.ts) is the check; these pin its use.
+    const check = code.slice(code.indexOf('const checkAndInject = async'));
+
+    it('asks before every round, before handling navigation', () => {
+        const alive = check.indexOf('if (!isPlatformAlive()) {');
+        expect(alive).toBeGreaterThan(-1);
+        expect(check.indexOf('teardownOrphan();')).toBeGreaterThan(alive);
+        expect(check.indexOf('handleNavigation(path)')).toBeGreaterThan(alive);
+        expect(code).toContain('const isPlatformAlive = () => Boolean(platform?.isAlive());');
+    });
+
+    it('stops the observer and the scheduler, removes the button and retires the card', () => {
+        const start = code.indexOf('const teardownOrphan = () => {');
+        expect(start).toBeGreaterThan(-1);
+        const body = code.slice(start, code.indexOf('\n    };\n', start));
+        for (const step of [
+            'observer.disconnect()',
+            'scheduler.stop()',
+            "getElementById('crm-add-button')?.remove()",
+            'retireCardHandlers',
+        ]) {
+            expect(body).toContain(step);
+        }
+        // The card stays, read-only, with what was typed: card.retire in
+        // note-card.test.ts. In English, like the rest of the card.
+        expect(code).toContain("card.retire(ORPHANED_CARD_MESSAGE)");
+        expect(code).toContain("'Extension updated – copy your note and reload the page'");
+    });
+
+    it('shows no debug banner', () => {
+        expect(code).not.toContain('showDebugBanner');
+        expect(code).not.toContain('rolodink-debug-banner');
+    });
+
+    it('does not blame the server for a click on an orphaned page', () => {
+        const click = code.slice(code.indexOf('async function addProfileFromButton'));
+        const alive = click.indexOf('if (!isPlatformAlive())');
+        expect(alive).toBeGreaterThan(-1);
+        expect(click.indexOf('apiRequest(')).toBeGreaterThan(alive);
+        expect(code).toContain("alert(isPlatformAlive() ? 'Cannot reach the CRM server.' : ORPHANED_ALERT);");
+    });
+});
+
+describe('a new profile is saved in one POST', () => {
+    // The first save on a profile that was not in the CRM used to send four
+    // messages: GET, POST without notes, ENCRYPT, PATCH - while POST
+    // /api/connections accepts notes. Now: encrypt, then one POST with the
+    // note. A 409 means it exists after all; then a fresh GET and the
+    // existing path, so a note made elsewhere is read before anything is
+    // written (pinned above, under adoptExisting).
+    const start = code.indexOf('const saveUnseen = async');
+    const unseen = code.slice(start, code.indexOf('\n    };\n', start));
+
+    it('encrypts first and sends the note with the POST', () => {
+        const encrypt = unseen.indexOf('encryptOrFail(typed)');
+        const post = unseen.indexOf('createConnectionForProfile(');
+        expect(encrypt).toBeGreaterThan(-1);
+        expect(post).toBeGreaterThan(encrypt);
+        // No lookup in front of the POST.
+        expect(unseen.slice(0, post)).not.toContain('findConnectionId(');
+        const create = code.slice(code.indexOf('async function createConnectionForProfile'));
+        const body = create.slice(0, create.indexOf('\n}\n'));
+        expect(body).toContain('body: { name, url: profileUrl, notes }');
+        // A 409 is handed back, not resolved here with a bare id: the caller
+        // must read the note before it may PATCH.
+        expect(body).toContain("if (resp.status === 409) return { outcome: 'exists' };");
+        expect(body).not.toContain('findConnectionId(');
+    });
+
+    it('goes through adoptExisting on a 409', () => {
+        expect(unseen).toMatch(/return adoptExisting\(created\.outcome === 'exists'/);
+    });
+
+    it('skips a save whose text is already on the server, and flushes on blur', () => {
+        expect(code).toContain('let lastSavedText = null;');
+        expect(code).toContain("if (note.state === 'loaded') lastSavedText = note.text;");
+        expect(code).toContain("if (note.state === 'absent') lastSavedText = '';");
+        expect(code).toContain("textarea.addEventListener('blur', flushSave)");
+        // The skip comes after the loaded gate: an unloaded card answers false.
+        const save = code.slice(code.indexOf('const saveNote = async'));
+        expect(save.indexOf('textarea.value === lastSavedText')).toBeGreaterThan(
+            save.indexOf('if (!card.isLoaded()) return false;'),
+        );
     });
 });
 

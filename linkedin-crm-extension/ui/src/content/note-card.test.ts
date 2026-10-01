@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createNoteCard, readNote, textForUnseenNote, type ApiResponse } from './note-card';
+import { createNoteCard, createStatusLine, readNote, textForUnseenNote, type ApiResponse } from './note-card';
 
 /**
  * The note card against a real (jsdom) textarea, with only the I/O faked.
@@ -57,6 +57,8 @@ const decryptStored = async (notes: unknown) => (notes ? STORED_TEXT : '');
 interface MountOptions {
     decrypt?: (notes: unknown) => Promise<string>;
     save?: () => Promise<boolean>;
+    /** Besides being on the page; stands in for main.js's "url still this profile". */
+    owned?: () => boolean;
 }
 
 /** Builds the card the way injectContextField does, and wires it the way attachNoteBehaviour does. */
@@ -73,9 +75,9 @@ function mountCard(request: () => Promise<ApiResponse>, options: MountOptions = 
     const save = vi.fn(options.save ?? (async () => true));
     const card = createNoteCard({
         textarea,
-        status,
+        status: createStatusLine(status),
         retry,
-        isAttached: () => container.isConnected,
+        isAttached: () => container.isConnected && (options.owned?.() ?? true),
         load: () => readNote(request, decrypt),
         save,
     });
@@ -327,6 +329,32 @@ describe('Retry', () => {
         expect(save).not.toHaveBeenCalled();
     });
 
+    it('ignores an answer for a card that is still on the page but no longer owns it', async () => {
+        // main.js starts the load without awaiting it, so ticks keep running
+        // while it is in flight. Between an SPA navigation and the tick that
+        // removes the card, the card is still connected while the url already
+        // belongs to the next profile: isAttached (stillOwned in main.js)
+        // answers for the profile, not only for the DOM.
+        const pending = deferred<ApiResponse>();
+        let owned = true;
+        const { card, container, textarea, save } = mountCard(scriptedRequest(pending.promise), {
+            owned: () => owned,
+        });
+
+        const loading = card.load();
+        owned = false;
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(container.isConnected).toBe(true);
+        expect(textarea.value).toBe('');
+        expect(textarea.disabled).toBe(true);
+        expect(card.isLoaded()).toBe(false);
+        card.markDirty();
+        await card.flush();
+        expect(save).not.toHaveBeenCalled();
+    });
+
     it('does not load again once loaded, so what was typed stays', async () => {
         const request = scriptedRequest(WITH_NOTE);
         const { card, textarea } = mountCard(request);
@@ -510,5 +538,125 @@ describe('saving to a connection the card has not shown', () => {
 
     it('sends nothing when the note read belongs to another connection', async () => {
         expect(textForUnseenNote(await read(WITH_NOTE), 'conn-2', typed)).toBeNull();
+    });
+});
+
+describe('the status line', () => {
+    // main.js watches document.body for childList mutations and answers each
+    // with a full injection round. A status written through innerText or
+    // textContent is one such mutation per keystroke.
+    function watchChildList(target: Node) {
+        const records: MutationRecord[] = [];
+        const observer = new MutationObserver((batch) => records.push(...batch));
+        observer.observe(target, { childList: true, subtree: true });
+        return {
+            childListRecords: () => {
+                records.push(...observer.takeRecords());
+                return records.filter((record) => record.type === 'childList');
+            },
+            stop: () => observer.disconnect(),
+        };
+    }
+
+    it('changes its text without adding or removing nodes', () => {
+        const element = document.createElement('div');
+        document.body.append(element);
+        const line = createStatusLine(element);
+        const watcher = watchChildList(element);
+
+        for (const text of ['Typing...', 'Typing...', 'Saving...', 'Saved', 'Typing...']) line.set(text);
+
+        expect(element.textContent).toBe('Typing...');
+        expect(line.text()).toBe('Typing...');
+        expect(watcher.childListRecords()).toHaveLength(0);
+        watcher.stop();
+    });
+
+    it('keeps text that was already there', () => {
+        const element = document.createElement('div');
+        element.textContent = 'Loading...';
+        expect(createStatusLine(element).text()).toBe('Loading...');
+        expect(element.childNodes).toHaveLength(1);
+    });
+
+    it('puts its node back once if something replaced it', () => {
+        const element = document.createElement('div');
+        const line = createStatusLine(element);
+        element.textContent = 'stray';
+        line.set('Saved');
+        expect(element.textContent).toBe('Saved');
+        expect(element.childNodes).toHaveLength(1);
+    });
+
+    it('is what the card writes through while it loads', async () => {
+        const pending = deferred<ApiResponse>();
+        const { card, status } = mountCard(scriptedRequest(pending.promise));
+        const watcher = watchChildList(status);
+
+        const loading = card.load();
+        expect(status.textContent).toBe('Loading...');
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(status.textContent).toBe('Saved');
+        expect(watcher.childListRecords()).toHaveLength(0);
+        watcher.stop();
+    });
+});
+
+describe('retiring a card whose extension is gone', () => {
+    const ORPHANED = 'Extension updated – copy your note and reload the page';
+
+    it('keeps the text, read-only, and says what to do', async () => {
+        const { card, textarea, status, retry } = mountCard(scriptedRequest(WITH_NOTE));
+        await card.load();
+        textarea.value = `${STORED_TEXT}, call back Friday`;
+
+        card.retire(ORPHANED);
+
+        expect(textarea.value).toBe(`${STORED_TEXT}, call back Friday`);
+        expect(textarea.readOnly).toBe(true);
+        // Not disabled: a disabled field cannot be selected to copy from.
+        expect(textarea.disabled).toBe(false);
+        expect(status.textContent).toBe(ORPHANED);
+        expect(retryShown(retry)).toBe(false);
+    });
+
+    it('does not save afterwards, and the text stays dirty', async () => {
+        const { card, save } = mountCard(scriptedRequest(WITH_NOTE));
+        await card.load();
+        card.markDirty();
+
+        card.retire(ORPHANED);
+        await card.flush();
+
+        expect(save).not.toHaveBeenCalled();
+        expect(card.isDirty()).toBe(true);
+    });
+
+    it('does not apply a load that answers after it', async () => {
+        const pending = deferred<ApiResponse>();
+        const { card, textarea, status } = mountCard(scriptedRequest(pending.promise));
+        const loading = card.load();
+
+        card.retire(ORPHANED);
+        pending.resolve(WITH_NOTE);
+        await loading;
+
+        expect(status.textContent).toBe(ORPHANED);
+        expect(textarea.value).toBe('');
+        expect(card.isLoaded()).toBe(false);
+    });
+
+    it('does not start a load, also not from Retry', async () => {
+        const request = scriptedRequest(RATE_LIMITED);
+        const { card, retry } = mountCard(request);
+        await card.load();
+
+        card.retire(ORPHANED);
+        retry.click();
+        await card.load();
+
+        expect(request).toHaveBeenCalledTimes(1);
     });
 });

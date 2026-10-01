@@ -120,9 +120,41 @@ export function textForUnseenNote(current: NoteLoad, connectionId: unknown, type
     return typed ? `${current.text}\n${typed}` : current.text;
 }
 
+/**
+ * The status line under the card, written through one Text node that stays.
+ *
+ * Assigning `innerText` or `textContent` replaces the element's children: a
+ * childList mutation, and main.js's body observer answers every one of those
+ * with a full injection round. The input handler sets "Typing..." on each
+ * keystroke, so twenty seconds of typing cost some forty rounds where four
+ * would do. Changing a Text node's `data` is a characterData mutation, which
+ * an observer watching childList does not see.
+ */
+export interface StatusLine {
+    /** Shows `text`. Does nothing when it already shows exactly that. */
+    readonly set: (text: string) => void;
+    /** What it shows now. */
+    readonly text: () => string;
+}
+
+export function createStatusLine(element: HTMLElement): StatusLine {
+    const node = element.ownerDocument.createTextNode(element.textContent ?? '');
+    element.replaceChildren(node);
+    return {
+        set: (text) => {
+            // Put back if something replaced it after all; that costs one
+            // childList mutation, once, instead of one per call.
+            if (node.parentNode !== element) element.replaceChildren(node);
+            if (node.data !== text) node.data = text;
+        },
+        text: () => node.data,
+    };
+}
+
 export interface NoteCardOptions {
     textarea: HTMLTextAreaElement;
-    status: HTMLElement;
+    /** See createStatusLine: never assign the element's text directly. */
+    status: StatusLine;
     /** Shown beside the status after a load that retrying can fix. */
     retry: HTMLButtonElement;
     /** False once the card has left the page; SPA navigation removes it. */
@@ -152,6 +184,14 @@ export interface NoteCard {
      * matters because the API's rate limiter counts per IP address.
      */
     flush(): Promise<void>;
+    /**
+     * Retires the card for good, keeping what is on it: the extension behind
+     * this script is gone (an update or a reload), so no load or save can
+     * reach anything. The text stays selectable - read-only, not disabled -
+     * so it can be copied out, and `message` says what to do. After this the
+     * card neither loads nor saves; a pending answer is not applied.
+     */
+    retire(message: string): void;
 }
 
 const LOCKED_PLACEHOLDER = 'Unable to decrypt this note. Open the Rolodink popup to sign in again.';
@@ -160,6 +200,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     const { textarea, status, retry, isAttached } = options;
     let loaded = false;
     let dirty = false;
+    let retired = false;
     let loading: Promise<void> | null = null;
     let saving: Promise<void> = Promise.resolve();
 
@@ -172,7 +213,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     };
 
     const apply = (note: NoteLoad) => {
-        status.textContent = note.status;
+        status.set(note.status);
         if (note.state === 'loaded') textarea.value = note.text;
         if (note.state === 'locked') {
             // Nothing rather than the ciphertext.
@@ -185,7 +226,7 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
     };
 
     const run = async () => {
-        status.textContent = 'Loading...';
+        status.set('Loading...');
         textarea.disabled = true;
         showRetry(false);
         let note: NoteLoad;
@@ -197,12 +238,12 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
         }
         // Navigation took the card away while we waited. A new card gets built
         // for whatever page this is now; this answer belongs to neither.
-        if (isAttached()) apply(note);
+        if (isAttached() && !retired) apply(note);
     };
 
     const load = (): Promise<void> => {
         if (loading) return loading;
-        if (loaded || !isAttached()) return Promise.resolve();
+        if (retired || loaded || !isAttached()) return Promise.resolve();
         loading = run().finally(() => {
             loading = null;
         });
@@ -239,8 +280,15 @@ export function createNoteCard(options: NoteCardOptions): NoteCard {
             dirty = true;
         },
         isDirty: () => dirty,
+        retire: (message) => {
+            retired = true;
+            textarea.readOnly = true;
+            showRetry(false);
+            status.set(message);
+        },
         flush: () => {
-            if (!dirty) return saving;
+            // Retired: nothing can be sent, and the text stays on the card.
+            if (retired || !dirty) return saving;
             dirty = false;
             saving = saving.then(attempt);
             return saving;
