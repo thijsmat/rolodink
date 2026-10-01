@@ -36,9 +36,12 @@ export function getExtensionUrl() {
  * only which store and which spot on the site.
  */
 export function storeUrl(store: Store, placement: StorePlacement): string {
-  const base =
-    store === "chrome" ? getExtensionUrl() : store === "edge" ? EDGE_STORE_URL : FIREFOX_STORE_URL
-  const url = new URL(base)
+  const bases: Record<Store, string> = {
+    chrome: getExtensionUrl(),
+    edge: EDGE_STORE_URL,
+    firefox: FIREFOX_STORE_URL,
+  }
+  const url = new URL(bases[store])
   url.searchParams.set("utm_source", "rolodink.app")
   url.searchParams.set("utm_medium", "website")
   url.searchParams.set("utm_content", placement)
