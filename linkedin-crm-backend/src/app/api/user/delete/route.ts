@@ -57,8 +57,9 @@ export async function DELETE(request: NextRequest) {
 
   try {
 
-    // Authenticate user
-    const { user, error: authError } = await getUserFromRequest(request);
+    // Authenticate user. strict: irreversible, so only for a session the Auth
+    // server still knows.
+    const { user, error: authError } = await getUserFromRequest(request, { strict: true });
     if (authError || !user) {
       return NextResponse.json(
         { error: authError || 'Unauthorized' },
