@@ -19,9 +19,16 @@ import {
  * web app could not reach the API at all, and no environment variable could
  * have fixed it.
  *
- * Runtime note: middleware runs on the Edge runtime, so `@/lib/cors` must stay
- * free of Node built-ins. It is - do not import `rate-limit.ts` here, that one
- * pulls in `net`.
+ * File convention: Next 16 renamed `middleware.ts` to `proxy.ts` and the
+ * exported `middleware` function to `proxy`. The file lives in `src/`, next to
+ * `src/app`: Next looks for it at the same level as the app directory. (It used
+ * to sit in the package root, where only Turbopack still happened to find it.)
+ *
+ * Runtime note: proxy always runs on the Node.js runtime; a `runtime` segment
+ * config is rejected at build time. Until Next 16 this file ran on the Edge
+ * runtime. Nothing here depends on either: it only uses Web APIs and
+ * `@/lib/cors`. Rate limiting stays in the route handlers
+ * (`rateLimitMiddleware` in `src/lib/rate-limit.ts`), as before.
  */
 function withCorsHeaders(origin: string, response: NextResponse | Response): NextResponse | Response {
   response.headers.set('Access-Control-Allow-Origin', origin);
@@ -36,7 +43,7 @@ function withCorsHeaders(origin: string, response: NextResponse | Response): Nex
   return response;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const requestOrigin = request.headers.get('origin');
   const originAllowed = isOriginAllowed(requestOrigin);
 
