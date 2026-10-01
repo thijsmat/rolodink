@@ -25,6 +25,7 @@ vi.mock('@/lib/supabase/server', () => ({
 vi.mock('@/lib/supabase/admin', () => ({ createSupabaseAdminClient: createAdmin }));
 
 import { DELETE } from './route';
+import { getUserFromRequest } from '@/lib/supabase/server';
 
 function del(ip: string): NextRequest {
   return new NextRequest('https://api.rolodink.app/api/user/delete', {
@@ -59,6 +60,12 @@ describe('DELETE /api/user/delete', () => {
     expect(deleteUser).toHaveBeenCalledWith('user-1');
     expect(userDelete).not.toHaveBeenCalled();
     expect(body).toMatchObject({ deletedConnections: 3, loginDeleted: true });
+  });
+
+  it('checks the session with the Auth server (strict), not only the JWT', async () => {
+    await DELETE(del('203.0.113.46'));
+
+    expect(getUserFromRequest).toHaveBeenCalledWith(expect.anything(), { strict: true });
   });
 
   it('falls back to the database when there is no service-role key', async () => {
