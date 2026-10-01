@@ -95,15 +95,21 @@ export async function mapWithConcurrency<T, R>(
     const results = new Array<R>(items.length);
     let next = 0;
     let done = 0;
-    // Each worker takes the next item when its previous one finishes.
+    let failed = false;
+    // Each worker takes the next item when its previous one finishes. After a
+    // failure the others stop picking up work, so no progress is reported
+    // once the caller has already handled the error.
     const worker = (): Promise<void> => {
-        if (next >= items.length) return Promise.resolve();
+        if (failed || next >= items.length) return Promise.resolve();
         const index = next++;
         return fn(items[index]).then(result => {
             results[index] = result;
             done++;
             onProgress?.(done, items.length);
             return worker();
+        }, error => {
+            failed = true;
+            throw error;
         });
     };
     const workers = Math.max(1, Math.min(limit, items.length));
@@ -134,24 +140,37 @@ export async function buildReadableExport(
 const FORMULA_TRIGGERS = new Set(['=', '+', '-', '@', '\t', '\r']);
 
 /** One CSV cell: formula-neutralised, then quoted per RFC 4180 when needed. */
-export function csvCell(value: string | null): string {
+export function csvCell(value: string | null, delimiter: CsvDelimiter = ','): string {
     if (!value) return '';
     const safe = FORMULA_TRIGGERS.has(value[0]) ? `'${value}` : value;
-    const needsQuotes = safe.includes('"') || safe.includes(',') || safe.includes('\n') || safe.includes('\r');
+    const needsQuotes = safe.includes('"') || safe.includes(delimiter) || safe.includes('\n') || safe.includes('\r');
     return needsQuotes ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
 const CSV_LINE_END = '\r\n';
 const UTF8_BOM = '﻿';
 
+export type CsvDelimiter = ',' | ';';
+
+/**
+ * Excel splits a double-clicked CSV on the list separator of the user's
+ * regional settings: ';' in Dutch (and most continental) locales, ',' in
+ * English ones. The UI language is the best guess the extension has.
+ */
+export function csvDelimiterFor(language: string | undefined): CsvDelimiter {
+    const lang = (language ?? '').toLowerCase();
+    return lang.startsWith('en') || lang === '' ? ',' : ';';
+}
+
 /** CSV text with a BOM, so Excel reads it as UTF-8, and CRLF line ends. */
-export function toCsv(rows: readonly ReadableRow[]): string {
+export function toCsv(rows: readonly ReadableRow[], delimiter: CsvDelimiter = ','): string {
+    const cell = (value: string | null) => csvCell(value, delimiter);
     const header = [...READABLE_EXPORT_FIELDS.map(field => CSV_HEADERS[field]), CSV_UNDECRYPTABLE_HEADER];
-    const lines = [header.map(csvCell).join(',')];
+    const lines = [header.map(cell).join(delimiter)];
     for (const row of rows) {
-        const cells = READABLE_EXPORT_FIELDS.map(field => csvCell(row[field]));
-        cells.push(csvCell(row.undecryptableFields.map(field => CSV_HEADERS[field]).join('; ')));
-        lines.push(cells.join(','));
+        const cells = READABLE_EXPORT_FIELDS.map(field => cell(row[field]));
+        cells.push(cell(row.undecryptableFields.map(field => CSV_HEADERS[field]).join(' / ')));
+        lines.push(cells.join(delimiter));
     }
     return UTF8_BOM + lines.join(CSV_LINE_END) + CSV_LINE_END;
 }
@@ -165,8 +184,13 @@ export function toJson(rows: readonly ReadableRow[], exportedAt: Date): string {
     }, null, 2);
 }
 
-export function toExportBlob(rows: readonly ReadableRow[], format: ReadableExportFormat, exportedAt: Date): Blob {
-    if (format === 'csv') return new Blob([toCsv(rows)], { type: 'text/csv;charset=utf-8' });
+export function toExportBlob(
+    rows: readonly ReadableRow[],
+    format: ReadableExportFormat,
+    exportedAt: Date,
+    csvDelimiter: CsvDelimiter = ',',
+): Blob {
+    if (format === 'csv') return new Blob([toCsv(rows, csvDelimiter)], { type: 'text/csv;charset=utf-8' });
     return new Blob([toJson(rows, exportedAt)], { type: 'application/json;charset=utf-8' });
 }
 
