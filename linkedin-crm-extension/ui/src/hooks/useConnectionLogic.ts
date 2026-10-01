@@ -344,7 +344,10 @@ export function useConnectionLogic(user: User | null) {
     const fetchAllConnections = useCallback(async (silent = false) => {
         if (!silent) {
             setIsLoading(true);
-            setError(null);
+            // "Not a profile" describes the open tab, not this request. Keep
+            // it, or closing the list lands on a new-connection form for a
+            // page that is not a profile, instead of on the start screen.
+            setError(prev => (prev === INVALID_PROFILE_PAGE_ERROR ? prev : null));
         }
         try {
             if (!userId) throw new Error('Niet ingelogd');
@@ -400,9 +403,11 @@ export function useConnectionLogic(user: User | null) {
         initialize().catch(console.error);
     }, [initializeFromCache, fetchData, userId]);
 
+    // Like handleUpdate: no global isLoading or error, because App swaps the
+    // whole view for either and the new-connection form would unmount with
+    // the text the user typed. The form shows its own progress, and a failure
+    // is thrown so the form stays up for another try.
     const handleCreateConnection = async (formData: ConnectionFormData) => {
-        setIsLoading(true);
-        setError(null);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -456,10 +461,8 @@ export function useConnectionLogic(user: User | null) {
             setToastMessage('Connectie opgeslagen.');
         } catch (e) {
             console.error('Fout bij opslaan:', e);
-            setError('Kon de connectie niet opslaan.');
             setToastMessage('Kon de connectie niet opslaan.');
-        } finally {
-            setIsLoading(false);
+            throw e;
         }
     };
 
@@ -484,9 +487,11 @@ export function useConnectionLogic(user: User | null) {
         }
     }
 
+    // No global isLoading or error here: App swaps the whole view for either,
+    // which unmounted the edit form and threw away what the user had typed.
+    // ConnectionView shows its own progress, and a failure is thrown so the
+    // form stays open with the text in it.
     const handleUpdate = async (formData: ConnectionFormData) => {
-        setIsLoading(true);
-        setError(null);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -541,10 +546,8 @@ export function useConnectionLogic(user: User | null) {
                 : 'Connectie bijgewerkt.');
         } catch (e: unknown) {
             console.error('Fout bij bijwerken:', e);
-            setError('Kon de connectie niet bijwerken.');
             setToastMessage('Bijwerken mislukt.');
-        } finally {
-            setIsLoading(false);
+            throw e;
         }
     };
 

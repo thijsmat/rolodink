@@ -44,6 +44,7 @@ let requests: Request[];
 let storage: Record<string, unknown>;
 let storageWrites: Record<string, unknown>[];
 let unauthorized: boolean;
+let failPatch: boolean;
 let decryptCalls: number;
 let currentUser: User;
 let root: Root | null = null;
@@ -68,6 +69,9 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
         return respond(wanted ? rows.filter(r => r.linkedInUrl === wanted) : rows);
     }
     if (method === 'PATCH') {
+        if (failPatch) {
+            return { ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) } as unknown as Response;
+        }
         const { id, ...changes } = body;
         const row = rows.find(r => r.id === id);
         if (!row) throw new Error(`PATCH for unknown id ${id}`);
@@ -157,6 +161,7 @@ beforeEach(() => {
     storage = {};
     storageWrites = [];
     unauthorized = false;
+    failPatch = false;
     decryptCalls = 0;
     currentUser = USER;
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
@@ -224,6 +229,50 @@ describe('editing a connection in the popup', () => {
         expect(rows[0].notes).toBe(UNDECRYPTABLE);
         expect(rows[0].meetingPlace).toBe(encrypt('Slush'));
         expect(hook().toastMessage).toMatch(/Vergrendelde velden/);
+    });
+    it('throws a failed save back to the form instead of swapping the view', async () => {
+        rows = [janeRow()];
+        const hook = await renderHook();
+        failPatch = true;
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        let thrown: unknown = null;
+        await act(async () => {
+            try {
+                await hook().handleUpdate({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Hiring' });
+            } catch (e) {
+                thrown = e;
+            }
+        });
+
+        expect(thrown).toBeInstanceOf(Error);
+        // Either of these makes App replace the edit form, and the text with it.
+        expect(hook().error).toBeNull();
+        expect(hook().isLoading).toBe(false);
+        expect(hook().connection?.id).toBe('conn-jane');
+        expect(rows[0].meetingPlace).toBe(encrypt('Web Summit'));
+    });
+
+    it('throws a failed create back to the form instead of swapping the view', async () => {
+        rows = [];
+        const hook = await renderHook();
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        // The fake API has no POST, so the request fails like a server error.
+        let thrown: unknown = null;
+        await act(async () => {
+            try {
+                await hook().handleCreateConnection({ meetingPlace: 'Slush', userCompanyAtTheTime: 'Acme', notes: 'Hiring' });
+            } catch (e) {
+                thrown = e;
+            }
+        });
+
+        expect(thrown).toBeInstanceOf(Error);
+        expect(requests.some(r => r.method === 'POST')).toBe(true);
+        // Either of these makes App replace the new-connection form.
+        expect(hook().error).toBeNull();
+        expect(hook().isLoading).toBe(false);
     });
 });
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { act } from 'react';
+import { createDomHarness } from '../test/domHarness';
 import { SettingsView } from './SettingsView';
 import { ConnectionView } from './ConnectionView';
 
@@ -40,46 +40,10 @@ vi.mock('../context/UpdateContext', () => ({
 
 const SESSION_USER = { id: 'user-1', email: 'jane@example.com' };
 
-let container: HTMLDivElement;
-let root: Root | null = null;
+const dom = createDomHarness();
+const { render, settle, button, click, type } = dom;
 let fetchMock: ReturnType<typeof vi.fn>;
 let nativeDialogs: string[];
-
-async function render(component: () => unknown) {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
-    await act(async () => {
-        root?.render(createElement(component as () => null));
-    });
-}
-
-const settle = () => act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0));
-});
-
-function button(text: string): HTMLButtonElement {
-    const found = [...container.querySelectorAll('button')].find(b => b.textContent?.trim() === text);
-    if (!found) throw new Error(`no button "${text}"`);
-    return found;
-}
-
-async function click(el: HTMLElement) {
-    await act(async () => {
-        el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    await settle();
-}
-
-// React tracks an input's value itself; set it through the native setter so
-// the change event is not swallowed.
-async function type(input: HTMLInputElement, value: string) {
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    await act(async () => {
-        setter?.call(input, value);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-}
 
 beforeEach(() => {
     nativeDialogs = [];
@@ -107,9 +71,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-    await act(async () => root?.unmount());
-    root = null;
-    container.remove();
+    await dom.unmount();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
 });
@@ -118,11 +80,11 @@ describe('changing the password', () => {
     async function submitPasswordForm(current: string, next = 'new-secret-1') {
         await render(SettingsView);
         await click(button('change_password_button'));
-        await type(container.querySelector<HTMLInputElement>('#currentPassword')!, current);
-        await type(container.querySelector<HTMLInputElement>('#newPassword')!, next);
-        await type(container.querySelector<HTMLInputElement>('#confirmPassword')!, next);
+        await type(dom.container.querySelector<HTMLInputElement>('#currentPassword')!, current);
+        await type(dom.container.querySelector<HTMLInputElement>('#newPassword')!, next);
+        await type(dom.container.querySelector<HTMLInputElement>('#confirmPassword')!, next);
         await act(async () => {
-            container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         });
         await settle();
     }
@@ -180,7 +142,7 @@ describe('deleting the account', () => {
         await render(SettingsView);
         await click(button('delete_account_button'));
         return {
-            input: container.querySelector<HTMLInputElement>('input[aria-label="msg_delete_prompt"]')!,
+            input: dom.container.querySelector<HTMLInputElement>('input[aria-label="msg_delete_prompt"]')!,
             confirm: button('delete_account_confirm_button'),
         };
     }
@@ -189,7 +151,7 @@ describe('deleting the account', () => {
         const { input } = await openConfirmation();
 
         expect(input).not.toBeNull();
-        expect(container.textContent).toContain('msg_delete_warning');
+        expect(dom.container.textContent).toContain('msg_delete_warning');
         expect(nativeDialogs).toEqual([]);
     });
 
@@ -220,7 +182,7 @@ describe('deleting the account', () => {
 
         expect(fetchMock).not.toHaveBeenCalled();
         expect(context.setToastMessage).toHaveBeenCalledWith('msg_delete_cancelled');
-        expect(container.querySelector('input[aria-label="msg_delete_prompt"]')).toBeNull();
+        expect(dom.container.querySelector('input[aria-label="msg_delete_prompt"]')).toBeNull();
     });
 });
 
@@ -234,7 +196,7 @@ describe('deleting a connection', () => {
         await click(button('🗑️Verwijderen'));
 
         expect(context.handleDelete).not.toHaveBeenCalled();
-        expect(container.textContent).toContain('confirm_delete_connection_message');
+        expect(dom.container.textContent).toContain('confirm_delete_connection_message');
 
         await click(button('confirm_delete_connection_button'));
 
@@ -248,6 +210,6 @@ describe('deleting a connection', () => {
         await click(button('cancel_button'));
 
         expect(context.handleDelete).not.toHaveBeenCalled();
-        expect(container.textContent).not.toContain('confirm_delete_connection_message');
+        expect(dom.container.textContent).not.toContain('confirm_delete_connection_message');
     });
 });
