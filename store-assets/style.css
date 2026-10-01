@@ -105,8 +105,10 @@ body { font-family: 'Inter', sans-serif; color: var(--ink); -webkit-font-smoothi
 }
 .li-btn.primary { background: var(--li-blue); color: #fff; }
 .li-btn.muted { background: #fff; color: rgba(0, 0, 0, .75); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6); }
-/* main.js zet de knop op disabled zodra iemand al in Rolodink staat */
-.li-btn.primary:disabled { background: rgba(0, 0, 0, .08); color: rgba(0, 0, 0, .6); }
+/* main.js zet de knop op disabled zodra iemand al in Rolodink staat.
+   De achtergrond is zwart op 8% over de witte kaart, dekkend uitgeschreven. De tekst blijft
+   doorzichtig, zodat ook de ✔️-emoji gedimd is. */
+.li-btn.primary:disabled { background: #EBEBEB; color: rgba(0, 0, 0, .6); }
 
 .card .body { padding: 24px; }
 .card h2 { margin: 0 0 16px; font-size: 20px; line-height: 1.2; font-weight: 600; letter-spacing: -.005em; }

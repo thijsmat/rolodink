@@ -165,7 +165,7 @@ function installChromeStub({ messages, lang, session, storageKey, tabUrl, versio
     const fill = text => text.replaceAll(/\$(\d)/g, (_, n) => list[n - 1] ?? '');
     let text = entry.message;
     for (const [name, placeholder] of Object.entries(entry.placeholders ?? {})) {
-      text = text.replaceAll(new RegExp(`\\$${name}\\$`, 'gi'), fill(placeholder.content));
+      text = text.replaceAll(new RegExp(String.raw`\$${name}\$`, 'gi'), fill(placeholder.content));
     }
     return fill(text).replaceAll('$$', '$');
   };
@@ -330,24 +330,22 @@ if (flag('preview')) {
   console.log(`Preview: ${base}/index.html?variant=store&lang=nl&shot=1-note-on-profile`);
   console.log('Let op: in een gewone browser ontbreken de stub en de demodata, dus de popup blijft leeg.');
 } else {
+  const jobs = only.filter(n => n in SETS).flatMap(name => {
+    const set = SETS[name];
+    return selectedShots.map(shot => ({
+      width: 1280, height: 800, lang: set.lang,
+      tabSlug: copy[set.lang].people[shot.profile].slug, popupView: shot.popup,
+      query: { variant: set.variant, lang: set.lang, shot: shot.id },
+      file: `${set.dir}/${shot.id}.png`,
+    }));
+  });
+  if (only.includes('promo') && !shotFilter) {
+    jobs.push(...TILES.map(tile => ({ width: tile.width, height: tile.height, query: { variant: tile.variant }, file: tile.file })));
+  }
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--font-render-hinting=none'] });
   try {
-    for (const name of only.filter(n => n in SETS)) {
-      const set = SETS[name];
-      for (const shot of selectedShots) {
-        await renderPage(browser, base, {
-          width: 1280, height: 800, lang: set.lang,
-          tabSlug: copy[set.lang].people[shot.profile].slug, popupView: shot.popup,
-          query: { variant: set.variant, lang: set.lang, shot: shot.id },
-          file: `${set.dir}/${shot.id}.png`,
-        });
-      }
-    }
-    if (only.includes('promo') && !shotFilter) {
-      for (const tile of TILES) {
-        await renderPage(browser, base, { width: tile.width, height: tile.height, query: { variant: tile.variant }, file: tile.file });
-      }
-    }
+    // Elke pagina krijgt een eigen context, dus ze renderen tegelijk.
+    await Promise.all(jobs.map(job => renderPage(browser, base, job)));
   } finally {
     await browser.close();
     server.close();

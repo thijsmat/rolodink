@@ -302,7 +302,9 @@ function buildTile(stage, kind) {
   stage.append(deck, el('div', 'drop'));
 }
 
-load().catch(error => {
+try {
+  await load();
+} catch (error) {
   globalThis.__error = String(error);
   console.error(error);
-});
+}
