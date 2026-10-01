@@ -5,8 +5,10 @@ import { chromeStorageAdapter, getSupabaseStorageKey } from '../utils/storageAda
  * The extension only ever talks to Supabase Auth. Everything else - notes,
  * connections, the data key - goes through our own API. So instead of the
  * whole supabase-js client (PostgREST, Storage, Realtime, Functions) this builds
- * the auth client on its own, exactly the way supabase-js 2.112 builds it
- * internally in `SupabaseClient._initSupabaseAuthClient`.
+ * the auth client on its own, the way supabase-js 2.112 builds it internally
+ * in `SupabaseClient._initSupabaseAuthClient` - same URL, keys, storage and
+ * flow. Only the `X-Client-Info` header (Supabase's client statistics) is no
+ * longer sent; nothing on the server depends on it.
  *
  * The one thing that must not drift is the storage key. supabase-js derived it
  * as `sb-<project-ref>-auth-token`; an existing user's session sits under that
