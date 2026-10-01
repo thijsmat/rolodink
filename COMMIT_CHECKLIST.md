@@ -115,7 +115,7 @@ feat(security): implement security fixes and architecture improvements
 
 ## ⚠️ Known Issues
 
-- Extension lint faalt (bestond al, niet gerelateerd aan deze changes)
+- ~~Extension lint faalt~~ — historisch. Sinds de extension-job in CI `npm run lint` in `linkedin-crm-extension/ui` zonder `continue-on-error` draait, slaagt die: 0 errors, 31 warnings binnen het budget van `--max-warnings 35` (stand 2026-10-01)
 - Backend ESLint werkt nu correct ✅
 
 ## ✅ Ready to Commit

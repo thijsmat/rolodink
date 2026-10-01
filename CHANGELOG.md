@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed (Firefox)
+- **Firefox 140 or later is required** from the next release (`strict_min_version` 115.0 → 140.0). Firefox for Android is not targeted
+- The manifest now declares what the extension sends to Rolodink, for Firefox's built-in data consent: `authenticationInfo`, `personallyIdentifyingInfo`, `browsingActivity` and `websiteContent`, all required. It said `none` before, which was wrong. Firefox shows newly added required data types when the update arrives. See `docs/FIREFOX_PUBLISHING.md`
+
 ## v1.3.7 (2026-09-30) - Your Notes Stay Put
 
 Everything in this release is about what you type staying where you put it,
@@ -151,7 +157,7 @@ under a version of its own; the behaviour on LinkedIn is identical to v1.3.2.
 - Add `npm run audit:notes`, a read-only script that classifies every encrypted field as empty, legacy plaintext, decryptable or corrupt, so the extent of any existing damage can be measured
 
 ### Notes
-- Firefox is unaffected: `content-firefox.js` does not include the inline note card
+- Firefox is unaffected: `content-firefox.js` does not include the inline note card (true until v1.3.5; since v1.3.6 Firefox ships the same content script, note card and encryption included)
 - This release cannot repair notes that were already corrupted — where plaintext was appended to ciphertext the original text is gone
 
 ## v1.3.0 (2026-07-30) - Server-tied Encryption
