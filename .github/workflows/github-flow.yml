@@ -182,7 +182,8 @@ jobs:
     # The VITE_ values are dummies, and they are what makes this the bundle
     # users get. Without them the Supabase client is dead code (`supabase` is
     # null when the URL is missing) and Vite drops it: CI then checked an 8 KB
-    # background.js while the release shipped 226 KB. Every VITE_ variable
+    # background.js while the release shipped 226 KB (110 KB since the auth-only
+    # client replaced supabase-js). Every VITE_ variable
     # release.yml passes is covered, plus VITE_WEBSITE_URL, which the source
     # reads with a fallback. They are public client configuration, not
     # secrets; the dummies point at nothing.
@@ -198,7 +199,7 @@ jobs:
     # The bundle has to be the real one, and it has to stay within budget.
     #
     # Floor: background.js must contain the Supabase auth client and weigh at
-    # least 100 KB. If not, the env above stopped reaching the build and every
+    # least 64 KB. If not, the env above stopped reaching the build and every
     # check below is looking at the stripped bundle, not the one users install.
     #
     # Ceilings: measured on 2026-10-01 with the env above, plus 10%.
@@ -207,6 +208,13 @@ jobs:
     #   popup assets/index-*.js   438906 -> 482797
     # Growing past one is allowed, but as a decision: raise the number here in
     # the same PR and say why.
+    #
+    # Lowered: background.js 248670 -> 121576, popup 482797 -> 364970. The
+    # extension only uses Supabase Auth, so it now bundles @supabase/auth-js
+    # on its own instead of all of supabase-js (PostgREST, Storage, Realtime,
+    # Functions). Measured 110524 and 331791 bytes (226051 and 449007
+    # before), ceilings are those plus 10%. The floor went from 100 KB to
+    # 64 KB with it: the real bundle is now 108 KB, the stripped one 8 KB.
     #
     # Raised: content.js 19427 -> 22000. The note card now sends the version
     # it last saw with every save, and on a 409 ("changed elsewhere") offers
@@ -234,18 +242,18 @@ jobs:
             fail=1
           fi
           bg_size=$(stat -c%s "$bg")
-          if [ "$bg_size" -lt 102400 ]; then
-            echo "::error::$t background.js is $bg_size bytes, under the 100 KB floor - not the real bundle"
+          if [ "$bg_size" -lt 65536 ]; then
+            echo "::error::$t background.js is $bg_size bytes, under the 64 KB floor - not the real bundle"
             fail=1
           fi
-          check_max "$bg" 248670 "$t background.js"
+          check_max "$bg" 121576 "$t background.js"
           check_max "$dir/content.js" 22000 "$t content.js"
           popups=$(find "$dir/assets" -maxdepth 1 -name 'index-*.js')
           if [ "$(printf '%s\n' "$popups" | grep -c .)" -ne 1 ]; then
             echo "::error::expected exactly one popup bundle in $dir/assets, found: $popups"
             fail=1
           fi
-          for f in $popups; do check_max "$f" 482797 "$t popup $(basename "$f")"; done
+          for f in $popups; do check_max "$f" 364970 "$t popup $(basename "$f")"; done
         done
         exit $fail
 

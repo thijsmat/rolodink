@@ -1,8 +1,7 @@
 import './polyfill'; // MUST BE FIRST
-import { createClient } from '@supabase/supabase-js';
 import { getAuthRedirectUrl } from '../utils/auth';
 import { getBrowserAPI } from '../utils/browser';
-import { chromeStorageAdapter } from '../utils/storageAdapter';
+import { createAuthClient, type AuthOnlyClient } from '../services/authClient';
 import { importDataKey, encryptText, decryptText } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 
@@ -53,9 +52,9 @@ function logToStorage(message: string, data?: unknown): Promise<void> {
 })();
 
 // Lazy Supabase Initialization
-let supabaseInstance: any = null;
+let supabaseInstance: AuthOnlyClient | null = null;
 
-function getSupabase() {
+function getSupabase(): AuthOnlyClient {
     if (supabaseInstance) return supabaseInstance;
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -65,17 +64,14 @@ function getSupabase() {
         throw new Error('Supabase credentials missing in background script');
     }
 
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-            storage: chromeStorageAdapter,
-            // Uit in de worker: auth-js start anders een ticker van 30 s die
-            // storage leest, de MV3-service-worker wakker houdt en zo'n 24
-            // refreshes per dag doet. getSession() ververst een verlopen token
-            // al zelf wanneer hij nodig is. De popup houdt auto-refresh aan.
-            autoRefreshToken: false,
-            persistSession: true,
-            detectSessionInUrl: false,
-        },
+    // Alleen de auth-client: de worker gebruikt niets anders van Supabase.
+    // Zelfde opslag, sleutel en flow als de popup; zie services/authClient.ts.
+    supabaseInstance = createAuthClient(supabaseUrl, supabaseAnonKey, {
+        // Uit in de worker: auth-js start anders een ticker van 30 s die
+        // storage leest, de MV3-service-worker wakker houdt en zo'n 24
+        // refreshes per dag doet. getSession() ververst een verlopen token
+        // al zelf wanneer hij nodig is. De popup houdt auto-refresh aan.
+        autoRefreshToken: false,
     });
     return supabaseInstance;
 }
@@ -147,7 +143,7 @@ async function handleAuth() {
             throw new Error('No access token received');
         }
 
-        // 4. Hand the tokens to supabase-js and let it own the session.
+        // 4. Hand the tokens to auth-js and let it own the session.
         //
         // There used to be a hand-built object written straight to the Supabase
         // storage key here, before this call. It looked harmless and it silently

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import type { Connection } from '../context/ConnectionContext';
 import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER } from '../utils/connectionUpdate';
 import { clearDecryptMemo, decryptMemoSize } from '../utils/decryptMemo';

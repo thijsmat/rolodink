@@ -54,3 +54,13 @@ describe('background worker is allowed to sleep', () => {
         expect(code).not.toMatch(/autoRefreshToken:\s*true/);
     });
 });
+
+describe('background worker bundles only the auth client', () => {
+    it('builds it through createAuthClient, not supabase-js', () => {
+        // supabase-js doubled background.js (226 KB against 110 KB) for
+        // PostgREST, Storage, Realtime and Functions, none of which the
+        // extension calls. services/authClient.ts keeps the storage key.
+        expect(code).toContain('createAuthClient(');
+        expect(code).not.toContain('@supabase/supabase-js');
+    });
+});
