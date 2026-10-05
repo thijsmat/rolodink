@@ -48,9 +48,14 @@ Na elke wijziging aan de extensie:
 
 ```bash
 cd linkedin-crm-extension && rm -rf ../dist
-for t in chrome edge firefox; do node build.js $t || echo "FAIL $t"; done
+node build.js chrome edge firefox || echo FAIL
 sha256sum ../dist/tmp/*/content.js
 ```
+
+`build.js` met meerdere targets bouwt de UI één keer en verpakt hem per
+target; de Firefox-post-build herschrijft alleen `dist/tmp/firefox`, nooit
+`ui/dist`. `node build.js <target>` met één target (zo roept `release.yml` hem
+aan) levert byte-voor-byte dezelfde pakketten op.
 
 De drie checksums horen **gelijk** te zijn. Zijn ze dat niet, dan is er een
 target dat iets anders krijgt en dat moet je kunnen uitleggen.
@@ -77,6 +82,7 @@ De `extension`-job pakketteert alle drie de targets en faalt op:
 - **chrome**: `content.js` is de bundle (niet de ruwe bron), bevat de encryptieprefix, heeft geen onopgeloste import, en het manifest draagt de sleutel die naar het juiste store-ID herleidt
 - **edge**: het manifest draagt **géén** `key` (Partner Center weigert dat) en verschilt verder in niets van chrome
 - **firefox**: `content.js` bevat de notitiekaart en is niet veel kleiner dan de chrome-bundle — de wacht die een teruggekeerde fork zou vangen
+- **alle drie**: CI bouwt met dummy-`VITE_`-waarden, zodat `background.js` de echte bundle is (met de Supabase-client, ~226 KB) en niet de ~8 KB die overblijft als Vite de client als dode code weggooit. De stap faalt zonder `GoTrueClient` of onder 100 KB, en bewaakt een groottebudget voor `background.js`, `content.js` en de popup-bundle. Groeit er één bewust voorbij zijn budget, verhoog dan het getal in `github-flow.yml` in dezelfde PR en zeg waarom.
 
 Daarnaast: `navigation.test.ts` eist dat beide manifests dezelfde matches én
 dezelfde versie hebben, en `version.test.ts` in de backend eist dat

@@ -11,22 +11,18 @@ Rolodink transforms your LinkedIn into a powerful, organized network. Save notes
 **Key Features:**
 • Add notes directly on LinkedIn profiles
 • Remember who you spoke with and about what
-• Smart follow-up reminders
+• Works in Chrome, Edge and Firefox
 • Search and filter your network
 • Privacy-first: your data stays yours
 • Works instantly - no training needed
 
-**Perfect for:**
-- Recruiters and talent acquisition
-- Sales professionals and business development
-- Networkers and relationship builders
-- Freelancers and consultants
-- Entrepreneurs and founders
+**Who it is for:**
+Anyone who meets a lot of people on LinkedIn and wants to remember what was said.
 
 **How it works:**
 1. Install Rolodink (30 seconds)
 2. Visit any LinkedIn profile
-3. Click "Add to CRM" to save notes
+3. Click "Add to Rldnk", or just start typing in the note card
 4. Access your organized network anytime
 
 **Privacy & Security:**
@@ -44,17 +40,16 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 
 ## Screenshots
 
-**Screenshot 1 - LinkedIn Integration:**
-- Title: "Add notes directly on LinkedIn"
-- Description: "Click 'Add to CRM' on any LinkedIn profile to save notes and context"
+Images: `store-assets/screenshots/firefox/`, 1280×800, without text in the image: AMO shows one set to every
+language, so the explanation goes in the caption. Upload them in this order, with these captions:
 
-**Screenshot 2 - Note Management:**
-- Title: "Organize your network"
-- Description: "View all your connections with notes, search, and filter"
+1. `1-note-on-profile.png` - "Write a note right on someone's LinkedIn profile. It saves automatically."
+2. `2-new-connection.png` - "Add someone and record where you met."
+3. `3-search.png` - "Search by name, company or any detail in your notes."
+4. `4-overview.png` - "All your connections, with their context, in one overview."
+5. `5-private.png` - "Your notes are visible only to you and stored encrypted."
 
-**Screenshot 3 - Follow-up Reminders:**
-- Title: "Never miss a follow-up"
-- Description: "Set reminders and track your relationship history"
+Dutch captions for the Dutch listing: see `store-assets/README.md`.
 
 ## Privacy Policy
 
@@ -85,8 +80,8 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 **Version:** 1.0.2  
 **Size:** ~2MB  
 **Permissions:** activeTab, storage, tabs, linkedin.com, api.rolodink.app  
-**Manifest:** v2 (Firefox compatibility)  
-**Compatibility:** Firefox 109+  
+**Manifest:** v3  
+**Compatibility:** Firefox 140+ (desktop)
 **Gecko ID:** rolodink@rolodink.app
 
 ## Keywords

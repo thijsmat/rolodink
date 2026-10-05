@@ -11,7 +11,9 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(request: NextRequest) {
     const corsHeaders = buildCorsHeaders(request);
     try {
-        const { user } = await getUserFromRequest(request);
+        // strict: the data key unlocks every encrypted note, so a signed-out session or
+        // deleted account must not get it with a JWT that has not expired yet.
+        const { user } = await getUserFromRequest(request, { strict: true });
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
         }

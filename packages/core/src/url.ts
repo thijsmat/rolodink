@@ -5,20 +5,19 @@
  * `content.js` / `useConnectionLogic.ts`, one in `content-firefox.js`, one in
  * the backend's `connections/route.ts`).
  *
- * Two normalizers exist on purpose, and the difference matters:
+ * `profileLookupUrl` is the one function every client and the API route a
+ * profile URL through before it is used for lookup, create, update or as a
+ * cache key. It returns the canonical form of `normalizeLinkedInUrl` for a
+ * profile URL. The API applies it on every write and on `GET ?url=`, so two
+ * URLs for the same person can no longer become two rows.
  *
- * - `legacyNormalizeLinkedInUrl` reproduces exactly what the extension and the
- *   backend do today: strip query, hash and trailing slash, keep the host and
- *   the full path. Rows already in the database were stored this way, and
- *   `GET /api/connections?url=` is an exact string match that the server does
- *   NOT normalize. So this is the form that matches stored data.
- * - `normalizeLinkedInUrl` is the canonical form we want going forward:
- *   host forced to `www.linkedin.com`, path reduced to `/in/<slug>`.
- *
- * A mobile share can produce a URL that normalizes to something the database
- * has never seen (`nl.linkedin.com`, `/mwlite/in/…`, tracking parameters), so a
- * lookup should try both forms and then fall back to matching on the slug alone
- * against the locally cached list. `buildLookupCandidates` does the first part.
+ * `legacyNormalizeLinkedInUrl` reproduces what the extension sent before:
+ * strip query, hash and trailing slash, keep the host and the full path. Rows
+ * stored before the API canonicalised can look like that (`nl.linkedin.com`,
+ * `/in/<slug>/details/…`, mixed case). The API still finds those by comparing
+ * `profileLookupUrl` of the stored value, see `findOwnedConnectionByUrl` in
+ * the backend; `buildLookupCandidates` remains for clients that may talk to an
+ * API that does not canonicalise yet.
  */
 
 const LINKEDIN_HOST = /(^|\.)linkedin\.com$/;
@@ -31,69 +30,112 @@ export function legacyNormalizeLinkedInUrl(rawUrl: string): string {
     return normalized;
 }
 
+/** Parses a URL that may lack its scheme; null when it does not parse. */
+function parseLoose(rawUrl: string): URL | null {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    try {
+        return new URL(withScheme);
+    } catch {
+        return null;
+    }
+}
+
+function isLinkedInHost(url: URL): boolean {
+    return LINKEDIN_HOST.test(url.hostname.toLowerCase());
+}
+
 /**
  * Canonical form: `https://www.linkedin.com/in/<slug>`.
+ *
+ * - host forced to `www.linkedin.com` and scheme to https;
+ * - path reduced to the first segment after `/in/` (drops `/overlay/…`,
+ *   `/details/…`, `/recent-activity/…` and a locale suffix such as `/nl`);
+ * - query and hash dropped (`?originalSubdomain=`, `?locale=`, utm, trk …);
+ * - the slug percent-decoded and, for vanity slugs, lowercased: LinkedIn
+ *   treats `/in/Jan-Jansen` and `/in/jan-jansen` as the same profile.
+ *
+ * Opaque member IDs (`/in/ACoAA…`) keep their case: they are base64-like and
+ * case-sensitive. They also cannot be mapped to the vanity slug offline, so a
+ * profile saved once under its member ID and once under its slug stays two
+ * rows. That is a known limitation.
  *
  * Anything that is not a LinkedIn profile URL is returned untouched rather than
  * mangled — callers decide what to do with it.
  */
 export function normalizeLinkedInUrl(rawUrl: string): string {
-    const trimmed = rawUrl.trim();
-    if (!trimmed) return rawUrl;
-
-    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-
-    let url: URL;
-    try {
-        url = new URL(withScheme);
-    } catch {
-        return rawUrl;
-    }
-
-    if (!LINKEDIN_HOST.test(url.hostname.toLowerCase())) {
-        return rawUrl;
-    }
+    const url = parseLoose(rawUrl);
+    if (!url || !isLinkedInHost(url)) return rawUrl;
 
     const slug = extractSlugFromPath(url.pathname);
-    if (!slug) {
-        return rawUrl;
-    }
+    if (!slug) return rawUrl;
 
-    // Query and hash are dropped wholesale: utm_*, trk, lipi, miniProfileUrn and
-    // whatever LinkedIn adds next are all tracking noise.
-    return `https://${CANONICAL_HOST}/in/${slug}`;
+    return `https://${CANONICAL_HOST}/in/${canonicalSlug(slug)}`;
+}
+
+/**
+ * The one key for a profile URL: what the extension sends to the API for
+ * lookup, create and update, what the API stores, and what both use as a
+ * cache or dedupe key.
+ *
+ * LinkedIn profile URLs get the canonical form of `normalizeLinkedInUrl`.
+ * Anything else keeps the behaviour the API has always had: for a LinkedIn
+ * host query, hash and one trailing slash are stripped (company pages and the
+ * like); any other URL is returned as it came in.
+ */
+export function profileLookupUrl(rawUrl: string): string {
+    const url = parseLoose(rawUrl);
+    if (!url || !isLinkedInHost(url)) return rawUrl;
+    if (extractSlugFromPath(url.pathname)) return normalizeLinkedInUrl(rawUrl);
+
+    url.search = '';
+    url.hash = '';
+    let pathname = url.pathname.trim();
+    if (pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+    url.pathname = pathname;
+    return url.toString();
+}
+
+/** True for a URL that `profileLookupUrl` reduces to `https://www.linkedin.com/in/<slug>`. */
+export function isLinkedInProfileUrl(rawUrl: string): boolean {
+    return getProfileSlug(rawUrl) !== null;
+}
+
+/**
+ * Lowercases a vanity slug, never a member ID. A slug that only decodes into
+ * something that is not a single path segment keeps its encoded form, so the
+ * canonical URL always parses back to the same slug.
+ */
+function canonicalSlug(slug: string): string {
+    const safe = /[/?#%\s]/.test(slug) ? encodeURIComponent(slug) : slug;
+    return isOpaqueProfileId(safe) ? safe : safe.toLowerCase();
 }
 
 /**
  * Pulls `<slug>` out of a profile path, tolerating the mobile-web `/mwlite`
  * prefix and any trailing subpage such as `/details/experience`.
  *
- * The slug keeps its original case: opaque member IDs like `ACoAAA…` are
- * case-sensitive, and lowercasing them would break matching.
+ * Split on `/` rather than a regex: no backtracking to think about.
+ * The slug keeps its original case here; `canonicalSlug` decides about case.
  */
 function extractSlugFromPath(pathname: string): string | null {
-    const cleaned = pathname.replace(/^\/mwlite/i, '');
-    const match = /^\/in\/([^/]+)/.exec(cleaned);
-    if (!match?.[1]) return null;
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments[0]?.toLowerCase() === 'mwlite') segments.shift();
+    if (segments[0] !== 'in' || !segments[1]) return null;
+    const segment = segments[1];
     try {
-        return decodeURIComponent(match[1]);
+        return decodeURIComponent(segment);
     } catch {
-        return match[1];
+        return segment;
     }
 }
 
-/** The profile slug, or null when the URL is not a LinkedIn profile. */
+/** The profile slug as written (decoded, case kept), or null when the URL is not a LinkedIn profile. */
 export function getProfileSlug(rawUrl: string): string | null {
-    const trimmed = rawUrl.trim();
-    if (!trimmed) return null;
-    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    try {
-        const url = new URL(withScheme);
-        if (!LINKEDIN_HOST.test(url.hostname.toLowerCase())) return null;
-        return extractSlugFromPath(url.pathname);
-    } catch {
-        return null;
-    }
+    const url = parseLoose(rawUrl);
+    if (!url || !isLinkedInHost(url)) return null;
+    return extractSlugFromPath(url.pathname);
 }
 
 /**
@@ -146,8 +188,9 @@ export function extractLinkedInProfileUrl(text: string | null | undefined): stri
  * The URL strings worth trying against `GET /api/connections?url=`, most likely
  * first and without duplicates.
  *
- * Both forms are included because the server does not normalize the query
- * parameter, so only an exact match on the stored string will hit.
+ * Both forms are included because an API from before canonicalisation did not
+ * normalize the query parameter, so only an exact match on the stored string
+ * would hit. The current API canonicalises and finds legacy rows itself.
  */
 export function buildLookupCandidates(rawUrl: string): string[] {
     const candidates = [
@@ -158,10 +201,8 @@ export function buildLookupCandidates(rawUrl: string): string[] {
     return [...new Set(candidates)];
 }
 
-/** True when two URLs point at the same profile, ignoring host and path depth. */
+/** True when two URLs point at the same profile, ignoring host, path depth and vanity-slug case. */
 export function isSameProfile(a: string, b: string): boolean {
-    const slugA = getProfileSlug(a);
-    const slugB = getProfileSlug(b);
-    if (!slugA || !slugB) return false;
-    return slugA.toLowerCase() === slugB.toLowerCase();
+    if (!isLinkedInProfileUrl(a) || !isLinkedInProfileUrl(b)) return false;
+    return normalizeLinkedInUrl(a) === normalizeLinkedInUrl(b);
 }

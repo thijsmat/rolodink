@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/auth-js';
 import { supabase } from '../services/supabase';
 
 export function useAuthLogic() {

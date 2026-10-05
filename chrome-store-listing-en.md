@@ -6,55 +6,48 @@
 **Summary:** Your note layer on top of LinkedIn, your modern rolodex.  
 **Description:** 
 
-Rolodink transforms your LinkedIn into a powerful, organized network. Save notes on every connection, remember conversations, and follow up smarter - all without leaving LinkedIn.
+Rolodink turns LinkedIn into your own organized network. Save a note on every connection, remember where you met and what you talked about, and find anyone again in seconds, all without leaving LinkedIn.
 
 **Key Features:**
 • Add notes directly on LinkedIn profiles
 • Remember who you spoke with and about what
-• Smart follow-up reminders
 • Search and filter your network
 • Privacy-first: your data stays yours
-• Works instantly - no training needed
 
-**Perfect for:**
-- Recruiters and talent acquisition
-- Sales professionals and business development
-- Networkers and relationship builders
-- Freelancers and consultants
-- Entrepreneurs and founders
+**Who it is for:**
+Anyone who meets a lot of people on LinkedIn and wants to remember what was said.
 
 **How it works:**
 1. Install Rolodink (30 seconds)
 2. Visit any LinkedIn profile
-3. Click "Add to CRM" to save notes
+3. Click "Add to Rldnk", or just start typing in the note card
 4. Access your organized network anytime
 
 **Privacy & Security:**
 - No tracking in the extension
-- Secure cloud storage
-- Full control over your data
-- Open source transparency
+- Notes are encrypted before they are stored
+- Export or delete your data anytime
 
 Stop forgetting conversations. Start building meaningful relationships with Rolodink.
 
 **Category:** Productivity  
 **Language:** English  
-**Website:** https://rolodink.app  
+**Homepage URL:** https://rolodink.app (exact zo, en geverifieerd in Google Search Console)  
 **Support:** hello@rolodink.app
 
 ## Screenshots
 
-**Screenshot 1 - LinkedIn Integration:**
-- Title: "Add notes directly on LinkedIn"
-- Description: "Click 'Add to CRM' on any LinkedIn profile to save notes and context"
+Images: `store-assets/screenshots/chrome-edge/en/` (and `nl/` for the Dutch listing), 1280×800, with the
+headline in the image. Upload them in this order; `store-assets/README.md` explains how to re-render them.
 
-**Screenshot 2 - Note Management:**
-- Title: "Organize your network"
-- Description: "View all your connections with notes, search, and filter"
+1. `1-note-on-profile.png` - "Your notes, right on LinkedIn." (the note card on a LinkedIn profile)
+2. `2-new-connection.png` - "Remember where you met." (adding someone in the popup)
+3. `3-search.png` - "Find anyone again, even by a detail." (search finds Sanne by "sail")
+4. `4-overview.png` - "Your whole network, with context." (all connections in the popup)
+5. `5-private.png` - "Just for you, and stored encrypted." (automatic encryption in the settings)
 
-**Screenshot 3 - Follow-up Reminders:**
-- Title: "Never miss a follow-up"
-- Description: "Set reminders and track your relationship history"
+Promo tiles: `store-assets/screenshots/promo/small-tile-440x280.png` (small promo tile) and
+`marquee-1400x560.png` (marquee promo tile).
 
 ## Privacy Policy
 
@@ -64,13 +57,12 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 - Privacy-friendly website analytics only
 
 **Permissions:**
-- LinkedIn access: to show the "Add to CRM" button
+- LinkedIn access: to show the "Add to Rldnk" button and the note card
 - Local storage: for settings and UI preferences
 - No data sharing with third parties
 
 **Your Rights:**
 - Export or delete your data anytime
-- Full transparency via open source code
 - Contact: hello@rolodink.app
 
 ## Support Information
@@ -82,14 +74,17 @@ Stop forgetting conversations. Start building meaningful relationships with Rolo
 
 ## Technical Details
 
-**Version:** 1.0.2  
+**Version:** 1.3.7  
 **Size:** ~2MB  
-**Permissions:** activeTab, scripting, storage, tabs  
+**Permissions:** activeTab, storage, identity  
 **Host permissions:** linkedin.com, api.rolodink.app  
 **Manifest:** v3  
 **Compatibility:** Chrome, Edge, Brave (Chromium-based browsers)
 
 ## Keywords
+
+Internal reference only. Never paste these into the store description: the Chrome Web Store rejected 1.3.7 for keyword spam ("Yellow Argon") over a list of target audiences.
+
 
 LinkedIn, CRM, notes, networking, productivity, relationship management, follow-up, professional networking, contact management, rolodex
 

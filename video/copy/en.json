@@ -1,0 +1,91 @@
+{
+  "title": "Rolodink — explainer video",
+  "file": "rolodink-explainer",
+  "hook": [
+    "Who was that",
+    "one again?"
+  ],
+  "tagline": [
+    "Your notes,",
+    "right on LinkedIn."
+  ],
+  "steps": [
+    [
+      "Open a",
+      "profile.",
+      "Click "
+    ],
+    [
+      "Write a",
+      "note.",
+      "Private, just for you."
+    ],
+    [
+      "Find them",
+      "again.",
+      "Search by name, company or detail."
+    ]
+  ],
+  "profile": {
+    "degree": "· 1st",
+    "headline": "Head of Talent at Nordlicht",
+    "meta": "Utrecht, Netherlands · 500+ connections · ",
+    "contact": "Contact info",
+    "message": "Message",
+    "more": "More",
+    "about": "About"
+  },
+  "sticker": "Stored encrypted",
+  "popup": {
+    "pills": [
+      "Show All Connections",
+      "Settings",
+      "Help"
+    ],
+    "search": "Search connections... (Ctrl+F)",
+    "result": "1 result for “sail”"
+  },
+  "outro": [
+    "From connection",
+    "to relationship."
+  ],
+  "cta": "Free for Chrome, Edge & Firefox",
+  "roles": [
+    "UX Lead",
+    "Founder",
+    "Investor",
+    "Recruiter",
+    "Sales",
+    "CFO",
+    "Engineer",
+    "Consultant",
+    "Marketing",
+    "Head of Talent",
+    "Product",
+    "Designer"
+  ],
+  "note": "Met at DDW. Looking for a CTO. Restores sailboats.",
+  "query": "sail",
+  "cards": [
+    [
+      "UX Lead at Studio Noord",
+      "Had coffee in March. Wants to brainstorm research."
+    ],
+    [
+      "Founder at Kiemkracht",
+      "Saw the pitch in Rotterdam. Call back after summer."
+    ],
+    [
+      "Head of Talent at Nordlicht",
+      "Met at DDW. Looking for a CTO. Restores sailboats."
+    ],
+    [
+      "Investor",
+      "Intro via Eva. Interested in HR tech."
+    ],
+    [
+      "Recruiter at Talentlab",
+      "Sharing the job opening with her network."
+    ]
+  ]
+}

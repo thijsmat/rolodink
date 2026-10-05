@@ -13,7 +13,7 @@ description: Release- en operationele kennis voor de Rolodink-monorepo (extensie
 ## Releaseproces (volledig geautomatiseerd sinds juli 2026)
 
 1. `./scripts/bump-version.sh X.Y.Z` — bumpt 6 JSON-bestanden (beide manifests, extension package.json's, backend- en website-package.json) én `linkedin-crm-backend/src/lib/version.ts`, de versie die `/api/version` aan de update-melding in de extensie meldt. Die laatste stond lang los van het script en dreef weg: bij 1.3.5 stond hij nog op 1.3.3, en bij een eerdere release op 1.0.10 terwijl 1.3.0 live was — ouder dan de uitgebrachte versie, dus de melding ging helemaal nooit af. `version.test.ts` faalt nu de build als hij niet meer met beide manifests overeenkomt. Werk daarna `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md` én de website-changelog (`website/src/messages/{nl,en}.json` → `ChangelogPage.releases` + `DownloadPage.version`) bij. Alles via PR naar `main`.
-2. Tag `ext-vX.Y.Z` op `main` → `release.yml` bouwt drie zips (`Rolodink-{chrome,edge,firefox}-vX.Y.Z.zip`) en maakt een **draft**-release. De tekst komt uit `RELEASE_NOTES_vX.Y.Z.md`; ontbreekt dat bestand, dan valt hij terug op `.github/RELEASE_TEMPLATE.md` en zegt de release dat zelf. (Tot 2026-08-18 werd de template altijd gebruikt en gingen v1.3.4's echte notes ongelezen mee de repo in.)
+2. Tag `ext-vX.Y.Z` op `main` → `release.yml` bouwt drie zips (`Rolodink-{chrome,edge,firefox}-vX.Y.Z.zip`) en maakt een **draft**-release. (Of `release.yml` handmatig starten met `version` en eventueel `publish: true`, zie "Release vanuit een Claude Code-sessie" hieronder.) De tekst komt uit `RELEASE_NOTES_vX.Y.Z.md`; ontbreekt dat bestand, dan valt hij terug op `.github/RELEASE_TEMPLATE.md` en zegt de release dat zelf. (Tot 2026-08-18 werd de template altijd gebruikt en gingen v1.3.4's echte notes ongelezen mee de repo in.)
 3. Release publiceren (GitHub UI) → `publish-{chrome,edge,firefox}.yml` uploaden automatisch naar de drie stores. Ze wachten met retries (10×30s) op de assets, dus publiceren vóórdat de build klaar is kan — maar netter is wachten op de draft.
    - **`release.yml` opnieuw draaien werkt de tekst van een bestaande draft NIET bij.** De assets wél. `softprops/action-gh-release` maakt eerst een nieuwe draft met de verse notities, ziet dan de bestaande draft voor dezelfde tag, kiest die en gooit de nieuwe weg:
 
@@ -23,11 +23,25 @@ description: Release- en operationele kennis voor de Rolodink-monorepo (extensie
      ```
 
      Je houdt dan nieuwe zips met oude releasenotities over — en niets in de run wijst erop, want hij slaagt. Wil je de tekst verversen: **verwijder eerst de bestaande draft** in de GitHub-UI en draai `release.yml` daarna opnieuw. Controleer na afloop altijd de body van de draft, niet alleen de exitcode van de run.
+   - **Chrome: `Publish condition not met: Homepage URL is not reachable. Timeout while connecting.`** (1.3.7, 2026-09-30). De upload slaagt (`uploadState: SUCCESS`), maar het indienen weigert, ook bij een herhaling, terwijl rolodink.app gewoon 200 geeft. Oorzaak: de listing in het dashboard had een verouderde tekst en homepage, en het domein stond niet in Google Search Console. Oplossing: in het Chrome-dashboard de listing bijwerken (Homepage URL exact `https://rolodink.app`), het domein verifiëren in Search Console met hetzelfde Google-account, en daarna in het dashboard handmatig "Submit for review" doen; het pakket staat er dan al. Let op: de listing-tekst wordt nooit door een workflow bijgewerkt; `chrome-store-listing-en.md` is alleen de bron.
+   - **Chrome "later publiceren"**: staat dat aan, dan gaat een goedgekeurde versie niet vanzelf live, en vervalt hij 30 dagen na goedkeuring als niemand op Publish klikt.
    - **Chrome weigert een tweede upload zolang de vorige in review staat**: `ITEM_NOT_UPDATABLE — The item cannot be updated now because it is in pending review, ready to publish, or deleted status.` Geen fout in het pakket; wachten tot de review klaar is en dan `publish-chrome.yml` handmatig draaien op de nieuwere tag. Publiceer dus niet twee versies vlak achter elkaar naar Chrome.
    - **Eén store mislukt?** De drie publish-workflows hebben sinds 2026-08-18 een `workflow_dispatch` met een `tag`-input, dus je kunt er één los opnieuw draaien zonder de release te depubliceren. Dat werkt alléén als de oorzaak buiten het pakket lag (verlopen token, store in review). Zat de fout in het pakket zelf, dan hangen de kapotte zips nog aan de tag: **cut dan een nieuwe versie.** `release.yml` opnieuw draaien op een al gepubliceerde release is geen optie — `softprops/action-gh-release` krijgt `draft: true` mee en zet hem dan terug op draft.
 4. Volledige procesdocumentatie: `RELEASE_PROCESS.md`.
 
-Let op vanuit een Claude Code Remote-sessie: de git-proxy staat alleen pushes naar de eigen werkbranch toe — **tags pushen kan niet** en er is geen MCP-tool voor releases/tags. De gebruiker maakt de tag/release via github.com/thijsmat/rolodink/releases/new ("Create new tag on publish").
+### Release vanuit een Claude Code-sessie (zonder GitHub-UI)
+
+De git-proxy staat alleen pushes naar de eigen werkbranch toe, dus **tags pushen kan niet**. Een draft publiceren kan ook niet: er is geen MCP-tool die een release bewerkt. **Workflows starten kan wél**, met `mcp__github__actions_run_trigger` (method `run_workflow`, `ref: main`). Sinds 1.3.7 gaat een release daarmee helemaal zonder de gebruiker:
+
+1. **Store Credentials Check** (`store-credentials-check.yml`, geen inputs). Die publiceert niets. Is hij rood, stop dan; een verlopen Chrome-token kost anders een halve release.
+2. **Release** (`release.yml`) met `version: "X.Y.Z"` en `publish: true`. De release gaat direct live en de tag `ext-vX.Y.Z` komt op de gebouwde commit.
+3. Een release die `GITHUB_TOKEN` publiceert, start **geen** andere workflows. Dat is een GitHub-regel; alleen `workflow_dispatch` en `repository_dispatch` vormen een uitzondering. Start daarom zelf `publish-chrome.yml`, `publish-edge.yml` en `publish-firefox.yml`, elk met `tag: "ext-vX.Y.Z"`.
+4. Controleer daarna het volgende. Een run die slaagt zegt niets over de inhoud (zie de valkuil hierboven).
+   - Het "List Artifacts"-log van de release-run toont drie zips.
+   - De release-body is de tekst uit `RELEASE_NOTES_vX.Y.Z.md`; bekijk hem met `mcp__github__get_release_by_tag`.
+   - Alle drie de publish-runs zijn groen.
+
+Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml` maakt een draft, de gebruiker publiceert die in de UI, en de publish-workflows starten dan vanzelf.
 
 ## Store-publishing
 
@@ -45,12 +59,13 @@ Let op vanuit een Claude Code Remote-sessie: de git-proxy staat alleen pushes na
 
 - SonarCloud Quality Gate faalt op "Security Rating on New Code" bij: `${{ }}` in run-blokken, niet-gepinde actions, of secrets als CLI-argumenten. De SonarCloud-API is vanuit de sessie-proxy niet bereikbaar; vraag de gebruiker om het dashboard.
 - GitHub Actions-logs verlopen na ~90 dagen; job-metadata (stappen + timing) blijft wel opvraagbaar.
-- Trivy draait als `security`-job en voedt de code-scanning-alerts; die zijn vrijwel allemaal npm-dependency-CVE's en te reproduceren met `npm audit` per lockfile (root + `linkedin-crm-extension/ui`).
-- npm `overrides` in de root-package.json forceren gepatchte transitieve versies (sharp/postcss in next, shell-quote in web-ext, e.d.) — bij dependency-updates checken of upstream ze inmiddels zelf bumpt.
+- Trivy draait als `security`-job en voedt de code-scanning-alerts; die zijn vrijwel allemaal npm-dependency-CVE's en te reproduceren met `npm audit` per lockfile (root, `linkedin-crm-extension/ui` en `tools/firefox-sign`).
+- npm `overrides` in de root-package.json forceren gepatchte transitieve versies (sharp/postcss in next, e.d.) — bij dependency-updates checken of upstream ze inmiddels zelf bumpt.
+- web-ext zit niet meer in de root-workspace maar in `tools/firefox-sign/` (exact gepind, eigen lockfile; `publish-firefox.yml` installeert daaruit met `npm ci --ignore-scripts`). Die lockfile is een derde om met `npm audit` te controleren. Bijwerken: versie in `tools/firefox-sign/package.json` aanpassen en daar `npm install --package-lock-only --ignore-scripts` draaien.
 
 ## Vercel & Supabase
 
-- Vercel-team: `matthijs-goes-projects`. Projecten: `linkedin-crm-backend` (`prj_FhtIDw3iBul95oL06e4bdc7NDgis`, rootDirectory `linkedin-crm-backend`) en `website` (`prj_vF1utasz46KFrUCkUzLo7ETk9HWw`).
+- Vercel-team: `matthijs-goes-projects`. DNS van rolodink.app staat níet bij Vercel maar bij externe nameservers (`ns1.site.eu`, `ns2.site.nl`, …); records wijzig je daar. Projecten: `linkedin-crm-backend` (`prj_FhtIDw3iBul95oL06e4bdc7NDgis`, rootDirectory `linkedin-crm-backend`) en `website` (`prj_vF1utasz46KFrUCkUzLo7ETk9HWw`).
 - Deployfout **"Resource provisioning failed"** binnen seconden = het gekoppelde Supabase-project (`linkedin-crm`, ref `adacfwaslbcimqgvbpqd`) is gepauzeerd (free tier, ~1 week zonder API-activiteit). Fix: project herstellen; structureel voorkomt `GET /api/cron/keep-alive` (dagelijkse Vercel Cron, 04:23 UTC) dit — die doet één Supabase REST-query, want directe Postgres-verbindingen (Prisma) tellen niet als activiteit.
 - Free tier: max 2 actieve Supabase-projecten; `linkedin-crm-staging` staat gepauzeerd.
 - Backend-runtime vereist `ENCRYPTION_MASTER_KEY` (base64, exact 32 bytes) in de Vercel-env. **Nooit roteren of verliezen** — alle versleutelde data wordt dan onleesbaar. Niet nodig voor de build, wel voor `/api/user/key`.

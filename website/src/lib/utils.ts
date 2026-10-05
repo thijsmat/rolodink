@@ -4,12 +4,47 @@ import { twMerge } from "tailwind-merge"
 const DEFAULT_EXTENSION_URL =
   "https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc"
 
+const EDGE_STORE_URL =
+  "https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf"
+
+const FIREFOX_STORE_URL = "https://addons.mozilla.org/addon/rolodink/"
+
+export type Store = "chrome" | "edge" | "firefox"
+
+/** Where on the site a store link sits; shows up in the store's own stats. */
+export type StorePlacement =
+  | "hero"
+  | "cta"
+  | "download"
+  | "article"
+  | "features"
+  | "help"
+  | "how-it-works"
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 export function getExtensionUrl() {
   return process.env.NEXT_PUBLIC_EXTENSION_URL?.trim() || DEFAULT_EXTENSION_URL
+}
+
+/**
+ * A store link with UTM parameters, so the stores' own install stats show
+ * which spot on the site a visitor came from (utm_source/utm_content). No
+ * personal data: only which store and which spot on the site.
+ */
+export function storeUrl(store: Store, placement: StorePlacement): string {
+  const bases: Record<Store, string> = {
+    chrome: getExtensionUrl(),
+    edge: EDGE_STORE_URL,
+    firefox: FIREFOX_STORE_URL,
+  }
+  const url = new URL(bases[store])
+  url.searchParams.set("utm_source", "rolodink.app")
+  url.searchParams.set("utm_medium", "website")
+  url.searchParams.set("utm_content", placement)
+  return url.toString()
 }
 
 /**

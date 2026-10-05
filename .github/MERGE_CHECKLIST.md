@@ -6,7 +6,7 @@
 - [ ] Code review completed
 - [ ] All tests passing
 - [ ] Documentation reviewed
-- [ ] Rate limiting thresholds verified (100 req/hour)
+- [ ] Rate limiting thresholds verified (600 req/hour; sign-in and sign-up 100 req/hour)
 - [ ] RLS migration SQL syntax checked
 
 ### Publishing Automation PR
@@ -58,13 +58,13 @@ WHERE tablename IN ('Connection', 'Note');
 After Vercel deployment:
 ```bash
 # Test rate limiting
-for i in {1..101}; do
+for i in {1..601}; do
   curl https://your-api.vercel.app/api/version
 done
 ```
 
-- [ ] First 100 requests return 200 OK
-- [ ] Request 101+ returns 429 Too Many Requests
+- [ ] First 600 requests return 200 OK (the counter is per serverless instance)
+- [ ] Request 601+ returns 429 Too Many Requests
 - [ ] Response includes `X-RateLimit-*` headers
 - [ ] `Retry-After` header present
 

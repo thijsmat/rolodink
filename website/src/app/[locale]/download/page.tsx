@@ -2,14 +2,13 @@
 
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { getExtensionUrl } from "@/lib/utils";
+import { storeUrl } from "@/lib/utils";
 import { Chrome } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
 import { useTranslations } from 'next-intl';
 
 export default function DownloadPage() {
   const t = useTranslations('DownloadPage');
-  const extensionUrl = getExtensionUrl();
 
   return (
     <>
@@ -25,7 +24,7 @@ export default function DownloadPage() {
             <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto">
               {/* Chrome - Primary */}
               <Button asChild size="lg" className="h-16 px-8 text-lg w-full">
-                <a href={extensionUrl} target="_blank" rel="noreferrer">
+                <a href={storeUrl("chrome", "download")} target="_blank" rel="noreferrer">
                   <Chrome className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">{t('chrome')}</span>
@@ -36,7 +35,7 @@ export default function DownloadPage() {
 
               {/* Edge - Secondary */}
               <Button asChild size="lg" className="h-16 px-8 text-lg w-full">
-                <a href="https://microsoftedge.microsoft.com/addons/detail/ihcocnphebdemiipmoedinojihpbcmmf" target="_blank" rel="noreferrer">
+                <a href={storeUrl("edge", "download")} target="_blank" rel="noreferrer">
                   <Edge className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">{t('edge')}</span>
@@ -47,7 +46,7 @@ export default function DownloadPage() {
 
               {/* Firefox - Secondary */}
               <Button asChild size="lg" className="h-16 px-8 text-lg w-full">
-                <a href="https://addons.mozilla.org/addon/rolodink/" target="_blank" rel="noreferrer">
+                <a href={storeUrl("firefox", "download")} target="_blank" rel="noreferrer">
                   <Firefox className="mr-2 h-6 w-6" />
                   <div className="flex flex-col items-start">
                     <span className="font-semibold">{t('firefox')}</span>

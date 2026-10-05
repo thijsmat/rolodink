@@ -180,16 +180,64 @@
         "message": "Privacy & GDPR"
     },
     "export_data_title": {
-        "message": "Exporteer mijn data"
+        "message": "Versleutelde back-up (JSON)"
     },
     "export_data_description": {
-        "message": "Download een volledig overzicht van al je connecties en notities als JSON bestand."
+        "message": "Download al je connecties zoals ze op de server staan. Notities, e-mail en telefoon blijven versleuteld en zijn alleen met jouw sleutel in Rolodink te lezen. Bedoeld als back-up, niet om te lezen."
     },
     "export_data_button": {
-        "message": "📊 Exporteer data"
+        "message": "📦 Download back-up"
     },
     "exporting_button": {
         "message": "⏳ Exporteren..."
+    },
+    "readable_export_title": {
+        "message": "Leesbare export"
+    },
+    "readable_export_description": {
+        "message": "Download al je connecties ontsleuteld, om te lezen of in Excel te openen. Het ontsleutelen gebeurt hier in de extensie; de server krijgt je notities nooit leesbaar te zien."
+    },
+    "readable_export_warning": {
+        "message": "⚠️ Let op: dit bestand bevat je notities, e-mailadressen en telefoonnummers onversleuteld. Bewaar het op een veilige plek, deel het niet en verwijder het als je het niet meer nodig hebt."
+    },
+    "readable_export_csv_button": {
+        "message": "📄 CSV (Excel)"
+    },
+    "readable_export_json_button": {
+        "message": "🧾 JSON"
+    },
+    "readable_export_fetching": {
+        "message": "Connecties ophalen…"
+    },
+    "readable_export_progress": {
+        "message": "Ontsleutelen… $DONE$ van $TOTAL$",
+        "placeholders": {
+            "done": {
+                "content": "$1"
+            },
+            "total": {
+                "content": "$2"
+            }
+        }
+    },
+    "msg_readable_export_success": {
+        "message": "$COUNT$ connecties leesbaar geëxporteerd. Bewaar het bestand veilig.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "msg_readable_export_partial": {
+        "message": "$COUNT$ connecties geëxporteerd, maar $FAILED$ velden konden niet worden ontsleuteld (sleutel ontbreekt of is vergrendeld). Die velden zijn leeg gelaten en staan per rij in de kolom 'Not decrypted'.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "failed": {
+                "content": "$2"
+            }
+        }
     },
     "delete_account_title": {
         "message": "Verwijder mijn account"
@@ -339,6 +387,15 @@
     "msg_delete_error_network": {
         "message": "Kon account niet verwijderen. Controleer je internetverbinding."
     },
+    "confirm_delete_connection_message": {
+        "message": "Weet je zeker dat je deze connectie wilt verwijderen?"
+    },
+    "confirm_delete_connection_button": {
+        "message": "Verwijderen"
+    },
+    "delete_account_confirm_button": {
+        "message": "Account definitief verwijderen"
+    },
     "connection_form_edit_title": {
         "message": "Connectie Bewerken"
     },
@@ -371,6 +428,27 @@
     },
     "help_user_company": {
         "message": "Waar werkte je toen je deze persoon ontmoette?"
+    },
+    "section_contact": {
+        "message": "Contactgegevens"
+    },
+    "label_email": {
+        "message": "E-mailadres"
+    },
+    "placeholder_email": {
+        "message": "naam@bedrijf.nl"
+    },
+    "help_contact_private": {
+        "message": "Versleuteld opgeslagen, net als je notities. Alleen jij kunt het lezen."
+    },
+    "warning_email_format": {
+        "message": "Dit lijkt geen e-mailadres. Je kunt het wel opslaan."
+    },
+    "label_phone": {
+        "message": "Telefoonnummer"
+    },
+    "placeholder_phone": {
+        "message": "+31 6 12345678"
     },
     "section_notes": {
         "message": "Notities"
@@ -420,7 +498,7 @@
         "message": "Zoekopdracht wissen"
     },
     "search_results_count": {
-        "message": "$COUNT$ resultaat resultaten voor \"$QUERY$\"",
+        "message": "Zoekresultaten voor \"$QUERY$\": $COUNT$",
         "placeholders": {
             "count": {
                 "content": "$1"
@@ -707,5 +785,63 @@
     },
     "gdpr_opt_in_label": {
         "message": "Ja, houd me af en toe op de hoogte van belangrijke Rolodink updates en nieuwe functies."
+    },
+    "start_title": {
+        "message": "Welkom bij Rolodink"
+    },
+    "start_description": {
+        "message": "Open een LinkedIn-profiel om iemand toe te voegen."
+    },
+    "start_first_step_hint": {
+        "message": "Eerste stap: ga naar linkedin.com, open het profiel van iemand die je onlangs hebt ontmoet en klik daar op het Rolodink-icoon."
+    },
+    "connection_create_failed": {
+        "message": "Kon de connectie niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
+    },
+    "connection_update_failed": {
+        "message": "Kon de wijzigingen niet opslaan. Je tekst staat er nog, dus je kunt het opnieuw proberen."
+    },
+    "connection_conflict_message": {
+        "message": "Deze connectie is intussen elders gewijzigd. Je wijzigingen staan nog in het formulier."
+    },
+    "connection_conflict_load_latest": {
+        "message": "Laatste versie laden"
+    },
+    "connection_conflict_overwrite": {
+        "message": "Toch opslaan (overschrijven)"
+    },
+    "feedback_section_title": {
+        "message": "Feedback"
+    },
+    "feedback_title": {
+        "message": "Feedback sturen"
+    },
+    "feedback_description": {
+        "message": "Opent een e-mail aan het Rolodink-team. Alleen de extensieversie en je browser worden ingevuld."
+    },
+    "feedback_button": {
+        "message": "✉️ Feedback sturen"
+    },
+    "feedback_mail_subject": {
+        "message": "Rolodink-feedback (v$VERSION$, $BROWSER$)",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
+    },
+    "feedback_mail_body": {
+        "message": "Hallo Rolodink-team,\n\n\n\n---\nExtensieversie: $VERSION$\nBrowser: $BROWSER$",
+        "placeholders": {
+            "version": {
+                "content": "$1"
+            },
+            "browser": {
+                "content": "$2"
+            }
+        }
     }
 }

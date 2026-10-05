@@ -29,8 +29,9 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
-          # Deze job installeert geen dependencies, dus het automatische
-          # npm-caching van v5+ zou hier alleen werk zijn zonder opbrengst.
+          # Geen npm-cache: de enige install hieronder is web-ext voor het
+          # ondertekenen, en een publish-job hoort van een schone install te
+          # komen, net als release.yml.
           package-manager-cache: false
 
       - name: Check store credentials
@@ -74,16 +75,27 @@ jobs:
           ZIP_FILE: ${{ steps.download_artifact.outputs.zip_file }}
         run: unzip "$ZIP_FILE" -d firefox-source
 
-      - name: Install web-ext
-        run: npm install -g web-ext
+      # web-ext komt uit tools/firefox-sign, exact gepind met lockfile. Tot
+      # oktober 2026 was dit `npm install -g web-ext`: ongepind, dus elke
+      # publish draaide de versie die die dag 'latest' was, met install-hooks
+      # aan. De root-workspace hoeft web-ext niet meer mee te slepen (~214
+      # pakketten in elke CI-install) en deze job krijgt een vaste versie.
+      # Bijwerken: versie in tools/firefox-sign/package.json aanpassen en daar
+      # `npm install --package-lock-only --ignore-scripts` draaien.
+      - name: Install web-ext (pinned)
+        working-directory: tools/firefox-sign
+        run: npm ci --ignore-scripts
 
       - name: Publish to Mozilla Add-ons
         # web-ext leest WEB_EXT_API_KEY/WEB_EXT_API_SECRET zelf uit de omgeving;
         # secrets niet als CLI-argumenten doorgeven (zichtbaar in proceslijst).
+        # Het binaire bestand uit de lockfile, geen npx (dat haalt bij een
+        # ontbrekend pakket een willekeurige versie uit de registry).
         env:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
         run: |
-          web-ext sign \
+          tools/firefox-sign/node_modules/.bin/web-ext --version
+          tools/firefox-sign/node_modules/.bin/web-ext sign \
             --channel listed \
             --source-dir firefox-source

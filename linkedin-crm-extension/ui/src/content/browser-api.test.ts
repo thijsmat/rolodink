@@ -23,6 +23,7 @@ function makeFirefox(overrides: Partial<Record<string, unknown>> = {}) {
     const stored: Record<string, unknown> = { contextFieldEnabled: true };
     const api: ExtensionApi = {
         runtime: {
+            id: 'rolodink-test-id',
             sendMessage: (message: unknown) => {
                 calls.push(message);
                 return Promise.resolve({ success: true, echoed: message });
@@ -52,6 +53,7 @@ function makeChrome(overrides: Partial<Record<string, unknown>> = {}) {
     const calls: unknown[] = [];
     const stored: Record<string, unknown> = { contextFieldEnabled: true };
     const runtime: ExtensionApi['runtime'] = {
+        id: 'rolodink-test-id',
         lastError: null,
         sendMessage: (message: unknown, callback?: (value: unknown) => void) => {
             calls.push(message);
@@ -169,6 +171,45 @@ describe.each(PLATFORMS)('on %s', (_label, build) => {
         expect(api.hasStorage()).toBe(false);
         await expect(api.storageGet(['contextFieldEnabled'])).rejects.toThrow(/storage/i);
         await expect(api.storageSet({ a: 1 })).rejects.toThrow(/storage/i);
+    });
+
+    it('is alive while the runtime has an id', () => {
+        const platform = build();
+        const api = createBrowserApi({ api: platform.api, style: platform.style });
+        expect(api.isAlive()).toBe(true);
+    });
+
+    it('is not alive once the runtime id is gone, as after an extension update', () => {
+        // Chrome and Edge clear runtime.id in the orphaned content script.
+        const platform = build();
+        const { id: _id, ...orphaned } = platform.api.runtime;
+        const api = createBrowserApi({
+            api: { ...platform.api, runtime: orphaned },
+            style: platform.style,
+        });
+        expect(api.isAlive()).toBe(false);
+    });
+
+    it('is not alive when reading the runtime id throws', () => {
+        const platform = build();
+        const runtime = { ...platform.api.runtime };
+        Object.defineProperty(runtime, 'id', {
+            get: () => {
+                throw new Error('Extension context invalidated.');
+            },
+        });
+        const api = createBrowserApi({ api: { ...platform.api, runtime }, style: platform.style });
+        expect(api.isAlive()).toBe(false);
+    });
+
+    it('notices the id disappearing after it was created', () => {
+        // The adapter is built once at import; the update happens later.
+        const platform = build();
+        const runtime = platform.api.runtime as { id?: string };
+        const api = createBrowserApi({ api: platform.api, style: platform.style });
+        expect(api.isAlive()).toBe(true);
+        delete runtime.id;
+        expect(api.isAlive()).toBe(false);
     });
 
     it('turns a synchronous throw into a rejection', async () => {

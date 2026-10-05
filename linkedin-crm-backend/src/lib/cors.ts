@@ -1,7 +1,7 @@
 // CORS utility with secure origin whitelisting.
 //
 // This is the single source of truth for which origins may talk to the API.
-// Both the Next.js middleware (preflight handling) and the individual route
+// Both the Next.js proxy (src/proxy.ts, preflight handling) and the route
 // handlers import from here, so the two can no longer drift apart.
 //
 // Two kinds of origin are allowed, and they are checked differently on purpose:
@@ -65,7 +65,7 @@ export function isAllowedWebOrigin(origin: string | null | undefined): origin is
 
 /**
  * True when the origin may receive CORS headers.
- * Used by both the middleware and the route handlers.
+ * Used by both the proxy (src/proxy.ts) and the route handlers.
  */
 export function isOriginAllowed(origin: string | null | undefined): origin is string {
   return isExtensionOrigin(origin) || isAllowedWebOrigin(origin);

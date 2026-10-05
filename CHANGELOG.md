@@ -1,3 +1,51 @@
+## v1.3.8 (2026-10-05) - More in Your Rldnk, Nothing Twice
+
+Email, phone and a readable export in the popup, and a note no longer gets
+lost or lands twice.
+
+### Added
+- **Email and phone in the popup**: entered, edited, shown and searched. `mailto:` and `tel:` links; "+31 (0)6 …" dials +316…. Both are encrypted like notes (#127)
+- **Readable export** (Settings): JSON or CSV, decrypted in the extension. CSV uses `;` in Dutch and `,` in English, and escapes values that a spreadsheet would run as a formula (#129)
+- **Home screen outside a profile**, with a feedback button (#115)
+- **Conflict protection**: `PATCH /api/connections` takes an optional `expectedUpdatedAt`; a stale version gets `409 CONNECTION_CONFLICT` with the current row. The popup offers "load newest" or "overwrite"; the note card does the same. Older extension versions keep the old behaviour (#126)
+
+### Fixed
+- **The note card vanished on some profiles.** It was placed in the tallest candidate header, which on some pages was the ads sidebar; LinkedIn then removed it. The card now goes into the header that carries the profile's name. Present since 1.3.4 (#133)
+- **Duplicate connections.** One canonical profile URL (`https://www.linkedin.com/in/<slug>`) in extension and backend; old rows with another spelling of the same slug are found, and a second spelling gets 409 (#124)
+- **Deleting your account left the login in place.** The data goes in one transaction, the login via the Auth admin API (#109)
+- Changing your password checks the current one; deleting asks inline instead of via `confirm()`/`prompt()`, which could close a Firefox popup; the connection cache is bound to its user and cleared on logout, account switch or 401 (#113)
+- The content script no longer waits on the network between rounds, cleans up after navigation, and saves in one POST (#119)
+
+### Changed
+- **Firefox 140 or later is required** (`strict_min_version` 115.0 → 140.0). Firefox for Android is not targeted
+- The Firefox manifest declares what the extension sends to Rolodink, for Firefox's built-in data consent: `authenticationInfo`, `personallyIdentifyingInfo`, `browsingActivity` and `websiteContent`, all required. It said `none` before, which was wrong. See `docs/FIREFOX_PUBLISHING.md` (#128)
+- **The extension bundles only `@supabase/auth-js`**, not all of `supabase-js`: `background.js` is 51% smaller (#130)
+- The background worker no longer runs auth auto-refresh, and the heartbeat pauses outside profiles and in hidden tabs; one GET per profile visit (#114)
+- The popup decrypts the list only when it is opened, in parallel, with an LRU per owner, and ignores stale responses (#122)
+- Backend: token check via `getClaims` (ready for ES256 keys), with a strict `getUser` check for key, delete and export (#125); connections without cache and PATCH in one query (#111); login limit 60 per hour (#110); `POSTGRES_PRISMA_URL` as fallback for `DATABASE_URL` (#131)
+- Website: Plausible script removed; the privacy page names the analytics actually used (#132)
+
+## v1.3.7 (2026-09-30) - Your Notes Stay Put
+
+Everything in this release is about what you type staying where you put it,
+and staying encrypted where it is kept.
+
+### Fixed
+- **A note that failed to load could be overwritten.** The note card opened its text field after every load attempt, including the failed ones: a busy server (429), a server error, an expired session, a timeout. The field was empty then, and the first save replaced the stored note with whatever had been typed. The field now opens only once the card knows what is stored - your note, or that the profile is not in Rldnk yet. Otherwise it stays closed, says why, and offers Retry. And if a note turns up on that profile after the card loaded - saved from the popup or another tab - the card keeps both rather than replacing it
+- **A note could land on the next profile.** A save still pending when you clicked through to another profile could create or update that one instead. The card now records its profile's URL and name when it is placed, keeps its field closed until the existing note has loaded, saves one change at a time, and flushes when you leave the page, switch tabs or the card is removed
+- **Editing a connection in the popup cleared its email and phone.** The edit form has no inputs for either and sent both as empty. Only the fields the form has are sent now
+- **Saving an edit could overwrite a note that could not be decrypted.** The popup showed "🔒 [Encrypted - Passphrase Required]" in its place and saved that text over the note. A field holding it is now left as it is on the server
+- **Deleting a connection wrote your notes to browser storage in plain text.** The popup rebuilt its cache from the decrypted list; it now filters the encrypted copy it already had
+- **Deleting your account did not work in English.** The prompt asked for "DELETE" and only "VERWIJDER" was accepted. Both are now, in any case
+- The background worker uses the cross-browser API throughout. It no longer mirrors the access token into extension storage, and no longer writes the OAuth authorization URL to its debug log
+
+### Changed
+- **Fewer permissions.** `tabs` and `web_accessible_resources` are gone from both manifests; `host_permissions` now cover every LinkedIn host the content script runs on
+
+### Tests
+- The note card's load, retry and save decisions live in `note-card.ts` and are tested against real DOM elements, including every failure status that used to reopen the field
+- The popup's edit and delete run against a fake API and fake extension storage, asserting what a PATCH sends and what the cache holds afterwards
+
 ## v1.3.6 (2026-08-24) - One Extension, Three Browsers
 
 **Firefox gets the inline note card.** It never had one: Firefox ran a separate
@@ -130,7 +178,7 @@ under a version of its own; the behaviour on LinkedIn is identical to v1.3.2.
 - Add `npm run audit:notes`, a read-only script that classifies every encrypted field as empty, legacy plaintext, decryptable or corrupt, so the extent of any existing damage can be measured
 
 ### Notes
-- Firefox is unaffected: `content-firefox.js` does not include the inline note card
+- Firefox is unaffected: `content-firefox.js` does not include the inline note card (true until v1.3.5; since v1.3.6 Firefox ships the same content script, note card and encryption included)
 - This release cannot repair notes that were already corrupted — where plaintext was appended to ciphertext the original text is gone
 
 ## v1.3.0 (2026-07-30) - Server-tied Encryption

@@ -86,14 +86,6 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <head>
-        {/* Plausible Analytics */}
-        <script
-          defer
-          data-domain="rolodink.app"
-          src="https://plausible.io/js/script.js"
-        />
-      </head>
       <body className={`${inter.variable} ${playfair.variable} font-inter bg-background text-foreground`}>
         <NextIntlClientProvider messages={messages}>
           <SiteHeader />

@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@supabase/supabase-js';
-import { SENSITIVE_FIELDS } from '@rolodink/core';
+import type { User } from '@supabase/auth-js';
+import { SENSITIVE_FIELDS, isLinkedInProfileUrl, profileLookupUrl, readConflict, withExpectedVersion } from '@rolodink/core';
 import type { SensitiveField } from '@rolodink/core';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import type { Connection, ConnectionFormData } from '../context/ConnectionContext';
 import { INVALID_PROFILE_PAGE_ERROR } from '../context/ConnectionContext';
+import { ConnectionChangedElsewhereError, LOCKED_FIELD_PLACEHOLDER, pickFieldsToUpdate } from '../utils/connectionUpdate';
+import { clearDecryptMemo } from '../utils/decryptMemo';
+import { decryptWithMemo } from '../utils/decryptField';
 
 // Helper functions (copied from ConnectionContext)
 const warnOnce = (() => {
@@ -85,44 +88,60 @@ async function encryptFormData<T extends Partial<Record<SensitiveField, string |
     return encrypted;
 }
 
+type Runtime = NonNullable<ReturnType<typeof getRuntime>>;
+
+/** Decrypt one value for display: a locked field shows the lock placeholder. */
+async function decryptValue(runtime: Runtime, ownerId: string | null, ciphertext: string): Promise<string> {
+    return (await decryptWithMemo(runtime, ownerId, ciphertext)) ?? LOCKED_FIELD_PLACEHOLDER;
+}
+
 /** Decrypt all sensitive fields in a connection. */
-async function decryptConnections(connections: Connection[]): Promise<Connection[]> {
+async function decryptConnections(connections: Connection[], ownerId: string | null): Promise<Connection[]> {
     const runtime = getRuntime();
     if (!runtime) return connections;
 
-    const promises = connections.map(async (conn) => {
+    // Every field of every row at once. Field by field, each row waited for
+    // one round trip to the background script per encrypted field in turn.
+    return Promise.all(connections.map(async (conn) => {
         const decrypted: Connection = { ...conn };
-
-        for (const field of SENSITIVE_FIELDS) {
+        await Promise.all(SENSITIVE_FIELDS.map(async (field) => {
             const raw = (conn as Record<string, unknown>)[field];
             if (typeof raw === 'string' && raw.startsWith('rolodink-enc:')) {
-                try {
-                    const response = await runtime.sendMessage({ type: 'DECRYPT_TEXT', ciphertext: raw });
-                    (decrypted as Record<string, unknown>)[field] = response?.success
-                        ? response.plaintext
-                        : '🔒 [Encrypted - Passphrase Required]';
-                } catch (e) {
-                    console.warn(`[Decryption] Failed for field '${field}':`, e);
-                    (decrypted as Record<string, unknown>)[field] = '🔒 [Encrypted - Passphrase Required]';
-                }
+                (decrypted as Record<string, unknown>)[field] = await decryptValue(runtime, ownerId, raw);
             }
-        }
-
+        }));
         return decrypted;
-    });
-    return Promise.all(promises);
+    }));
 }
 
-function normalizeLinkedInUrl(raw: string): string {
+// The popup caches the server's rows (still encrypted) so the list shows at
+// once. The cache records whose rows they are: a cache without an owner, or
+// with another one, is never shown and is removed.
+const CACHE_KEYS = ['cachedConnections', 'cachedConnectionsOwner', 'connectionsCacheTimestamp'];
+
+async function clearConnectionsCache(): Promise<void> {
+    const storage = getStorage();
+    if (!storage) return;
     try {
-        const u = new URL(raw);
-        u.search = '';
-        u.hash = '';
-        if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
-        return u.toString();
-    } catch {
-        return raw;
+        await storage.remove(CACHE_KEYS);
+    } catch (error) {
+        console.error('Failed to clear the connections cache:', error);
     }
+}
+
+/** The cached rows if they belong to ownerId; otherwise none, and a foreign cache is removed. */
+async function readOwnedCache(ownerId: string | null): Promise<Connection[]> {
+    if (!ownerId) return [];
+    const storage = getStorage();
+    if (!storage) return [];
+    const result = await storage.get(['cachedConnections', 'cachedConnectionsOwner']);
+    const cached: unknown = result.cachedConnections;
+    if (!Array.isArray(cached)) return [];
+    if (result.cachedConnectionsOwner !== ownerId) {
+        await clearConnectionsCache();
+        return [];
+    }
+    return cached as Connection[];
 }
 
 function pickFirstConnection(data: unknown): Connection | null {
@@ -140,33 +159,39 @@ async function getCurrentTabUrl(): Promise<string | null> {
 }
 
 async function fetchConnectionData(token: string, url: string) {
-    const normalizedUrl = normalizeLinkedInUrl(url);
+    // The same key the content script and the API use - one row per profile.
+    const normalizedUrl = profileLookupUrl(url);
     return fetch(`${API_BASE_URL}/api/connections?url=${encodeURIComponent(normalizedUrl)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 }
 
+const isProfileUrl = (url: string | null) => !!url && isLinkedInProfileUrl(url);
+
 async function handleFetchResponse(
     response: Response,
     supabase: any,
+    ownerId: string | null,
+    isCurrent: () => boolean,
     setConnection: (c: Connection | null) => void,
-    setAllConnections: (c: Connection[]) => void,
-    setError: (e: string) => void
+    setError: (e: string) => void,
+    onUnauthorized: () => Promise<void>
 ) {
     if (response.ok) {
-        const data = await response.json();
-        const picked = pickFirstConnection(data);
-        if (picked) {
-            const decArray = await decryptConnections([picked]);
-            setConnection(decArray[0]);
-        } else {
-            setConnection(null);
-            setAllConnections([]);
-        }
+        // A profile without a saved connection says nothing about the list,
+        // so the list stays as it is.
+        const picked = pickFirstConnection(await response.json());
+        const decrypted = picked ? (await decryptConnections([picked], ownerId))[0] : null;
+        if (isCurrent()) setConnection(decrypted);
+    } else if (!isCurrent()) {
+        // A newer load, or another account, owns the popup now. Not even a
+        // 401: signing out on an old token could sign out the new account.
+        return;
     } else if (response.status === 404) {
         setConnection(null);
     } else if (response.status === 401) {
         setError('Je sessie is verlopen. Log opnieuw in.');
+        await onUnauthorized();
         // scope: 'local' - see the note on the other 401 handler below.
         await supabase.auth.signOut({ scope: 'local' });
     } else {
@@ -186,6 +211,10 @@ function handleFetchError(e: unknown, setError: (e: string) => void) {
 }
 
 export function useConnectionLogic(user: User | null) {
+    // A primitive for the effects and callbacks below. The user object is
+    // replaced on every auth event (token refresh, SIGNED_IN), and with it as
+    // a dependency the cache was decrypted two or three times per popup open.
+    const userId = user?.id ?? null;
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<Connection | null>(null);
@@ -196,52 +225,83 @@ export function useConnectionLogic(user: User | null) {
 
     const fetchAllConnectionsRef = useRef<((silent?: boolean) => Promise<void>) | null>(null);
 
+    // Load generations. Every load takes the next number and, after each
+    // await, writes to state only while its number is still the latest. A new
+    // load, an account switch and sign-out all move the number on, so an
+    // answer that arrives late can never overwrite newer data or show the
+    // previous owner's.
+    const listGenRef = useRef(0);
+    const profileGenRef = useRef(0);
+
     // Cache management
     const loadCachedConnections = useCallback(async (): Promise<Connection[]> => {
         try {
-            const storage = getStorage();
-            if (!storage) return [];
-            const result = await storage.get('cachedConnections');
-            return result.cachedConnections || [];
+            return await readOwnedCache(userId);
         } catch (error) {
             console.error('Failed to load cached connections:', error);
             return [];
         }
-    }, []);
+    }, [userId]);
 
     const saveConnectionsToCache = useCallback(async (connections: Connection[]) => {
+        // Without a user there is no owner to record, and an ownerless cache
+        // would be thrown away on the next read anyway.
+        if (!userId) return;
         try {
             const storage = getStorage();
             if (!storage) return;
             await storage.set({
                 cachedConnections: connections,
+                cachedConnectionsOwner: userId,
                 connectionsCacheTimestamp: Date.now(),
             });
         } catch (error) {
             console.error('Failed to save connections to cache:', error);
         }
-    }, []);
+    }, [userId]);
+
+    /** Show the cached list, decrypted. True when it put a list on screen. */
+    const showCachedConnections = useCallback(async (): Promise<boolean> => {
+        const gen = ++listGenRef.current;
+        setIsLoading(true);
+        try {
+            const cachedConnections = await loadCachedConnections();
+            if (cachedConnections.length === 0) return false;
+            const decryptedConnections = await decryptConnections(cachedConnections, userId);
+            if (gen !== listGenRef.current) return false;
+            setAllConnections(decryptedConnections);
+            return true;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [userId, loadCachedConnections]);
 
     const initializeFromCache = useCallback(async () => {
         try {
-            const cachedConnections = await loadCachedConnections();
-            if (cachedConnections.length > 0) {
-                const decryptedConnections = await decryptConnections(cachedConnections);
-                setAllConnections(decryptedConnections);
+            if (!userId) {
+                // Until auth has loaded there is no user yet, but there may be
+                // a session. Only with no session at all is the cache orphaned.
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) await clearConnectionsCache();
+                return;
             }
-            setIsInitialized(true);
+            // The list is decrypted when it is opened (see showListView), not
+            // on every popup open: on a profile the popup shows one connection.
+            // Only the start screen uses the list at once, for its first-step hint.
+            if (!isProfileUrl(await getCurrentTabUrl())) await showCachedConnections();
         } catch (error) {
             console.error('Failed to initialize from cache:', error);
+        } finally {
             setIsInitialized(true);
         }
-    }, [loadCachedConnections]);
+    }, [userId, showCachedConnections]);
 
     // Offline detection
     useEffect(() => {
         const handleOnline = () => {
             setIsOffline(false);
             setToastMessage('Internetverbinding hersteld!');
-            if (user) {
+            if (userId) {
                 setTimeout(() => {
                     const callFetch = fetchAllConnectionsRef.current;
                     if (callFetch) callFetch(true).catch(console.error);
@@ -261,13 +321,15 @@ export function useConnectionLogic(user: User | null) {
             globalThis.removeEventListener('online', handleOnline);
             globalThis.removeEventListener('offline', handleOffline);
         };
-    }, [user]);
+    }, [userId]);
 
     const fetchData = useCallback(async () => {
+        const gen = ++profileGenRef.current;
+        const isCurrent = () => gen === profileGenRef.current;
         setIsLoading(true);
         setError(null);
         try {
-            if (!user) {
+            if (!userId) {
                 setConnection(null);
                 return;
             }
@@ -276,34 +338,40 @@ export function useConnectionLogic(user: User | null) {
             if (!token) return;
 
             const currentUrl = await getCurrentTabUrl();
+            if (!isCurrent()) return;
             if (!currentUrl) {
                 setError('Deze functionaliteit werkt alleen binnen de Rolodink-extensie.');
                 setConnection(null);
                 return;
             }
 
-            if (!currentUrl.includes('linkedin.com/in/')) {
+            if (!isProfileUrl(currentUrl)) {
                 setError(INVALID_PROFILE_PAGE_ERROR);
                 setConnection(null);
                 return;
             }
 
             const response = await fetchConnectionData(token, currentUrl);
-            await handleFetchResponse(response, supabase, setConnection, setAllConnections, setError);
+            await handleFetchResponse(response, supabase, userId, isCurrent, setConnection, setError, clearConnectionsCache);
         } catch (e: unknown) {
-            handleFetchError(e, setError);
+            if (isCurrent()) handleFetchError(e, setError);
         } finally {
             setIsLoading(false);
         }
-    }, [user]);
+    }, [userId]);
 
     const fetchAllConnections = useCallback(async (silent = false) => {
+        const gen = ++listGenRef.current;
+        const isCurrent = () => gen === listGenRef.current;
         if (!silent) {
             setIsLoading(true);
-            setError(null);
+            // "Not a profile" describes the open tab, not this request. Keep
+            // it, or closing the list lands on a new-connection form for a
+            // page that is not a profile, instead of on the start screen.
+            setError(prev => (prev === INVALID_PROFILE_PAGE_ERROR ? prev : null));
         }
         try {
-            if (!user) throw new Error('Niet ingelogd');
+            if (!userId) throw new Error('Niet ingelogd');
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             if (!token) throw new Error('Niet ingelogd');
@@ -311,9 +379,11 @@ export function useConnectionLogic(user: User | null) {
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!isCurrent()) return;
 
             if (response.status === 401) {
                 if (!silent) setError('Je sessie is verlopen.');
+                await clearConnectionsCache();
                 // scope: 'local'. signOut() defaults to 'global' in auth-js,
                 // which asks the server to revoke every refresh token this user
                 // has - on their phone, on the website, in another browser. One
@@ -326,38 +396,52 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error(`Serverfout: ${response.statusText}`);
 
             const connections = await response.json();
-            const decryptedConnections = await decryptConnections(connections);
+            const decryptedConnections = await decryptConnections(connections, userId);
+            if (!isCurrent()) return;
             setAllConnections(decryptedConnections);
             await saveConnectionsToCache(connections); // save raw (encrypted) to cache
         } catch (e) {
             console.error('Fout bij ophalen van alle connecties:', e);
-            if (!silent) {
+            // The last good list stays on screen; only the error is new.
+            if (!silent && isCurrent()) {
                 setError('Kon de connecties niet ophalen.');
                 setToastMessage('Kon de connecties niet ophalen.');
             }
         } finally {
             if (!silent) setIsLoading(false);
         }
-    }, [user, saveConnectionsToCache]);
+    }, [userId, saveConnectionsToCache]);
 
     useEffect(() => {
         fetchAllConnectionsRef.current = fetchAllConnections;
     }, [fetchAllConnections]);
 
+    // An account switch invalidates every load still under way and every
+    // remembered plaintext, and the list on screen belonged to the previous
+    // owner. Declared before the effect below, so it runs first.
+    useEffect(() => {
+        listGenRef.current += 1;
+        profileGenRef.current += 1;
+        clearDecryptMemo();
+        setAllConnections(prev => (prev.length > 0 ? [] : prev));
+    }, [userId]);
+
     // Initialize
     useEffect(() => {
         const initialize = async () => {
             await initializeFromCache();
-            if (user) {
+            if (userId) {
                 await fetchData();
             }
         };
-        initialize();
-    }, [initializeFromCache, fetchData, user]);
+        initialize().catch(console.error);
+    }, [initializeFromCache, fetchData, userId]);
 
+    // Like handleUpdate: no global isLoading or error, because App swaps the
+    // whole view for either and the new-connection form would unmount with
+    // the text the user typed. The form shows its own progress, and a failure
+    // is thrown so the form stays up for another try.
     const handleCreateConnection = async (formData: ConnectionFormData) => {
-        setIsLoading(true);
-        setError(null);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -366,7 +450,8 @@ export function useConnectionLogic(user: User | null) {
             const tabsApi = getTabs();
             if (!tabsApi) throw new Error('chrome.tabs is niet beschikbaar.');
             const tabs = await tabsApi.query({ active: true, currentWindow: true });
-            const profileUrl = tabs[0]?.url;
+            const tabUrl = tabs[0]?.url;
+            const profileUrl = tabUrl ? profileLookupUrl(tabUrl) : tabUrl;
             const profileName = tabs[0]?.title?.split(' | ')[0] || 'Onbekende Naam';
 
             const encryptedForm = await encryptFormData({
@@ -399,11 +484,12 @@ export function useConnectionLogic(user: User | null) {
 
             if (!response.ok) throw new Error('Opslaan mislukt');
             const newConnection: Connection = await response.json();
-            const decArray = await decryptConnections([newConnection]);
+            const decArray = await decryptConnections([newConnection], userId);
             setConnection(decArray[0]);
 
-            const updatedConnections = [...allConnections, decArray[0]];
-            setAllConnections(updatedConnections);
+            // A list not loaded yet stays unloaded: a list of one would show
+            // when it is opened. The cache below gets the new row either way.
+            if (allConnections.length > 0) setAllConnections([...allConnections, decArray[0]]);
             // Re-cache encrypted version from response
             const cachedConnections = await loadCachedConnections();
             await saveConnectionsToCache([...cachedConnections, newConnection]);
@@ -411,10 +497,8 @@ export function useConnectionLogic(user: User | null) {
             setToastMessage('Connectie opgeslagen.');
         } catch (e) {
             console.error('Fout bij opslaan:', e);
-            setError('Kon de connectie niet opslaan.');
             setToastMessage('Kon de connectie niet opslaan.');
-        } finally {
-            setIsLoading(false);
+            throw e;
         }
     };
 
@@ -439,9 +523,43 @@ export function useConnectionLogic(user: User | null) {
         }
     }
 
-    const handleUpdate = async (formData: ConnectionFormData) => {
-        setIsLoading(true);
-        setError(null);
+    /**
+     * A row the server now holds - saved, or found in a conflict - put on
+     * screen and in the cache, which keeps the encrypted original. Returns it
+     * decrypted.
+     */
+    const showStoredRow = async (stored: Connection): Promise<Connection> => {
+        const [decrypted] = await decryptConnections([stored], userId);
+        setConnection(decrypted);
+        setAllConnections(prev => prev.map(conn => (conn.id === decrypted.id ? decrypted : conn)));
+        const cachedConnections = await loadCachedConnections();
+        await saveConnectionsToCache(cachedConnections.map((conn: Connection) => (conn.id === stored.id ? stored : conn)));
+        return decrypted;
+    };
+
+    /**
+     * Turns a refused PATCH into the error the form shows. A 409 conflict
+     * (the row changed elsewhere since `expectedUpdatedAt`) carries the
+     * stored row: that goes on screen behind the form, and back to the form
+     * so the user can load it or overwrite it.
+     */
+    const refusedUpdate = async (response: Response): Promise<Error> => {
+        const body: unknown = await response.json().catch(() => null);
+        const current = readConflict(response.status, body);
+        if (!current) return new Error('Update mislukt');
+        return new ConnectionChangedElsewhereError(await showStoredRow(current as Connection));
+    };
+
+    // No global isLoading or error here: App swaps the whole view for either,
+    // which unmounted the edit form and threw away what the user had typed.
+    // ConnectionView shows its own progress, and a failure is thrown so the
+    // form stays open with the text in it.
+    //
+    // expectedUpdatedAt: the version the form was opened on. With it the
+    // server refuses to overwrite a newer save from the note card or another
+    // device (ConnectionChangedElsewhereError); without it the save is
+    // unconditional, as before.
+    const handleUpdate = async (formData: ConnectionFormData, expectedUpdatedAt?: string | null) => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
@@ -455,22 +573,13 @@ export function useConnectionLogic(user: User | null) {
                 throw new Error('Connection ID ontbreekt.');
             }
 
-            const encryptedForm = await encryptFormData({
-                meetingPlace: formData.meetingPlace,
-                userCompanyAtTheTime: formData.userCompanyAtTheTime,
-                notes: formData.notes,
-                email: formData.email,
-                phone: formData.phone,
-            });
+            // Only what the form actually has, minus anything it showed as locked.
+            // A field left out of a PATCH stays as it is on the server; null
+            // would clear it. See pickFieldsToUpdate.
+            const { fields, skippedUnreadable } = pickFieldsToUpdate(formData, SENSITIVE_FIELDS);
+            const encryptedFields = await encryptFormData(fields);
 
-            const payload = {
-                id: idToUse,
-                meetingPlace: encryptedForm.meetingPlace ?? null,
-                userCompanyAtTheTime: encryptedForm.userCompanyAtTheTime ?? null,
-                notes: encryptedForm.notes ?? null,
-                email: encryptedForm.email ?? null,
-                phone: encryptedForm.phone ?? null,
-            };
+            const payload = withExpectedVersion({ id: idToUse, ...encryptedFields }, expectedUpdatedAt);
 
             const response = await fetch(`${API_BASE_URL}/api/connections`, {
                 method: 'PATCH',
@@ -481,29 +590,20 @@ export function useConnectionLogic(user: User | null) {
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error(`Update mislukt`);
+            if (!response.ok) throw await refusedUpdate(response);
 
-            const updated: Connection = await response.json();
-            const decArray = await decryptConnections([updated]);
-            setConnection(decArray[0]);
+            await showStoredRow(await response.json());
 
-            const updatedConnections = allConnections.map(conn =>
-                conn.id === decArray[0].id ? decArray[0] : conn
-            );
-            setAllConnections(updatedConnections);
-
-            // Re-cache raw encrypted connections
-            const cachedConnections = await loadCachedConnections();
-            const newCached = cachedConnections.map((conn: Connection) => conn.id === updated.id ? updated : conn);
-            await saveConnectionsToCache(newCached);
-
-            setToastMessage('Connectie bijgewerkt.');
+            setToastMessage(skippedUnreadable.length > 0
+                ? 'Connectie bijgewerkt. Vergrendelde velden zijn niet gewijzigd.'
+                : 'Connectie bijgewerkt.');
         } catch (e: unknown) {
-            console.error('Fout bij bijwerken:', e);
-            setError('Kon de connectie niet bijwerken.');
-            setToastMessage('Bijwerken mislukt.');
-        } finally {
-            setIsLoading(false);
+            // A conflict is not a failure to report: the form explains it.
+            if (!(e instanceof ConnectionChangedElsewhereError)) {
+                console.error('Fout bij bijwerken:', e);
+                setToastMessage('Bijwerken mislukt.');
+            }
+            throw e;
         }
     };
 
@@ -511,11 +611,7 @@ export function useConnectionLogic(user: User | null) {
         setIsLoading(true);
         setError(null);
         try {
-            const confirmed = globalThis.confirm('Weet je zeker dat je deze connectie wilt verwijderen?');
-            if (!confirmed) {
-                setIsLoading(false);
-                return;
-            }
+            // No confirm() here: ConnectionView asks, once, before calling this.
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             if (!token) throw new Error('Niet ingelogd');
@@ -534,9 +630,13 @@ export function useConnectionLogic(user: User | null) {
             if (!response.ok) throw new Error('Verwijderen mislukt');
             setConnection(null);
 
-            const updatedConnections = allConnections.filter(conn => conn.id !== idToUse);
-            setAllConnections(updatedConnections);
-            await saveConnectionsToCache(updatedConnections);
+            setAllConnections(allConnections.filter(conn => conn.id !== idToUse));
+
+            // The cache holds the server's encrypted rows. allConnections is the
+            // decrypted copy for display, and writing that back put every note
+            // in plain text into browser storage.
+            const cachedConnections = await loadCachedConnections();
+            await saveConnectionsToCache(cachedConnections.filter((conn: Connection) => conn.id !== idToUse));
 
             setToastMessage('Connectie verwijderd.');
         } catch (e) {
@@ -581,14 +681,16 @@ export function useConnectionLogic(user: User | null) {
         }
     }, [fetchAllConnections]);
 
+    // Sign-out: the previous owner's data goes, and so does anything still
+    // loading for them.
     const clearConnectionState = useCallback(async () => {
+        listGenRef.current += 1;
+        profileGenRef.current += 1;
+        clearDecryptMemo();
         setConnection(null);
         setAllConnections([]);
         setError(null);
-        const storage = getStorage();
-        if (storage) {
-            await storage.remove(['cachedConnections', 'connectionsCacheTimestamp']);
-        }
+        await clearConnectionsCache();
     }, []);
 
     return {
@@ -604,6 +706,7 @@ export function useConnectionLogic(user: User | null) {
         setError,
         fetchData,
         fetchAllConnections,
+        showCachedConnections,
         handleCreateConnection,
         handleUpdate,
         handleDelete,

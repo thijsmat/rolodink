@@ -8,8 +8,11 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { handlePrismaError } from '@/lib/prisma-error-handler';
-import { unstable_cache } from 'next/cache';
-import { revalidateTag } from 'next/cache';
+import { profileLookupUrl } from '@rolodink/core/url';
+import { CONNECTION_CONFLICT_CODE } from '@rolodink/core/conflict';
+import { findOwnedConnectionByUrl } from '@/lib/connection-url';
+
+const DUPLICATE_URL_MESSAGE = 'Connectie bestaat al voor deze URL.';
 
 // Validation schema for creating a connection
 const createConnectionSchema = z.object({
@@ -34,6 +37,12 @@ const updateConnectionSchema = z.object({
   userCompanyAtTheTime: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
+  // Optimistic concurrency: the updatedAt the client last saw, exactly as this
+  // API serialised it (Date#toJSON, an ISO string with milliseconds). When it
+  // is present the update only applies if the row still has that version;
+  // otherwise the answer is a 409 carrying the current row. Absent, the update
+  // applies unconditionally (older extension builds).
+  expectedUpdatedAt: z.string().datetime({ offset: true }).optional(),
 });
 
 // Function to clean notification counts from profile names
@@ -92,66 +101,28 @@ export async function GET(request: NextRequest) {
 
     // Haal URL parameter op voor filtering
     const { searchParams } = new URL(request.url);
-    // Normalize the same way POST does before storing, so a client that leaves
-    // a trailing slash or tracking parameters on the URL still matches. It only
-    // ever widens the set of URLs that hit; the host is preserved, so rows
-    // stored under a localized host such as nl.linkedin.com stay findable.
+    // Straight from the database, no cache (an unstable_cache here used to
+    // go stale). Any spelling of a profile URL finds the row: the canonical
+    // key, and rows stored before writes were canonicalised - see
+    // findOwnedConnectionByUrl. Still answers with a list, which is what
+    // every client expects.
     const rawUrl = searchParams.get('url');
-    const url = rawUrl ? normalizeLinkedInUrl(rawUrl) : rawUrl;
-
-    // Create cache key based on user ID and optional URL filter
-    const cacheKey = url ? `connections-${user.id}-${url}` : `connections-${user.id}`;
-
-    // Use unstable_cache to cache the database query
-    const getCachedConnections = unstable_cache(
-      async (userId: string, urlFilter?: string | null) => {
-        const whereClause: { ownerId: string; linkedInUrl?: string } = { ownerId: userId };
-
-        // Als er een URL parameter is, filter op die URL
-        if (urlFilter) {
-          whereClause.linkedInUrl = urlFilter;
-        }
-
-        return await prisma.connection.findMany({
-          where: whereClause,
-          orderBy: { createdAt: 'desc' }
-        });
-      },
-      [cacheKey], // Cache key includes user ID and URL filter
-      {
-        tags: [`connections-${user.id}`], // Tag for cache invalidation
-        revalidate: 60, // Revalidate every 60 seconds
-      }
-    );
-
-    const connections = await getCachedConnections(user.id, url);
+    let connections;
+    if (rawUrl) {
+      const connection = await findOwnedConnectionByUrl(user.id, rawUrl);
+      connections = connection ? [connection] : [];
+    } else {
+      connections = await prisma.connection.findMany({
+        where: { ownerId: user.id },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     return NextResponse.json(connections, { status: 200, headers: corsHeaders });
 
   } catch (err) {
     console.error('Fout bij het ophalen van connecties:', err);
     return NextResponse.json({ error: 'Er is een interne serverfout opgetreden' }, { status: 500, headers: corsHeaders });
-  }
-}
-
-function normalizeLinkedInUrl(rawUrl: string): string {
-  try {
-    const url = new URL(rawUrl);
-    // Force hostname to canonical LinkedIn host
-    // Only allow linkedin.com hosts
-    if (!/\.linkedin\.com$/.test(url.hostname) && url.hostname !== 'linkedin.com') {
-      return rawUrl;
-    }
-    // Remove query and hash
-    url.search = '';
-    url.hash = '';
-    // Ensure we only keep the path to the profile and trim trailing slash
-    let pathname = url.pathname.trim();
-    if (pathname.endsWith('/')) pathname = pathname.slice(0, -1);
-    url.pathname = pathname;
-    return url.toString();
-  } catch {
-    return rawUrl;
   }
 }
 
@@ -193,7 +164,14 @@ export async function POST(request: NextRequest) {
     // Use validated data
     const { name, url, meetingPlace, notes, userCompanyAtTheTime, email, phone } = validation.data;
 
-    const normalizedUrl = normalizeLinkedInUrl(url);
+    // One key per profile (see @rolodink/core profileLookupUrl). The unique
+    // index only compares exact strings, so a row stored before this under
+    // another spelling of the same URL is checked for explicitly; it answers
+    // the same 409 a unique conflict does.
+    const normalizedUrl = profileLookupUrl(url);
+    if (await findOwnedConnectionByUrl(user.id, url)) {
+      return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
+    }
     const cleanedName = cleanProfileName(name);
 
     const newConnection = await prisma.connection.create({
@@ -209,16 +187,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
-
     return NextResponse.json(newConnection, { status: 201, headers: corsHeaders });
 
   } catch (err: unknown) {
     // Handle specific P2002 error with custom Dutch message for this route
     if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
       return NextResponse.json(
-        { error: 'Connectie bestaat al voor deze URL.' },
+        { error: DUPLICATE_URL_MESSAGE },
         { status: 409, headers: corsHeaders }
       );
     }
@@ -227,6 +202,53 @@ export async function POST(request: NextRequest) {
     const errorResponse = handlePrismaError(err, corsHeaders, 'Er is een interne serverfout opgetreden');
     return errorResponse.response;
   }
+}
+
+// Turns a validated PATCH body into Prisma update data. `url` is the API's
+// name for the linkedInUrl column: stored canonical, and refused (null) when it
+// would make this row a second one for a profile the owner already has.
+async function buildUpdateData(
+  ownerId: string,
+  id: string,
+  validated: Omit<z.infer<typeof updateConnectionSchema>, 'expectedUpdatedAt'>,
+): Promise<Prisma.ConnectionUpdateInput | null> {
+  const { url: newUrl, ...rest } = validated;
+  const data: Prisma.ConnectionUpdateInput = { ...rest };
+  if (newUrl) {
+    const other = await findOwnedConnectionByUrl(ownerId, newUrl);
+    if (other && other.id !== id) {
+      return null;
+    }
+    data.linkedInUrl = profileLookupUrl(newUrl);
+  }
+  // Clean the name if it's being updated
+  if (rest.name) {
+    data.name = cleanProfileName(rest.name);
+  }
+  return data;
+}
+
+// The update matched no row (P2025). One extra query tells why: there is no
+// such row (404), it belongs to someone else (403), or it is the caller's but
+// its version moved on since expectedUpdatedAt (409, with the current row so
+// the client can show or overwrite it - ciphertext only, as GET returns it).
+async function missedUpdateResponse(
+  id: string,
+  ownerId: string,
+  expectedUpdatedAt: string | undefined,
+  corsHeaders: Record<string, string>,
+): Promise<NextResponse> {
+  const connection = await prisma.connection.findUnique({ where: { id } });
+  if (!connection) {
+    return NextResponse.json({ error: 'Connection not found' }, { status: 404, headers: corsHeaders });
+  }
+  if (connection.ownerId === ownerId && expectedUpdatedAt !== undefined) {
+    return NextResponse.json(
+      { error: 'conflict', code: CONNECTION_CONFLICT_CODE, current: connection },
+      { status: 409, headers: corsHeaders },
+    );
+  }
+  return NextResponse.json({ error: 'No permission to update this connection' }, { status: 403, headers: corsHeaders });
 }
 
 // NIEUWE PATCH FUNCTIE
@@ -255,7 +277,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { id, ...updateData } = body; // Haal ID en de rest van de data uit de body
 
-    if (!id) {
+    if (typeof id !== 'string' || !id) {
       return NextResponse.json({ error: 'Connection ID is verplicht' }, { status: 400, headers: corsHeaders });
     }
 
@@ -269,61 +291,29 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Use validated data
-    const validatedUpdateData = { ...validation.data };
-
-    // Clean the name if it's being updated
-    if (validatedUpdateData.name) {
-      validatedUpdateData.name = cleanProfileName(validatedUpdateData.name);
+    const { expectedUpdatedAt, ...fields } = validation.data;
+    const data = await buildUpdateData(user.id, id, fields);
+    if (!data) {
+      return NextResponse.json({ error: DUPLICATE_URL_MESSAGE }, { status: 409, headers: corsHeaders });
     }
 
-    // Try update in single round-trip (ownership in filter)
-    const updateResult = await prisma.connection.updateMany({
-      where: {
-        id: id,
-        ownerId: user.id,
-      },
-      data: validatedUpdateData,
-    });
-
-    if (updateResult.count === 0) {
-      const connection = await prisma.connection.findUnique({
-        where: { id: id },
-        select: { ownerId: true },
-      });
-
-      if (!connection) {
-        return NextResponse.json(
-          { error: 'Connection not found' },
-          { status: 404, headers: corsHeaders }
-        );
+    // One round-trip: ownership (and, when given, the expected version) is
+    // part of the unique filter, so the check and the write are one atomic
+    // statement. Only when that finds nothing (P2025) is a second query
+    // needed, to tell 404, 403 and 409 apart.
+    const where: Prisma.ConnectionWhereUniqueInput = { id, ownerId: user.id };
+    if (expectedUpdatedAt !== undefined) {
+      where.updatedAt = new Date(expectedUpdatedAt);
+    }
+    let updatedConnection;
+    try {
+      updatedConnection = await prisma.connection.update({ where, data });
+    } catch (updateError) {
+      if (!(updateError instanceof PrismaClientKnownRequestError && updateError.code === 'P2025')) {
+        throw updateError;
       }
-
-      if (connection.ownerId !== user.id) {
-        return NextResponse.json(
-          { error: 'No permission to update this connection' },
-          { status: 403, headers: corsHeaders }
-        );
-      }
-
-      return NextResponse.json(
-        { error: 'Could not update connection' },
-        { status: 500, headers: corsHeaders }
-      );
+      return missedUpdateResponse(id, user.id, expectedUpdatedAt, corsHeaders);
     }
-
-    const updatedConnection = await prisma.connection.findUnique({
-      where: { id: id },
-    });
-
-    if (!updatedConnection) {
-      return NextResponse.json(
-        { error: 'Connection not found after update' },
-        { status: 404, headers: corsHeaders }
-      );
-    }
-    // Invalidate cache for this user's connections
-    revalidateTag(`connections-${user.id}`, { expire: 0 });
 
     return NextResponse.json(updatedConnection, { status: 200, headers: corsHeaders });
 

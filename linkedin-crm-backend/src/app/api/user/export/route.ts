@@ -12,6 +12,8 @@ interface Connection {
   notes: string | null;
   meetingPlace: string | null;
   userCompanyAtTheTime: string | null;
+  email: string | null;
+  phone: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,8 +41,9 @@ export async function GET(request: NextRequest) {
 
   try {
 
-    // Authenticate user
-    const { user, error: authError } = await getUserFromRequest(request);
+    // Authenticate user. strict: hands out all of the user's data at once, so
+    // not to a signed-out session whose JWT has not expired yet.
+    const { user, error: authError } = await getUserFromRequest(request, { strict: true });
     if (authError || !user) {
       return NextResponse.json(
         { error: authError || 'Unauthorized' },
@@ -107,13 +110,19 @@ export async function GET(request: NextRequest) {
         meetingPlace: sanitizeString(connection.meetingPlace),
         userCompanyAtTheTime: sanitizeString(connection.userCompanyAtTheTime),
         notes: sanitizeString(connection.notes),
+        email: sanitizeString(connection.email),
+        phone: sanitizeString(connection.phone),
         createdAt: connection.createdAt.toISOString(),
         updatedAt: connection.updatedAt.toISOString(),
       })),
       exportInfo: {
         exportedAt: new Date().toISOString(),
         totalConnections: userData.connections.length,
-        version: '1.0',
+        version: '1.1',
+        // Values starting with "rolodink-enc:" are encrypted in the extension
+        // before they reach the server; this export contains them as stored.
+        encryptedFieldsNote:
+          'notes, meetingPlace, userCompanyAtTheTime, email and phone may be encrypted (prefix "rolodink-enc:"); they are exported exactly as stored.',
       },
     };
 

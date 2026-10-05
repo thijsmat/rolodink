@@ -35,9 +35,14 @@ Rolodink consists of three main components, each requiring different environment
 - **Where to get**: Supabase Dashboard → Settings → Database → Connection string → Connection pooling
 - **Format**: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 - **Note**: Use connection pooling URL (not direct connection)
+- **On Vercel**: optional. Without `DATABASE_URL` the backend uses `POSTGRES_PRISMA_URL`, which the
+  Supabase integration sets and keeps in sync (`src/lib/prisma.ts`). Deleting the hand-made
+  `DATABASE_URL` in Vercel means a database password reset needs no manual copy. If both exist,
+  `DATABASE_URL` wins.
 
 #### `DIRECT_URL`
 - **Description**: Direct PostgreSQL connection string (for migrations)
+- **Note**: only needed where migrations run (locally); the deployed backend does not use it
 - **Where to get**: Supabase Dashboard → Settings → Database → Connection string → Direct connection
 - **Format**: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 
@@ -52,6 +57,11 @@ Rolodink consists of three main components, each requiring different environment
 - **Description**: URL used in Supabase email confirmations (`auth.signUp`)
 - **Default**: `https://rolodink.app/auth/callback`
 - **When to change**: Only if the public website domain changes
+
+#### `SUPABASE_SERVICE_ROLE_KEY`
+- **Description**: Supabase service-role key. Used only by `DELETE /api/user/delete`, to remove the login through the Auth admin API (sessions and identities go with it). Without it, the route deletes the `auth.users` row through the database role instead.
+- **Where to get**: Supabase Dashboard → Project Settings → API Keys → `service_role` (legacy) or a secret key (`sb_secret_...`)
+- **Security**: bypasses RLS. Server-only: never give it a `NEXT_PUBLIC_` name, never put it in the extension or website, and set it only on the backend project (Production and Preview).
 
 #### `NODE_ENV`
 - **Description**: Node environment (`development`, `production`, `test`)

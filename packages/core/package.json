@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Platform-agnostic Rolodink domain logic: crypto, URL normalization, API client.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./url": "./src/url.ts",
+    "./conflict": "./src/conflict.ts",
+    "./url-vectors": "./src/url-vectors.ts"
   },
   "types": "./src/index.ts",
   "scripts": {

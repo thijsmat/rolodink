@@ -241,7 +241,7 @@ npm run build:production # Validate + build + create ZIP
 - Any data we don't explicitly need
 
 ### Security
-- 🔐 End-to-end encryption for all notes
+- 🔐 Notes are encrypted (AES-256-GCM) before they are stored, with a per-account key
 - 🔒 Secure HTTPS communication
 - 🛡️ No third-party data sharing
 - ✅ GDPR compliant

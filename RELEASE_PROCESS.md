@@ -20,6 +20,15 @@ git push origin ext-vX.Y.Z
 # 4. Publiceren triggert publish-chrome/edge/firefox.yml die de zips naar de stores sturen.
 ```
 
+### Zonder de GitHub-UI (bijvoorbeeld vanuit een Claude Code-sessie)
+
+Na de merge van de versie-bump kan de hele release via `workflow_dispatch`:
+
+1. **Store Credentials Check** starten. Die publiceert niets, en is hij rood, dan stop je.
+2. **Release Rolodink Extension** starten met `version` = `X.Y.Z` en `publish` aangevinkt. De release gaat dan direct live, zonder draft, en de tag komt op de gebouwde commit.
+3. **Publish Chrome/Edge/Firefox Extension** elk starten met `tag` = `ext-vX.Y.Z`. Een release die de workflow zelf publiceert, start ze niet: GitHub laat events van `GITHUB_TOKEN` geen workflows starten, `workflow_dispatch` uitgezonderd.
+4. Controleer het "List Artifacts"-log (3 zips), de release-body (de tekst uit `RELEASE_NOTES_vX.Y.Z.md`) en de drie publish-runs.
+
 ## Wat de automatisering doet
 
 | Stap | Workflow | Trigger |

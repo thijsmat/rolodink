@@ -23,7 +23,8 @@ and (with a WebCrypto polyfill) in React Native.
 |---|---|
 | `crypto.ts` | AES-GCM helpers. The extension imports these directly (its own copy, `ui/src/utils/cryptoHelper.ts`, was deleted in #41). |
 | `fields.ts` | Which fields are encrypted, plus the `FieldCipher` port. |
-| `url.ts` | LinkedIn profile URL normalization, slug extraction, share-payload parsing. |
+| `url.ts` | LinkedIn profile URL canonicalisation (`profileLookupUrl`), slug extraction, share-payload parsing. |
+| `url-vectors.ts` | The shared table of URL test vectors. |
 | `client.ts` | `RolodinkClient` for the `api.rolodink.app` REST API. |
 | `types.ts` | `Connection` and the request shapes. |
 
@@ -36,13 +37,21 @@ fails, the format has drifted and existing data has become unreadable. A round
 trip alone would not catch this, since it passes just as happily when both sides
 are wrong together.
 
-**Two URL normalizers, on purpose.** `GET /api/connections?url=` is an exact
-string match that the server does *not* normalize, while `POST` *does* normalize
-before storing — and its normalizer keeps the host. So rows can exist under
-`nl.linkedin.com`. `legacyNormalizeLinkedInUrl` reproduces what is stored today;
-`normalizeLinkedInUrl` produces the canonical form we want going forward.
-`buildLookupCandidates` returns both. When both miss, fall back to matching on
-`getProfileSlug` against the locally cached list.
+**One key per profile: `profileLookupUrl`.** Every profile URL is reduced to
+`https://www.linkedin.com/in/<slug>` (host, scheme, subpages, query, hash and
+vanity-slug case dropped; the slug percent-decoded) before it is used for a
+lookup, a create, an update or as a cache key - by the content script, the
+popup and the API routes (`linkedin-crm-backend` imports `@rolodink/core/url`).
+`url-vectors.ts` is the table of examples all three test suites run. Member IDs
+(`/in/ACoAA…`) keep their case, because they are case-sensitive, and cannot be
+mapped to the vanity slug offline: a person saved once under each is two rows.
+
+Rows stored before the API canonicalised can still be in another spelling
+(`nl.linkedin.com`, `/details/…`, mixed case). The API finds those itself
+(`src/lib/connection-url.ts`); `legacyNormalizeLinkedInUrl` and
+`buildLookupCandidates` remain for a client that may talk to an older API.
+`linkedin-crm-backend/scripts/list-duplicate-connections.sql` lists the
+duplicates that already exist.
 
 **Never send `null` in a PATCH.** The server validates with
 `z.string().optional()`, which rejects `null` outright — clearing a field means

@@ -1,9 +1,8 @@
 import { Chrome, ArrowRight, Check } from "lucide-react";
-import { getExtensionUrl } from "@/lib/utils";
+import { storeUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
 
 export default function CTA() {
-  const extensionUrl = getExtensionUrl();
   const t = useTranslations('CTA');
 
   return (
@@ -23,7 +22,7 @@ export default function CTA() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <a
-            href={extensionUrl}
+            href={storeUrl("chrome", "cta")}
             target="_blank"
             rel="noreferrer"
             className="inline-flex h-10 px-3 sm:px-4 rounded-lg bg-white text-azure text-xs sm:text-sm font-medium shadow-xl hover:bg-white/90 transition-colors items-center justify-center gap-2"
@@ -32,7 +31,7 @@ export default function CTA() {
             {t('addToChrome')}
           </a>
           <a
-            href="#features"
+            href="#how-it-works"
             className="inline-flex h-10 px-3 sm:px-4 rounded-lg border-2 border-white/30 text-white text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors items-center justify-center gap-2"
           >
             {t('viewDemo')}

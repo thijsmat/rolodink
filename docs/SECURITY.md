@@ -23,7 +23,7 @@ Rolodink implements multiple layers of security:
 
 **Location**: `linkedin-crm-backend/src/lib/rate-limit.ts`
 
-**Limit**: 100 requests per IP address per hour
+**Limit**: 600 requests per IP address per hour. Sign-in and sign-up (`/api/auth/signin`, `/api/auth/signup`) get 60 per IP per hour (100 during launch week), in a separate counter (`AUTH_RATE_LIMIT`), so ordinary API traffic neither raises the budget for password guessing nor locks anyone out of logging in
 
 **Scope**: All API routes (`/api/*`)
 
@@ -37,7 +37,7 @@ Rate limiting protects against:
 
 ### How It Works
 
-1. Each request is tracked by IP address
+1. Each request is tracked by IP address (sign-in and sign-up under their own `auth:<ip>` key)
 2. Counter resets after 1 hour window
 3. When limit is exceeded, returns `429 Too Many Requests`
 4. Response includes `Retry-After` header
@@ -45,8 +45,8 @@ Rate limiting protects against:
 ### Testing Rate Limits
 
 ```bash
-# Test rate limit (should fail after 100 requests)
-for i in {1..101}; do
+# Test rate limit (should fail after 600 requests; per serverless instance)
+for i in {1..601}; do
   curl -X GET https://your-api.vercel.app/api/version
 done
 ```
@@ -158,7 +158,14 @@ Every API request requires:
 Authorization: Bearer <access_token>
 ```
 
-Token is validated via Supabase Auth API before processing request.
+`getUserFromRequest` in `linkedin-crm-backend/src/lib/supabase/server.ts` checks the token in one of two ways:
+
+- **Default: `supabase.auth.getClaims(token)`.** With asymmetric signing keys (ES256/RS256) the signature is verified locally against the project's JWKS (`/auth/v1/.well-known/jwks.json`, cached for 10 minutes), so there is no Auth call per request. With the legacy HS256 secret, `getClaims` itself falls back to `getUser` on the Auth server. On top of the signature and `exp`, the backend requires `role = authenticated`, `aud` containing `authenticated`, a non-empty `sub`, an `iss` that is a Supabase Auth endpoint (`…/auth/v1`; which project signed it is settled by the signature, so a custom Auth domain keeps working) and (if present) `nbf` in the past. The anon and service_role keys are therefore rejected.
+- **Strict: `getUserFromRequest(request, { strict: true })` → `supabase.auth.getUser(token)`.** Only the Auth server knows whether a session was signed out or a user deleted; a locally verified JWT stays valid until it expires (1 hour by default). Strict mode is used for `/api/user/key` (hands out the data key), `/api/user/delete` and `/api/user/export`. The connection routes use the default.
+
+Any failure gives no user, and the route answers 401.
+
+**Owner action (one-time):** Supabase Dashboard → Project Settings → JWT Keys: migrate to asymmetric signing keys (ES256), then rotate so the new key signs tokens. Until then nothing changes in behaviour: `getClaims` falls back to the Auth server call, exactly as before. After the rotation, previously issued HS256 tokens keep working through the same fallback until they expire.
 
 ### CORS Configuration
 
@@ -301,7 +308,7 @@ For security issues:
 
 ### Post-Deployment
 
-- [ ] Verify rate limiting works (test with >100 requests)
+- [ ] Verify rate limiting works (test with >600 requests, or >100 sign-in attempts)
 - [ ] Test RLS by attempting cross-user data access
 - [ ] Monitor logs for security warnings
 - [ ] Verify HTTPS is enforced

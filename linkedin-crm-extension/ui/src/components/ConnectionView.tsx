@@ -1,33 +1,138 @@
 // src/components/ConnectionView.tsx
 import { useState } from 'react';
 import { ConnectionForm } from './ConnectionForm';
+import { ConfirmPanel } from './ConfirmPanel';
 import styles from './ConnectionView.module.css';
-import { useConnection, type ConnectionFormData } from '../context/ConnectionContext';
+import { useConnection, type Connection, type ConnectionFormData } from '../context/ConnectionContext';
+import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { ConnectionChangedElsewhereError } from '../utils/connectionUpdate';
+import { mailtoHref, telHref } from '../utils/contactLinks';
+import { getBrowserAPI } from '../utils/browser';
+
+function toFormData(connection: Connection): ConnectionFormData {
+  return {
+    meetingPlace: connection.meetingPlace || undefined,
+    userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
+    notes: connection.notes || undefined,
+    email: connection.email || undefined,
+    phone: connection.phone || undefined,
+  };
+}
+
+/**
+ * One line of the connection's details. With an href the value is a link
+ * (mailto:/tel:, built by contactLinks); React sets it as an attribute, so a
+ * stored value never becomes markup.
+ */
+function DetailRow({ icon, label, value, href }: Readonly<{
+  icon: string;
+  label: string;
+  value?: string | null;
+  href?: string | null;
+}>) {
+  return (
+    <div className={styles.detailRow}>
+      <span className={styles.detailIcon}>{icon}</span>
+      <div className={styles.detailContent}>
+        <span className={styles.detailLabel}>{label}</span>
+        {value && href && (
+          // target _blank as the feedback link in SettingsView: a popup that
+          // navigates itself to mailto: or tel: can close before the handler runs.
+          <a className={`${styles.detailValue} ${styles.detailLink}`} href={href} target="_blank" rel="noopener noreferrer">{value}</a>
+        )}
+        {value && !href && <span className={styles.detailValue}>{value}</span>}
+        {!value && <span className={styles.detailValueEmpty}>Niet opgegeven</span>}
+      </div>
+    </div>
+  );
+}
+
+/** The baseline for another connection: its own data if an edit was open, else none. */
+function baselineFor(openEdit: ConnectionFormData | null, next: Connection | null): ConnectionFormData | null {
+  return openEdit && next ? toFormData(next) : null;
+}
 
 export function ConnectionView() {
   const { connection, handleUpdate, handleDelete } = useConnection();
-  const [isEditing, setIsEditing] = useState(false);
+  const { t } = useExtensionTranslation();
+  // What the edit form starts from, taken once when editing begins. The
+  // connection object is replaced by unrelated updates (a toast, a token
+  // refresh), and a form that followed it lost what the user had typed.
+  // Only another connection (a different id) starts the form over.
+  const [editBaseline, setEditBaseline] = useState<ConnectionFormData | null>(null);
+  const [baselineId, setBaselineId] = useState(connection?.id);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The version the edit is based on, taken with the baseline. Sent with the
+  // save, so a newer save from the note card or another device is not
+  // overwritten without asking. Not connection.updatedAt at save time: that
+  // follows whatever the popup loaded since, the edit does not.
+  const [editVersion, setEditVersion] = useState(connection?.updatedAt);
+  // The stored row after a save was refused as a conflict, until the user
+  // chooses: load it (the form starts over from it) or overwrite it.
+  const [conflict, setConflict] = useState<Connection | null>(null);
+  // Bumped to start the form over from a new baseline for the same id.
+  const [formGeneration, setFormGeneration] = useState(0);
+
+  if (connection?.id !== baselineId) {
+    setBaselineId(connection?.id);
+    setEditBaseline(baselineFor(editBaseline, connection));
+    setEditVersion(connection?.updatedAt);
+    setConflict(null);
+  }
 
   if (!connection) return null;
 
-  const onSubmit = async (formData: ConnectionFormData) => {
+  const startEditing = () => {
+    setEditBaseline(toFormData(connection));
+    setEditVersion(connection.updatedAt);
+  };
+  const stopEditing = () => {
+    setEditBaseline(null);
+    setError(null);
+    setConflict(null);
+  };
+
+  const save = async (formData: ConnectionFormData, version: string | undefined) => {
     setIsSubmitting(true);
     setError(null);
+    setConflict(null);
     try {
-      await handleUpdate(formData);
-      setIsEditing(false);
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Kon de connectie niet bijwerken';
-      setError(errorMessage);
+      await handleUpdate(formData, version);
+      setEditBaseline(null);
+    } catch (e) {
+      // The form stays open with the typed text; the user can try again, or
+      // choose between the two versions.
+      if (e instanceof ConnectionChangedElsewhereError) {
+        setConflict(e.current as Connection);
+      } else {
+        setError(t('connection_update_failed'));
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const onSubmit = (formData: ConnectionFormData) => save(formData, editVersion);
+
+  const conflictChoice = conflict && {
+    onLoadLatest: () => {
+      setEditBaseline(toFormData(conflict));
+      setEditVersion(conflict.updatedAt);
+      setConflict(null);
+      setFormGeneration(n => n + 1);
+    },
+    onOverwrite: (formData: ConnectionFormData) => {
+      setEditVersion(conflict.updatedAt);
+      return save(formData, conflict.updatedAt);
+    },
+  };
+
+  // The one confirmation for deleting a connection. handleDelete no longer
+  // asks itself; it used to, so the user was asked twice.
   const onDelete = async () => {
-    if (!window.confirm('Weet je zeker dat je deze connectie wilt verwijderen?')) return;
+    setIsConfirmingDelete(false);
     setIsSubmitting(true);
     setError(null);
     try {
@@ -39,20 +144,17 @@ export function ConnectionView() {
     }
   };
 
-  if (isEditing) {
-    const initialData: ConnectionFormData = {
-      meetingPlace: connection.meetingPlace || undefined,
-      userCompanyAtTheTime: connection.userCompanyAtTheTime || undefined,
-      notes: connection.notes || undefined
-    };
-
+  if (editBaseline) {
     return (
       <ConnectionForm
-        initialData={initialData}
+        key={`${connection.id}:${formGeneration}`}
+        initialData={editBaseline}
         onSubmit={onSubmit}
-        onCancel={() => setIsEditing(false)}
+        conflict={conflictChoice}
+        onCancel={stopEditing}
         isSubmitting={isSubmitting}
         submitText="Wijzigingen Opslaan"
+        error={error}
       />
     );
   }
@@ -64,7 +166,7 @@ export function ConnectionView() {
           <h1 className={styles.title}>Connectie Details</h1>
           <div className={styles.headerActions}>
             <button 
-              onClick={() => setIsEditing(true)} 
+              onClick={startEditing}
               className={`${styles.button} ${styles.buttonPrimary}`}
               disabled={isSubmitting}
             >
@@ -72,9 +174,9 @@ export function ConnectionView() {
               Bewerken
             </button>
             <button 
-              onClick={onDelete}
+              onClick={() => setIsConfirmingDelete(true)}
               className={`${styles.button} ${styles.buttonDanger}`}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isConfirmingDelete}
             >
               <span className={styles.buttonIcon}>
                 {isSubmitting ? '⏳' : '🗑️'}
@@ -86,6 +188,15 @@ export function ConnectionView() {
       </div>
 
       <div className={styles.content}>
+        {isConfirmingDelete && (
+          <ConfirmPanel
+            message={t('confirm_delete_connection_message')}
+            confirmLabel={t('confirm_delete_connection_button')}
+            cancelLabel={t('cancel_button')}
+            onConfirm={() => void onDelete()}
+            onCancel={() => setIsConfirmingDelete(false)}
+          />
+        )}
         <div className={styles.profileCard}>
           <div className={styles.profileHeader}>
             <div className={styles.profileInfo}>
@@ -103,7 +214,7 @@ export function ConnectionView() {
                 title="Open LinkedIn-profiel"
                 onClick={async () => {
                   try {
-                    await chrome.tabs.update({ url: connection.linkedInUrl });
+                    await getBrowserAPI().tabs.update({ url: connection.linkedInUrl });
                   } catch (error) {
                     console.error('Failed to navigate to LinkedIn profile:', error);
                   }
@@ -116,25 +227,14 @@ export function ConnectionView() {
           </div>
 
           <div className={styles.connectionDetails}>
-            <div className={styles.detailRow}>
-              <span className={styles.detailIcon}>📍</span>
-              <div className={styles.detailContent}>
-                <span className={styles.detailLabel}>Ontmoet op</span>
-                <span className={connection.meetingPlace ? styles.detailValue : styles.detailValueEmpty}>
-                  {connection.meetingPlace || 'Niet opgegeven'}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.detailRow}>
-              <span className={styles.detailIcon}>🏢</span>
-              <div className={styles.detailContent}>
-                <span className={styles.detailLabel}>Mijn bedrijf destijds</span>
-                <span className={connection.userCompanyAtTheTime ? styles.detailValue : styles.detailValueEmpty}>
-                  {connection.userCompanyAtTheTime || 'Niet opgegeven'}
-                </span>
-              </div>
-            </div>
+            <DetailRow icon="📍" label="Ontmoet op" value={connection.meetingPlace} />
+            <DetailRow icon="🏢" label="Mijn bedrijf destijds" value={connection.userCompanyAtTheTime} />
+            {connection.email && (
+              <DetailRow icon="✉️" label={t('label_email')} value={connection.email} href={mailtoHref(connection.email)} />
+            )}
+            {connection.phone && (
+              <DetailRow icon="📞" label={t('label_phone')} value={connection.phone} href={telHref(connection.phone)} />
+            )}
 
             {connection.notes && (
               <div className={styles.notesSection}>

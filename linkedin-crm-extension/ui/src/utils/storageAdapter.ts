@@ -1,4 +1,4 @@
-import type { SupportedStorage } from '@supabase/supabase-js';
+import type { SupportedStorage } from '@supabase/auth-js';
 
 /**
  * Custom storage adapter for Supabase to use chrome.storage.local
@@ -64,22 +64,7 @@ export const chromeStorageAdapter: SupportedStorage = {
         const storage = getStorage();
         if (!storage) return;
         try {
-            const updates: Record<string, any> = { [key]: value };
-
-            // Rolodink Fix: Sync access token to a predictable key for content.js
-            // Only check Supabase session keys to avoid unnecessary parsing
-            if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-                try {
-                    const parsed = JSON.parse(value);
-                    if (parsed && typeof parsed === 'object' && typeof parsed.access_token === 'string') {
-                        updates['supabaseAccessToken'] = parsed.access_token;
-                    }
-                } catch (e) {
-                    // Ignore parsing errors, it might not be a session object
-                }
-            }
-
-            await storage.set(updates);
+            await storage.set({ [key]: value });
         } catch (error) {
             console.error('Error setting item in storage:', error);
         }
@@ -88,12 +73,7 @@ export const chromeStorageAdapter: SupportedStorage = {
         const storage = getStorage();
         if (!storage) return;
         try {
-            // Also clean up the synced access token when the Supabase session key is removed
-            if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-                await storage.remove([key, 'supabaseAccessToken']);
-            } else {
-                await storage.remove(key);
-            }
+            await storage.remove(key);
         } catch (error) {
             console.error('Error removing item from storage:', error);
         }

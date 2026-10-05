@@ -70,10 +70,11 @@ export default function PrivacyPage() {
                   Service. This information remains private to you.
                 </li>
                 <li>
-                  <strong>Analytics Data:</strong> We use Plausible Analytics to
-                  gather anonymized usage statistics to improve our website. This
-                  occurs without cookies and without collecting personally
-                  identifiable information.
+                  <strong>Analytics Data:</strong> Our website uses Vercel Web
+                  Analytics to count page views in aggregate, without cookies and
+                  without collecting personally identifiable information. Only if
+                  you accept cookies in the cookie banner do we also load Google
+                  Analytics. The browser extension itself contains no analytics.
                 </li>
               </ul>
 
@@ -119,9 +120,16 @@ export default function PrivacyPage() {
                 <strong>No Bulk Scraping</strong>
               </p>
               <ul>
-                <li>We do not automatically collect LinkedIn profile data without your action</li>
+                <li>We do not store LinkedIn profile data unless you save a profile yourself</li>
                 <li>We do not bulk scrape LinkedIn profiles</li>
-                <li>We do not access LinkedIn data beyond what you manually save</li>
+                <li>
+                  Apart from what you save yourself, the only LinkedIn data the
+                  extension sends us is the web address of the profile you have
+                  open, so it can show whether that person is already in your
+                  Rolodink. These lookups are not stored in our database; like any
+                  web request, our hosting provider can keep them for a limited
+                  time in its cache and request logs.
+                </li>
                 <li>We do not share LinkedIn data with third parties</li>
               </ul>
 

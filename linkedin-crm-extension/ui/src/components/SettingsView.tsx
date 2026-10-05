@@ -6,21 +6,57 @@ import { useUpdate } from '../context/UpdateContext';
 import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
+import { isDeleteConfirmation } from '../utils/deleteConfirmation';
+import { ConfirmPanel } from './ConfirmPanel';
+import { buildFeedbackMailto, detectBrowserName, supportEmailFor } from '../utils/feedback';
+import { downloadBlob } from '../utils/download';
+import { useReadableExport } from '../hooks/useReadableExport';
+import { ReadableExportSetting } from './ReadableExportSetting';
+
+/** A setting row whose action opens a link in a new tab. */
+function LinkSetting({ title, description, href, label }: Readonly<{
+  title: string;
+  description: string;
+  href: string;
+  label: string;
+}>) {
+  return (
+    <div className={styles.settingItem}>
+      <div className={styles.settingInfo}>
+        <h4 className={styles.settingName}>{title}</h4>
+        <p className={styles.settingDescription}>{description}</p>
+      </div>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={styles.actionButton}>
+        {label}
+      </a>
+    </div>
+  );
+}
 
 export function SettingsView() {
   const { setToastMessage, fetchAllConnections, handleLogout } = useConnection();
   const { t } = useExtensionTranslation();
   const { versionInfo, isCheckingForUpdates, checkForUpdates, getCurrentVersion } = useUpdate();
+  const extensionVersion = getCurrentVersion();
+  const browserName = detectBrowserName(typeof navigator === 'undefined' ? '' : navigator.userAgent);
+  const uiLanguage = (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : 'nl').split('-')[0];
+  const feedbackHref = buildFeedbackMailto(
+    supportEmailFor(uiLanguage),
+    t('feedback_mail_subject', [extensionVersion, browserName]),
+    t('feedback_mail_body', [extensionVersion, browserName]),
+  );
   const [isCleaning, setIsCleaning] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { exportingFormat, progress: exportProgress, exportReadable } = useReadableExport(t, setToastMessage);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contextFieldEnabled, setContextFieldEnabled] = useState(true);
 
   const loadSettings = useCallback(() => {
@@ -98,21 +134,30 @@ export function SettingsView() {
       setIsChangingPassword(true);
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session?.access_token) {
+      // The email comes from the session that is already open, never from a
+      // form field, so the check below can only sign in as the same user.
+      const email = session?.user?.email;
+      if (!session?.access_token || !email) {
         setToastMessage(t('msg_not_logged_in_password'));
         return;
       }
-      const supabaseAccessToken = session.access_token;
 
-      // Validate current password by making a test API call
-      const testResponse = await fetch(`${API_BASE_URL}/api/user/export`, {
-        headers: {
-          'Authorization': `Bearer ${supabaseAccessToken}`,
-          'Content-Type': 'application/json',
-        },
+      // Check the current password for real. The previous check was a GET on
+      // /api/user/export, which only proved the session was valid: any
+      // current password was accepted.
+      const { data: verified, error: verifyError } = await supabase.auth.signInWithPassword({
+        email,
+        password: passwordData.currentPassword,
       });
-
-      if (!testResponse.ok) {
+      if (verifyError) {
+        setToastMessage(t('msg_current_password_incorrect'));
+        return;
+      }
+      if (verified?.user?.id !== session.user.id) {
+        // Cannot happen with the session's own email, but if it ever did the
+        // client would now hold someone else's session. Drop it rather than
+        // change that account's password.
+        await supabase.auth.signOut({ scope: 'local' });
         setToastMessage(t('msg_current_password_incorrect'));
         return;
       }
@@ -126,7 +171,12 @@ export function SettingsView() {
         return;
       }
 
-      // Tokens are automatically persisted by the client
+      // End every other session of this account: those include the one the
+      // check above replaced here, and any on another device that may belong
+      // to whoever knew the old password. This session stays signed in. A
+      // failure here does not undo the change, so it is only logged.
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' });
+      if (signOutError) console.error('Could not end other sessions:', signOutError);
 
       setToastMessage(t('msg_password_change_success'));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -166,24 +216,10 @@ export function SettingsView() {
 
       // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'linkedin-crm-export.json';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
+      const filenameMatch = contentDisposition ? /filename="([^"]+)"/.exec(contentDisposition) : null;
+      const filename = filenameMatch ? filenameMatch[1] : 'linkedin-crm-export.json';
 
-      // Create blob and download
-      const blob = await response.blob();
-      const url = globalThis.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      globalThis.URL.revokeObjectURL(url);
+      downloadBlob(await response.blob(), filename);
 
       setToastMessage(t('msg_export_success'));
     } catch (e) {
@@ -193,13 +229,12 @@ export function SettingsView() {
     }
   }, [setToastMessage]);
 
-  const handleDeleteAccount = useCallback(async () => {
-    const confirmed = globalThis.confirm(t('msg_delete_warning'));
-
-    if (!confirmed) return;
-
-    const verification = prompt(t('msg_delete_prompt'));
-    if (verification !== 'VERWIJDER') {
+  // Called by the inline ConfirmPanel with what the user typed. That panel
+  // replaced globalThis.confirm + prompt(), which in a Firefox popup can open
+  // as a separate window and close the popup.
+  const handleDeleteAccount = useCallback(async (verification: string) => {
+    setShowDeleteConfirm(false);
+    if (!isDeleteConfirmation(verification)) {
       setToastMessage(t('msg_delete_cancelled'));
       return;
     }
@@ -226,13 +261,11 @@ export function SettingsView() {
       }
 
       const data = await response.json();
+      // The account is gone; log out now instead of after a timer that did
+      // not run if the popup closed first. The success toast comes after, so
+      // the logout's own "logged out" toast does not replace it.
+      await handleLogout().catch(console.error);
       setToastMessage(t('msg_delete_success', [data.deletedConnections]));
-
-      // Log user out after successful deletion
-      setTimeout(() => {
-        handleLogout();
-      }, 2000);
-
     } catch (e) {
       setToastMessage(t('msg_delete_error_network'));
     } finally {
@@ -411,6 +444,13 @@ export function SettingsView() {
             </button>
           </div>
 
+          <ReadableExportSetting
+            t={t}
+            exportingFormat={exportingFormat}
+            progress={exportProgress}
+            onExport={(format) => void exportReadable(format)}
+          />
+
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
               <h4 className={styles.settingName}>{t('delete_account_title')}</h4>
@@ -420,29 +460,48 @@ export function SettingsView() {
             </div>
             <button
               className={`${styles.actionButton} ${styles.dangerButton}`}
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting || showDeleteConfirm}
             >
               {isDeleting ? t('deleting_button') : t('delete_account_button')}
             </button>
           </div>
 
-          <div className={styles.settingItem}>
-            <div className={styles.settingInfo}>
-              <h4 className={styles.settingName}>{t('privacy_policy_title')}</h4>
-              <p className={styles.settingDescription}>
-                {t('privacy_policy_description')}
-              </p>
-            </div>
-            <a
-              href={`https://rolodink.app/${(typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : 'nl').split('-')[0]}/privacy`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.actionButton}
-            >
-              {t('privacy_policy_button')}
-            </a>
-          </div>
+          {showDeleteConfirm && (
+            <ConfirmPanel
+              message={t('msg_delete_warning')}
+              confirmLabel={t('delete_account_confirm_button')}
+              cancelLabel={t('cancel_button')}
+              busy={isDeleting}
+              typedConfirmation={{
+                label: t('msg_delete_prompt'),
+                isValid: (verification) => isDeleteConfirmation(verification),
+              }}
+              onConfirm={(verification) => void handleDeleteAccount(verification)}
+              onCancel={() => {
+                setShowDeleteConfirm(false);
+                setToastMessage(t('msg_delete_cancelled'));
+              }}
+            />
+          )}
+
+          <LinkSetting
+            title={t('privacy_policy_title')}
+            description={t('privacy_policy_description')}
+            href={`https://rolodink.app/${uiLanguage}/privacy`}
+            label={t('privacy_policy_button')}
+          />
+        </div>
+
+        {/* Feedback: version and browser only, nothing about pages or the account. */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t('feedback_section_title')}</h3>
+          <LinkSetting
+            title={t('feedback_title')}
+            description={t('feedback_description')}
+            href={feedbackHref}
+            label={t('feedback_button')}
+          />
         </div>
 
         {/* Update Information Section */}

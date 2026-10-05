@@ -4,6 +4,7 @@
         "title": "Turn every LinkedIn connection into a meaningful relationship",
         "subtitle": "Rolodink is the smart note-taking layer for LinkedIn. Add personal notes, remember details, and build a stronger network, directly from your browser.",
         "trustedBy": "4.9/5 - Trusted by professionals",
+        "watch": "See how it works",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -14,6 +15,36 @@
             "addToEdge": "Add to Edge",
             "addToFirefox": "Add to Firefox"
         }
+    },
+    "Explainer": {
+        "title": "How it works",
+        "description": "Open a profile, write a note and find someone again. In nineteen seconds.",
+        "video": {
+            "src": "/video/rolodink-explainer.mp4",
+            "poster": "/video/rolodink-explainer-poster.jpg",
+            "captions": "/video/rolodink-explainer.vtt",
+            "captionsLabel": "English",
+            "label": "Explainer video: how Rolodink works",
+            "play": "Play video",
+            "pause": "Pause video",
+            "soundOn": "Sound on",
+            "soundOff": "Sound off"
+        },
+        "steps": [
+            {
+                "title": "Open a profile",
+                "description": "On LinkedIn, the Add to Rldnk button sits next to Message. One click and the connection is in Rolodink."
+            },
+            {
+                "title": "Write a note",
+                "description": "Where you met, what you talked about, what you don't want to forget. Just for you, and stored encrypted."
+            },
+            {
+                "title": "Find them again",
+                "description": "Search by name, company or a detail from your note. That's how ‘sail’ finds Sanne."
+            }
+        ],
+        "more": "More about how it works"
     },
     "Features": {
         "title": "The power of personal notes",
@@ -33,7 +64,7 @@
             },
             "privacy": {
                 "title": "Your notes stay private",
-                "description": "All your notes are securely stored with encryption and are only visible to you. GDPR-compliant, no data is shared with third parties."
+                "description": "All your notes are securely stored with encryption and are only visible to you. Built on GDPR principles; we never sell your data or share it for anyone else's purposes."
             },
             "quickAdd": {
                 "title": "Quick add with one click",
@@ -65,24 +96,24 @@
                 "description": "Their dog is named Max, they're moving to Berlin, their startup is still looking for a CTO.",
                 "benefits": [
                     "Contextual notes",
-                    "Conversation history",
-                    "Follow-up reminders"
+                    "Meeting place and company",
+                    "Follow-up reminders (on our roadmap)"
                 ]
             },
             {
                 "title": "Natural follow-up",
                 "description": "'Hi Tom, how's the new office in Amsterdam? And did you find that lead developer yet?'",
                 "benefits": [
-                    "Automatic reminders",
-                    "Follow-up templates",
-                    "Set priorities"
+                    "Your note right on their profile",
+                    "Saved automatically as you type",
+                    "Everything in one searchable list"
                 ]
             },
             {
                 "title": "Structured data",
-                "description": "Organize your network with tags, companies, and topics — just so you can find it quickly.",
+                "description": "Keep where you met and which company they were at, and find anyone again by name, company or anything in your notes.",
                 "benefits": [
-                    "Categorize connections",
+                    "Filter by recent or with notes",
                     "Store company information",
                     "Search and filter"
                 ]
@@ -127,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.3.6 • Free",
+        "version": "Version 1.3.8 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -148,7 +179,7 @@
             },
             {
                 "question": "Does Rolodink also work on the mobile LinkedIn app?",
-                "answer": "Currently, Rolodink only works as a Chrome Extension on desktop computers. A mobile solution is on our roadmap for the future."
+                "answer": "Rolodink currently works as a browser extension for Chrome, Edge and Firefox on desktop computers. A mobile version is on our roadmap."
             },
             {
                 "question": "I don't see the Rolodink sidebar on LinkedIn. What now?",
@@ -156,7 +187,7 @@
             },
             {
                 "question": "Can I export my data?",
-                "answer": "This functionality is currently under development. We understand the importance of data ownership and are working on an option to export all your notes and contact information."
+                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
             }
         ],
         "cta": {
@@ -190,7 +221,7 @@
             },
             {
                 "title": "Find Everything Instantly",
-                "description": "Use the search bar in the extension to search your network based on the content of your notes and tags."
+                "description": "Use the search bar in the extension to search your network by name, company, meeting place or anything in your notes."
             }
         ],
         "cta": {
@@ -210,6 +241,69 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.8",
+                "date": "October 5, 2026",
+                "sections": [
+                    {
+                        "title": "New in the popup",
+                        "items": [
+                            "Add, edit and search an email address and phone number. One click opens your mail or dials, \"+31 (0)6 …\" included. Both are stored encrypted.",
+                            "Readable export as JSON or CSV, decrypted in the extension itself. The CSV opens straight in Excel.",
+                            "Outside a profile you see your list right away, with a button to send feedback."
+                        ]
+                    },
+                    {
+                        "title": "Your notes",
+                        "items": [
+                            "If you edit the same connection in two places at once, you get a notice and choose which version stays. The last save used to win silently.",
+                            "On some profiles the note field appeared briefly and then vanished. It now stays in the profile header.",
+                            "The same profile no longer lands in your Rldnk twice through another variant of its link."
+                        ]
+                    },
+                    {
+                        "title": "Account and Firefox",
+                        "items": [
+                            "Changing your password checks your current one, and deleting your account removes your login too.",
+                            "Firefox 140 or later is required. Firefox now asks consent for the data Rolodink sends to its server."
+                        ]
+                    },
+                    {
+                        "title": "Faster",
+                        "items": [
+                            "The popup opens faster, and the extension is smaller and lighter in the background."
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "1.3.7",
+                "date": "September 30, 2026",
+                "sections": [
+                    {
+                        "title": "Your notes",
+                        "items": [
+                            "If the note field can't load your existing note (the server is busy, your session expired), it now stays closed and offers Retry. It used to open empty, and what you typed replaced your saved note.",
+                            "A note still being saved when you moved on to the next profile could end up on that profile. It now stays with the profile you wrote it on."
+                        ]
+                    },
+                    {
+                        "title": "In the popup",
+                        "items": [
+                            "Editing a connection no longer clears its email and phone.",
+                            "A note that couldn't be decrypted is no longer overwritten when you save an edit.",
+                            "Deleting a connection no longer leaves your notes unencrypted in your browser's storage.",
+                            "Deleting your account works in English too: it asked for \"DELETE\" but only accepted \"VERWIJDER\"."
+                        ]
+                    },
+                    {
+                        "title": "Permissions",
+                        "items": [
+                            "Rolodink asks for fewer permissions: it no longer needs access to your browser tabs."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.6",
                 "date": "August 24, 2026",
@@ -332,7 +426,8 @@
                             "No more passphrase: your data is encrypted automatically once you're signed in.",
                             "Encryption uses a secure per-account key managed by the server.",
                             "Security fix: saving can no longer silently fall back to unencrypted data.",
-                            "Key management is tied to your account; the key is cleared on logout."
+                            "Key management is tied to your account; the key is cleared on logout.",
+                            "Note: since this version the key is managed by the server, so encryption is no longer end-to-end. Notes are still encrypted before they are stored."
                         ]
                     }
                 ]
@@ -548,7 +643,50 @@
     "SecurityPage": {
         "title": "Security",
         "lastUpdated": "Last updated",
-        "notice": "This document is currently only available in Dutch."
+        "notice": "",
+        "updatedOn": "September 30, 2026",
+        "intro": "Notes about the people in your network are personal. This page explains how Rolodink protects them, and where the limits are.",
+        "sections": [
+            {
+                "title": "Encryption",
+                "paragraphs": [
+                    "Your notes, meeting place, company, email and phone number are encrypted with AES-256-GCM inside the browser extension before they are sent to us, and that is how they are stored. Entries saved with older versions of the extension, from before this encryption was added, can still be stored unencrypted; they are encrypted as soon as you edit and save them. Traffic between the extension and our servers runs over HTTPS.",
+                    "Every account has its own encryption key. We generate it on first use and store it wrapped with a master key that is kept as a secret in our hosting environment, separate from the database. The extension keeps your key in memory and session storage only while you are signed in, and clears it when you sign out.",
+                    "What this is not: end-to-end or zero-knowledge encryption. Because we manage the keys, your notes are available on every device you sign in on, but it also means that someone with access to both our database and our master key could decrypt them. We would rather say that plainly than overstate it."
+                ]
+            },
+            {
+                "title": "Access control",
+                "paragraphs": [
+                    "Row-Level Security is enabled on the database, so an account can only read its own rows, even if another layer were to fail. Sign-in runs through Supabase authentication with token-based sessions."
+                ]
+            },
+            {
+                "title": "Protection against abuse",
+                "paragraphs": [
+                    "The API applies rate limits per IP address, with a stricter limit for signing in and signing up. The API only accepts requests from approved origins (CORS allowlist), and user input is validated before it is processed."
+                ]
+            },
+            {
+                "title": "Secrets and dependencies",
+                "paragraphs": [
+                    "API keys and secrets are stored as environment variables and are never committed to the code. Every commit is automatically scanned for leaked secrets, and our dependencies are checked for known vulnerabilities as part of our build pipeline."
+                ]
+            },
+            {
+                "title": "Your data, your control",
+                "paragraphs": [
+                    "You can export all your data or delete your account and everything stored with it at any time. If deleting your account from the extension does not work for you, email privacy@rolodink.app and we will delete it for you. Your notes are private: the people you write about cannot see them, and we never sell your data or share it for anyone else's purposes. We use Supabase and Vercel to host Rolodink."
+                ]
+            },
+            {
+                "title": "Reporting a vulnerability",
+                "paragraphs": [
+                    "Found a security issue, or have a question about how we handle your data? Email us and we will respond as soon as we can."
+                ],
+                "email": true
+            }
+        ]
     },
     "Testimonials": {
         "title": "How professionals use Rolodink",
@@ -608,19 +746,19 @@
             },
             "free": {
                 "question": "Is Rolodink really free?",
-                "answer": "Yes, Rolodink is completely free to use as a Chrome extension. No credit card required, no limits."
+                "answer": "Yes, Rolodink is completely free to use as a browser extension for Chrome, Edge and Firefox. No credit card required, no limits."
             },
             "security": {
                 "question": "How secure are my notes?",
-                "answer": "Your notes are securely stored with encryption and are only visible to you. We use end-to-end encryption and comply with GDPR guidelines."
+                "answer": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. Every account has its own key. We manage those keys so your notes work on every device, which means this is not end-to-end encryption in the strict sense. Read the details on our security page."
             },
             "mobile": {
                 "question": "Does Rolodink work on mobile?",
-                "answer": "Currently, Rolodink is available as a Chrome extension. A mobile version is in development."
+                "answer": "Not yet. Rolodink is a browser extension for Chrome, Edge and Firefox on desktop. A mobile version is on our roadmap."
             },
             "export": {
                 "question": "Can I export my notes?",
-                "answer": "Yes, you can export all your notes to various formats for backup and transfer."
+                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",
@@ -632,7 +770,7 @@
             },
             "legal": {
                 "question": "Does Rolodink comply with privacy laws?",
-                "answer": "Yes, Rolodink complies with GDPR and all relevant privacy legislation. Your data is never shared with third parties."
+                "answer": "Rolodink is built on GDPR principles: we collect only what the service needs, you can export or delete your data at any time, and we never sell it or share it for anyone else's purposes. We use hosting and database providers (Supabase and Vercel) to run the service."
             },
             "support": {
                 "question": "What about updates and support?",
