@@ -313,9 +313,9 @@ function injectCRMButton(anchorButton) {
     // both were injected into.
     //
     // A button in the wrong row is moved rather than left alone, because
-    // findProfileHeader now picks the tallest candidate and the hero can render
-    // after the sticky header - so the first tick may legitimately choose the
-    // sticky one and a later tick a better one.
+    // the hero can render after the sticky header (and after the page title
+    // that findProfileHeader reads the name from) - so the first tick may
+    // legitimately choose a stand-in and a later tick the hero.
     //
     // Moved, not rebuilt: a rebuilt button asks the API again whether the
     // profile is in the CRM, and forgets the answer it already shows.
@@ -536,10 +536,10 @@ function placeButton(button, anchorButton, container) {
  * Puts an already-injected note card back where it belongs.
  *
  * Moved rather than recreated, so the textarea keeps whatever the user has
- * typed and its listeners stay attached. Needed because findProfileHeader picks
- * the tallest candidate and the hero can render after the sticky header - the
- * first tick may legitimately choose the sticky one and a later tick a better
- * one.
+ * typed and its listeners stay attached. Needed because the hero can render
+ * after the sticky header (and after the title findProfileHeader reads the name
+ * from) - the first tick may legitimately choose a stand-in and a later tick
+ * the hero.
  *
  * Its own function for SonarCloud S3776: injectContextField was at cognitive
  * complexity 16 against the 15 allowed, and relocating is a separate job from

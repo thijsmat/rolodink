@@ -29,6 +29,9 @@
  * The fixtures in __fixtures__ are real captures. See the README there.
  */
 
+import { cleanProfileName } from '@rolodink/core';
+import { findProfileNameInTitle } from './profile';
+
 /**
  * Actions to anchor beside, best first.
  *
@@ -135,47 +138,71 @@ export function findProfileHeaderCandidates(root: ParentNode, profilePath: strin
 }
 
 /**
- * The profile header proper: the tallest candidate.
+ * Lowercased with runs of whitespace collapsed, for comparing a heading with
+ * the profile's name.
+ */
+function normalized(text: string): string {
+    return text.split(/\s+/).filter(Boolean).join(' ').toLowerCase();
+}
+
+/** The profile's name from the page title, normalized, or '' when there is none. */
+function nameFromTitle(root: ParentNode): string {
+    const doc = root instanceof Document ? root : (root as Node).ownerDocument;
+    return normalized(cleanProfileName(findProfileNameInTitle(doc?.title ?? '')));
+}
+
+/** Whether a heading in the candidate carries the profile's name. */
+function isHeadedByName(candidate: HTMLElement, name: string): boolean {
+    return Array.from(candidate.querySelectorAll('h1, h2')).some((heading) => {
+        const text = normalized(heading.textContent ?? '');
+        return text !== '' && (text.includes(name) || name.includes(text));
+    });
+}
+
+/**
+ * The profile header proper.
  *
- * This used to return the first in document order, with a comment calling that
- * "the honest answer rather than a guess dressed up as a heuristic". The honest
- * answer turned out to be the wrong one - first in document order is the sticky
- * header, so the button and note card landed in the bar that only appears once
- * you scroll, instead of in the hero.
+ * First choice: the card whose heading is the person's name. Measured on a live
+ * profile (Viktor Vonk, 2026-10-05), it is the only one:
  *
- * Height separates them cleanly, measured on a live profile:
+ *     sticky header     49px  no heading, name in a <p>
+ *     hero             497px  <h2>Viktor Vonk</h2>
+ *     a video post     384px  no heading
+ *     right sidebar   2352px  <h2>Ad Options</h2>, <h2>Explore Premium profiles</h2>
  *
- *     sticky header    49px
- *     hero            459px
- *     post cards   52-86px
+ * The sidebar is a candidate because it holds a link to this profile and
+ * buttons of its own. It is also the tallest, and "the tallest candidate" is
+ * what this function used to return, so the note card and button landed below
+ * the ads at the bottom of the page: visible for a moment while the hero was
+ * the tallest thing rendered, then gone. The post shows that height was never
+ * a safe margin either - 384px against a 497px hero.
  *
- * Two hypotheses were tested and discarded first, which is worth recording so
- * nobody spends the afternoon on them again: the hero does have a self-link (so
- * "the hero is not a candidate" is false), and the sticky header has no
- * position:sticky or :fixed ancestor (so excluding those finds nothing).
+ * Fallback, while the hero has not rendered or if LinkedIn stops using a
+ * heading for the name: the tallest candidate without any heading. A card with
+ * headings that are not the name (the sidebar) is never the header. Height
+ * still separates the hero from the sticky bar there, as it did before.
  *
- * This is the `offsetHeight > 100` heuristic that #50 deleted, restored without
- * the magic number - the tallest wins, no threshold to drift. It was deleted
- * for being untestable rather than for being wrong; the fix for untestable is
- * an injectable measurement, not deletion.
- *
- * Falls back to the sticky header when it is the only candidate, which happens
- * if the hero has not rendered yet. main.js relocates the injections when a
- * taller candidate appears later.
+ * `name` defaults to the one in the page title (profile.ts); jsdom's title is
+ * empty, which leaves only the fallback.
  */
 export function findProfileHeader(
     root: ParentNode,
     profilePath: string,
-    measure: MeasureHeight = measureRenderedHeight
+    measure: MeasureHeight = measureRenderedHeight,
+    name: string = nameFromTitle(root)
 ): HTMLElement | null {
+    const candidates = findProfileHeaderCandidates(root, profilePath);
+    const named = name ? candidates.filter((candidate) => isHeadedByName(candidate, name)) : [];
+    const pool = named.length > 0
+        ? named
+        : candidates.filter((candidate) => candidate.querySelector('h1, h2') === null);
+
     let best: HTMLElement | null = null;
     // -Infinity, not -1: with -1 any candidate measuring below zero loses to the
     // initial value and the function returns null instead of the best of a bad
-    // lot. Real heights are never negative, so this never bit in production -
-    // but "never happens in practice" is how the sticky-header bug got its
-    // comment too, and a test caught this one.
+    // lot.
     let bestHeight = -Infinity;
-    for (const candidate of findProfileHeaderCandidates(root, profilePath)) {
+    for (const candidate of pool) {
         const height = measure(candidate);
         if (height > bestHeight) {
             best = candidate;

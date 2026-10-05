@@ -213,6 +213,12 @@ jobs:
     # note saved in the popup or on another device. Measured 21859 bytes with
     # that (19106 before it), so the new ceiling is that plus a small margin,
     # not another 10%.
+    #
+    # Raised: content.js 22000 -> 22500. The profile header is now the card
+    # whose heading is the person's name, not simply the tallest card: on a
+    # live profile the 2352px ads sidebar was taller than the hero, so the note
+    # card and button ended up below the ads (anchors.ts findProfileHeader).
+    # Measured 22289 bytes with that, plus a small margin.
     - name: Verify the real bundle and the size budget
       run: |
         fail=0
@@ -238,7 +244,7 @@ jobs:
             fail=1
           fi
           check_max "$bg" 248670 "$t background.js"
-          check_max "$dir/content.js" 22000 "$t content.js"
+          check_max "$dir/content.js" 22500 "$t content.js"
           popups=$(find "$dir/assets" -maxdepth 1 -name 'index-*.js')
           if [ "$(printf '%s\n' "$popups" | grep -c .)" -ne 1 ]; then
             echo "::error::expected exactly one popup bundle in $dir/assets, found: $popups"
