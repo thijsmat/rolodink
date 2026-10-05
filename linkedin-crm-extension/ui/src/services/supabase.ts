@@ -1,26 +1,24 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
-import { chromeStorageAdapter } from '../utils/storageAdapter';
+import { createAuthClient, type AuthOnlyClient } from './authClient';
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error('⚠️  Missing Supabase credentials in services/supabase.ts');
 }
 
-let supabaseClient: SupabaseClient;
+let supabaseClient: AuthOnlyClient;
 
 try {
-    console.log('Initializing Supabase client...');
-    supabaseClient = createClient(SUPABASE_URL || 'https://placeholder.supabase.co', SUPABASE_ANON_KEY || 'placeholder', {
-        auth: {
-            storage: chromeStorageAdapter,
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: false,
-        },
-    });
-    console.log('Supabase client initialized');
+    console.log('Initializing Supabase auth client...');
+    // The popup keeps auto-refresh on; it is short-lived, so the ticker stops
+    // when the popup closes.
+    supabaseClient = createAuthClient(
+        SUPABASE_URL || 'https://placeholder.supabase.co',
+        SUPABASE_ANON_KEY || 'placeholder',
+        { autoRefreshToken: true }
+    );
+    console.log('Supabase auth client initialized');
 } catch (error) {
-    console.error('Failed to initialize Supabase client:', error);
+    console.error('Failed to initialize Supabase auth client:', error);
     // Fallback to avoid crash on import
     supabaseClient = {
         auth: {
@@ -29,7 +27,7 @@ try {
             getSession: async () => ({ data: { session: null }, error: new Error('Supabase not initialized') }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
         }
-    } as any;
+    } as unknown as AuthOnlyClient;
 }
 
 export const supabase = supabaseClient;

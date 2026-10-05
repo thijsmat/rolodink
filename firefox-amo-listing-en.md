@@ -80,8 +80,8 @@ Dutch captions for the Dutch listing: see `store-assets/README.md`.
 **Version:** 1.0.2  
 **Size:** ~2MB  
 **Permissions:** activeTab, storage, tabs, linkedin.com, api.rolodink.app  
-**Manifest:** v2 (Firefox compatibility)  
-**Compatibility:** Firefox 109+  
+**Manifest:** v3  
+**Compatibility:** Firefox 140+ (desktop)
 **Gecko ID:** rolodink@rolodink.app
 
 ## Keywords

@@ -30,10 +30,9 @@ export function getExtensionUrl() {
 }
 
 /**
- * A store link with UTM parameters, so the click is attributable on both ends:
- * Plausible records it as an "Outbound Link: Click" with this URL, and the
- * stores' own install stats show utm_source/utm_content. No personal data:
- * only which store and which spot on the site.
+ * A store link with UTM parameters, so the stores' own install stats show
+ * which spot on the site a visitor came from (utm_source/utm_content). No
+ * personal data: only which store and which spot on the site.
  */
 export function storeUrl(store: Store, placement: StorePlacement): string {
   const bases: Record<Store, string> = {
