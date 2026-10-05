@@ -58,6 +58,43 @@ drops the Supabase client as dead code and `background.js` shrinks from about
 There are no `build:firefox`, `sign:firefox` or `watch:firefox` npm scripts,
 and web-ext is not a root dependency any more.
 
+## Data collection declaration and minimum version
+
+`browser_specific_settings.gecko` in `manifest-firefox.json` declares what the
+extension sends off the device, for Firefox's built-in data consent (shown in
+the install prompt and in `about:addons`). All four are `required`: the
+extension does nothing useful without its account and backend.
+
+| Category | Why |
+|---|---|
+| `authenticationInfo` | Email and password to `/api/auth`; Google sign-in through `identity` and Supabase |
+| `personallyIdentifyingInfo` | Contacts' names, email and phone, and the account email. Notes, meeting place, company, email and phone are encrypted client-side before upload, but are still personal data sent to us |
+| `browsingActivity` | The URL of every LinkedIn profile you open goes to `/api/connections?url=` to check whether it is already in the CRM |
+| `websiteContent` | The profile name read from the LinkedIn page is stored with its URL |
+
+Not declared: `websiteActivity` (no click, scroll or keystroke tracking on
+LinkedIn; the note card is the extension's own field),
+`personalCommunications` (LinkedIn messages are never read), and
+`technicalAndInteraction` (no telemetry or crash reporting; Mozilla only
+allows it as `optional` anyway). Add a category here and in the manifest
+before shipping a feature that sends a new kind of data.
+
+`strict_min_version` is `140.0`: Firefox desktop supports
+`data_collection_permissions` from 140 (Firefox for Android from 142). On
+older versions a data-collecting extension would have to show its own consent
+screen, so they are not supported. Firefox for Android is not targeted: there
+is no `gecko_android` key, which keeps the add-on desktop-only on AMO. web-ext
+lint therefore still reports one `KEY_FIREFOX_ANDROID_UNSUPPORTED_BY_MIN_VERSION`
+warning (it applies the desktop minimum, 140, to Android, where the key needs
+142). Adding `"gecko_android": { "strict_min_version": "142.0" }` silences it,
+but also offers the add-on on Android; do that only after testing there
+(`identity`-based Google sign-in is the likely gap).
+
+Sources: MDN
+[`browser_specific_settings`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_specific_settings),
+Extension Workshop
+[Firefox built-in consent for data collection and transmission](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/).
+
 ## web-ext (lint, run, sign)
 
 web-ext is pinned exactly in `tools/firefox-sign` (own `package.json` and

@@ -5,12 +5,12 @@
 ### 1. Rate Limiting ✅
 - **Status**: Implemented
 - **Location**: `linkedin-crm-backend/src/lib/rate-limit.ts`
-- **Limit**: 100 requests per IP per hour
+- **Limit**: 600 requests per IP per hour; password sign-in and sign-up 100, in their own bucket (was 100 for everything)
 - **Coverage**: All API routes (`/api/*`)
-- **Test**: Make >100 requests, verify 429 response
+- **Test**: Make >600 requests (>100 for sign-in), verify 429 response
 
 ### 2. Row-Level Security (RLS) ✅
-- **Status**: SQL migration created
+- **Status**: SQL migration created and applied (RLS on in production, checked 2026-10-01)
 - **Location**: `prisma/migrations/enable_rls.sql`
 - **Tables**: Connection, Note
 - **Policies**: Based on `auth.uid()` matching `ownerId`
@@ -87,7 +87,7 @@
   SELECT tablename, rowsecurity FROM pg_tables 
   WHERE tablename IN ('Connection', 'Note');
   ```
-- [ ] Test rate limiting: Make 101 requests to `/api/version`, verify 429 response
+- [ ] Test rate limiting: Make 601 requests to `/api/version`, verify 429 response
 - [ ] Test RLS: Attempt to access another user's data (should fail)
 - [ ] Verify all environment variables set in Vercel
 - [ ] Run `npm audit` and address critical/high vulnerabilities
@@ -104,11 +104,25 @@
 
 ## 📝 Remaining Actions
 
-### Critical (Before Production)
-1. **Apply RLS Migration**: Run `enable_rls.sql` in Supabase
+> **Status 2026-10-01.** The list below dates from the original audit (2024).
+> Checked against the current state:
+> - **RLS is applied.** Supabase reports `rls_enabled: true` on every table in
+>   `public` of the production project (`linkedin-crm`): `Connection`, `Note`,
+>   `user_keys`, `user_keys_legacy_backup`. A cross-user access test has not
+>   been re-run for this note.
+> - **Rate limiting is still in-memory** (`linkedin-crm-backend/src/lib/rate-limit.ts`,
+>   TODO at the `store` declaration): it resets on every cold start and is not
+>   shared between serverless instances, so on Vercel it is best-effort. A
+>   persistent store (Upstash Redis / Vercel KV) is still open; see
+>   "Future Enhancements" below.
+> - The production environment variables are set (the backend runs in
+>   production); not re-verified item by item here.
+
+### Critical (Before Production) - historical, see status above
+1. ~~**Apply RLS Migration**: Run `enable_rls.sql` in Supabase~~ (done)
 2. **Test RLS Policies**: Verify users can't access others' data
-3. **Set Environment Variables**: Configure all secrets in Vercel
-4. **Test Rate Limiting**: Verify 429 responses work
+3. ~~**Set Environment Variables**: Configure all secrets in Vercel~~ (done)
+4. **Test Rate Limiting**: Verify 429 responses work (in-memory, per instance)
 
 ### Important (Recommended)
 1. **Update Dependencies**: Run `npm audit fix` if vulnerabilities found
@@ -125,8 +139,8 @@
 ## 🎯 Security Metrics
 
 ### Current Protection Level
-- **Rate Limiting**: ✅ Active (100 req/hour)
-- **RLS**: ⚠️ Migration ready (needs application)
+- **Rate Limiting**: ✅ Active (600 req/hour, auth 100; per instance, in-memory)
+- **RLS**: ✅ Enabled on all `public` tables (checked 2026-10-01)
 - **Secret Management**: ✅ No hardcoded secrets
 - **Dependency Scanning**: ✅ Automated in CI/CD
 - **Authentication**: ✅ Secure (Supabase OAuth)
@@ -134,7 +148,7 @@
 
 ### Risk Assessment
 - **Low Risk**: Rate limiting, dependency scanning, secret management
-- **Medium Risk**: RLS (migration needs to be applied)
+- **Medium Risk**: Rate limiting is per-instance and in-memory (resets on cold start)
 - **Low Risk**: Authentication, CORS, token storage
 
 ## 📚 Documentation References
@@ -147,5 +161,5 @@
 ---
 
 **Last Updated**: 2024  
-**Next Review**: After RLS migration is applied and tested
+**Next Review**: When rate limiting moves to a persistent store (status note 2026-10-01)
 
