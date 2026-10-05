@@ -35,9 +35,14 @@ Rolodink consists of three main components, each requiring different environment
 - **Where to get**: Supabase Dashboard → Settings → Database → Connection string → Connection pooling
 - **Format**: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 - **Note**: Use connection pooling URL (not direct connection)
+- **On Vercel**: optional. Without `DATABASE_URL` the backend uses `POSTGRES_PRISMA_URL`, which the
+  Supabase integration sets and keeps in sync (`src/lib/prisma.ts`). Deleting the hand-made
+  `DATABASE_URL` in Vercel means a database password reset needs no manual copy. If both exist,
+  `DATABASE_URL` wins.
 
 #### `DIRECT_URL`
 - **Description**: Direct PostgreSQL connection string (for migrations)
+- **Note**: only needed where migrations run (locally); the deployed backend does not use it
 - **Where to get**: Supabase Dashboard → Settings → Database → Connection string → Direct connection
 - **Format**: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 
