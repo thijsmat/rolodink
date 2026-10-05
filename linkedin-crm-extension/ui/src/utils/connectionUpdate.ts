@@ -45,8 +45,9 @@ export type FieldsToUpdate<F extends string> = {
  * The fields of an edit that should reach the server.
  *
  * A field the form does not have (undefined) is left out, so the PATCH leaves
- * it alone. The edit form has no email or phone inputs, and sending those as
- * null wiped both on every save.
+ * it alone. Before the edit form had email and phone inputs, sending those as
+ * null wiped both on every save; the form now leaves them undefined unless
+ * the user changed them (see contactFieldEdits).
  *
  * A field holding an unreadable value is left out too, so the stored
  * ciphertext survives an edit made while it could not be decrypted.
@@ -69,4 +70,34 @@ export function pickFieldsToUpdate<F extends string>(
         picked[field] = value;
     }
     return { fields: picked, skippedUnreadable };
+}
+
+/** The contact fields of a connection: in the form, but sent only when changed. */
+export const CONTACT_FIELDS = ['email', 'phone'] as const;
+
+export type ContactField = (typeof CONTACT_FIELDS)[number];
+
+/**
+ * The contact fields an edit should send: only the ones the user changed.
+ *
+ * - Unchanged (including a field still showing the locked placeholder): left
+ *   out, so the PATCH keeps whatever is stored. A form opened without these
+ *   values, or with one the popup could not decrypt, cannot wipe them.
+ * - Emptied: null, which clears the stored value.
+ * - Changed: the new value, trimmed.
+ *
+ * A change in surrounding whitespace only counts as unchanged.
+ */
+export function contactFieldEdits(
+    initial: Partial<Record<ContactField, string | null | undefined>> | undefined,
+    current: Readonly<Record<ContactField, string>>,
+): Partial<Record<ContactField, string | null>> {
+    const edits: Partial<Record<ContactField, string | null>> = {};
+    for (const field of CONTACT_FIELDS) {
+        const before = (initial?.[field] ?? '').trim();
+        const after = current[field].trim();
+        if (after === before) continue;
+        edits[field] = after === '' ? null : after;
+    }
+    return edits;
 }

@@ -381,6 +381,27 @@
     "help_user_company": {
         "message": "Waar werkte je toen je deze persoon ontmoette?"
     },
+    "section_contact": {
+        "message": "Contactgegevens"
+    },
+    "label_email": {
+        "message": "E-mailadres"
+    },
+    "placeholder_email": {
+        "message": "naam@bedrijf.nl"
+    },
+    "help_contact_private": {
+        "message": "Versleuteld opgeslagen, net als je notities. Alleen jij kunt het lezen."
+    },
+    "warning_email_format": {
+        "message": "Dit lijkt geen e-mailadres. Je kunt het wel opslaan."
+    },
+    "label_phone": {
+        "message": "Telefoonnummer"
+    },
+    "placeholder_phone": {
+        "message": "+31 6 12345678"
+    },
     "section_notes": {
         "message": "Notities"
     },
