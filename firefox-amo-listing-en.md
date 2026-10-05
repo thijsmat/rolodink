@@ -49,7 +49,7 @@ language, so the explanation goes in the caption. Upload them in this order, wit
 4. `4-overview.png` - "All your connections, with their context, in one overview."
 5. `5-private.png` - "Your notes are visible only to you and stored encrypted."
 
-Dutch captions for the Dutch listing: see `store-assets/README.md`.
+Dutch listing (name, summary, description, captions): see `firefox-amo-listing-nl.md`.
 
 ## Privacy Policy
 
