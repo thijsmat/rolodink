@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.3.7 • Free",
+        "version": "Version 1.3.8 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -241,6 +241,41 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.8",
+                "date": "October 5, 2026",
+                "sections": [
+                    {
+                        "title": "New in the popup",
+                        "items": [
+                            "Add, edit and search an email address and phone number. One click opens your mail or dials, \"+31 (0)6 …\" included. Both are stored encrypted.",
+                            "Readable export as JSON or CSV, decrypted in the extension itself. The CSV opens straight in Excel.",
+                            "Outside a profile you see your list right away, with a button to send feedback."
+                        ]
+                    },
+                    {
+                        "title": "Your notes",
+                        "items": [
+                            "If you edit the same connection in two places at once, you get a notice and choose which version stays. The last save used to win silently.",
+                            "On some profiles the note field appeared briefly and then vanished. It now stays in the profile header.",
+                            "The same profile no longer lands in your Rldnk twice through another variant of its link."
+                        ]
+                    },
+                    {
+                        "title": "Account and Firefox",
+                        "items": [
+                            "Changing your password checks your current one, and deleting your account removes your login too.",
+                            "Firefox 140 or later is required. Firefox now asks consent for the data Rolodink sends to its server."
+                        ]
+                    },
+                    {
+                        "title": "Faster",
+                        "items": [
+                            "The popup opens faster, and the extension is smaller and lighter in the background."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.7",
                 "date": "September 30, 2026",

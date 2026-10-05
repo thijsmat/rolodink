@@ -14,4 +14,4 @@
  * fail the build when it drifts from the manifests. A comment asking for
  * discipline is not a mechanism.
  */
-export const LATEST_EXTENSION_VERSION = '1.3.7';
+export const LATEST_EXTENSION_VERSION = '1.3.8';
