@@ -6,7 +6,7 @@ Marketing website for the Rolodink LinkedIn CRM browser extension.
 
 - **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS v3.4.1 + shadcn/ui (see [STYLING.md](STYLING.md))
-- **Analytics**: Plausible
+- **Analytics**: Vercel Web Analytics; Google Analytics only after cookie consent
 - **Deployment**: Vercel
 - **Domain**: rolodink.app
 
@@ -78,7 +78,6 @@ The website is configured for Vercel deployment:
 - Robots.txt (`/robots.txt`)
 - Open Graph meta tags
 - Twitter Card support
-- Plausible analytics integration
 
 ## Features
 

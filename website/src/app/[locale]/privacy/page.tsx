@@ -70,10 +70,11 @@ export default function PrivacyPage() {
                   Service. This information remains private to you.
                 </li>
                 <li>
-                  <strong>Analytics Data:</strong> We use Plausible Analytics to
-                  gather anonymized usage statistics to improve our website. This
-                  occurs without cookies and without collecting personally
-                  identifiable information.
+                  <strong>Analytics Data:</strong> Our website uses Vercel Web
+                  Analytics to count page views in aggregate, without cookies and
+                  without collecting personally identifiable information. Only if
+                  you accept cookies in the cookie banner do we also load Google
+                  Analytics. The browser extension itself contains no analytics.
                 </li>
               </ul>
 
