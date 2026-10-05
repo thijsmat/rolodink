@@ -109,3 +109,87 @@ describe('choosing between them', () => {
         expect(findProfileHeader(doc, PROFILE_PATH, inverted)?.id).toBe('sticky');
     });
 });
+
+/**
+ * The page that broke "the tallest candidate": Viktor Vonk, measured live on
+ * 2026-10-05 with a console probe. Synthetic markup again, but the heights and
+ * headings are the real ones. The right sidebar links to the profile, holds
+ * buttons, and at 2352px is by far the tallest card - the note card was
+ * appearing below its ads at the bottom of the page.
+ */
+const VIKTOR = '/in/viktorvonk';
+
+function renderViktor(title = 'Viktor Vonk | LinkedIn'): Document {
+    document.title = title;
+    document.body.innerHTML = `
+      <div id="sticky">
+        <a href="${VIKTOR}/"><p>Viktor Vonk</p></a>
+        <div data-display-contents="true"><a href="/messaging/compose/?profileUrn=V">Message</a></div>
+      </div>
+      <div id="hero">
+        <h2>Viktor Vonk</h2>
+        <a href="${VIKTOR}/"><p>Viktor Vonk · 1st</p></a>
+        <div data-display-contents="true"><a href="/messaging/compose/?profileUrn=V">Message</a></div>
+        <div data-display-contents="true"><button aria-expanded="false">More</button></div>
+      </div>
+      <div id="post">
+        <a href="${VIKTOR}/"><p>Viktor Vonk • 1st</p></a>
+        <div data-display-contents="true"><button aria-expanded="false">More</button></div>
+      </div>
+      <div id="sidebar">
+        <h2>Ad Options</h2>
+        <h2>Explore Premium profiles</h2>
+        <a href="${VIKTOR}/">Public profile</a>
+        <div data-display-contents="true"><button aria-expanded="false">Ad options</button></div>
+      </div>`;
+    return document;
+}
+
+const VIKTOR_HEIGHTS: Record<string, number> = { sticky: 49, hero: 497, post: 384, sidebar: 2352 };
+const measureViktor = (element: HTMLElement): number => VIKTOR_HEIGHTS[element.id] ?? 0;
+
+describe('a page where the tallest card is not the header', () => {
+    it('finds all four cards', () => {
+        const ids = findProfileHeaderCandidates(renderViktor(), VIKTOR).map((c) => c.id);
+        expect(ids).toEqual(['sticky', 'hero', 'post', 'sidebar']);
+    });
+
+    it('picks the card headed by the name, not the 2352px sidebar', () => {
+        expect(findProfileHeader(renderViktor(), VIKTOR, measureViktor)?.id).toBe('hero');
+    });
+
+    it('reads the name from a title with a notification count', () => {
+        expect(findProfileHeader(renderViktor('(3) Viktor Vonk | LinkedIn'), VIKTOR, measureViktor)?.id).toBe('hero');
+    });
+
+    it('matches the name regardless of case and spacing', () => {
+        const doc = renderViktor();
+        doc.querySelector('#hero h2')!.textContent = '  VIKTOR   vonk ';
+        expect(findProfileHeader(doc, VIKTOR, measureViktor)?.id).toBe('hero');
+    });
+
+    it('anchors the button in the hero too', () => {
+        const anchor = findAnchorButton(renderViktor(), VIKTOR, measureViktor);
+        expect(anchor?.closest('#hero')).not.toBeNull();
+    });
+
+    // Without a name (title still "LinkedIn" while the page loads): never the
+    // card with foreign headings. The tallest headingless card stands in until
+    // the title arrives and the next round moves the card to the hero.
+    it('without a name, never picks a card with headings that are not the name', () => {
+        const picked = findProfileHeader(renderViktor('LinkedIn'), VIKTOR, measureViktor);
+        expect(picked?.id).not.toBe('sidebar');
+        expect(picked?.id).toBe('post');
+    });
+
+    it('without a name and without headingless cards, picks nothing rather than the sidebar', () => {
+        document.title = '';
+        document.body.innerHTML = `
+          <div id="sidebar">
+            <h2>Ad Options</h2>
+            <a href="${VIKTOR}/">Public profile</a>
+            <button aria-expanded="false">Ad options</button>
+          </div>`;
+        expect(findProfileHeader(document, VIKTOR, measureViktor)).toBeNull();
+    });
+});
