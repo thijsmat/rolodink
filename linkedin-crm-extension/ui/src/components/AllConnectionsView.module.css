@@ -201,7 +201,26 @@
   word-break: break-word;
 }
 
+.selectButton {
+  all: unset;
+  cursor: pointer;
+}
+
+.selectButton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.selectButton:focus-visible::after {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
 .linkedinLink {
+  position: relative;
+  z-index: 1;
   color: var(--brand-primary);
   text-decoration: none;
   font-size: var(--font-size-xs);

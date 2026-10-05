@@ -78,4 +78,4 @@ async function cleanAllProfileNames() {
 }
 
 // Run the script
-cleanAllProfileNames();
+void cleanAllProfileNames();

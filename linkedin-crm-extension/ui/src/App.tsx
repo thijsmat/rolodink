@@ -36,14 +36,14 @@ function Content() {
           hideListView();
         } else if (connection) {
           // Go back to list view from connection details
-          showListView();
+          showListView().catch(console.error);
         }
       }
 
       // Alt+L for logout (when not in list view)
       if (event.altKey && event.key === 'l' && !isListView) {
         event.preventDefault();
-        handleLogout();
+        handleLogout().catch(console.error);
       }
     };
 

@@ -243,11 +243,20 @@ export function AllConnectionsView() {
               <div
                 key={conn.id || conn.linkedInUrl}
                 className={styles.connectionItem}
-                onClick={() => selectConnection(conn)}
               >
                 <div className={styles.connectionHeader}>
                   <h3 className={styles.connectionName}>
-                    {highlightText(conn.name, debouncedSearchQuery)}
+                    {/* The name is the row's button; its ::after stretches
+                        over the whole row, so a click anywhere selects the
+                        connection and the keyboard gets a real <button>. The
+                        LinkedIn button sits above that layer. */}
+                    <button
+                      type="button"
+                      className={styles.selectButton}
+                      onClick={() => selectConnection(conn)}
+                    >
+                      {highlightText(conn.name, debouncedSearchQuery)}
+                    </button>
                     <span className={styles.badge}>✓</span>
                   </h3>
                   {conn.linkedInUrl && (
