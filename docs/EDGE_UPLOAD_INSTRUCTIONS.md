@@ -183,36 +183,57 @@ Rolodink
 
 ---
 
-### Step 6: Privacy and Permissions
+### Step 6: Privacy
 
-1. **Navigate to "Privacy" or "Data handling" section**
+Partner Center → **Privacy**. The answers below match version 1.3.8: `manifest.json` requests `activeTab`, `storage`
+and `identity`, plus the hosts `*.linkedin.com` and `api.rolodink.app`. Each text field takes at most 1,000 characters.
+The Chrome Web Store's **Privacy practices** tab asks the same questions; give the same answers there, so the stores
+match each other and `data_collection_permissions` in `manifest-firefox.json`.
 
-2. **Privacy policy:**
-   - **URL:** https://rolodink.app/privacy
-   - Verify URL is live and accessible
-   - Ensure policy covers Edge extension specifically
-
-3. **Data collection disclosure:**
-   - Specify what data is collected:
-     - User notes (user-provided content)
-     - LinkedIn profile URLs and names
-   - Explain data usage:
-     - Stored securely in user's personal CRM database
-     - Used only for note-taking functionality
-     - Not shared with third parties
-   - Data storage location: Supabase (EU/US servers)
-
-4. **Permission justifications:**
-   - **activeTab:** Interact with active LinkedIn tab to add notes
-   - **storage:** Store user notes locally and sync with backend
-   - **tabs:** Get current tab URL to identify LinkedIn profiles
-
-5. **Single purpose statement:**
-   ```
-   Add private personal notes to LinkedIn profiles to remember context about professional connections.
+1. **Single purpose description**
+   ```text
+   Rolodink adds private notes to LinkedIn profiles, so you remember where you met someone and what you talked about. On a LinkedIn profile page it shows an "Add to Rldnk" button and a note card; the toolbar popup lets you search the people you saved. Notes are encrypted before they are stored and are visible only to you.
    ```
 
-6. **Save if changes made**
+2. **Permission justification**
+   - **activeTab justification**
+     ```text
+     When the user opens the Rolodink popup, it reads the URL of the active tab to check whether it is a LinkedIn profile. On a profile, the popup shows the saved note for that person; on any other page it shows the user's list of saved connections. The popup can also open a saved connection's LinkedIn profile in the current tab. This permission is not used to read or change page content.
+     ```
+   - **storage justification**
+     ```text
+     storage.local keeps the user's sign-in session, their settings (for example whether the note card is shown on LinkedIn) and a cache of their saved connections, which stays encrypted, so the popup opens instantly. storage.session holds the key that decrypts the user's notes; it is cleared when the browser closes or the user signs out.
+     ```
+   - **identity justification**
+     ```text
+     Used for "Sign in with LinkedIn". chrome.identity.launchWebAuthFlow opens LinkedIn's sign-in page through our authentication provider (Supabase) and returns the result to the extension via its identity redirect URL. No other identity API is used, and the extension does not read the account the browser is signed in with.
+     ```
+   - **Host permission justification**
+     ```text
+     linkedin.com: the content script adds the "Add to Rldnk" button and the note card to LinkedIn profile pages, and reads the name and web address of the profile the user is viewing, so the note is linked to the right person. api.rolodink.app: Rolodink's own backend. It stores and returns the user's saved connections and encrypted notes, and provides the user's encryption key after sign-in. No other hosts are requested.
+     ```
+
+3. **Are you using remote code?** No, I am not using remote code. All code ships in the package, and Manifest V3
+   does not allow remote code.
+
+4. **Data usage.** Check exactly these four, the same four that `manifest-firefox.json` declares:
+   - **Personally identifiable information:** the account's name and email address, and the names, email addresses
+     and phone numbers the user saves with a contact.
+   - **Authentication information:** sign-in with email and password, or with LinkedIn.
+   - **Web history:** on every LinkedIn profile visit, the profile's web address goes to the API to check whether that
+     person is already saved.
+   - **Website content:** the name on the LinkedIn profile is read from the page and saved with the contact.
+
+   Leave **Health information**, **Financial and payment information**, **Personal communications**, **Location**
+   and **User activity** unchecked.
+
+5. **Privacy policy URL:** https://rolodink.app/en/privacy. `https://rolodink.app/privacy` works too, but redirects to
+   the visitor's language first.
+
+6. **I certify that the following disclosures are true:** check all three. The privacy policy already says that user
+   data is not sold or shared, and is used only for the extension itself.
+
+7. **Save & Continue**
 
 ---
 
@@ -405,12 +426,9 @@ Rolodink
 ### Error: "Permission not justified"
 
 **Solution:**
-- Microsoft may ask for permission justifications
-- Go to "Privacy" or "Data handling" section
-- Add clear explanations for each permission:
-  - `activeTab`: Interact with LinkedIn pages to add notes
-  - `storage`: Store user notes locally
-  - `tabs`: Get current tab URL for LinkedIn profiles
+- Fill in every justification on the **Privacy** page with the texts from Step 6
+- All three permissions (`activeTab`, `storage`, `identity`) and both hosts are in use. The extension no longer
+  requests `tabs`, so it needs no justification
 
 ### Upload Fails Completely
 

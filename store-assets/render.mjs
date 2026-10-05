@@ -36,6 +36,7 @@ const SETS = {
 const TILES = [
   { variant: 'tile-small', width: 440, height: 280, file: 'promo/small-tile-440x280.png' },
   { variant: 'tile-marquee', width: 1400, height: 560, file: 'promo/marquee-1400x560.png' },
+  { variant: 'logo', width: 300, height: 300, file: 'promo/logo-300x300.png' },
 ];
 
 const args = process.argv.slice(2);

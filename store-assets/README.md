@@ -1,7 +1,7 @@
 # Store-afbeeldingen
 
-Screenshots en promotegels voor de Chrome Web Store, Edge Add-ons en Firefox Add-ons (AMO). De beelden staan
-klaar in `screenshots/`; `render.mjs` maakt ze opnieuw als de popup of de teksten veranderen.
+Screenshots, promotegels en het Edge-logo voor de Chrome Web Store, Edge Add-ons en Firefox Add-ons (AMO). De
+beelden staan klaar in `screenshots/`; `render.mjs` maakt ze opnieuw als de popup of de teksten veranderen.
 
 ## Eisen per store
 
@@ -11,6 +11,7 @@ klaar in `screenshots/`; `render.mjs` maakt ze opnieuw als de popup of de tekste
 | Per taal | ja | ja (met *Duplicate* naar andere talen) | nee: één set voor alle talen, de bijschriften wel per taal |
 | Kleine promotegel | 440×280, verplicht | 440×280, optioneel | — |
 | Grote promotegel | marquee 1400×560, optioneel (nodig voor uitgelichte plekken) | 1400×560 PNG, optioneel | — |
+| Logo | — | 300×300 aanbevolen (1:1, minimaal 128×128), verplicht per taal | — |
 | Inhoud | screenshots tonen de echte gebruikerservaring; promotegels liefst zonder tekst, verzadigde kleuren, ook leesbaar op halve grootte | — | geen tekst in de afbeelding; uitleg hoort in het bijschrift |
 
 Bronnen: [Chrome: Supplying images](https://developer.chrome.com/docs/webstore/images),
@@ -29,6 +30,7 @@ bij elke render en stopt als een beeld afwijkt.
 | `screenshots/firefox/1…5` | — | — | screenshots, met de bijschriften hieronder |
 | `screenshots/promo/small-tile-440x280.png` | small promo tile | small promotional tile | — |
 | `screenshots/promo/marquee-1400x560.png` | marquee promo tile | large promotional tile | — |
+| `screenshots/promo/logo-300x300.png` | — | extension logo, per taal (of met *Duplicate*) | — |
 
 Upload ze in de volgorde 1 tot en met 5: de eerste is het grootst te zien en vertelt het hele idee.
 

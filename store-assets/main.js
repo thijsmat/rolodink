@@ -3,6 +3,7 @@
 //   index.html?variant=store&lang=nl&shot=3-search   → screenshot met kop (Chrome, Edge)
 //   index.html?variant=clean&lang=en&shot=3-search   → zonder tekst in beeld (Firefox)
 //   index.html?variant=tile-small | tile-marquee      → promotegels
+//   index.html?variant=logo                           → logo voor Edge, 300×300
 //
 // Alles gaat via textContent, nooit via innerHTML. De LinkedIn-pagina is
 // nagebouwd met fictieve personen; de knop en de notitiekaart volgen de
@@ -64,7 +65,9 @@ async function load() {
   ]);
   document.documentElement.lang = lang;
   const stage = document.getElementById('stage');
-  if (variant === 'tile-small' || variant === 'tile-marquee') {
+  if (variant === 'logo') {
+    buildLogo(stage);
+  } else if (variant === 'tile-small' || variant === 'tile-marquee') {
     buildTile(stage, variant);
   } else {
     const shot = shots.find(s => s.id === shotId);
@@ -274,6 +277,16 @@ async function popupLoaded() {
 }
 
 // ---------- promotegels ----------
+
+// Het logo is het extensie-icoon zelf, schermvullend: zo ziet de listing er hetzelfde uit
+// als de knop in de werkbalk.
+function buildLogo(stage) {
+  stage.className = 'logo';
+  const img = el('img');
+  img.src = 'afbeeldingen/rolodink.png';
+  img.alt = '';
+  stage.append(img);
+}
 
 function buildTile(stage, kind) {
   stage.className = `tile ${kind}`;
