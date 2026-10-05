@@ -69,7 +69,7 @@ waitForElement(stableButtonSelector, (foundButton) => {
         crmButton.style.alignItems = "center";
 
         // Bij laden: controleer of dit profiel al in de CRM staat en update de knop
-        (async () => {
+        void (async () => {
             try {
                 if (!chrome || !chrome.storage || !chrome.storage.local) {
                     return;

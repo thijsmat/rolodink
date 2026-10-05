@@ -38,7 +38,7 @@ function logToStorage(message: string, data?: unknown): Promise<void> {
 }
 
 // Wrap in IIFE to avoid top-level await issues in some environments
-(async () => {
+void (async () => {
     try {
         // Read the version off the manifest. This line used to carry a
         // hardcoded 'v1.1.1', which survived every release since and made the
@@ -393,7 +393,7 @@ if (browserAPI.runtime?.onMessage) {
 
         // Versleutel een stuk tekst met de opgeslagen sessiesleutel
         if (message.type === 'ENCRYPT_TEXT') {
-            (async () => {
+            void (async () => {
                 try {
                     const key = await getDataKey();
                     const ciphertext = await encryptText(message.text, key);
@@ -409,7 +409,7 @@ if (browserAPI.runtime?.onMessage) {
         // Doe een API-aanroep namens het content script, dat vanuit de
         // paginacontext geen CORS-toestemming heeft. Zie performApiRequest.
         if (message.type === 'API_REQUEST') {
-            (async () => {
+            void (async () => {
                 try {
                     const result = await performApiRequest(message);
                     sendResponse({ success: true, ...result });
@@ -423,7 +423,7 @@ if (browserAPI.runtime?.onMessage) {
 
         // Ontsleutel een Base64 ciphertext met de opgeslagen sessiesleutel
         if (message.type === 'DECRYPT_TEXT') {
-            (async () => {
+            void (async () => {
                 try {
                     const key = await getDataKey();
                     const plaintext = await decryptText(message.ciphertext, key);

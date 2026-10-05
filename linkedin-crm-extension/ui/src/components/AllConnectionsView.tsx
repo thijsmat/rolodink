@@ -243,7 +243,18 @@ export function AllConnectionsView() {
               <div
                 key={conn.id || conn.linkedInUrl}
                 className={styles.connectionItem}
+                role="button"
+                tabIndex={0}
                 onClick={() => selectConnection(conn)}
+                onKeyDown={(e) => {
+                  // Only the row itself: Enter on the LinkedIn button inside
+                  // must open the profile, not also select the connection.
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectConnection(conn);
+                  }
+                }}
               >
                 <div className={styles.connectionHeader}>
                   <h3 className={styles.connectionName}>

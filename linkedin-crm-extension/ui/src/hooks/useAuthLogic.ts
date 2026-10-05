@@ -22,7 +22,7 @@ export function useAuthLogic() {
                 setIsInitializing(false);
             }
         };
-        checkSession();
+        void checkSession();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
             setSession(session);

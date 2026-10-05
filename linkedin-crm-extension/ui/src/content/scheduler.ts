@@ -126,7 +126,7 @@ export function createInjectionScheduler(options: SchedulerOptions): InjectionSc
             // this layer only guarantees that another check will happen.
             result = undefined;
         }
-        Promise.resolve(result)
+        void Promise.resolve(result)
             .catch(() => undefined)
             .then(() => {
                 busy = false;
