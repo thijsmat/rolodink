@@ -58,7 +58,8 @@ rolodex
 
 ## Afbeeldingen
 
-- **Logo** (verplicht per taal): neem het logo van de Engelse listing over met **Duplicate**.
+- **Logo** (verplicht per taal): `store-assets/screenshots/promo/logo-300x300.png`. Staat hij al bij de Engelse
+  listing, dan kun je hem daar met **Duplicate** naar alle talen kopiëren.
 - **Screenshots**: `store-assets/screenshots/chrome-edge/nl/`, 1280×800, met de kop in beeld. Upload ze in deze
   volgorde:
   1. `1-note-on-profile.png` - "Jouw notities, direct op LinkedIn." (de notitiekaart op een LinkedIn-profiel)

@@ -52,6 +52,9 @@ headline in the image. Upload them in this order; `store-assets/README.md` expla
 Promo tiles: `store-assets/screenshots/promo/small-tile-440x280.png` (small promo tile) and
 `marquee-1400x560.png` (large promotional tile).
 
+Extension logo: `store-assets/screenshots/promo/logo-300x300.png`. Required for each language; **Duplicate** copies it
+to the other languages.
+
 ## Privacy Policy
 
 **Data Collection:**
