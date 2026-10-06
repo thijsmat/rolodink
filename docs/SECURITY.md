@@ -165,7 +165,7 @@ Authorization: Bearer <access_token>
 
 Any failure gives no user, and the route answers 401.
 
-**Owner action (one-time):** Supabase Dashboard → Project Settings → JWT Keys: migrate to asymmetric signing keys (ES256), then rotate so the new key signs tokens. Until then nothing changes in behaviour: `getClaims` falls back to the Auth server call, exactly as before. After the rotation, previously issued HS256 tokens keep working through the same fallback until they expire.
+**Done (2026-10-06):** the project signs access tokens with an ES256 key (Supabase Dashboard → Project Settings → JWT Keys: *Migrate JWT secret*, then *Rotate keys*), so `getClaims` verifies them locally. The legacy HS256 secret sits under *Previously used* and must stay there: revoking it also disables the JWT-based `anon` and `service_role` keys, and the `anon` key is built into every installed extension. Moving to the `sb_publishable_…`/`sb_secret_…` keys first (an extension release plus the backend env) is what would make revoking it safe. To roll back, move the legacy secret to *Standby* and rotate again.
 
 ### CORS Configuration
 
