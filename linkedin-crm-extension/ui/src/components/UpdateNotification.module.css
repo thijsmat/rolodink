@@ -10,6 +10,9 @@
   animation: slideInDown 0.3s ease-out;
   position: relative;
   overflow: hidden;
+  /* De popup is een kolom met vaste hoogte. Zonder dit krimpt de melding tot
+     alleen de kop, en vallen Download en Later eruit (overflow: hidden). */
+  flex-shrink: 0;
 }
 
 .updateNotification::before {
