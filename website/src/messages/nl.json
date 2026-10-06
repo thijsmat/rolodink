@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.3.8 • Gratis",
+        "version": "Versie 1.3.9 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -241,6 +241,20 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.9",
+                "date": "6 oktober 2026",
+                "sections": [
+                    {
+                        "title": "Reparaties",
+                        "items": [
+                            "De updatemelding in de popup toont weer haar knoppen. Voorheen was alleen de kop zichtbaar en kon je haar alleen wegklikken.",
+                            "Je lijst met connecties werkt met het toetsenbord: Tab om te kiezen, Enter of spatie om te openen.",
+                            "Fouten bij Esc en Alt+L worden nu gelogd in plaats van ongemerkt te verdwijnen."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.8",
                 "date": "5 oktober 2026",
