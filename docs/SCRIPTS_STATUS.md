@@ -20,18 +20,6 @@ Deze scripts worden nog gebruikt en moeten behouden blijven:
 - **Waarom nodig**: Development workflow voor testing
 - **Aanbeveling**: Behoud
 
-#### `validate-extension.mjs`
-- **Status**: Actief
-- **Gebruik**: Validatie van extension manifest en bestanden
-- **Waarom nodig**: Quality assurance voor publishing
-- **Aanbeveling**: Behoud
-
-#### `verify-artifacts.sh`
-- **Status**: Actief
-- **Gebruik**: Verificatie van build artifacts
-- **Waarom nodig**: Quality assurance voor publishing
-- **Aanbeveling**: Behoud
-
 #### `setup-branch-protection.sh`
 - **Status**: Actief
 - **Gebruik**: GitHub branch protection setup
@@ -97,3 +85,7 @@ Deze scripts zijn mogelijk verouderd na de Turborepo migratie:
 - Maak generieke release script in plaats van versie-specifieke scripts
 - Centraliseer build logica in Turborepo waar mogelijk
 
+### Verwijderd (2026-10-06)
+
+- `validate-extension.mjs`: zocht de popup in de bronmap in plaats van in de build en faalde daardoor altijd. De manifestcontroles per browser staan in CI (`github-flow.yml`, extension-job).
+- `verify-artifacts.sh`: vastgezet op de zips van v1.0.3 en een MV2-Firefox-manifest. `release.yml` toont de drie zips van elke release in de stap "List Artifacts".
