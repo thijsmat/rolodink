@@ -1,3 +1,16 @@
+## v1.3.9 (2026-10-06) - Small Repairs
+
+A maintenance release: nothing new, three things that work better.
+
+### Fixed
+- **The update notice showed only its header.** The popup is a fixed-height column and the content below starts at its full height (`flex: 1 1 auto`); the notice, with `overflow: hidden`, took the shrink and lost its Download and Later buttons. It no longer shrinks (#142). The notice's text and link come from `/api/version`, which already points at rolodink.app/download and no longer lists 1.3.6's fixes; that part went live with the backend
+- **Errors on Esc and Alt+L were lost.** `showListView()` and `handleLogout()` were called without handling a rejection; they now log it (#138)
+
+### Changed
+- **The connection list works from the keyboard.** The name in each row is a real `<button>` stretched over the row: Tab reaches it, Enter or Space opens the connection. The LinkedIn button sits above it and still only opens the profile (#138)
+- `@supabase/auth-js` 2.112.4 → 2.117.2 (#134)
+- Floating promises in the background worker, the scheduler and the auth hook are marked as handled; their failures were already caught inside (#138)
+
 ## v1.3.8 (2026-10-05) - More in Your Rldnk, Nothing Twice
 
 Email, phone and a readable export in the popup, and a note no longer gets
