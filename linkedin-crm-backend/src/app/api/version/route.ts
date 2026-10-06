@@ -102,29 +102,22 @@ export async function GET(request: NextRequest) {
         console.log(`Current version ${currentVersion} is newer than or equal to latest version ${latestVersion}`);
       }
 
-      // Add version-specific features and fixes
-      if (versionInfo.updateType === 'major' || versionInfo.updateType === 'minor') {
-        versionInfo.features = [
-          'GDPR compliance features toegevoegd',
-          'Uitgebreide help pagina met documentatie',
-          'Verbeterde instellingen interface',
-          'Moderne UI/UX design updates',
-          'Automatische update notificaties'
-        ];
-      }
-
-      // Houd deze regels kort: de popup is ~500px hoog en toont ze ongekort,
-      // dus lange zinnen duwen de rest van de interface buiten beeld.
-      if (versionInfo.updateType === 'patch') {
-        versionInfo.bugFixes = [
-          'Onderhoudsrelease zonder zichtbare wijzigingen',
-          'LinkedIn-code komt nu uit dezelfde gedeelde bron als de popup'
-        ];
+      // Geen lijsten met functies of fixes: die stonden hier met de hand en
+      // bleven releases lang staan (1.3.8 meldde nog de fixes van 1.3.6). De
+      // releasenotes staan op de changelogpagina waar de knop naartoe leidt.
+      // De browser werkt een extensie uit de store vanzelf bij; dat zeggen we
+      // er eerlijk bij, want de nieuwe versie kan nog in review zijn.
+      if (versionInfo.updateAvailable) {
+        versionInfo.releaseNotes = `${versionInfo.releaseNotes.replace(/[.!]?$/, '.')} ` +
+          'Je browser installeert de update meestal vanzelf binnen een paar dagen.';
       }
 
       // Set download URL with comprehensive validation
       const configuredUrl = process.env.EXTENSION_DOWNLOAD_URL;
-      const defaultUrl = 'https://github.com/thijsmat/linkedin-crm-backend/releases/latest';
+      // De downloadpagina linkt naar de juiste store per browser. De oude
+      // standaard wees naar de GitHub-releases van een repo die niet meer
+      // zo heet, met een zip die een storegebruiker niet nodig heeft.
+      const defaultUrl = 'https://rolodink.app/download';
 
       // Validate and sanitize download URL
       const validateDownloadUrl = (url: string): string => {
@@ -138,6 +131,7 @@ export async function GET(request: NextRequest) {
 
           // Allow only trusted domains
           const allowedDomains = [
+            'rolodink.app',
             'github.com',
             'githubusercontent.com',
             'vercel.app',

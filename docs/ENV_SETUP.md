@@ -50,8 +50,8 @@ Rolodink consists of three main components, each requiring different environment
 
 #### `EXTENSION_DOWNLOAD_URL`
 - **Description**: URL for extension download (used in version check endpoint)
-- **Default**: GitHub releases page
-- **Example**: `https://github.com/your-org/rolodink/releases/latest`
+- **Default**: `https://rolodink.app/download` (links to the store for each browser)
+- **Allowed hosts**: rolodink.app, github.com, githubusercontent.com, vercel.app, linkedin.com; anything else falls back to the default
 
 #### `EMAIL_CONFIRMATION_REDIRECT_TO`
 - **Description**: URL used in Supabase email confirmations (`auth.signUp`)
