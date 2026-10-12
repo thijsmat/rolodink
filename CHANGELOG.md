@@ -1,4 +1,4 @@
-## v1.3.9 (2026-10-06) - Small Repairs
+## v1.3.9 (2026-10-12) - Small Repairs
 
 A maintenance release: nothing new, three things that work better.
 
