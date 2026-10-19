@@ -35,6 +35,16 @@ const nextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+  // PostHog via het eigen domein, zodat adblockers de meting niet wegfilteren
+  // (zie src/components/analytics.tsx). EU-regio.
+  async rewrites() {
+    return [
+      { source: '/ingest/static/:path*', destination: 'https://eu-assets.i.posthog.com/static/:path*' },
+      { source: '/ingest/:path*', destination: 'https://eu.i.posthog.com/:path*' },
+    ];
+  },
+  // PostHog-endpoints eindigen op een slash; zonder dit stuurt Next een redirect.
+  skipTrailingSlashRedirect: true,
 };
 
 module.exports = withNextIntl(nextConfig);

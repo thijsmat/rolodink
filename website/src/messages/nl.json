@@ -838,11 +838,6 @@
         "title": "Rolodink - Browserextensie voor LinkedIn connecties",
         "description": "Vergeet nooit meer wie je kent. Rolodink helpt je persoonlijke notities en context toe te voegen aan elke LinkedIn connectie. Veilig en gratis."
     },
-    "CookieBanner": {
-        "message": "Wij gebruiken cookies om de site goed te laten werken en voor anonieme statistieken.",
-        "accept": "Accepteren",
-        "decline": "Weigeren"
-    },
     "OnboardingPage": {
         "title": "Welkom bij Rolodink",
         "intro": "Jouw LinkedIn, maar dan georganiseerd.",

@@ -118,6 +118,14 @@ vercel env add VITE_SUPABASE_ANON_KEY
 - **Description**: Only needed if website makes direct Supabase calls
 - **Usually**: Not required (extension handles auth)
 
+#### `NEXT_PUBLIC_POSTHOG_KEY`
+- **Description**: PostHog project token (`phc_…`) for website analytics. Public by design: it ends up in the page source.
+- **Default**: unset; without it PostHog is not loaded and nothing is measured (previews stay out of the numbers)
+- **Where to get**: PostHog (EU, `eu.posthog.com`) → Settings → Project → Project token
+- **Environments**: Production only
+- **Also required**: PostHog → Settings → Project → **Cookieless server hash mode** on. The site runs PostHog with `cookieless_mode: 'always'`; without that setting PostHog drops every event.
+- **What is sent**: page views, page leaves and `outbound_click` (target URL without query). URLs go without query string or fragment, so login tokens never leave the browser: see `src/components/analytics.tsx` and `src/lib/posthog-scrub.ts`. Requests go through the `/ingest` rewrite in `next.config.js`.
+
 ## Setting Up Local Development
 
 ### 1. Backend Setup

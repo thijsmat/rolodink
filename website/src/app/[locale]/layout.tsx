@@ -3,8 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import '../globals.css'
 import { Analytics } from "@vercel/analytics/next"
 import { SiteHeader } from "@/components/site-header"
-import { CookieBanner } from "@/components/cookie-banner"
-import { Analytics as GoogleAnalytics } from "@/components/analytics"
+import { Analytics as PostHogAnalytics } from "@/components/analytics"
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, getMessages } from 'next-intl/server';
 
@@ -92,8 +91,7 @@ export default async function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             {children}
           </div>
-          <CookieBanner />
-          <GoogleAnalytics />
+          <PostHogAnalytics />
           <Analytics />
         </NextIntlClientProvider>
       </body>
