@@ -249,6 +249,23 @@ export default function PrivacyPage() {
                 </li>
                 <li>Data is stored on EU servers and is GDPR compliant.</li>
               </ul>
+              <h3>Sentry (Error Monitoring)</h3>
+              <ul>
+                <li>
+                  When our server hits an error, we send a report to Sentry so we can fix it: the
+                  error message, the stack trace and the API route.
+                </li>
+                <li>
+                  Reports never contain your notes, your login token, cookies, request bodies,
+                  LinkedIn profile URLs or your IP address. An error message can include your
+                  internal account ID.
+                </li>
+                <li>Only the Rolodink server reports errors; the browser extension does not.</li>
+                <li>Sentry stores this data on EU servers (Frankfurt).</li>
+                <li>
+                  <a href="https://sentry.io/privacy/">Sentry Privacy Policy</a>
+                </li>
+              </ul>
 
               <h2>7. Changes to This Policy</h2>
               <p>
