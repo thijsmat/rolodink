@@ -48,6 +48,13 @@ Rolodink consists of three main components, each requiring different environment
 
 ### Optional Variables
 
+#### `SENTRY_DSN`
+- **Description**: Sentry project DSN for backend error reports (`linkedin-crm-backend` only)
+- **Default**: unset; without it the Sentry SDK is not started and nothing is sent
+- **Where to get**: Sentry → organization `thijsmat` (EU region) → project `rolodink-backend` → Settings → Client Keys (DSN)
+- **Environments**: Production (add Preview too if you want preview deploys reported)
+- **What is sent**: the error, its stack trace and the route. No request headers beyond content-type/user-agent/origin, no cookies, bodies, query strings, local variables or user/IP: see `src/sentry.server.config.ts` and `src/lib/sentry-scrub.ts`
+
 #### `EXTENSION_DOWNLOAD_URL`
 - **Description**: URL for extension download (used in version check endpoint)
 - **Default**: `https://rolodink.app/download` (links to the store for each browser)
