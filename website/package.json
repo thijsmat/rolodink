@@ -34,6 +34,7 @@
     "postcss-js": "^4.0.1",
     "postcss-nested": "^6.0.1",
     "postcss-selector-parser": "^6.0.13",
+    "posthog-js": "^1.438.12",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "sanitize-html": "^2.18.0",

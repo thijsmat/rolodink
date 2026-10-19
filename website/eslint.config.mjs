@@ -14,7 +14,7 @@ const config = [
       "@next/next/no-page-custom-font": "off",
       // Nieuw en streng in eslint-plugin-react-hooks v7. Slaat aan op het
       // bewuste hydratiepatroon (setMounted(true) in een effect) in
-      // site-header, cookie-banner, analytics en use-mobile. Dat herschrijven
+      // site-header en use-mobile. Dat herschrijven
       // (useSyncExternalStore) is een gedragswijziging en hoort in een eigen
       // PR; tot die tijd zichtbaar houden als waarschuwing, niet blokkerend.
       "react-hooks/set-state-in-effect": "warn",

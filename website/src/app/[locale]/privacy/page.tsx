@@ -70,11 +70,11 @@ export default function PrivacyPage() {
                   Service. This information remains private to you.
                 </li>
                 <li>
-                  <strong>Analytics Data:</strong> Our website uses Vercel Web
-                  Analytics to count page views in aggregate, without cookies and
-                  without collecting personally identifiable information. Only if
-                  you accept cookies in the cookie banner do we also load Google
-                  Analytics. The browser extension itself contains no analytics.
+                  <strong>Analytics Data:</strong> Our website counts page views
+                  and clicks on outgoing links (such as the store links) with
+                  Vercel Web Analytics and PostHog. Neither sets cookies or stores
+                  anything in your browser, and we do not use Google Analytics.
+                  The browser extension itself contains no analytics.
                 </li>
               </ul>
 
@@ -264,6 +264,28 @@ export default function PrivacyPage() {
                 <li>Sentry stores this data on EU servers (Frankfurt).</li>
                 <li>
                   <a href="https://sentry.io/privacy/">Sentry Privacy Policy</a>
+                </li>
+              </ul>
+
+              <h3>PostHog (Website Analytics)</h3>
+              <ul>
+                <li>
+                  On rolodink.app we record which pages are viewed, where visitors come from
+                  (the referring website and campaign tags) and which outgoing links are clicked.
+                </li>
+                <li>
+                  PostHog sets no cookies and uses no local storage. To count unique visitors it
+                  uses a hash that changes every day, so a visit cannot be linked to you or to
+                  another day.
+                </li>
+                <li>
+                  We do not record what you type, session replays or IP addresses, and login
+                  tokens in the address bar are removed before anything is sent.
+                </li>
+                <li>Only the website is measured; the browser extension is not.</li>
+                <li>PostHog stores this data on EU servers (Frankfurt).</li>
+                <li>
+                  <a href="https://posthog.com/privacy">PostHog Privacy Policy</a>
                 </li>
               </ul>
 

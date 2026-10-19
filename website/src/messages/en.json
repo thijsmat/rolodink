@@ -838,11 +838,6 @@
         "title": "Rolodink - Browser Extension for LinkedIn Connections",
         "description": "Never forget who you know. Rolodink helps you add personal notes and context to every LinkedIn connection. Secure and free."
     },
-    "CookieBanner": {
-        "message": "We use cookies to ensure the site functions properly and for anonymous statistics.",
-        "accept": "Accept",
-        "decline": "Decline"
-    },
     "OnboardingPage": {
         "title": "Welcome to Rolodink",
         "intro": "Your LinkedIn, but organized.",
