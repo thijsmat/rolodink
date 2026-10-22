@@ -426,6 +426,22 @@ model Note {
   @@schema("public")
 }
 
+/// Gedeelde teller voor de rate limiter (src/lib/rate-limit.ts): één rij per
+/// gehashte sleutel per vast uurvenster, zodat alle serverless-instances
+/// dezelfde telling zien. `key` is een SHA-256 van bucket + IP, geen ruw IP.
+/// RLS staat aan zonder policies (prisma/migrations/rate_limit_counter.sql);
+/// alleen de server, via Prisma, leest en schrijft. De keep-alive-cron ruimt
+/// oude vensters op.
+model RateLimitCounter {
+  key         String
+  windowStart DateTime @db.Timestamptz(6)
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@schema("public")
+}
+
 /// Slaat de versleutelde encryptiesleutel op voor end-to-end versleuteling van notities.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model UserKey {

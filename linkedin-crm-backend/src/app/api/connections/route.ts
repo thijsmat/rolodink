@@ -79,18 +79,8 @@ export async function OPTIONS(request: NextRequest) {
 // GET functie - Haal alle connecties op voor de ingelogde gebruiker
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
-  if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
-  }
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) return rateLimitResponse;
 
   const corsHeaders = buildCorsHeaders(request);
   try {
@@ -129,18 +119,8 @@ export async function GET(request: NextRequest) {
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
-  if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
-  }
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) return rateLimitResponse;
 
   const corsHeaders = buildCorsHeaders(request);
   try {
@@ -254,18 +234,8 @@ async function missedUpdateResponse(
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
-  if (rateLimitResponse) {
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
-  }
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) return rateLimitResponse;
 
   const corsHeaders = buildCorsHeaders(request);
   try {

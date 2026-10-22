@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { buildCorsHeaders } from '@/lib/cors';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 export async function OPTIONS(request: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(request) });
@@ -33,6 +34,10 @@ function cleanProfileName(name: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   const corsHeaders = buildCorsHeaders(request);
   try {
     const { user } = await getUserFromRequest(request);

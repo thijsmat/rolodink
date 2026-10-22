@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/supabase/server';
 import { buildCorsHeaders } from '@/lib/cors';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
 import { ENVELOPE_VERSION, getMasterKey, wrapDataKey, unwrapDataKey, generateDataKey } from '@/lib/envelope';
 
 export async function OPTIONS(request: NextRequest) {
@@ -9,6 +10,10 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+    // Rate limiting
+    const rateLimitResponse = await rateLimitMiddleware(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const corsHeaders = buildCorsHeaders(request);
     try {
         // strict: the data key unlocks every encrypted note, so a signed-out session or

@@ -24,8 +24,8 @@ import { rateLimitMiddleware } from '@/lib/rate-limit';
 const EXTENSION_ORIGIN = 'chrome-extension://jfgnbkeagmpmappmekainclghhndlimc';
 const credentials = { email: 'someone@example.com', password: 'not-the-password' };
 
-// Every test uses its own documentation-range IP (RFC 5737): the limiter's
-// store is module-global.
+// Every test uses its own documentation-range IP (RFC 5737): outside
+// production the limiter counts in a module-global in-memory store.
 function post(route: 'signin' | 'signup', ip: string): NextRequest {
   return new NextRequest(`https://api.rolodink.app/api/auth/${route}`, {
     method: 'POST',
@@ -67,8 +67,8 @@ describe('/api/auth rate limit', () => {
   it('still lets a user sign in after they used up the API budget', async () => {
     const apiRequest = () =>
       new Request('https://api.rolodink.app/api/connections', { headers: { 'x-forwarded-for': '203.0.113.22' } });
-    for (let i = 0; i < 600; i++) expect(rateLimitMiddleware(apiRequest())).toBeNull();
-    expect(rateLimitMiddleware(apiRequest())?.status).toBe(429);
+    for (let i = 0; i < 600; i++) expect(await rateLimitMiddleware(apiRequest())).toBeNull();
+    expect((await rateLimitMiddleware(apiRequest()))?.status).toBe(429);
 
     expect((await signInPOST(post('signin', '203.0.113.22'))).status).toBe(401);
     expect(signInWithPassword).toHaveBeenCalledTimes(1);

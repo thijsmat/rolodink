@@ -13,7 +13,11 @@ vi.mock('@/lib/supabase/server', () => ({
 import { POST } from './route';
 
 const request = () =>
-  new NextRequest('https://api.rolodink.app/api/connections/clean-names', { method: 'POST' });
+  new NextRequest('https://api.rolodink.app/api/connections/clean-names', {
+    method: 'POST',
+    // The route is rate limited per IP; without one it answers 400.
+    headers: { 'x-forwarded-for': '198.51.100.40' },
+  });
 
 beforeEach(() => {
   vi.clearAllMocks();
