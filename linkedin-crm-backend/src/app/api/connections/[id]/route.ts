@@ -15,7 +15,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
@@ -77,7 +77,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     const corsHeaders = buildCorsHeaders(request);
     const responseHeaders = new Headers(rateLimitResponse.headers);

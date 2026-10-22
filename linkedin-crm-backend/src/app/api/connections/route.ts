@@ -79,7 +79,7 @@ export async function OPTIONS(request: NextRequest) {
 // GET functie - Haal alle connecties op voor de ingelogde gebruiker
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     const corsHeaders = buildCorsHeaders(request);
     const responseHeaders = new Headers(rateLimitResponse.headers);
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
 // POST functie - Maak een nieuwe connectie aan
 export async function POST(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     const corsHeaders = buildCorsHeaders(request);
     const responseHeaders = new Headers(rateLimitResponse.headers);
@@ -254,7 +254,7 @@ async function missedUpdateResponse(
 // NIEUWE PATCH FUNCTIE
 export async function PATCH(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     const corsHeaders = buildCorsHeaders(request);
     const responseHeaders = new Headers(rateLimitResponse.headers);

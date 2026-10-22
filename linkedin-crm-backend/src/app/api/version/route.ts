@@ -9,7 +9,7 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitResponse = rateLimitMiddleware(request);
+  const rateLimitResponse = await rateLimitMiddleware(request);
   if (rateLimitResponse) {
     const corsHeaders = buildCorsHeaders(request);
     const responseHeaders = new Headers(rateLimitResponse.headers);

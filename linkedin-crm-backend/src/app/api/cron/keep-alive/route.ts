@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,17 @@ export async function GET(request: NextRequest) {
         if (error) {
             console.error('Keep-alive query failed:', error.message);
             return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+        }
+
+        // Meteen ook de rate-limit-tellers opruimen: alleen het lopende uur telt
+        // nog, dus alles van vóór een uur geleden mag weg. Mislukt dit (bijv.
+        // omdat de tabel nog niet bestaat), dan blijft de keep-alive gewoon slagen.
+        try {
+            await prisma.rateLimitCounter.deleteMany({
+                where: { windowStart: { lt: new Date(Date.now() - 60 * 60 * 1000) } },
+            });
+        } catch (cleanupError) {
+            console.error('Rate-limit cleanup failed:', cleanupError instanceof Error ? cleanupError.message : cleanupError);
         }
 
         return NextResponse.json({ ok: true });
