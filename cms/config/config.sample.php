@@ -7,8 +7,9 @@ return [
 
     'app.name' => 'Rolodink CMS',
 
-    // Alleen afbeeldingen uploaden; de website toont ze via next/image.
-    'assets/allowed_uploads' => 'jpg,jpeg,png,webp,avif,svg',
+    // Alleen afbeeldingen uploaden; de website toont ze via next/image. Geen
+    // svg: dat kan script bevatten en draait dan op cms.rolodink.app.
+    'assets/allowed_uploads' => 'jpg,jpeg,png,webp,avif',
 
     // Rolodink-specifiek (gebruikt door config/bootstrap.php).
     'rolodink' => [
