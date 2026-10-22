@@ -37,7 +37,7 @@
     "posthog-js": "^1.438.12",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "sanitize-html": "^2.18.0",
+    "sanitize-html": "^2.18.1",
     "server-only": "^0.0.1",
     "sonner": "^1.4.0",
     "sucrase": "^3.35.0",
