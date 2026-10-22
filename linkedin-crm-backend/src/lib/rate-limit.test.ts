@@ -107,6 +107,8 @@ describe('rateLimitMiddleware', () => {
     expect(Number(res?.headers.get('Retry-After'))).toBeGreaterThan(0);
     // Without this header the extension sees a CORS failure instead of the 429.
     expect(res?.headers.get('Access-Control-Allow-Origin')).toBe(EXTENSION_ORIGIN);
+    expect(res?.headers.get('Access-Control-Allow-Methods')).toBeTruthy();
+    expect(res?.headers.get('Vary')).toBe('Origin');
     expect(await res?.json()).toMatchObject({ error: 'Rate limit exceeded' });
   });
 

@@ -19,7 +19,7 @@
 import { createHash } from 'crypto';
 import { isIP } from 'net';
 import type { PrismaClient } from '@prisma/client';
-import { getAllowedOrigin } from './cors';
+import { buildCorsHeaders } from './cors';
 
 // Counters run in fixed one-hour windows. In production they live in
 // Postgres (model RateLimitCounter), so every serverless instance sees the
@@ -197,7 +197,8 @@ function isValidIP(ip: string): boolean {
 
 /**
  * Rate limit middleware wrapper for Next.js API routes
- * Returns response if rate limited, null if allowed
+ * Returns response if rate limited, null if allowed. The response already
+ * carries the CORS headers, so routes return it unchanged.
  * SECURITY: Uses secure CORS headers with origin whitelisting
  * Based on Gemini Code Assist recommendation: block requests if IP cannot be determined
  */
@@ -213,16 +214,7 @@ export async function rateLimitMiddleware(
   if (!ip) {
     console.warn('[Rate Limit] Blocking request because client IP could not be determined for rate limiting.');
 
-    const allowedOrigin = getAllowedOrigin(request);
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // Only add CORS headers if origin is whitelisted
-    if (allowedOrigin) {
-      headers['Access-Control-Allow-Origin'] = allowedOrigin;
-      headers['Vary'] = 'Origin';
-    }
+    const headers = { 'Content-Type': 'application/json', ...buildCorsHeaders(request) };
 
     return new Response(
       JSON.stringify({
@@ -242,23 +234,16 @@ export async function rateLimitMiddleware(
   const result = await checkRateLimit(key, options.limit ?? DEFAULT_RATE_LIMIT);
 
   if (!result.success) {
-    // Use secure CORS headers with origin whitelisting
-    // Based on Gemini Code Assist recommendation: use strict whitelist, include Vary header
-    const allowedOrigin = getAllowedOrigin(request);
-
+    // Full CORS headers (origin whitelist, Vary: Origin), so routes can
+    // return this response as is and the browser can read the 429.
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      ...buildCorsHeaders(request),
       'X-RateLimit-Limit': result.limit.toString(),
       'X-RateLimit-Remaining': result.remaining.toString(),
       'X-RateLimit-Reset': result.resetTime.toString(),
       'Retry-After': Math.ceil((result.resetTime - Date.now()) / 1000).toString(),
     };
-
-    // Only add CORS headers if origin is whitelisted (prevents reflection attacks)
-    if (allowedOrigin) {
-      headers['Access-Control-Allow-Origin'] = allowedOrigin;
-      headers['Vary'] = 'Origin'; // Important: prevents browser caching for wrong origin
-    }
 
     return new Response(
       JSON.stringify({

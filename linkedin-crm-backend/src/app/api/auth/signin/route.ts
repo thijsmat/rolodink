@@ -19,18 +19,7 @@ export async function POST(request: NextRequest) {
   // Rate limiting (especially important for auth endpoints): a separate,
   // stricter counter than the rest of the API, see AUTH_RATE_LIMIT.
   const rateLimitResponse = await rateLimitMiddleware(request, AUTH_RATE_LIMIT);
-  if (rateLimitResponse) {
-    // Add CORS headers to rate limit response
-    const corsHeaders = buildCorsHeaders(request);
-    const responseHeaders = new Headers(rateLimitResponse.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      if (value) responseHeaders.set(key, value);
-    });
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.status,
-      headers: responseHeaders,
-    });
-  }
+  if (rateLimitResponse) return rateLimitResponse;
 
   const corsHeaders = buildCorsHeaders(request);
 
