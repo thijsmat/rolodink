@@ -54,7 +54,7 @@ export default function FeaturesPage() {
               return (
                 <Card key={feature.title} className="flex flex-col border-azure/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   <CardHeader>
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-azure text-background">
+                    <div className="mb-5.5 flex h-12 w-12 items-center justify-center rounded-lg bg-azure text-background">
                       <IconComponent className="h-6 w-6" aria-hidden="true" />
                     </div>
                     <CardTitle className="font-playfair text-xl text-azure">{feature.title}</CardTitle>

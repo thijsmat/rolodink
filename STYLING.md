@@ -19,7 +19,7 @@ The Rolodink monorepo contains **two independent projects** with **different sty
 
 | Project | Styling Stack | Build Tool | Bundle Size |
 |---------|---------------|------------|-------------|
-| **Website** | Tailwind CSS v3.4.1 | Next.js 15 + PostCSS | ~45KB CSS |
+| **Website** | Tailwind CSS v4 | Next.js 16 + PostCSS (`@tailwindcss/postcss`) | ~45KB CSS |
 | **Extension** | Vanilla CSS + CSS Modules | Vite 5 | ~8KB CSS |
 
 ### Why Different Approaches?
@@ -43,7 +43,7 @@ The Rolodink monorepo contains **two independent projects** with **different sty
 
 ### Website
 📄 **[website/STYLING.md](./website/STYLING.md)**
-- Tailwind CSS v3.4.1 configuration
+- Tailwind CSS v4 configuration (CSS-first, in `src/app/globals.css`)
 - Custom color system (azure, gold, grey, link-blue)
 - Responsive breakpoints
 - Component styling patterns
@@ -110,17 +110,17 @@ The Rolodink monorepo contains **two independent projects** with **different sty
 **Dependencies:**
 ```json
 {
-  "tailwindcss": "^3.4.1",
-  "autoprefixer": "^10.4.20",
-  "tailwindcss-animate": "^1.0.7",
+  "tailwindcss": "^4.3.3",
+  "@tailwindcss/postcss": "^4.3.3",
+  "@tailwindcss/typography": "^0.5.20",
+  "tw-animate-css": "^1.4.0",
   "postcss": "^8"
 }
 ```
 
 **Configuration Files:**
-- `tailwind.config.ts` - Tailwind configuration with custom colors
-- `postcss.config.mjs` - PostCSS with Tailwind + autoprefixer
-- `src/app/globals.css` - CSS variables and base styles
+- `src/app/globals.css` - Tailwind-configuratie (`@theme`, `@plugin`, `@custom-variant dark`), CSS variables and base styles (er is geen `tailwind.config.ts` meer)
+- `postcss.config.mjs` - PostCSS met alleen `@tailwindcss/postcss` (v4 doet zelf vendor-prefixing; geen autoprefixer)
 
 **Key Features:**
 - Custom color system using HSL + CSS variables
@@ -226,7 +226,7 @@ import styles from './Button.module.css';
 
 #### Problem: Custom colors not working (showing grey)
 
-**Root Cause:** Tailwind v4 incompatibility or cache issues
+**Root Cause:** kleur ontbreekt in `@theme inline` in `globals.css`, of cache-problemen
 
 **Solution:**
 ```bash
@@ -236,10 +236,10 @@ npm install
 npm run dev
 ```
 
-**Verify versions:**
-- `tailwindcss@^3.4.1` (NOT v4!)
-- `autoprefixer@^10.4.20` present
-- `postcss.config.mjs` uses `tailwindcss` and `autoprefixer`
+**Verify:**
+- `tailwindcss@^4` en `@tailwindcss/postcss@^4` (geen mix met een v3-config)
+- `postcss.config.mjs` gebruikt alleen `@tailwindcss/postcss`
+- de kleur staat als `--color-<naam>: hsl(var(--<naam>))` in het `@theme inline`-blok
 
 #### Problem: Styles not updating
 
@@ -274,6 +274,36 @@ rm -rf .next
 
 ## Migration Notes
 
+### Website + backend: Tailwind v3 → v4 (2026-10)
+
+**Waarom:** Tailwind 3 trok kwetsbare afhankelijkheden mee (braces, micromatch, chokidar,
+fast-glob, postcss-nested, postcss-selector-parser) die `npm audit --omit=dev` als high
+meldde. Tailwind 4 heeft die niet.
+
+**Wat er veranderde:**
+1. Configuratie CSS-first in `website/src/app/globals.css`; `tailwind.config.ts` is weg.
+   Kleuren via `@theme inline` (`--color-azure: hsl(var(--azure))`), zodat dark mode via de
+   bestaande variabelen blijft werken.
+2. `tailwindcss-animate` → `tw-animate-css`; typography via `@plugin`, met de huisstijl-
+   kleuren als override van de `--tw-prose-*`-variabelen.
+3. Klassen omgezet met `npx @tailwindcss/upgrade` (o.a. `flex-shrink-0` → `shrink-0`,
+   `outline-none` → `outline-hidden`, `bg-gradient-to-*` → `bg-linear-to-*`), daarna
+   nagelopen.
+4. v3-gedrag expliciet vastgezet waar v4 anders rendert:
+   - de gebruikte standaardkleuren (gray-200, yellow-400, …) staan op hun v3-hexwaarde;
+   - responsieve `text-*` naast een `leading-*` krijgen de v3-regelhoogte mee
+     (`sm:text-base/6`), omdat in v4 `leading-*` daar blijft winnen;
+   - `space-y-*` overschrijft in v4 geen eigen marges van kinderen meer; waar dat
+     verschil zichtbaar was is de marge aangepast (`mb-5.5`, `mt-1.5`);
+   - randkleur gray-200 en `cursor: pointer` op knoppen als compat-regels in `@layer base`.
+
+**Controle:** screenshots van 18 pagina's (390px en 1440px, plus dark mode) voor en na
+zijn pixel-gelijk, op subpixel-afronding in `.prose` na.
+
+**Let op bij nieuwe code (v4-gedrag):** `hover:` werkt alleen op apparaten met hover;
+variants lees je van links naar rechts (`prose-a:hover:`); gebruik bij voorkeur `gap-*`
+in flex/grid in plaats van `space-*`.
+
 ### Website: Tailwind v4 → v3 Downgrade (2025-10-29)
 
 **Why downgraded:**
@@ -306,6 +336,7 @@ rm -rf .next
 
 | Date | Project | Change | Reason |
 |------|---------|--------|--------|
+| 2026-10 | Website + backend | Tailwind v3 → v4, `tw-animate-css` | npm audit (high) |
 | 2025-10-29 | Website | Tailwind v4 → v3.4.1 downgrade | Fix custom color compilation |
 | 2025-10-29 | Website | Add `tailwindcss-animate` plugin | Accordion animations |
 | 2025-10-29 | Website | Replace shadcn Button with native buttons | Fix buttonVariants conflicts |
@@ -317,7 +348,8 @@ rm -rf .next
 
 - [Website README](./website/README.md)
 - [Extension README](./linkedin-crm-extension/README.md)
-- [Tailwind CSS v3 Docs](https://v3.tailwindcss.com/)
+- [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
+- [Tailwind v4 upgradegids](https://tailwindcss.com/docs/upgrade-guide)
 - [CSS Modules Docs](https://github.com/css-modules/css-modules)
 - [Next.js Styling Docs](https://nextjs.org/docs/app/building-your-application/styling)
 

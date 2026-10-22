@@ -58,7 +58,7 @@ export default function OnboardingPage() {
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
                             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-gold/50 to-transparent" />
                             <CardHeader>
-                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10 text-gold">
+                                <div className="mx-auto mb-5.5 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10 text-gold">
                                     <Pin className="h-8 w-8" />
                                 </div>
                                 <CardTitle className="font-playfair text-2xl text-azure">
@@ -87,7 +87,7 @@ export default function OnboardingPage() {
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
                             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-azure/50 to-transparent" />
                             <CardHeader>
-                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-azure/10 text-azure">
+                                <div className="mx-auto mb-5.5 flex h-16 w-16 items-center justify-center rounded-full bg-azure/10 text-azure">
                                     <UserPlus className="h-8 w-8" />
                                 </div>
                                 <CardTitle className="font-playfair text-2xl text-azure">
@@ -135,7 +135,7 @@ export default function OnboardingPage() {
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
                             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-green-500/50 to-transparent" />
                             <CardHeader>
-                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600">
+                                <div className="mx-auto mb-5.5 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600">
                                     <Lock className="h-8 w-8" />
                                 </div>
                                 <CardTitle className="font-playfair text-2xl text-azure">

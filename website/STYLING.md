@@ -4,51 +4,15 @@
 
 ## 📋 Quick Reference
 
-- **Framework:** Tailwind CSS v3.4.1
-- **Build Tool:** Next.js 15 + PostCSS
-- **Config:** `tailwind.config.ts` + `postcss.config.mjs`
+- **Framework:** Tailwind CSS v4 (CSS-first configuratie)
+- **Build Tool:** Next.js 16 + PostCSS (`@tailwindcss/postcss`)
+- **Config:** `src/app/globals.css` (`@theme`, `@plugin`, `@custom-variant`) + `postcss.config.mjs`; er is geen `tailwind.config.ts`
 - **Global Styles:** `src/app/globals.css`
 - **Design System:** Rolodink (azure, gold, grey, link-blue)
 
 ---
 
 ## Configuration
-
-### Tailwind Config
-
-**File:** `tailwind.config.ts`
-
-```typescript
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
-  darkMode: 'class',
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // Rolodink Design System
-        azure: 'hsl(var(--azure))',
-        gold: 'hsl(var(--gold))',
-        grey: 'hsl(var(--grey))',
-        'link-blue': 'hsl(var(--link-blue))',
-        // ... shadcn/ui colors
-      },
-      fontFamily: {
-        playfair: ['var(--font-playfair)', 'Playfair Display', 'serif'],
-        inter: ['var(--font-inter)', 'Inter', 'sans-serif'],
-      },
-    },
-  },
-  plugins: [require('tailwindcss-animate')],
-}
-
-export default config
-```
 
 ### PostCSS Config
 
@@ -57,22 +21,36 @@ export default config
 ```javascript
 const config = {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
+    '@tailwindcss/postcss': {},
   },
 }
 
 export default config
 ```
 
-### Global CSS
+Geen autoprefixer nodig: Tailwind v4 doet vendor-prefixing zelf.
+
+### Global CSS (Tailwind-configuratie)
 
 **File:** `src/app/globals.css`
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss' source('../');   /* scant src/ */
+@import 'tw-animate-css';              /* animate-in/out, fade-in, slide-in-from-* */
+
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));   /* .dark op <html> */
+
+@theme inline {
+  --color-azure: hsl(var(--azure));
+  --color-gold: hsl(var(--gold));
+  /* ... shadcn-kleuren, fonts, radius */
+}
+
+@theme {
+  /* shadows, animaties + keyframes, standaardkleuren vastgezet op v3-waarden */
+}
 
 @layer base {
   :root {
@@ -81,10 +59,26 @@ export default config
     --grey: 0 0% 32%;          /* #525252 */
     --link-blue: 211 100% 40%; /* #0066CC */
     --background: 43 30% 96%;  /* #F7F5F0 */
-    /* ... more variables */
+    /* ... more variables, plus .dark-variant */
   }
 }
 ```
+
+- Kleuren staan in `@theme inline` zodat utilities `hsl(var(--azure))` direct gebruiken en
+  dark mode via de variabelen meeloopt.
+- De prose-kleuren (lange teksten) zijn overrides van de `--tw-prose-*`-variabelen in een
+  `@layer utilities`-blok in hetzelfde bestand.
+- De fonts komen van `next/font` in `src/app/[locale]/layout.tsx` als `--font-next-inter` en
+  `--font-next-playfair`; `font-inter`/`font-playfair` verwijzen daarnaar.
+
+### Tailwind v4-gedrag om op te letten
+
+- `space-x-*`/`space-y-*` overschrijven geen eigen marges van kinderen meer; gebruik `gap-*`
+  in flex/grid.
+- Een responsieve `text-*` laat een `leading-*` staan. Wil je de standaard regelhoogte van
+  de nieuwe maat, schrijf `sm:text-base/6`.
+- `hover:` geldt alleen op apparaten met hover (geen "plakkende" hover op touch).
+- Variants lees je van links naar rechts: `prose-a:hover:text-link-blue/80`.
 
 ---
 
@@ -332,7 +326,7 @@ npm run dev
 **Cause:** TypeScript doesn't recognize extended theme colors
 
 **Solution:**
-Colors are properly typed via `tailwind.config.ts`. If you still see errors, restart TypeScript server in VS Code:
+Tailwind-klassen zijn strings; TypeScript controleert ze niet. Zie je fouten in de editor, herstart dan de TypeScript-server in VS Code:
 - `Cmd/Ctrl + Shift + P` → "TypeScript: Restart TS Server"
 
 ---
@@ -348,11 +342,9 @@ Colors are properly typed via `tailwind.config.ts`. If you still see errors, res
 }
 ```
 
-2. Add to `tailwind.config.ts`:
-```typescript
-colors: {
-  'new-color': 'hsl(var(--new-color))',
-}
+2. Add to the `@theme inline` block in `src/app/globals.css`:
+```css
+--color-new-color: hsl(var(--new-color));
 ```
 
 3. Use in components:
@@ -364,13 +356,11 @@ colors: {
 
 ### Adding custom utilities
 
-Use `@layer utilities` in `globals.css`:
+Use `@utility` in `globals.css` (then variants like `hover:` and `md:` work too):
 
 ```css
-@layer utilities {
-  .paper-texture {
-    background-image: url("data:image/svg+xml,...");
-  }
+@utility paper-texture {
+  background-image: url("data:image/svg+xml,...");
 }
 ```
 
@@ -406,9 +396,8 @@ npm run build
 
 ## Related Files
 
-- `tailwind.config.ts` - Tailwind configuration
+- `src/app/globals.css` - Tailwind configuration, global styles & CSS variables
 - `postcss.config.mjs` - PostCSS configuration
-- `src/app/globals.css` - Global styles & CSS variables
 - `src/app/layout.tsx` - Root layout with font imports
 - `src/components/ui/` - shadcn/ui components
 
@@ -416,13 +405,14 @@ npm run build
 
 ## Resources
 
-- [Tailwind CSS v3 Docs](https://v3.tailwindcss.com/)
+- [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
+- [Tailwind v4 upgradegids](https://tailwindcss.com/docs/upgrade-guide)
 - [shadcn/ui Docs](https://ui.shadcn.com/)
 - [Next.js Styling](https://nextjs.org/docs/app/building-your-application/styling)
 - [Main Styling Docs](../STYLING.md)
 
 ---
 
-**Last Updated:** 2025-10-29  
+**Last Updated:** 2026-10-22  
 **Maintainer:** Matthijs Goes (@thijsmat)
 
