@@ -18,7 +18,7 @@ export default function DownloadPage() {
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
               {t('title')}
             </h1>
-            <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
+            <p className="mt-6 text-lg leading-8 text-grey sm:text-xl/7">
               {t('description')}
             </p>
             <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto">

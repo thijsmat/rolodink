@@ -26,7 +26,7 @@ export default function HowItWorksPage() {
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
             {t('hero.title')}
           </h1>
-          <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
+          <p className="mt-6 text-lg leading-8 text-grey sm:text-xl/7">
             {t('hero.description')}
           </p>
         </section>
@@ -45,7 +45,7 @@ export default function HowItWorksPage() {
                     >
                       {t('stepLabel')} {index + 1}
                     </Badge>
-                    <div className="mx-auto mt-4 flex h-14 w-14 items-center justify-center rounded-full bg-azure/5">
+                    <div className="mx-auto mt-1.5 flex h-14 w-14 items-center justify-center rounded-full bg-azure/5">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-azure/10 text-azure">
                         <IconComponent className="h-6 w-6" />
                       </div>

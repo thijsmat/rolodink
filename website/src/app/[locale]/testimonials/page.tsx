@@ -17,7 +17,7 @@ export default function TestimonialsPage() {
                     <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
                         {t('title')}
                     </h1>
-                    <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
+                    <p className="mt-6 text-lg leading-8 text-grey sm:text-xl/7">
                         {t('description')}
                     </p>
                 </section>
@@ -31,7 +31,7 @@ export default function TestimonialsPage() {
                                 className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl p-4 sm:p-8 relative hover:shadow-lg transition-shadow duration-300"
                             >
                                 <CardHeader className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6 p-0">
-                                    <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-gradient-to-br from-link-blue to-link-blue/80 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-linear-to-br from-link-blue to-link-blue/80 flex items-center justify-center shrink-0">
                                         <span className="text-white font-semibold text-xs sm:text-base">
                                             {testimonial.initials}
                                         </span>
@@ -84,7 +84,7 @@ export default function TestimonialsPage() {
                                         {testimonial.notes.map((note) => (
                                             <div key={note.text} className="flex items-start gap-2">
                                                 <div
-                                                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${getNoteColorClass(note.type)}`}
+                                                    className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ${getNoteColorClass(note.type)}`}
                                                 ></div>
                                                 <p
                                                     className={`text-xs sm:text-sm ${getNoteTextClass(note.type)}`}

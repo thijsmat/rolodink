@@ -7,8 +7,8 @@ import { Analytics as PostHogAnalytics } from "@/components/analytics"
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, getMessages } from 'next-intl/server';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter', weight: ['400', '500', '600', '700'] })
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair', weight: ['600', '700'] })
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-next-inter', weight: ['400', '500', '600', '700'] })
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-next-playfair', weight: ['600', '700'] })
 
 export const viewport: Viewport = {
   width: 'device-width',

@@ -27,7 +27,7 @@ export function AuthLayout({
 }: AuthLayoutProps) {
     return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
-            <div className="w-full max-w-md space-y-6 rounded-2xl border border-azure/10 bg-white/95 p-8 shadow-xl backdrop-blur">
+            <div className="w-full max-w-md space-y-6 rounded-2xl border border-azure/10 bg-white/95 p-8 shadow-xl backdrop-blur-sm">
                 <div className="space-y-2 text-center">
                     <h1 className="font-playfair text-3xl font-semibold text-azure">{title}</h1>
                     <p className="text-sm text-muted-foreground">{subtitle}</p>

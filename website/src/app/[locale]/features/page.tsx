@@ -40,7 +40,7 @@ export default function FeaturesPage() {
             <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl md:text-6xl">
               {t('hero.title')}
             </h1>
-            <p className="max-w-3xl text-lg leading-8 text-grey sm:text-xl">
+            <p className="max-w-3xl text-lg leading-8 text-grey sm:text-xl/7">
               {t('hero.description')}
             </p>
           </div>
@@ -54,7 +54,7 @@ export default function FeaturesPage() {
               return (
                 <Card key={feature.title} className="flex flex-col border-azure/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   <CardHeader>
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-azure text-background">
+                    <div className="mb-5.5 flex h-12 w-12 items-center justify-center rounded-lg bg-azure text-background">
                       <IconComponent className="h-6 w-6" aria-hidden="true" />
                     </div>
                     <CardTitle className="font-playfair text-xl text-azure">{feature.title}</CardTitle>
@@ -62,11 +62,11 @@ export default function FeaturesPage() {
                       {feature.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-grow">
+                  <CardContent className="grow">
                     <ul className="space-y-2">
                       {feature.benefits.map((benefit) => (
                         <li key={benefit} className="flex items-start text-sm text-grey">
-                          <CheckCircle className="mr-2 mt-0.5 h-4 w-4 flex-shrink-0 text-gold" aria-hidden="true" />
+                          <CheckCircle className="mr-2 mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
                           <span>{benefit}</span>
                         </li>
                       ))}

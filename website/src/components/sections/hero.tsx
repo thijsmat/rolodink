@@ -13,7 +13,7 @@ export default function Hero() {
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
           <div className="flex-1 max-w-[536px] flex flex-col gap-4 sm:gap-6 lg:gap-8 w-full lg:w-auto">
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-gold/20 bg-gold/10 self-start">
-              <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-gold shrink-0"></div>
               <span className="text-xs sm:text-sm text-gold">
                 {t('badge')}
               </span>
@@ -71,7 +71,7 @@ export default function Hero() {
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-background bg-gold flex-shrink-0"
+                      className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-background bg-gold shrink-0"
                     ></div>
                   ))}
                 </div>
@@ -93,7 +93,7 @@ export default function Hero() {
           <div className="flex-1 max-w-[536px] flex items-center justify-center w-full lg:w-auto">
             <div className="relative w-full">
               <div className="w-full bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl p-4 sm:p-8 flex flex-col gap-4 sm:gap-6 relative rotate-1 sm:rotate-2">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/5 to-gold/0"></div>
+                <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-gold/5 to-gold/0"></div>
                 <NextImage
                   src="/images/business-card-networking.jpg"
                   alt="Business Card Networking"
@@ -102,7 +102,7 @@ export default function Hero() {
                   className="w-full h-40 sm:h-48 lg:h-64 object-cover rounded-lg sm:rounded-2xl relative z-10"
                 />
                 <div className="flex items-start gap-2 sm:gap-3 relative z-10">
-                  <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-link-blue flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
+                  <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-link-blue flex items-center justify-center text-white font-semibold text-xs sm:text-sm shrink-0">
                     JD
                   </div>
                   <div className="flex-1 min-w-0">
@@ -115,7 +115,7 @@ export default function Hero() {
                   </div>
                 </div>
                 <div className="bg-background border border-gold/20 rounded-lg sm:rounded-xl p-3 sm:p-4 relative z-10">
-                  <p className="text-xs sm:text-sm text-grey italic leading-relaxed">
+                  <p className="text-xs sm:text-sm/5 text-grey italic leading-relaxed">
                     "{t('demoCard.note')}"
                   </p>
                 </div>

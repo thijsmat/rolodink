@@ -5,7 +5,7 @@ Marketing website for the Rolodink LinkedIn CRM browser extension.
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **Styling**: Tailwind CSS v3.4.1 + shadcn/ui (see [STYLING.md](STYLING.md))
+- **Styling**: Tailwind CSS v4 + shadcn/ui (see [STYLING.md](STYLING.md))
 - **Analytics**: Vercel Web Analytics; Google Analytics only after cookie consent
 - **Deployment**: Vercel
 - **Domain**: rolodink.app

@@ -59,11 +59,11 @@ export function SiteHeader() {
   if (!isMounted) return null;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95 border-b border-azure/10">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/95 border-b border-azure/10">
       <div className="max-w-[1136px] mx-auto px-8 h-16 flex items-center justify-between">
         {/* Left: Logo with Badge */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-white to-white/80 dark:from-azure/20 dark:to-azure/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-linear-to-br from-white to-white/80 dark:from-azure/20 dark:to-azure/10 flex items-center justify-center shrink-0">
             <span className="text-azure font-semibold text-base">R</span>
           </div>
           <span className="font-playfair font-semibold text-xl text-azure whitespace-nowrap">

@@ -98,11 +98,11 @@ export function ExplainerVideo({ src, poster, captions, labels }: Props) {
         type="button"
         onClick={togglePlay}
         aria-label={playing ? labels.pause : labels.play}
-        className="group absolute inset-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-gold"
+        className="group absolute inset-0 flex items-center justify-center focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-gold"
       >
         <span
           className={cn(
-            "grid h-14 w-14 place-items-center rounded-full bg-[#1B2951]/80 text-white shadow-lg backdrop-blur transition-opacity sm:h-16 sm:w-16",
+            "grid h-14 w-14 place-items-center rounded-full bg-[#1B2951]/80 text-white shadow-lg backdrop-blur-sm transition-opacity sm:h-16 sm:w-16",
             playing && "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100",
           )}
         >
@@ -112,7 +112,7 @@ export function ExplainerVideo({ src, poster, captions, labels }: Props) {
       <button
         type="button"
         onClick={toggleSound}
-        className="absolute bottom-2 right-2 inline-flex h-9 items-center gap-1.5 rounded-full bg-[#1B2951]/80 px-3 text-xs font-medium text-white shadow-lg backdrop-blur transition-colors hover:bg-[#1B2951] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:bottom-5 sm:right-5 sm:h-10 sm:gap-2 sm:px-4 sm:text-sm"
+        className="absolute bottom-2 right-2 inline-flex h-9 items-center gap-1.5 rounded-full bg-[#1B2951]/80 px-3 text-xs font-medium text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-[#1B2951] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold sm:bottom-5 sm:right-5 sm:h-10 sm:gap-2 sm:px-4 sm:text-sm"
       >
         {muted ? <Volume2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <VolumeX className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
         {muted ? labels.soundOn : labels.soundOff}

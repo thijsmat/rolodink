@@ -51,7 +51,7 @@ export default function Explainer() {
                   <h3 className="font-semibold text-base sm:text-lg text-azure mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-grey leading-relaxed">
+                  <p className="text-sm sm:text-base/6 text-grey leading-relaxed">
                     {step.description}
                   </p>
                 </div>
