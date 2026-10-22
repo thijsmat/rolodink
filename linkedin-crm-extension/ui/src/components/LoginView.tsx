@@ -46,7 +46,10 @@ export function LoginView() {
       body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || t('msg_unknown_error'));
+    if (!res.ok) {
+      if (data?.code === 'password_pwned') throw new Error(t('msg_password_pwned'));
+      throw new Error(data?.error || t('msg_unknown_error'));
+    }
     return data;
   }, [t]);
 

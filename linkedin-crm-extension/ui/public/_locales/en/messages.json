@@ -326,6 +326,9 @@
     "msg_password_mismatch": {
         "message": "New passwords do not match."
     },
+    "msg_password_pwned": {
+        "message": "This password has appeared in a data breach. Please choose a different password."
+    },
     "msg_password_too_short": {
         "message": "New password must be at least 6 characters long."
     },

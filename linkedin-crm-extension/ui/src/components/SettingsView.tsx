@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
+import { isPwnedPassword } from '@rolodink/core';
 import { ConfirmPanel } from './ConfirmPanel';
 import { buildFeedbackMailto, detectBrowserName, supportEmailFor } from '../utils/feedback';
 import { downloadBlob } from '../utils/download';
@@ -132,6 +133,15 @@ export function SettingsView() {
 
     try {
       setIsChangingPassword(true);
+
+      // Supabase's leaked-password protection needs a paid plan, so the popup
+      // checks Have I Been Pwned itself: only a hash prefix leaves the device,
+      // and an unreachable API lets the change through.
+      if (await isPwnedPassword(passwordData.newPassword)) {
+        setToastMessage(t('msg_password_pwned'));
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
 
       // The email comes from the session that is already open, never from a

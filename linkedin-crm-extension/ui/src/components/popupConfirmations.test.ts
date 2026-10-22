@@ -86,7 +86,12 @@ describe('changing the password', () => {
         await act(async () => {
             dom.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         });
-        await settle();
+        // Every outcome ends in a toast. The leaked-password check hashes with
+        // WebCrypto first, which can take longer than one settle() tick.
+        await vi.waitFor(async () => {
+            await settle();
+            expect(context.setToastMessage).toHaveBeenCalled();
+        });
     }
 
     it('does not change it when the current password is wrong', async () => {
@@ -113,8 +118,20 @@ describe('changing the password', () => {
         expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' });
         expect(auth.updateUser.mock.invocationCallOrder[0])
             .toBeLessThan(auth.signOut.mock.invocationCallOrder[0]);
-        expect(fetchMock).not.toHaveBeenCalled();
+        // The only request is the leaked-password range lookup, not the export.
+        expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['https://api.pwnedpasswords.com/range/C794D']);
         expect(context.setToastMessage).toHaveBeenCalledWith('msg_password_change_success');
+    });
+
+    it('refuses a new password that appears in a data breach', async () => {
+        // SHA-1("new-secret-1") = C794D + this suffix.
+        fetchMock.mockResolvedValue(new Response('CA5BFB65A8DA14ED51EC96ECEBE7A8B145E:42\r\n'));
+
+        await submitPasswordForm('right-password');
+
+        expect(auth.signInWithPassword).not.toHaveBeenCalled();
+        expect(auth.updateUser).not.toHaveBeenCalled();
+        expect(context.setToastMessage).toHaveBeenCalledWith('msg_password_pwned');
     });
 
     it('does not try at all without an email in the session', async () => {
