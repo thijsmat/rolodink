@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { getSafeRedirect } from '@/lib/utils'
+import { isPwnedPassword } from '@rolodink/core/pwned-password'
 
 type EmailPasswordFormProps = {
   mode: 'login' | 'signup'
@@ -47,6 +48,15 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         }
         window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.login}`)
         return
+      }
+
+      // Supabase's eigen lekcontrole zit alleen in een betaald plan, dus de
+      // check draait hier: alleen een hashprefix gaat naar Have I Been Pwned,
+      // en als die API onbereikbaar is gaat de aanmelding gewoon door.
+      if (await isPwnedPassword(password)) {
+        throw new Error(
+          'This password has appeared in a data breach. Please choose a different password.'
+        )
       }
 
       // Zelfde opbouw als LinkedInSignInButton: searchParams doet de encoding,

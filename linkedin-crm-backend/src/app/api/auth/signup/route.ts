@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { AUTH_RATE_LIMIT, rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { z } from 'zod';
+import { isPwnedPassword } from '@rolodink/core/pwned-password';
 
 // Validation schema for signup
 const signUpSchema = z.object({
@@ -39,6 +40,19 @@ export async function POST(request: NextRequest) {
 
     // Use validated data
     const { email, password, receivesUpdates } = validation.data;
+
+    // Supabase's own leaked-password protection needs a paid plan, so the
+    // check runs here (k-anonymity: only a hash prefix leaves the server). It
+    // fails open, so an outage at Have I Been Pwned never blocks a sign-up.
+    if (await isPwnedPassword(password)) {
+      return NextResponse.json(
+        {
+          error: 'This password has appeared in a data breach. Please choose a different password.',
+          code: 'password_pwned',
+        },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const supabase = await createSupabaseServerClient();
     const emailRedirectTo =

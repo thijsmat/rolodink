@@ -36,6 +36,8 @@ function post(route: 'signin' | 'signup', ip: string): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Sign-up checks Have I Been Pwned; answer "not listed" without the network.
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('')));
   signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: 'Invalid login credentials' } });
   signUp.mockResolvedValue({ data: { user: { id: 'new-user' }, session: null }, error: null });
 });

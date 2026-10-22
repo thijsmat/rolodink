@@ -326,6 +326,9 @@
     "msg_password_mismatch": {
         "message": "Nieuwe wachtwoorden komen niet overeen."
     },
+    "msg_password_pwned": {
+        "message": "Dit wachtwoord komt voor in een datalek. Kies een ander wachtwoord."
+    },
     "msg_password_too_short": {
         "message": "Nieuw wachtwoord moet minimaal 6 tekens lang zijn."
     },

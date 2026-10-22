@@ -49,3 +49,6 @@ export {
 export type { RolodinkClientOptions } from './client.js';
 
 export type { Connection, ConnectionInput, ConnectionPatch } from './types.js';
+
+export { PWNED_PASSWORDS_RANGE_URL, pwnedPasswordCount, isPwnedPassword } from './pwned-password.js';
+export type { PwnedPasswordOptions } from './pwned-password.js';

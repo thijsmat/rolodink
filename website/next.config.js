@@ -9,6 +9,8 @@ const cmsUrl = new URL(process.env.CMS_BASE_URL || 'https://cms.rolodink.app');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // @rolodink/core (packages/core) ships TypeScript source, not a build.
+  transpilePackages: ['@rolodink/core'],
   // Map Vercel-managed Supabase env vars (without NEXT_PUBLIC_ prefix)
   // to client-accessible NEXT_PUBLIC_ versions at build time.
   // If NEXT_PUBLIC_ vars already exist (e.g. local .env.local), they take priority.
