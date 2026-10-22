@@ -62,9 +62,19 @@ export function extractOAuthError(
   return null;
 }
 
+// Placeholder origin to resolve a relative path against. `.invalid` is a
+// reserved TLD, so it can never be a real host an attacker controls.
+const SAFE_REDIRECT_BASE = 'https://redirect-check.invalid'
+
 /**
  * Validates a redirect URL to prevent open redirect vulnerabilities.
- * Ensures the path starts with / but not // or /\ (Safari bypass).
+ *
+ * Only a same-origin path is accepted. A prefix check alone is not enough: the
+ * URL parser strips tabs and newlines and treats a backslash as a slash, so
+ * `/\t/evil.com` passes a "starts with / but not //" test and still resolves to
+ * https://evil.com. Hence: no control characters or backslashes at all, and
+ * the value must resolve to the placeholder origin. The returned path is the
+ * parsed one, so the browser navigates to exactly what was checked.
  */
 export function getSafeRedirect(
   next: string | null | undefined,
@@ -74,9 +84,16 @@ export function getSafeRedirect(
     next &&
     next.startsWith('/') &&
     !next.startsWith('//') &&
-    !next.startsWith('/\\')
+    !/[\u0000-\u001F\u007F\\]/.test(next)
   ) {
-    return next;
+    try {
+      const url = new URL(next, SAFE_REDIRECT_BASE)
+      if (url.origin === SAFE_REDIRECT_BASE) {
+        return `${url.pathname}${url.search}${url.hash}`
+      }
+    } catch {
+      // Unparseable: fall through to the fallback.
+    }
   }
 
   if (next) {
