@@ -45,6 +45,23 @@ const nextConfig = {
   },
   // PostHog-endpoints eindigen op een slash; zonder dit stuurt Next een redirect.
   skipTrailingSlashRedirect: true,
+  // Geen enkele pagina hoort in een frame van een andere site. Zonder deze
+  // headers kon /login onzichtbaar in een iframe worden geladen (clickjacking).
+  // Bewust geen volledige CSP: die vraagt eerst een inventaris van alle
+  // scripts (PostHog, next-intl) en hoort in een eigen wijziging.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = withNextIntl(nextConfig);
