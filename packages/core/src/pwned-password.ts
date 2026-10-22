@@ -26,7 +26,11 @@ export interface PwnedPasswordOptions {
 }
 
 async function sha1Hex(text: string): Promise<string> {
-    const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
+    // SHA-1 because the Pwned Passwords range API is keyed on SHA-1 hashes and
+    // offers nothing stronger. The hash is not stored and does not protect the
+    // password: it is only a lookup key, of which just five characters leave
+    // the device. Sonar's weak-hash rule (S4790) does not apply here.
+    const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text)); // NOSONAR
     return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0'))
         .join('')
         .toUpperCase();
