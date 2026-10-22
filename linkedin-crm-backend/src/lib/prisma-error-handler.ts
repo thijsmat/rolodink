@@ -92,10 +92,12 @@ export function handlePrismaError(
 
       default:
         // Other Prisma errors
+        // The message can name tables, columns and constraint details; it goes
+        // to the log, not to the client.
         console.error('Prisma error code:', error.code, error.message);
         return {
           response: NextResponse.json(
-            { error: `Database error: ${error.message}` },
+            { error: defaultMessage },
             { status: 500, headers: corsHeaders }
           ),
           handled: true,
@@ -139,11 +141,12 @@ export function handlePrismaError(
       }
     }
 
-    // Generic error
+    // Generic error. Never echo error.message: a PrismaClientInitializationError
+    // lands here and its message names the database host and port.
     console.error('Error:', error.message);
     return {
       response: NextResponse.json(
-        { error: error.message || defaultMessage },
+        { error: defaultMessage },
         { status: 500, headers: corsHeaders }
       ),
       handled: true,
