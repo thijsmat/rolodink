@@ -56,7 +56,7 @@ export default function OnboardingPage() {
 
                         {/* Step 1: Pin Extension */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-gold/50 to-transparent" />
                             <CardHeader>
                                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10 text-gold">
                                     <Pin className="h-8 w-8" />
@@ -85,7 +85,7 @@ export default function OnboardingPage() {
 
                         {/* Step 2: Sign in, from the extension */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-azure/50 to-transparent" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-azure/50 to-transparent" />
                             <CardHeader>
                                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-azure/10 text-azure">
                                     <UserPlus className="h-8 w-8" />
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
                                 <div className="w-full max-w-sm space-y-4 text-left">
                                     <ol className="space-y-3">
                                         <li className="flex gap-3 items-start">
-                                            <span className="flex-shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
+                                            <span className="shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
                                                 1
                                             </span>
                                             <span className="text-sm text-grey leading-relaxed">
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
                                             </span>
                                         </li>
                                         <li className="flex gap-3 items-start">
-                                            <span className="flex-shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
+                                            <span className="shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-azure/10 text-azure text-xs font-bold">
                                                 2
                                             </span>
                                             <span className="text-sm text-grey leading-relaxed">
@@ -124,7 +124,7 @@ export default function OnboardingPage() {
                                         gaat iemand op de website inloggen in de veronderstelling
                                         dat de extensie dan meedoet. */}
                                     <p className="flex gap-2 items-start rounded-lg border border-azure/10 bg-azure/5 p-3 text-xs text-grey leading-relaxed">
-                                        <Puzzle className="h-4 w-4 flex-shrink-0 mt-0.5 text-azure" aria-hidden="true" />
+                                        <Puzzle className="h-4 w-4 shrink-0 mt-0.5 text-azure" aria-hidden="true" />
                                         <span>{t('steps.login.instructions.note')}</span>
                                     </p>
                                 </div>
@@ -133,7 +133,7 @@ export default function OnboardingPage() {
 
                         {/* Step 3: Secure Vault */}
                         <Card className="relative flex flex-col text-center border-azure/10 overflow-hidden h-full">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-green-500/50 to-transparent" />
                             <CardHeader>
                                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600">
                                     <Lock className="h-8 w-8" />

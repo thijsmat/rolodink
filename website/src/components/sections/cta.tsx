@@ -6,7 +6,7 @@ export default function CTA() {
   const t = useTranslations('CTA');
 
   return (
-    <section className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-azure to-azure/80 relative overflow-hidden">
+    <section className="py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-linear-to-br from-azure to-azure/80 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-gold/10 blur-2xl sm:blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-link-blue/10 blur-2xl sm:blur-3xl"></div>
 
@@ -41,15 +41,15 @@ export default function CTA() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-white/70 text-xs sm:text-sm flex-wrap">
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 flex-shrink-0 text-gold" />
+            <Check className="h-4 w-4 shrink-0 text-gold" />
             <span>{t('badges.free')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 flex-shrink-0 text-gold" />
+            <Check className="h-4 w-4 shrink-0 text-gold" />
             <span>{t('badges.privacy')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 flex-shrink-0 text-gold" />
+            <Check className="h-4 w-4 shrink-0 text-gold" />
             <span>{t('badges.install')}</span>
           </div>
         </div>

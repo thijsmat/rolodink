@@ -40,7 +40,7 @@ export default function TermsPage() {
               className="prose prose-lg max-w-none 
                          text-grey 
                          prose-headings:font-playfair prose-headings:font-semibold prose-headings:text-azure 
-                         prose-a:text-link-blue prose-a:underline-offset-4 hover:prose-a:text-link-blue/80
+                         prose-a:text-link-blue prose-a:underline-offset-4 prose-a:hover:text-link-blue/80
                          prose-strong:text-azure"
             >
               <h2>1. Acceptatie van de Voorwaarden</h2>

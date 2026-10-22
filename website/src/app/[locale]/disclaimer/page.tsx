@@ -14,7 +14,7 @@ export default function DisclaimerPage() {
       <main className="flex-1 pt-16">
         <section className="container space-y-6 py-8 md:py-12 lg:py-24">
           <div className="mx-auto max-w-3xl space-y-6">
-            <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">{t('title')}</h1>
+            <h1 className="font-heading text-3xl leading-[1.1] sm:text-3xl/9 md:text-6xl/none">{t('title')}</h1>
             <p className="text-muted-foreground">{t('lastUpdated')}: {lastUpdated}</p>
             <p className="text-muted-foreground">
               {t('content')}

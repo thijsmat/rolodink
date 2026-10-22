@@ -105,7 +105,7 @@ export default function OnboardingSuccessPage() {
                                     key={step.number}
                                     className="flex gap-5 p-6 rounded-2xl border border-azure/10 bg-white shadow-sm hover:shadow-md transition-shadow"
                                 >
-                                    <div className={`flex-shrink-0 flex items-start pt-1`}>
+                                    <div className={`shrink-0 flex items-start pt-1`}>
                                         <div className={`${step.bg} rounded-xl p-3`}>
                                             <Icon className={`w-6 h-6 ${step.color}`} />
                                         </div>

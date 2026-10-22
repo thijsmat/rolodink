@@ -16,7 +16,7 @@ export function SiteFooter() {
           {/* Brand Section */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-white to-white/80 dark:from-azure/20 dark:to-azure/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-linear-to-br from-white to-white/80 dark:from-azure/20 dark:to-azure/10 flex items-center justify-center shrink-0">
                 <span className="text-azure font-semibold text-base">R</span>
               </div>
               <span className="font-playfair font-semibold text-xl text-azure">

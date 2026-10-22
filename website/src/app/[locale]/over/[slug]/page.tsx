@@ -85,7 +85,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Params 
                 {article.title}
               </h1>
               {article.intro && (
-                <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">{article.intro}</p>
+                <p className="mt-6 text-lg leading-8 text-grey sm:text-xl/7">{article.intro}</p>
               )}
             </header>
 

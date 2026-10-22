@@ -29,7 +29,7 @@ export default function HelpPage() {
           <h1 className="font-playfair text-4xl font-bold tracking-tight text-azure sm:text-5xl lg:text-6xl">
             {t('title')}
           </h1>
-          <p className="mt-6 text-lg leading-8 text-grey sm:text-xl">
+          <p className="mt-6 text-lg leading-8 text-grey sm:text-xl/7">
             {t('description')}
           </p>
         </section>

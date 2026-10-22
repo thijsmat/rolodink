@@ -61,7 +61,7 @@ export default function Features() {
                 key={index}
                 className="bg-white border border-azure/10 rounded-xl sm:rounded-2xl p-5 sm:p-8 flex flex-col gap-3 sm:gap-4"
               >
-                <div className="w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center rounded-lg sm:rounded-2xl flex-shrink-0">
+                <div className="w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center rounded-lg sm:rounded-2xl shrink-0">
                   <IconComponent className="h-6 w-6 text-azure" />
                 </div>
                 <CardHeader className="p-0">
@@ -69,8 +69,8 @@ export default function Features() {
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0 flex-grow">
-                  <p className="text-xs sm:text-sm lg:text-base text-grey leading-relaxed">
+                <CardContent className="p-0 grow">
+                  <p className="text-xs sm:text-sm/5 lg:text-base/6 text-grey leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>

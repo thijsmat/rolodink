@@ -50,13 +50,13 @@ export default function FAQ() {
                   {faq.question}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 flex-shrink-0 transition-transform text-neutral-500 ${openIndex === index ? "rotate-180" : ""
+                  className={`h-4 w-4 shrink-0 transition-transform text-neutral-500 ${openIndex === index ? "rotate-180" : ""
                     }`}
                 />
               </button>
               {openIndex === index && (
                 <div className="px-4 sm:px-6 pb-4 sm:pb-5 border-t border-azure/10">
-                  <p className="text-grey text-xs sm:text-sm leading-relaxed pt-4">
+                  <p className="text-grey text-xs sm:text-sm/5 leading-relaxed pt-4">
                     {faq.answer}
                   </p>
                 </div>
