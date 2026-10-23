@@ -5,11 +5,14 @@ import { AUTH_RATE_LIMIT, rateLimitMiddleware } from '@/lib/rate-limit';
 import { buildCorsHeaders } from '@/lib/cors';
 import { z } from 'zod';
 import { isPwnedPassword } from '@rolodink/core/pwned-password';
+import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password';
 
 // Validation schema for signup
 const signUpSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
   receivesUpdates: z.boolean().optional().default(false),
 });
 

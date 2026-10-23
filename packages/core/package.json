@@ -9,6 +9,7 @@
     "./url": "./src/url.ts",
     "./conflict": "./src/conflict.ts",
     "./pwned-password": "./src/pwned-password.ts",
+    "./password": "./src/password.ts",
     "./url-vectors": "./src/url-vectors.ts"
   },
   "types": "./src/index.ts",
