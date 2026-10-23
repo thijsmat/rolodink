@@ -1,6 +1,8 @@
 # LinkedIn-campagne 2: korte video's per situatie (voertaal Engels)
 
-Status: concept, nog niets ingepland. Opgesteld op 2026-10-23.
+Status: ingepland in Buffer op 2026-10-23 (vier posts met video, automatisch publiceren om 08:30). De eerste
+reactie met de link en de repost plaats je zelf; daarvoor staan herinneringen in Google Agenda. Opgesteld op
+2026-10-23.
 
 ## Waarom video
 
