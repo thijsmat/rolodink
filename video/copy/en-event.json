@@ -1,0 +1,96 @@
+{
+  "title": "Rolodink — after the event",
+  "file": "rolodink-event",
+  "hook": [
+    "Great event.",
+    "Who’s who?"
+  ],
+  "tagline": [
+    "Your notes,",
+    "right on LinkedIn."
+  ],
+  "steps": [
+    [
+      "Open a",
+      "profile.",
+      "Click "
+    ],
+    [
+      "Write a",
+      "note.",
+      "Private, just for you."
+    ],
+    [
+      "Find them",
+      "again.",
+      "Search by name, company or detail."
+    ]
+  ],
+  "profile": {
+    "degree": "· 1st",
+    "headline": "Head of Sales at Brightlane",
+    "meta": "Amsterdam, Netherlands · 500+ connections · ",
+    "contact": "Contact info",
+    "message": "Message",
+    "more": "More",
+    "about": "About"
+  },
+  "sticker": "Stored encrypted",
+  "popup": {
+    "pills": [
+      "Show All Connections",
+      "Settings",
+      "Help"
+    ],
+    "search": "Search connections... (Ctrl+F)",
+    "result": "1 result for “bees”"
+  },
+  "outro": [
+    "From connection",
+    "to relationship."
+  ],
+  "cta": "Free for Chrome, Edge & Firefox",
+  "roles": [
+    "UX Lead",
+    "Founder",
+    "Investor",
+    "Recruiter",
+    "Sales",
+    "CFO",
+    "Engineer",
+    "Consultant",
+    "Marketing",
+    "Head of Sales",
+    "Product",
+    "Designer"
+  ],
+  "note": "Met at the Web Summit. Wants a demo in Q1. Keeps bees.",
+  "query": "bees",
+  "cards": [
+    [
+      "UX Lead at Studio Noord",
+      "Had coffee in March. Wants to brainstorm research."
+    ],
+    [
+      "Founder at Kiemkracht",
+      "Saw the pitch in Rotterdam. Call back after summer."
+    ],
+    [
+      "Head of Sales at Brightlane",
+      "Met at the Web Summit. Wants a demo in Q1. Keeps bees."
+    ],
+    [
+      "Investor",
+      "Intro via Eva. Interested in HR tech."
+    ],
+    [
+      "Recruiter at Talentlab",
+      "Sharing the job opening with her network."
+    ]
+  ],
+  "person": {
+    "name": "Ruben Kok",
+    "initials": "RK",
+    "slug": "rubenkok"
+  }
+}

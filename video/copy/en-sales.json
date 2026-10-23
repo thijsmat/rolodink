@@ -1,0 +1,96 @@
+{
+  "title": "Rolodink — for sales",
+  "file": "rolodink-sales",
+  "hook": [
+    "What did we",
+    "promise?"
+  ],
+  "tagline": [
+    "Your notes,",
+    "right on LinkedIn."
+  ],
+  "steps": [
+    [
+      "Open a",
+      "profile.",
+      "Click "
+    ],
+    [
+      "Write a",
+      "note.",
+      "Private, just for you."
+    ],
+    [
+      "Find them",
+      "again.",
+      "Search by name, company or detail."
+    ]
+  ],
+  "profile": {
+    "degree": "· 1st",
+    "headline": "COO at Vanderveld Logistics",
+    "meta": "Eindhoven, Netherlands · 500+ connections · ",
+    "contact": "Contact info",
+    "message": "Message",
+    "more": "More",
+    "about": "About"
+  },
+  "sticker": "Stored encrypted",
+  "popup": {
+    "pills": [
+      "Show All Connections",
+      "Settings",
+      "Help"
+    ],
+    "search": "Search connections... (Ctrl+F)",
+    "result": "1 result for “golf”"
+  },
+  "outro": [
+    "From connection",
+    "to relationship."
+  ],
+  "cta": "Free for Chrome, Edge & Firefox",
+  "roles": [
+    "UX Lead",
+    "Founder",
+    "Investor",
+    "Recruiter",
+    "Sales",
+    "CFO",
+    "Engineer",
+    "Consultant",
+    "Marketing",
+    "COO",
+    "Product",
+    "Designer"
+  ],
+  "note": "Sent the proposal. Owes us an answer by June. Loves golf.",
+  "query": "golf",
+  "cards": [
+    [
+      "UX Lead at Studio Noord",
+      "Had coffee in March. Wants to brainstorm research."
+    ],
+    [
+      "Founder at Kiemkracht",
+      "Saw the pitch in Rotterdam. Call back after summer."
+    ],
+    [
+      "COO at Vanderveld Logistics",
+      "Sent the proposal. Owes us an answer by June. Loves golf."
+    ],
+    [
+      "Investor",
+      "Intro via Eva. Interested in HR tech."
+    ],
+    [
+      "Recruiter at Talentlab",
+      "Sharing the job opening with her network."
+    ]
+  ],
+  "person": {
+    "name": "Thomas Meijer",
+    "initials": "TM",
+    "slug": "thomasmeijer"
+  }
+}

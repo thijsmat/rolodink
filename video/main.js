@@ -25,8 +25,12 @@
   if (RENDER) document.body.classList.add('render');
   // taal van de teksten: ?lang=en, standaard Nederlands; init() laadt copy/<taal>.json
   const requested = params.get('lang') ?? 'nl';
-  let LANG = /^[a-z]{2}$/.test(requested) ? requested : 'nl';
+  // een variant als en-event laadt copy/en-event.json
+  let LANG = /^[a-z]{2}(-[a-z0-9]+)?$/.test(requested) ? requested : 'nl';
   let T = null;
+  // de hoofdpersoon; een variant kan een ander zetten met person in copy/<taal>.json
+  const HERO = 'Sanne Visser';
+  let hero = HERO;
 
   // ---------- rekenhulp ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -273,7 +277,8 @@
 
   function buildS1() {
     const root = $('#chips');
-    chips = CHIPS.map(([name, pal, x, y, rot], i) => {
+    chips = CHIPS.map(([chipName, pal, x, y, rot], i) => {
+      const name = chipName === HERO ? hero : chipName;
       const role = T.roles[i];
       const el = document.createElement('div');
       el.className = 'chip';
@@ -588,7 +593,8 @@
     // de lijst in de popup
     const list = $('#plist');
     const check = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    pcards = PCARDS.map(([name, pal], i) => {
+    pcards = PCARDS.map(([cardName, pal], i) => {
+      const name = cardName === HERO ? hero : cardName;
       const [role, note] = T.cards[i];
       const wrap = document.createElement('div');
       wrap.className = 'pwrap';
@@ -607,7 +613,7 @@
       c.wrap.style.height = `${c.h}px`;
       c.wrap.style.marginBottom = '12px';
     });
-    sanne = pcards.find(c => c.name === 'Sanne Visser');
+    sanne = pcards.find(c => c.name === hero);
     // de voorkant van de omklapkaart is het zoekresultaat zoals het er dan bij staat
     const front = sanne.card.cloneNode(true);
     $('mark', front).style.setProperty('--hl', '100%');
@@ -1060,6 +1066,12 @@
     for (const el of $$('[data-copy]')) {
       const text = el.dataset.copy.split('.').reduce((node, key) => node[key], T);
       el.textContent = text;
+    }
+    if (T.person) {
+      hero = T.person.name;
+      $('#heroName').textContent = hero;
+      $('#heroAvatar').textContent = T.person.initials;
+      $('#heroUrl').textContent = `linkedin.com/in/${T.person.slug}`;
     }
   }
 
