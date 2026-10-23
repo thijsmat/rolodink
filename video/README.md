@@ -55,6 +55,21 @@ Zelfde beeld, geluid en timing; alleen de teksten verschillen (`copy/en.json`).
 - De streep onder het slot springt over de staart van de p in *relationship* heen (skip-ink), zoals bij een nette
   onderstreping.
 
+## Varianten
+
+Naast `nl` en `en` kan `copy/` varianten bevatten, zoals `copy/en-event.json`. Een variant is een volledige
+tekstset met een eigen `file` (de bestandsnaam van de MP4) en een optioneel `person` met `name`, `initials` en
+`slug`; die vervangt Sanne Visser op het profiel, in de kaartjes en in de popup. Render met de naam van het bestand:
+
+```bash
+node render.mjs --lang en-event      # → website/public/video/rolodink-event.mp4 en -poster.jpg
+```
+
+Dezelfde regels als hierboven: de tweede regel van de hook heeft een o, en de zoekterm heeft vier letters en staat
+letterlijk in `note`. Pas ook `cards[2]` (rol en notitie van de hoofdpersoon) en `roles[9]` (zijn of haar kaartje in
+de eerste scène) aan. De varianten `event`, `recruiter`, `sales` en `coffee` horen bij LinkedIn-campagne 2
+(`marketing/linkedin-campaign-2.md`).
+
 ## Typografie en kleur
 
 - **Inter Tight** (700/800, strak gespatieerd) voor de koppen en het woordmerk.
