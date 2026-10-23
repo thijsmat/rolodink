@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../config';
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
 import { isDeleteConfirmation } from '../utils/deleteConfirmation';
-import { isPwnedPassword } from '@rolodink/core';
+import { isPwnedPassword, MIN_PASSWORD_LENGTH } from '@rolodink/core';
 import { ConfirmPanel } from './ConfirmPanel';
 import { buildFeedbackMailto, detectBrowserName, supportEmailFor } from '../utils/feedback';
 import { downloadBlob } from '../utils/download';
@@ -126,8 +126,8 @@ export function SettingsView() {
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setToastMessage(t('msg_password_too_short'));
+    if (passwordData.newPassword.length < MIN_PASSWORD_LENGTH) {
+      setToastMessage(t('msg_password_too_short', [String(MIN_PASSWORD_LENGTH)]));
       return;
     }
 

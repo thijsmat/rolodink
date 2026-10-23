@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { getSafeRedirect } from '@/lib/utils'
 import { isPwnedPassword } from '@rolodink/core/pwned-password'
+import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
 
 type EmailPasswordFormProps = {
   mode: 'login' | 'signup'
@@ -48,6 +49,10 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
         }
         window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.login}`)
         return
+      }
+
+      if (password.length < MIN_PASSWORD_LENGTH) {
+        throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
       }
 
       // Supabase's eigen lekcontrole zit alleen in een betaald plan, dus de
@@ -120,7 +125,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
           id={`${mode}-password`}
           type="password"
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          minLength={6}
+          minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required

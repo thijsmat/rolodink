@@ -330,7 +330,12 @@
         "message": "Dit wachtwoord komt voor in een datalek. Kies een ander wachtwoord."
     },
     "msg_password_too_short": {
-        "message": "Nieuw wachtwoord moet minimaal 6 tekens lang zijn."
+        "message": "Nieuw wachtwoord moet minimaal $COUNT$ tekens lang zijn.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
     },
     "msg_not_logged_in_password": {
         "message": "Niet ingelogd of sessie onvolledig. Log opnieuw in om je wachtwoord te wijzigen."

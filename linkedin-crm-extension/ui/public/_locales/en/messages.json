@@ -330,7 +330,12 @@
         "message": "This password has appeared in a data breach. Please choose a different password."
     },
     "msg_password_too_short": {
-        "message": "New password must be at least 6 characters long."
+        "message": "New password must be at least $COUNT$ characters long.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
     },
     "msg_not_logged_in_password": {
         "message": "Not logged in or session incomplete. Please log in again to change your password."
