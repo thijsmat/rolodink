@@ -29,8 +29,14 @@ with params as (
 -- Our own accounts. Add their auth.users ids here; the check row at the
 -- bottom shows how many of them were found.
 excluded(user_id) as (
-  select null::uuid where false
-  -- union all select 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'::uuid
+  values
+    ('0ce77965-a6eb-4910-8fd8-50801199a163'::uuid),
+    ('e3de549f-d381-41fa-adf2-61ab61ca306f'::uuid),
+    ('38f0bf69-c159-46bf-9d2a-ef344088792f'::uuid),
+    ('1b4e5f92-e6b4-48d3-88a5-aac519449375'::uuid),
+    ('234c8941-f082-45c4-ab6d-9c7c3d711de8'::uuid),
+    ('1dd97f35-d16e-4945-9ba7-932ce98805a1'::uuid),
+    ('f8a6a21f-c357-460f-9b95-dd58f5bdb7b3'::uuid)
 ),
 
 cohort as (
