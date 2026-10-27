@@ -92,12 +92,20 @@ export async function rewrapUserKeys(db: RotationStore, current: Buffer, next: B
 /** What the cron reports: the state of the next key and, when it ran, the counts. */
 export type RotationResult =
     | { state: 'unset' | 'invalid' | 'fingerprint-missing' | 'fingerprint-mismatch' }
-    | ({ state: 'confirmed'; done: boolean } & Omit<RewrapReport, 'failed'> & { failed: number });
+    | ({ state: 'confirmed'; done: boolean; currentIsNext: boolean } & Omit<RewrapReport, 'failed'> & {
+          failed: number;
+      });
 
 /**
  * One rotation pass with the keys from `env`. The expected fingerprint is
  * never logged or returned: copying it from a log into Vercel would defeat
  * the check, which is there to prove the operator's own copy is right.
+ *
+ * `currentIsNext` closes the last step. ENCRYPTION_MASTER_KEY is overwritten
+ * with the new key while _NEXT stays set, so new user keys are still wrapped
+ * with the confirmed _NEXT even if that paste has a typo. Only when this pass
+ * reports that ENCRYPTION_MASTER_KEY is byte for byte the confirmed _NEXT may
+ * _NEXT and its fingerprint be removed.
  */
 export async function runKeyRotation(
     db: RotationStore,
@@ -117,15 +125,20 @@ export async function runKeyRotation(
         return { state: next.reason };
     }
 
-    const report = await rewrapUserKeys(db, getMasterKey(env), next.key);
+    const current = getMasterKey(env);
+    const report = await rewrapUserKeys(db, current, next.key);
     for (const failure of report.failed) {
         console.error(`Key rotation: user key of ${failure.userId} not re-wrapped: ${failure.reason}`);
     }
     const done = report.rewrapped + report.alreadyNext === report.total;
+    const currentIsNext = current.equals(next.key);
     console.log(
         `Key rotation: ${report.total} user keys, ${report.rewrapped} re-wrapped, ${report.alreadyNext} already on the next key, ` +
             `${report.changedMeanwhile} changed meanwhile, ${report.failed.length} failed.` +
-            (done ? ' Every user key opens with ENCRYPTION_MASTER_KEY_NEXT.' : '')
+            (done ? ' Every user key opens with ENCRYPTION_MASTER_KEY_NEXT.' : '') +
+            (currentIsNext
+                ? ' ENCRYPTION_MASTER_KEY is the same key as ENCRYPTION_MASTER_KEY_NEXT.'
+                : ' ENCRYPTION_MASTER_KEY is still a different key than ENCRYPTION_MASTER_KEY_NEXT.')
     );
-    return { state: 'confirmed', done, ...report, failed: report.failed.length };
+    return { state: 'confirmed', done, currentIsNext, ...report, failed: report.failed.length };
 }

@@ -60,7 +60,10 @@ export async function GET(request: NextRequest) {
         try {
             keyRotation = await runKeyRotation(userKeys);
         } catch (rotationError) {
-            console.error('Key rotation failed:', rotationError instanceof Error ? rotationError.message : rotationError);
+            // Alleen naam en code: een Prisma-validatiefout noemt in zijn
+            // message de argumenten, en die zijn hier gewrapte sleutels.
+            const { name, code } = (rotationError ?? {}) as { name?: string; code?: string };
+            console.error('Key rotation failed:', name ?? 'unknown error', code ?? '');
             keyRotation = { state: 'error' };
         }
 

@@ -5,6 +5,7 @@ import {
     generateDataKey,
     getMasterKeys,
     getOrCreateUserKey,
+    KeyUnwrapError,
     masterKeyFingerprint,
     unwrapDataKey,
     wrapDataKey,
@@ -204,6 +205,7 @@ describe('runKeyRotation', () => {
             alreadyNext: 0,
             changedMeanwhile: 0,
             failed: 1,
+            currentIsNext: false,
         });
         expect(JSON.stringify(result)).not.toContain('stranger');
     });
@@ -247,16 +249,45 @@ describe('a whole rotation, in the order of the runbook', () => {
         expect(result).toMatchObject({ state: 'confirmed', done: true, total: 4, rewrapped: 3, alreadyNext: 1 });
         await readAll(confirmed);
 
-        // Step 4: the local dry run with the new key alone. This is the gate before step 5.
+        // Step 5: the local dry run with the new key alone.
         const unwrapped = checkMasterKey(await fake.store.listUserKeys(), newKey);
         for (const [userId, dataKey] of issued) expect(unwrapped.get(userId)?.equals(dataKey)).toBe(true);
 
-        // Step 5: ENCRYPTION_MASTER_KEY replaced by the new key, NEXT removed.
+        // Step 6a, pasted with a typo: ENCRYPTION_MASTER_KEY overwritten, NEXT kept.
+        // Nobody notices, because NEXT still wraps and unwraps; the cron says the paste is wrong.
+        const typo = Buffer.from(newKey);
+        typo[9] ^= 0x04;
+        const swappedWithTypo = env(typo, newKey);
+        await readAll(swappedWithTypo);
+        issued.set('during-typo', await getOrCreateUserKey(fake.store, 'during-typo', getMasterKeys(swappedWithTypo)));
+        expect(await runKeyRotation(fake.store, swappedWithTypo)).toMatchObject({ done: true, currentIsNext: false });
+
+        // Step 6a again, pasted correctly: the cron confirms it.
+        const swapped = env(newKey, newKey);
+        expect(await runKeyRotation(fake.store, swapped)).toMatchObject({ done: true, currentIsNext: true });
+
+        // Step 6b: NEXT and its fingerprint removed. Everyone, including the user who
+        // signed up while the typo was live, still reads their key.
         const after = env(newKey);
         await readAll(after);
         issued.set('after', await getOrCreateUserKey(fake.store, 'after', getMasterKeys(after)));
-        expect(checkMasterKey(await fake.store.listUserKeys(), newKey).size).toBe(5);
+        expect(checkMasterKey(await fake.store.listUserKeys(), newKey).size).toBe(6);
         await readAll(after);
+    });
+
+    it('a key created after the fingerprint is confirmed needs NEXT, even before the cron has run', async () => {
+        // Why backing out is no longer possible once step 3 is live with a matching
+        // fingerprint: removing NEXT then loses everyone who signed up since.
+        const oldKey = randomBytes(32);
+        const newKey = randomBytes(32);
+        const fake = fakeUserKeys();
+        await getOrCreateUserKey(fake.store, 'early', getMasterKeys(env(oldKey)));
+
+        await getOrCreateUserKey(fake.store, 'signed-up-after-step-3', getMasterKeys(env(oldKey, newKey)));
+
+        await expect(
+            getOrCreateUserKey(fake.store, 'signed-up-after-step-3', getMasterKeys(env(oldKey)))
+        ).rejects.toBeInstanceOf(KeyUnwrapError);
     });
 
     it('a wrong fingerprint leaves the old key as the only one in use, so removing NEXT is safe', async () => {

@@ -81,7 +81,16 @@ describe('GET /api/cron/keep-alive', () => {
 
     expect(await res.json()).toEqual({
       ok: true,
-      keyRotation: { state: 'confirmed', done: true, total: 1, rewrapped: 1, alreadyNext: 0, changedMeanwhile: 0, failed: 0 },
+      keyRotation: {
+        state: 'confirmed',
+        done: true,
+        currentIsNext: false,
+        total: 1,
+        rewrapped: 1,
+        alreadyNext: 0,
+        changedMeanwhile: 0,
+        failed: 0,
+      },
     });
     const { where, data } = updateMany.mock.calls[0][0];
     expect(where).toEqual({ user_id: 'user-1', encrypted_key: old });
@@ -97,5 +106,23 @@ describe('GET /api/cron/keep-alive', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, keyRotation: { state: 'error' } });
+  });
+
+  it('logs only the name and code of a failed rotation, never its message', async () => {
+    // A Prisma validation error spells out its arguments, which here are wrapped keys.
+    process.env.ENCRYPTION_MASTER_KEY_NEXT = NEXT.toString('base64');
+    process.env.ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT = masterKeyFingerprint(NEXT);
+    findMany.mockResolvedValue([{ user_id: 'user-1', encrypted_key: wrapDataKey(randomBytes(32), CURRENT), salt: ENVELOPE_VERSION }]);
+    updateMany.mockRejectedValue(
+      Object.assign(new Error('Invalid `updateMany()` invocation: encrypted_key: "wrapped-key-blob"'), {
+        name: 'PrismaClientValidationError',
+      })
+    );
+
+    await GET(cronRequest());
+
+    const logged = JSON.stringify(vi.mocked(console.error).mock.calls);
+    expect(logged).toContain('PrismaClientValidationError');
+    expect(logged).not.toContain('wrapped-key-blob');
   });
 });

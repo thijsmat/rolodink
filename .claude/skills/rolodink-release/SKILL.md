@@ -97,14 +97,19 @@ Stappen (PowerShell, vanuit `linkedin-crm-backend/`):
    - `ENCRYPTION_MASTER_KEY_NEXT` = de sleutel uit de wachtwoordmanager, **Sensitive**;
    - `ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT` = de vingerafdruk (niet geheim).
 
-   Daarna Production redeployen.
+   Daarna Production redeployen. **Vanaf het moment dat deze deploy live staat met een kloppende vingerafdruk is er geen weg terug**: nieuwe gebruikers krijgen meteen een sleutel onder `_NEXT`, nog vóór de cron draait. Begin hier dus pas aan als je de rotatie ook afmaakt.
 4. Draai de cron: Settings → Cron Jobs → **Run** bij `/api/cron/keep-alive`, of wacht tot 04:23 UTC. In de functielog staat dan `Key rotation: N user keys, … 0 failed. Every user key opens with ENCRYPTION_MASTER_KEY_NEXT.`
-   - `fingerprint-mismatch`: de kopie in de wachtwoordmanager is niet wat er in Vercel staat. Er is niets mee gewrapt. Zet `_NEXT` opnieuw vanuit de wachtwoordmanager, of verwijder `_NEXT` en begin bij stap 1.
+   - `fingerprint-mismatch` of `fingerprint-missing`: de kopie in de wachtwoordmanager is niet wat er in Vercel staat. Er is niets met `_NEXT` gewrapt, dus je kunt `_NEXT` hier nog veilig opnieuw zetten vanuit de wachtwoordmanager, of verwijderen en bij stap 1 beginnen.
    - `failed` groter dan 0: stop. De log noemt de user ids. Die rijen openen met geen van beide sleutels of hebben een ander formaat; ze zijn ongewijzigd.
-5. Lokaal bewijzen dat elke rij met de nieuwe sleutel opent: `vercel env pull .env.local --environment=production`, zet daarin `ENCRYPTION_MASTER_KEY=<nieuwe sleutel uit de wachtwoordmanager>`, en draai `npx tsx --env-file=.env.local scripts/encrypt-legacy-fields.ts --dry-run`. Je moet zien: "Master key unwraps every stored user key".
-6. In Vercel `ENCRYPTION_MASTER_KEY` overschrijven met de nieuwe sleutel, `_NEXT` en `_NEXT_FINGERPRINT` verwijderen, en Production redeployen. Controleer daarna in de extensie: uitloggen, inloggen (de datasleutel zit anders nog in de sessiecache), en een notitie openen in de popup en op de notitiekaart.
+5. Lokaal bewijzen dat elke rij met de nieuwe sleutel opent: `vercel env pull .env.local --environment=production`, zet daarin `ENCRYPTION_MASTER_KEY=<nieuwe sleutel uit de wachtwoordmanager>`, en draai `npx tsx --env-file=.env.local scripts/encrypt-legacy-fields.ts --dry-run`. Je moet zien: "Master key unwraps every stored user key". Verwijder `.env.local` daarna, tenzij je meteen doorgaat met de migratie hieronder.
+6. Wissel in twee deploys, zodat ook een plakfout in `ENCRYPTION_MASTER_KEY` niemand kan raken:
+   - **6a.** Overschrijf in Vercel `ENCRYPTION_MASTER_KEY` met de sleutel uit de wachtwoordmanager. Laat `_NEXT` en `_NEXT_FINGERPRINT` **staan**. Redeploy en draai de cron opnieuw. Zolang `_NEXT` er staat, wrapt de backend nieuwe sleutels met de bevestigde `_NEXT` en opent hij alles daarmee, ook als er een typfout in `ENCRYPTION_MASTER_KEY` zit. In de log moet `ENCRYPTION_MASTER_KEY is the same key as ENCRYPTION_MASTER_KEY_NEXT.` staan, en `done` moet `true` zijn. Staat er `still a different key`, plak dan opnieuw en herhaal 6a.
+   - **6b.** Pas daarna: verwijder `_NEXT` en `_NEXT_FINGERPRINT` en redeploy. Controleer in de extensie: uitloggen, inloggen (de datasleutel zit anders nog in de sessiecache), en een notitie openen in de popup en op de notitiekaart.
 
-Terugdraaien: vóór stap 4 volstaat `_NEXT` verwijderen. **Nadat de cron rijen heeft omgezet, mag `_NEXT` nooit meer weg zonder stap 6**, want die rijen openen alleen nog met de nieuwe sleutel. Dat is veilig, omdat de vingerafdruk al heeft bewezen dat de kopie in de wachtwoordmanager klopt. Kies vervolgens nooit een andere `_NEXT` zolang er nog rijen onder de huidige `_NEXT` staan.
+Terugdraaien kan alleen tot en met stap 2, en in stap 4 bij een vingerafdruk die niet klopt. Daarna is de enige weg vooruit: afmaken. Concreet:
+- Verwijder `_NEXT` nooit, en kies nooit een andere `_NEXT`, zolang de deploy uit stap 3 met een kloppende vingerafdruk live is geweest, behalve via 6b.
+- Rol in Vercel nooit terug naar een deployment van vóór stap 3. Die kent `_NEXT` niet, kan omgezette sleutels niet openen, en wrapt nieuwe sleutels met de oude master key, die na stap 6 nergens meer bestaat.
+- Een databaseback-up van vóór de cron-run in stap 4 bevat sleutels die alleen met de oude master key openen. Na stap 6 is zo'n back-up dus niet meer te gebruiken. Dat is onvermijdelijk zolang de oude sleutel niet uitleesbaar is; houd er rekening mee als je ooit een herstel overweegt.
 
 ## Oude plaintext-velden versleutelen (`npm run encrypt:legacy`)
 
