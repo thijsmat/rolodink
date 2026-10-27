@@ -10,9 +10,9 @@ const EXAMPLE_KEYS = ["event", "recruiter", "sales", "coffee"] as const;
 // Een notitie heeft drie regels: waar je elkaar zag, een detail, en wat je
 // nog moet doen.
 const NOTE_STYLES = [
-  { dot: "bg-gold", text: "text-grey italic" },
-  { dot: "bg-link-blue", text: "text-grey" },
-  { dot: "bg-azure", text: "text-azure font-medium" },
+  { id: "where", dot: "bg-gold", text: "text-grey italic" },
+  { id: "detail", dot: "bg-link-blue", text: "text-grey" },
+  { id: "todo", dot: "bg-azure", text: "text-azure font-medium" },
 ];
 
 export default function Examples() {
@@ -54,7 +54,7 @@ export default function Examples() {
               <CardContent className="p-0">
                 <div className="bg-background border border-gold/20 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm space-y-3">
                   {NOTE_STYLES.map((style, noteIndex) => (
-                    <div key={noteIndex} className="flex items-start gap-2">
+                    <div key={style.id} className="flex items-start gap-2">
                       <div
                         className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ${style.dot}`}
                       ></div>
