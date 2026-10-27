@@ -196,10 +196,6 @@
             "button": "Try it Free"
         }
     },
-    "TestimonialsPage": {
-        "title": "What users are saying",
-        "description": "Discover how professionals from different sectors use Rolodink to manage their relationships."
-    },
     "HowItWorksPage": {
         "hero": {
             "title": "From Chaos to Connection in 4 Steps",
@@ -702,53 +698,53 @@
             }
         ]
     },
-    "Testimonials": {
-        "title": "How professionals use Rolodink",
-        "subtitle": "Discover how others strengthen their network with personal notes.",
-        "items": [
-            {
-                "role": "Senior Recruiter @ TalentHub",
+    "Examples": {
+        "title": "Examples: what a note looks like",
+        "subtitle": "A few lines on someone's profile, and one detail is enough to find them again.",
+        "label": "Fictional examples",
+        "findWith": "Find them with",
+        "items": {
+            "event": {
+                "situation": "After an event",
+                "role": "Head of Sales, software company",
                 "notes": [
-                    {
-                        "text": "\"Met at Networking Event Amsterdam\""
-                    },
-                    {
-                        "text": "Interested in AI for recruitment"
-                    },
-                    {
-                        "text": "→ Send article about ChatGPT"
-                    }
-                ]
+                    "Met at the Web Summit",
+                    "Wants a demo in Q1. Keeps bees.",
+                    "→ Schedule the demo before Friday"
+                ],
+                "query": "bees"
             },
-            {
-                "role": "CTO @ StartupX",
+            "recruiter": {
+                "situation": "For recruiters",
+                "role": "Senior backend engineer",
                 "notes": [
-                    {
-                        "text": "\"Intro via LinkedIn\""
-                    },
-                    {
-                        "text": "Looking for tech talent for new project"
-                    },
-                    {
-                        "text": "→ Follow-up about developer positions"
-                    }
-                ]
+                    "First call in October",
+                    "Open to a move in spring. Wants remote. Plays jazz piano.",
+                    "→ Call in February"
+                ],
+                "query": "jazz"
             },
-            {
-                "role": "Marketing Director @ BrandCo",
+            "sales": {
+                "situation": "In sales",
+                "role": "COO, logistics",
                 "notes": [
-                    {
-                        "text": "\"Spoke about content strategy\""
-                    },
-                    {
-                        "text": "Planning rebranding for Q2"
-                    },
-                    {
-                        "text": "→ Share case study next week"
-                    }
-                ]
+                    "Sent the proposal after lunch",
+                    "Owes us an answer by June. Loves golf.",
+                    "→ Follow up early June"
+                ],
+                "query": "golf"
+            },
+            "coffee": {
+                "situation": "After a coffee",
+                "role": "Founder, fintech",
+                "notes": [
+                    "Had coffee in Utrecht",
+                    "Building a fintech. Has twin girls.",
+                    "→ Catch up in three months"
+                ],
+                "query": "twin"
             }
-        ]
+        }
     },
     "FAQ": {
         "title": "Frequently Asked Questions",
@@ -806,7 +802,6 @@
     "Header": {
         "nav": {
             "features": "Features",
-            "testimonials": "Testimonials",
             "faq": "FAQ"
         },
         "cta": "Install Free - 30 seconds"

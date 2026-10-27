@@ -32,7 +32,6 @@ export function SiteHeader() {
 
   const navLinks = [
     { href: "/features", label: t('nav.features') },
-    { href: "/testimonials", label: t('nav.testimonials') },
     { href: "/help", label: t('nav.faq') },
   ];
 
