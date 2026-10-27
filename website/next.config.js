@@ -47,6 +47,14 @@ const nextConfig = {
   },
   // PostHog-endpoints eindigen op een slash; zonder dit stuurt Next een redirect.
   skipTrailingSlashRedirect: true,
+  // /testimonials toonde verzonnen gebruikers en is weg. Oude links en
+  // zoekresultaten komen op de homepage uit in plaats van op een 404.
+  async redirects() {
+    return [
+      { source: '/:locale(nl|en)/testimonials', destination: '/:locale', permanent: true },
+      { source: '/testimonials', destination: '/', permanent: true },
+    ];
+  },
   // Geen enkele pagina hoort in een frame van een andere site. Zonder deze
   // headers kon /login onzichtbaar in een iframe worden geladen (clickjacking).
   // Bewust geen volledige CSP: die vraagt eerst een inventaris van alle

@@ -196,10 +196,6 @@
             "button": "Probeer het Gratis"
         }
     },
-    "TestimonialsPage": {
-        "title": "Wat gebruikers zeggen",
-        "description": "Ontdek hoe professionals uit verschillende sectoren Rolodink gebruiken om hun relaties te beheren."
-    },
     "HowItWorksPage": {
         "hero": {
             "title": "Van Chaos naar Connectie in 4 Stappen",
@@ -702,53 +698,53 @@
             }
         ]
     },
-    "Testimonials": {
-        "title": "Zo gebruiken professionals Rolodink",
-        "subtitle": "Ontdek hoe anderen hun netwerk versterken met persoonlijke notities.",
-        "items": [
-            {
-                "role": "Senior Recruiter @ TalentHub",
+    "Examples": {
+        "title": "Voorbeelden: zo ziet een notitie eruit",
+        "subtitle": "Een paar regels op iemands profiel, en één detail is genoeg om die persoon terug te vinden.",
+        "label": "Fictieve voorbeelden",
+        "findWith": "Terugvinden met",
+        "items": {
+            "event": {
+                "situation": "Na een event",
+                "role": "Head of Sales, softwarebedrijf",
                 "notes": [
-                    {
-                        "text": "\"Ontmoet op Networking Event Amsterdam\""
-                    },
-                    {
-                        "text": "Geïnteresseerd in AI voor recruitment"
-                    },
-                    {
-                        "text": "→ Stuur artikel over ChatGPT"
-                    }
-                ]
+                    "Ontmoet op de Web Summit",
+                    "Wil een demo in Q1. Houdt bijen.",
+                    "→ Demo inplannen vóór vrijdag"
+                ],
+                "query": "bijen"
             },
-            {
-                "role": "CTO @ StartupX",
+            "recruiter": {
+                "situation": "Voor recruiters",
+                "role": "Senior backend-engineer",
                 "notes": [
-                    {
-                        "text": "\"Kennismaking via LinkedIn\""
-                    },
-                    {
-                        "text": "Zoekt naar tech talent voor nieuwe project"
-                    },
-                    {
-                        "text": "→ Follow-up over developer posities"
-                    }
-                ]
+                    "Eerste kennismaking in oktober",
+                    "Open voor een overstap in het voorjaar. Wil remote werken. Speelt jazzpiano.",
+                    "→ In februari bellen"
+                ],
+                "query": "jazz"
             },
-            {
-                "role": "Marketing Director @ BrandCo",
+            "sales": {
+                "situation": "In sales",
+                "role": "COO, logistiek",
                 "notes": [
-                    {
-                        "text": "\"Gesproken over content strategie\""
-                    },
-                    {
-                        "text": "Plant een rebranding voor Q2"
-                    },
-                    {
-                        "text": "→ Deel case study volgende week"
-                    }
-                ]
+                    "Voorstel gestuurd na de lunch",
+                    "Geeft uiterlijk in juni antwoord. Golft graag.",
+                    "→ Begin juni nabellen"
+                ],
+                "query": "golf"
+            },
+            "coffee": {
+                "situation": "Na een koffie",
+                "role": "Founder, fintech",
+                "notes": [
+                    "Koffie gedronken in Utrecht",
+                    "Bouwt een fintech. Heeft een tweeling.",
+                    "→ Over drie maanden bijpraten"
+                ],
+                "query": "tweeling"
             }
-        ]
+        }
     },
     "FAQ": {
         "title": "Veelgestelde vragen",
@@ -806,7 +802,6 @@
     "Header": {
         "nav": {
             "features": "Functies",
-            "testimonials": "Ervaringen",
             "faq": "FAQ"
         },
         "cta": "Gratis Installeren - 30 seconden"

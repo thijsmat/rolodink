@@ -12,7 +12,6 @@ export const revalidate = 600
 const STATIC_ROUTES = [
   '',
   '/features',
-  '/testimonials',
   '/download',
   '/help',
   '/how-it-works',

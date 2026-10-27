@@ -2,7 +2,7 @@ import { SiteFooter } from "@/components/site-footer";
 import Hero from "@/components/sections/hero";
 import Explainer from "@/components/sections/explainer";
 import Features from "@/components/sections/features";
-import Testimonials from "@/components/sections/testimonials";
+import Examples from "@/components/sections/examples";
 import FAQ from "@/components/sections/faq";
 import CTA from "@/components/sections/cta";
 
@@ -13,7 +13,7 @@ export default function HomePage() {
         <Hero />
         <Explainer />
         <Features />
-        <Testimonials />
+        <Examples />
         <FAQ />
         <CTA />
       </main>

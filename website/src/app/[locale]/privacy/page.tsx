@@ -1,18 +1,20 @@
 "use client";
 
 import { SiteFooter } from "@/components/site-footer";
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+
+// De datum van de laatste inhoudelijke wijziging. Pas hem aan bij elke
+// wijziging van de tekst hieronder; sectie 7 belooft dat.
+const LAST_UPDATED = new Date(Date.UTC(2026, 9, 27));
 
 export default function PrivacyPage() {
   const t = useTranslations('PrivacyPage');
+  const locale = useLocale();
 
-  // Use Dutch locale formatting for consistency if current locale is Dutch, else standard
-  // Or just display the string. We will just use the string for now.
-  const lastUpdated = new Date().toLocaleDateString("en-GB", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const lastUpdated = LAST_UPDATED.toLocaleDateString(
+    locale === "nl" ? "nl-NL" : "en-GB",
+    { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }
+  );
 
   const notice = t('notice');
 
@@ -76,6 +78,12 @@ export default function PrivacyPage() {
                   anything in your browser, and we do not use Google Analytics.
                   The browser extension itself contains no analytics.
                 </li>
+                <li>
+                  <strong>Usage Data:</strong> Timestamps that our servers
+                  already keep for your account: when it was created, when the
+                  extension last renewed your sign-in, and when you last added or
+                  changed a contact. Never the content of your notes.
+                </li>
               </ul>
 
               <h3>LinkedIn Data Collection</h3>
@@ -112,8 +120,9 @@ export default function PrivacyPage() {
                 <li>A unique LinkedIn user identifier</li>
               </ul>
               <p>
-                This information is used exclusively for account creation and
-                authentication. We request your explicit consent before accessing
+                This information is used for account creation and authentication,
+                and your email address also for the occasional feedback request
+                described in section 3. We request your explicit consent before accessing
                 any LinkedIn data through the OAuth flow.
               </p>
               <p>
@@ -135,10 +144,36 @@ export default function PrivacyPage() {
 
               <h2>3. How We Use Your Data</h2>
               <p>
-                Your data is used solely to deliver the Service. Notes and other
-                user-provided data are visible only to you when you are signed in.
-                We will never sell, rent, or share your data with third parties
-                for marketing purposes.
+                Your data is used to deliver the Service, and in the two limited
+                ways described below. Notes and other user-provided data are
+                visible only to you when you are signed in. We will never sell,
+                rent, or share your data with third parties for marketing
+                purposes.
+              </p>
+              <p>
+                <strong>Measuring How Rolodink Is Used</strong>
+              </p>
+              <p>
+                We count how Rolodink is used across all accounts together, for
+                example how many new accounts save a first note, and how many are
+                still in use a few weeks later. We count this from the usage data
+                described in section 2: timestamps only, never the content of your
+                notes, which is stored encrypted. We do this because we have a
+                legitimate interest in knowing whether Rolodink is useful and what
+                to improve (Article 6(1)(f) GDPR). If you would rather not be
+                counted, email{" "}
+                <a href="mailto:privacy@rolodink.app">privacy@rolodink.app</a> and
+                we will leave your account out.
+              </p>
+              <p>
+                <strong>Asking for Your Feedback</strong>
+              </p>
+              <p>
+                Now and then we may email you personally to ask how Rolodink works
+                for you, on the same legal basis. These emails are not marketing
+                and are never sent in bulk. Reply &ldquo;stop&rdquo; or email{" "}
+                <a href="mailto:privacy@rolodink.app">privacy@rolodink.app</a> and
+                we will not ask again.
               </p>
               <p>
                 <strong>LinkedIn Authentication</strong>
@@ -150,6 +185,7 @@ export default function PrivacyPage() {
                     <li>Creating and managing your Rolodink account</li>
                     <li>Personalizing your experience</li>
                     <li>Authenticating your identity</li>
+                    <li>Asking for your feedback now and then (see above)</li>
                   </ul>
                 </li>
                 <li>We do not use this data for marketing or share it with third parties.</li>
