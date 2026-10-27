@@ -140,30 +140,47 @@ export interface CorruptValue {
   reason: string;
 }
 
+/** Imports each owner's CryptoKey once, from the unwrapped raw keys. */
+function cryptoKeyCache(rawKeys: Map<string, Buffer>): (ownerId: string) => Promise<CryptoKey | undefined> {
+  const imported = new Map<string, Promise<CryptoKey>>();
+  return (ownerId) => {
+    const raw = rawKeys.get(ownerId);
+    if (!raw) return Promise.resolve(undefined);
+    let key = imported.get(ownerId);
+    if (!key) {
+      key = importDataKey(raw.toString('base64'));
+      imported.set(ownerId, key);
+    }
+    return key;
+  };
+}
+
+/** True when `value` is ciphertext that decrypts with `key` (to `expected`, when given). */
+async function decrypts(value: unknown, key: CryptoKey, expected?: string): Promise<boolean> {
+  if (typeof value !== 'string' || !isEncryptedString(value)) return false;
+  try {
+    const plaintext = await decryptText(value, key);
+    return expected === undefined || plaintext === expected;
+  } catch {
+    return false;
+  }
+}
+
 /** Encrypted values that do not decrypt with their owner's key. */
 export async function findCorruptValues(
   rows: ConnectionRow[],
   ownerKeys: Map<string, Buffer>
 ): Promise<CorruptValue[]> {
   const corrupt: CorruptValue[] = [];
-  const cryptoKeys = new Map<string, CryptoKey>();
+  const keyFor = cryptoKeyCache(ownerKeys);
   for (const row of rows) {
     for (const field of SENSITIVE_FIELDS) {
       const value = row[field];
       if (!isEncryptedString(value)) continue;
-      const raw = ownerKeys.get(row.ownerId);
-      if (!raw) {
-        corrupt.push({ connectionId: row.id, field, reason: 'encrypted, but the owner has no key' });
-        continue;
-      }
-      let key = cryptoKeys.get(row.ownerId);
+      const key = await keyFor(row.ownerId);
       if (!key) {
-        key = await importDataKey(raw.toString('base64'));
-        cryptoKeys.set(row.ownerId, key);
-      }
-      try {
-        await decryptText(value as string, key);
-      } catch {
+        corrupt.push({ connectionId: row.id, field, reason: 'encrypted, but the owner has no key' });
+      } else if (!(await decrypts(value, key))) {
         corrupt.push({ connectionId: row.id, field, reason: 'does not decrypt with the owner key' });
       }
     }
@@ -286,50 +303,32 @@ export async function restore(
   preImages: PlannedChange[],
   masterKey: Buffer
 ): Promise<RestoreResult[]> {
-  const existingKeys = checkMasterKey(await db.listUserKeys(), masterKey);
-  const owners = [...new Set(preImages.map((entry) => entry.ownerId))];
+  const keyFor = cryptoKeyCache(checkMasterKey(await db.listUserKeys(), masterKey));
   const rows = new Map<string, ConnectionRow>();
-  for (const owner of owners) {
+  for (const owner of new Set(preImages.map((entry) => entry.ownerId))) {
     for (const row of await db.listConnections(owner)) rows.set(row.id, row);
   }
 
-  const keys = new Map<string, CryptoKey>();
   const results: RestoreResult[] = [];
   for (const entry of preImages) {
     if (!isSensitiveField(entry.field)) {
       throw new MigrationAbortedError(`Pre-image file names an unknown field: ${String(entry.field)}`);
     }
-    const raw = existingKeys.get(entry.ownerId);
-    if (!raw) {
-      results.push({ connectionId: entry.connectionId, field: entry.field, status: 'skipped-no-key' });
-      continue;
-    }
-    let key = keys.get(entry.ownerId);
-    if (!key) {
-      key = await importDataKey(raw.toString('base64'));
-      keys.set(entry.ownerId, key);
-    }
-
     const current = rows.get(entry.connectionId)?.[entry.field];
-    let matches = false;
-    if (typeof current === 'string' && isEncryptedString(current)) {
-      try {
-        matches = (await decryptText(current, key)) === entry.plaintext;
-      } catch {
-        matches = false;
-      }
-    }
-    if (!matches) {
-      results.push({ connectionId: entry.connectionId, field: entry.field, status: 'skipped-changed-since' });
-      continue;
-    }
-
-    const changed = await db.compareAndSet(entry.connectionId, entry.field, current as string, entry.plaintext);
-    results.push({
-      connectionId: entry.connectionId,
-      field: entry.field,
-      status: changed === 1 ? 'restored' : 'skipped-changed-since',
-    });
+    const status = await restoreOne(db, entry, current, await keyFor(entry.ownerId));
+    results.push({ connectionId: entry.connectionId, field: entry.field, status });
   }
   return results;
+}
+
+async function restoreOne(
+  db: LegacyDb,
+  entry: PlannedChange,
+  current: string | null | undefined,
+  key: CryptoKey | undefined
+): Promise<RestoreStatus> {
+  if (!key) return 'skipped-no-key';
+  if (!(await decrypts(current, key, entry.plaintext))) return 'skipped-changed-since';
+  const changed = await db.compareAndSet(entry.connectionId, entry.field, current as string, entry.plaintext);
+  return changed === 1 ? 'restored' : 'skipped-changed-since';
 }

@@ -21,8 +21,10 @@
  *       Puts the original plaintext back, for every value nobody has changed
  *       since. Only possible while the pre-image file still exists.
  *
- * --confirm must repeat the project ref the script prints, so a run against
- * the wrong database cannot happen by accident.
+ * --confirm must name the project ref of the database you mean to change
+ * (Supabase dashboard, Project Settings). The script checks it against
+ * DATABASE_URL, so a run against the wrong database cannot happen by
+ * accident. It never prints anything taken from DATABASE_URL.
  *
  * Before the first write the script saves every original value (the
  * pre-images) to a file in the OS temp directory, readable only by you, and
@@ -32,13 +34,14 @@
  * The log never contains field values, only connection ids and field names.
  */
 
-import { readFileSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { getMasterKey } from '../src/lib/envelope';
 import {
   type LegacyDb,
+  type MigrateReport,
   type PlannedChange,
   MigrationAbortedError,
   isSensitiveField,
@@ -82,17 +85,25 @@ interface Args {
   restoreFile?: string;
 }
 
+const VALUE_FLAGS: Record<string, keyof Omit<Args, 'dryRun'>> = {
+  '--confirm': 'confirm',
+  '--only-owner': 'onlyOwner',
+  '--restore': 'restoreFile',
+};
+
 function parseArgs(argv: string[]): Args {
   const args: Args = { dryRun: false };
   for (const arg of argv) {
     const eq = arg.indexOf('=');
     const name = eq === -1 ? arg : arg.slice(0, eq);
-    const value = eq === -1 ? undefined : arg.slice(eq + 1);
-    if (name === '--dry-run') args.dryRun = true;
-    else if (name === '--confirm' && value) args.confirm = value;
-    else if (name === '--only-owner' && value) args.onlyOwner = value;
-    else if (name === '--restore' && value) args.restoreFile = value;
-    else throw new MigrationAbortedError(`Unknown argument: ${arg}`);
+    const value = eq === -1 ? '' : arg.slice(eq + 1);
+    if (arg === '--dry-run') {
+      args.dryRun = true;
+    } else if (VALUE_FLAGS[name] && value) {
+      args[VALUE_FLAGS[name]] = value;
+    } else {
+      throw new MigrationAbortedError(`Unknown argument: ${arg}`);
+    }
   }
   if (args.dryRun && args.restoreFile) {
     throw new MigrationAbortedError('--restore always writes; it has no dry run.');
@@ -121,9 +132,7 @@ function savePreImages(projectRef: string, plan: PlannedChange[]): string {
 function readPreImages(path: string, projectRef: string): PlannedChange[] {
   const file = JSON.parse(readFileSync(path, 'utf8')) as PreImageFile;
   if (file.projectRef !== projectRef) {
-    throw new MigrationAbortedError(
-      `${path} was written for project ${file.projectRef}, but DATABASE_URL points at ${projectRef}.`
-    );
+    throw new MigrationAbortedError(`${path} was written for another database than DATABASE_URL points at.`);
   }
   return file.entries;
 }
@@ -134,31 +143,63 @@ function countBy<T>(items: T[], key: (item: T) => string): string {
   return [...counts].map(([name, count]) => `${name} ${count}`).join(', ') || 'none';
 }
 
-async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
-  const masterKey = getMasterKey();
-
+/**
+ * Nothing derived from DATABASE_URL is ever printed, not even the project ref:
+ * the operator states which database they mean, the script only compares.
+ */
+function checkTarget(args: Args): string {
   const projectRef = projectRefFromDatabaseUrl(process.env.DATABASE_URL);
   if (!projectRef) {
     throw new MigrationAbortedError('Cannot read a Supabase project ref from DATABASE_URL.');
   }
-  console.log(`Database project: ${projectRef}`);
-
-  const writes = !args.dryRun;
-  if (writes && args.confirm !== projectRef) {
+  if (!args.dryRun && args.confirm !== projectRef) {
     throw new MigrationAbortedError(
-      `This run writes to ${projectRef}. Run again with --confirm=${projectRef} if that is the right database.`
+      'This run writes. Add --confirm=<project ref> with the ref of the database you mean to change ' +
+        '(Supabase dashboard, Project Settings); it must match DATABASE_URL.'
     );
   }
+  return projectRef;
+}
+
+async function runRestore(file: string, projectRef: string, masterKey: Buffer): Promise<void> {
+  const results = await restore(db, readPreImages(file, projectRef), masterKey);
+  console.log(`Restore: ${countBy(results, (r) => r.status)}`);
+  for (const result of results.filter((r) => r.status !== 'restored')) {
+    console.log(`  ${result.connectionId} ${result.field}: ${result.status}`);
+  }
+  if (results.some((r) => r.status !== 'restored')) process.exitCode = 1;
+}
+
+function printResult(report: MigrateReport, preImagePath: string | undefined): void {
+  console.log(`Result: ${countBy(report.results, (r) => r.status)}`);
+  for (const result of report.results.filter((r) => r.status !== 'encrypted')) {
+    console.log(`  ${result.connectionId} ${result.field}: ${result.status}`);
+  }
+  const verify = report.verify;
+  if (verify) {
+    console.log(
+      `Verify: ${verify.readable} decrypt to the original, ${verify.changedSince} changed since, ` +
+        `${verify.unreadable.length} unreadable.`
+    );
+    for (const value of verify.unreadable) console.log(`  UNREADABLE ${value.connectionId} ${value.field}`);
+  }
+
+  const clean = report.results.every((r) => r.status === 'encrypted') && (verify?.unreadable.length ?? 0) === 0;
+  if (!clean) process.exitCode = 1;
+
+  console.log('\nNext:');
+  console.log('  - Run the same command again: it should find 0 plaintext values.');
+  console.log(`  - Keep ${preImagePath} for 48 hours for --restore, then delete it.`);
+  console.log('  - Delete .env.local now; it holds the master key.');
+}
+
+async function main(): Promise<void> {
+  const args = parseArgs(process.argv.slice(2));
+  const masterKey = getMasterKey();
+  const projectRef = checkTarget(args);
 
   if (args.restoreFile) {
-    const entries = readPreImages(args.restoreFile, projectRef);
-    const results = await restore(db, entries, masterKey);
-    console.log(`Restore: ${countBy(results, (r) => r.status)}`);
-    for (const result of results.filter((r) => r.status !== 'restored')) {
-      console.log(`  ${result.connectionId} ${result.field}: ${result.status}`);
-    }
-    if (results.some((r) => r.status !== 'restored')) process.exitCode = 1;
+    await runRestore(args.restoreFile, projectRef, masterKey);
     return;
   }
 
@@ -182,34 +223,11 @@ async function main(): Promise<void> {
 
   if (args.dryRun) {
     console.log('Dry run: nothing written.');
-    return;
-  }
-  if (report.plan.length === 0) {
+  } else if (report.plan.length === 0) {
     console.log('Nothing to encrypt.');
-    return;
+  } else {
+    printResult(report, preImagePath);
   }
-
-  console.log(`Result: ${countBy(report.results, (r) => r.status)}`);
-  for (const result of report.results.filter((r) => r.status !== 'encrypted')) {
-    console.log(`  ${result.connectionId} ${result.field}: ${result.status}`);
-  }
-  const verify = report.verify;
-  if (verify) {
-    console.log(
-      `Verify: ${verify.readable} decrypt to the original, ${verify.changedSince} changed since, ` +
-        `${verify.unreadable.length} unreadable.`
-    );
-    for (const value of verify.unreadable) console.log(`  UNREADABLE ${value.connectionId} ${value.field}`);
-  }
-
-  const clean =
-    report.results.every((r) => r.status === 'encrypted') && (verify?.unreadable.length ?? 0) === 0;
-  if (!clean) process.exitCode = 1;
-
-  console.log('\nNext:');
-  console.log('  - Run the same command again: it should find 0 plaintext values.');
-  console.log(`  - Keep ${preImagePath} for 48 hours for --restore, then delete it.`);
-  console.log('  - Delete .env.local now; it holds the master key.');
 }
 
 main()
