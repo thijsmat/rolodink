@@ -11,23 +11,95 @@
  *
  * This is the single implementation — the API route and the maintenance scripts
  * both use it, so the format can never drift between them.
+ *
+ * Rotating the master key (the old one cannot be read back from Vercel, so it
+ * cannot be kept as a "previous" key): the new key is set as
+ * `ENCRYPTION_MASTER_KEY_NEXT`, together with its fingerprint in
+ * `ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT`, computed from the operator's own
+ * stored copy (`npm run master-key -- fingerprint`). Stored keys always unwrap
+ * with either key. Only once the fingerprint matches does the new key wrap new
+ * user keys and does the daily cron re-wrap the existing ones
+ * (src/lib/key-rotation.ts): a copy with a typo is caught before anything
+ * depends on it. The runbook is in .claude/skills/rolodink-release/SKILL.md.
  */
 
-import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
+import { randomBytes, createCipheriv, createDecipheriv, createHash } from 'crypto';
 
 export const ENVELOPE_VERSION = 'envelope-v1';
 
+type Env = Partial<Record<string, string>>;
+
+/** A base64-encoded 32-byte key, or null when it is anything else. */
+function parseMasterKey(value: string): Buffer | null {
+    const key = Buffer.from(value, 'base64');
+    return key.length === 32 ? key : null;
+}
+
 /** Reads and validates the master key. Throws when it is missing or the wrong size. */
-export function getMasterKey(): Buffer {
-    const masterKeyB64 = process.env.ENCRYPTION_MASTER_KEY;
+export function getMasterKey(env: Env = process.env): Buffer {
+    const masterKeyB64 = env.ENCRYPTION_MASTER_KEY;
     if (!masterKeyB64) {
         throw new Error('ENCRYPTION_MASTER_KEY not configured');
     }
-    const masterKey = Buffer.from(masterKeyB64, 'base64');
-    if (masterKey.length !== 32) {
+    const masterKey = parseMasterKey(masterKeyB64);
+    if (!masterKey) {
         throw new Error('ENCRYPTION_MASTER_KEY must be a base64-encoded 32-byte key');
     }
     return masterKey;
+}
+
+/**
+ * A short, non-secret check value for a master key, so the operator can prove
+ * that the copy they stored is the key Vercel holds. A truncated SHA-256 of a
+ * random 256-bit key reveals nothing usable about the key.
+ */
+export function masterKeyFingerprint(key: Buffer): string {
+    return createHash('sha256')
+        .update('rolodink-master-key-fingerprint-v1:')
+        .update(key)
+        .digest('hex')
+        .slice(0, 16);
+}
+
+/**
+ * The state of `ENCRYPTION_MASTER_KEY_NEXT`:
+ *  - unset: no rotation going on.
+ *  - invalid: not a base64 32-byte key. Ignored entirely; nothing can have been wrapped with it.
+ *  - unconfirmed: a valid key whose fingerprint is missing or does not match.
+ *    Only used to unwrap, never to wrap.
+ *  - confirmed: wraps new user keys, and the cron re-wraps the existing ones with it.
+ */
+export type NextMasterKey =
+    | { state: 'unset' }
+    | { state: 'invalid' }
+    | { state: 'unconfirmed'; key: Buffer; reason: 'fingerprint-missing' | 'fingerprint-mismatch' }
+    | { state: 'confirmed'; key: Buffer };
+
+export function readNextMasterKey(env: Env = process.env): NextMasterKey {
+    const value = env.ENCRYPTION_MASTER_KEY_NEXT;
+    if (!value) return { state: 'unset' };
+    const key = parseMasterKey(value);
+    if (!key) return { state: 'invalid' };
+    const fingerprint = env.ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT?.trim().toLowerCase();
+    if (!fingerprint) return { state: 'unconfirmed', key, reason: 'fingerprint-missing' };
+    if (fingerprint !== masterKeyFingerprint(key)) return { state: 'unconfirmed', key, reason: 'fingerprint-mismatch' };
+    return { state: 'confirmed', key };
+}
+
+/** Which key wraps a new user key, and which keys may unwrap a stored one, in order. */
+export interface MasterKeys {
+    wrap: Buffer;
+    unwrap: Buffer[];
+}
+
+/** The master keys from the environment. Throws when ENCRYPTION_MASTER_KEY itself is missing or invalid. */
+export function getMasterKeys(env: Env = process.env): MasterKeys {
+    const current = getMasterKey(env);
+    const next = readNextMasterKey(env);
+    return {
+        wrap: next.state === 'confirmed' ? next.key : current,
+        unwrap: 'key' in next ? [current, next.key] : [current],
+    };
 }
 
 /** Wraps a raw data key for storage. */
@@ -99,14 +171,18 @@ export interface UserKeyStore {
  * lets only one create win; the loser reads the winner's key back, so both end
  * up with the same key.
  *
+ * `masterKeys` defaults to the environment (see `getMasterKeys`); a single
+ * key, as the maintenance scripts pass, both wraps and unwraps.
+ *
  * Throws `InvalidKeyFormatError` for a key in another format and
- * `KeyUnwrapError` when the stored key does not unwrap with `masterKey`.
+ * `KeyUnwrapError` when the stored key unwraps with none of the master keys.
  */
 export async function getOrCreateUserKey(
     db: UserKeyStore,
     userId: string,
-    masterKey: Buffer = getMasterKey()
+    masterKeys: MasterKeys | Buffer = getMasterKeys()
 ): Promise<Buffer> {
+    const keys = Buffer.isBuffer(masterKeys) ? { wrap: masterKeys, unwrap: [masterKeys] } : masterKeys;
     let userKey = await db.userKey.findUnique({ where: { user_id: userId } });
 
     if (!userKey) {
@@ -114,7 +190,7 @@ export async function getOrCreateUserKey(
             userKey = await db.userKey.create({
                 data: {
                     user_id: userId,
-                    encrypted_key: wrapDataKey(generateDataKey(), masterKey),
+                    encrypted_key: wrapDataKey(generateDataKey(), keys.wrap),
                     salt: ENVELOPE_VERSION,
                 },
             });
@@ -128,9 +204,13 @@ export async function getOrCreateUserKey(
         throw new InvalidKeyFormatError();
     }
 
-    try {
-        return unwrapDataKey(userKey.encrypted_key, masterKey);
-    } catch (error) {
-        throw new KeyUnwrapError(error);
+    let firstError: unknown;
+    for (const masterKey of keys.unwrap) {
+        try {
+            return unwrapDataKey(userKey.encrypted_key, masterKey);
+        } catch (error) {
+            firstError ??= error;
+        }
     }
+    throw new KeyUnwrapError(firstError);
 }

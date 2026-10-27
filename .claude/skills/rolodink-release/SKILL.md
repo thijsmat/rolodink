@@ -71,7 +71,7 @@ Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml
 - Vercel-team: `matthijs-goes-projects`. DNS van rolodink.app staat níet bij Vercel maar bij externe nameservers (`ns1.site.eu`, `ns2.site.nl`, …); records wijzig je daar. Projecten: `linkedin-crm-backend` (`prj_FhtIDw3iBul95oL06e4bdc7NDgis`, rootDirectory `linkedin-crm-backend`) en `website` (`prj_vF1utasz46KFrUCkUzLo7ETk9HWw`).
 - Deployfout **"Resource provisioning failed"** binnen seconden = het gekoppelde Supabase-project (`linkedin-crm`, ref `adacfwaslbcimqgvbpqd`) is gepauzeerd (free tier, ~1 week zonder API-activiteit). Fix: project herstellen; structureel voorkomt `GET /api/cron/keep-alive` (dagelijkse Vercel Cron, 04:23 UTC) dit — die doet één Supabase REST-query, want directe Postgres-verbindingen (Prisma) tellen niet als activiteit.
 - Free tier: max 2 actieve Supabase-projecten; `linkedin-crm-staging` staat gepauzeerd.
-- Backend-runtime vereist `ENCRYPTION_MASTER_KEY` (base64, exact 32 bytes) in de Vercel-env. **Nooit roteren of verliezen** — alle versleutelde data wordt dan onleesbaar. Niet nodig voor de build, wel voor `/api/user/key`.
+- Backend-runtime vereist `ENCRYPTION_MASTER_KEY` (base64, exact 32 bytes) in de Vercel-env. **Nooit verliezen of zomaar vervangen**: alle versleutelde data wordt dan onleesbaar. Roteren kan alleen via het stappenplan in "De master key roteren" hieronder. Niet nodig voor de build, wel voor `/api/user/key`.
 
 ## Encryptie-architectuur (sinds v1.3.0)
 
@@ -79,3 +79,33 @@ Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml
 - De extensie importeert de sleutel als non-extractable CryptoKey; de cache (memory + `chrome.storage.session`) is gebonden aan het user-id en wordt gewist bij logout (`CLEAR_KEY_CACHE`-message).
 - Er is bewust géén `POST /api/user/key` (zou de wrapped key kunnen overschrijven → dataverlies). Encryptiefouten breken opslaan af; geen stille plaintext-fallback.
 - Versleutelde velden: `notes`, `meetingPlace`, `userCompanyAtTheTime`, `email`, `phone` (zie `SENSITIVE_FIELDS`), prefix `rolodink-enc:`.
+- `ENCRYPTION_MASTER_KEY` staat in Vercel als **Sensitive** (alleen Production): niemand kan hem uitlezen, ook `vercel env pull` niet. Bewaar de waarde dus in de wachtwoordmanager; zonder die kopie is het Vercel-project de enige plek waar de sleutel bestaat.
+
+## De master key roteren
+
+Alleen de wrapping van de rijen in `user_keys` verandert; de datasleutels en dus alle notities blijven hetzelfde. De oude sleutel is niet uit te lezen, dus hij kan niet als "vorige sleutel" worden bewaard. Daarom komt de nieuwe sleutel er eerst bij als `ENCRYPTION_MASTER_KEY_NEXT`:
+
+- `/api/user/key` unwrapt met `ENCRYPTION_MASTER_KEY` en daarna met `_NEXT` (`getMasterKeys` in `src/lib/envelope.ts`).
+- Pas als `ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT` klopt, worden nieuwe user keys met `_NEXT` gewrapt en zet de dagelijkse cron (`GET /api/cron/keep-alive`, `src/lib/key-rotation.ts`) de bestaande rijen om. Per rij controleert die eerst of de nieuwe wrapping terug unwrapt naar dezelfde datasleutel, en schrijft hij met een compare-and-set op de oude `encrypted_key`.
+- De vingerafdruk wordt berekend van de kopie **uit de wachtwoordmanager**. Klopt hij, dan is bewezen dat die kopie en de waarde in Vercel dezelfde sleutel zijn, nog vóór er iets van afhangt. Een plakfout wordt zo opgevangen zonder dat er data aan vastzit. De backend logt de verwachte vingerafdruk nooit: overnemen uit een log zou de controle zinloos maken.
+
+Stappen (PowerShell, vanuit `linkedin-crm-backend/`):
+
+1. `npm run master-key -- generate`. Zet de uitvoer **eerst** in de wachtwoordmanager en sluit dan de terminal.
+2. `npm run master-key -- fingerprint` en plak de sleutel uit de wachtwoordmanager (of `Get-Clipboard | npm run master-key -- fingerprint`). Je krijgt 16 hextekens terug.
+3. Vercel → `linkedin-crm-backend` → Settings → Environment Variables, alleen Production:
+   - `ENCRYPTION_MASTER_KEY_NEXT` = de sleutel uit de wachtwoordmanager, **Sensitive**;
+   - `ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT` = de vingerafdruk (niet geheim).
+
+   Daarna Production redeployen.
+4. Draai de cron: Settings → Cron Jobs → **Run** bij `/api/cron/keep-alive`, of wacht tot 04:23 UTC. In de functielog staat dan `Key rotation: N user keys, … 0 failed. Every user key opens with ENCRYPTION_MASTER_KEY_NEXT.`
+   - `fingerprint-mismatch`: de kopie in de wachtwoordmanager is niet wat er in Vercel staat. Er is niets mee gewrapt. Zet `_NEXT` opnieuw vanuit de wachtwoordmanager, of verwijder `_NEXT` en begin bij stap 1.
+   - `failed` groter dan 0: stop. De log noemt de user ids. Die rijen openen met geen van beide sleutels of hebben een ander formaat; ze zijn ongewijzigd.
+5. Lokaal bewijzen dat elke rij met de nieuwe sleutel opent: `vercel env pull .env.local --environment=production`, zet daarin `ENCRYPTION_MASTER_KEY=<nieuwe sleutel uit de wachtwoordmanager>`, en draai `npx tsx --env-file=.env.local scripts/encrypt-legacy-fields.ts --dry-run`. Je moet zien: "Master key unwraps every stored user key".
+6. In Vercel `ENCRYPTION_MASTER_KEY` overschrijven met de nieuwe sleutel, `_NEXT` en `_NEXT_FINGERPRINT` verwijderen, en Production redeployen. Controleer daarna in de extensie: uitloggen, inloggen (de datasleutel zit anders nog in de sessiecache), en een notitie openen in de popup en op de notitiekaart.
+
+Terugdraaien: vóór stap 4 volstaat `_NEXT` verwijderen. **Nadat de cron rijen heeft omgezet, mag `_NEXT` nooit meer weg zonder stap 6**, want die rijen openen alleen nog met de nieuwe sleutel. Dat is veilig, omdat de vingerafdruk al heeft bewezen dat de kopie in de wachtwoordmanager klopt. Kies vervolgens nooit een andere `_NEXT` zolang er nog rijen onder de huidige `_NEXT` staan.
+
+## Oude plaintext-velden versleutelen (`npm run encrypt:legacy`)
+
+Clients van vóór 1.3.0 schreven de gevoelige velden in plaintext. `scripts/encrypt-legacy-fields.ts` versleutelt ze; de regels staan in `scripts/lib/legacy-fields.ts`, de gebruiksaanwijzing bovenin het script. Het weigert te schrijven als de geladen master key niet élke rij in `user_keys` unwrapt, dus draai het pas na een rotatie met de nieuwe sleutel, of met een sleutel die je anderszins zeker weet. Volgorde: `--dry-run`, daarna een canary per testaccount met `--only-owner=<uuid> --confirm=<project ref>`. Controleer per account de popup en de notitiekaart, draai nog een run (die moet 0 wijzigingen geven), test `--restore` en migreer opnieuw. Daarna de rest. Verwijder `.env.local` direct na afloop en het pre-image-bestand na 48 uur.
