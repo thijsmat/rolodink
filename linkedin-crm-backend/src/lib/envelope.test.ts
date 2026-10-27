@@ -5,6 +5,9 @@ import {
     unwrapDataKey,
     generateDataKey,
     getOrCreateUserKey,
+    getMasterKeys,
+    masterKeyFingerprint,
+    readNextMasterKey,
     ENVELOPE_VERSION,
     InvalidKeyFormatError,
     KeyUnwrapError,
@@ -152,5 +155,100 @@ describe('getOrCreateUserKey', () => {
         const { store, rows } = fakeStore();
         rows.set('user-1', { encrypted_key: wrapDataKey(generateDataKey(), randomBytes(32)), salt: ENVELOPE_VERSION });
         await expect(getOrCreateUserKey(store, 'user-1', masterKey)).rejects.toBeInstanceOf(KeyUnwrapError);
+    });
+});
+
+describe('masterKeyFingerprint', () => {
+    it('stays the same scheme, so a fingerprint set in Vercel keeps matching', () => {
+        // If this changes, every ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT already
+        // set stops matching and a rotation in progress stalls.
+        expect(masterKeyFingerprint(VECTOR_MASTER_KEY)).toBe('28d33da0a651ec28');
+    });
+
+    it('differs for a key that differs in one bit', () => {
+        const other = Buffer.from(VECTOR_MASTER_KEY);
+        other[31] ^= 0x01;
+        expect(masterKeyFingerprint(other)).not.toBe(masterKeyFingerprint(VECTOR_MASTER_KEY));
+    });
+});
+
+describe('readNextMasterKey', () => {
+    const next = randomBytes(32);
+    const nextB64 = next.toString('base64');
+
+    it('is unset without ENCRYPTION_MASTER_KEY_NEXT', () => {
+        expect(readNextMasterKey({})).toEqual({ state: 'unset' });
+    });
+
+    it('ignores a value that is not a 32-byte key', () => {
+        expect(readNextMasterKey({ ENCRYPTION_MASTER_KEY_NEXT: randomBytes(31).toString('base64') })).toEqual({
+            state: 'invalid',
+        });
+    });
+
+    it('is unconfirmed without a fingerprint or with a wrong one', () => {
+        expect(readNextMasterKey({ ENCRYPTION_MASTER_KEY_NEXT: nextB64 })).toMatchObject({
+            state: 'unconfirmed',
+            reason: 'fingerprint-missing',
+        });
+        expect(
+            readNextMasterKey({
+                ENCRYPTION_MASTER_KEY_NEXT: nextB64,
+                ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT: masterKeyFingerprint(randomBytes(32)),
+            })
+        ).toMatchObject({ state: 'unconfirmed', reason: 'fingerprint-mismatch' });
+    });
+
+    it('is confirmed with the right fingerprint, whatever its case or surrounding spaces', () => {
+        const result = readNextMasterKey({
+            ENCRYPTION_MASTER_KEY_NEXT: nextB64,
+            ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT: ` ${masterKeyFingerprint(next).toUpperCase()} `,
+        });
+        expect(result.state).toBe('confirmed');
+        expect('key' in result && result.key.equals(next)).toBe(true);
+    });
+});
+
+describe('getOrCreateUserKey during a rotation', () => {
+    const current = randomBytes(32);
+    const next = randomBytes(32);
+    const base = { ENCRYPTION_MASTER_KEY: current.toString('base64'), ENCRYPTION_MASTER_KEY_NEXT: next.toString('base64') };
+    const confirmed = getMasterKeys({ ...base, ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT: masterKeyFingerprint(next) });
+    const unconfirmed = getMasterKeys(base);
+
+    it('reads a key wrapped with the current master key and one wrapped with the next', async () => {
+        const { store, rows } = fakeStore();
+        const oldUser = generateDataKey();
+        const movedUser = generateDataKey();
+        rows.set('old', { encrypted_key: wrapDataKey(oldUser, current), salt: ENVELOPE_VERSION });
+        rows.set('moved', { encrypted_key: wrapDataKey(movedUser, next), salt: ENVELOPE_VERSION });
+
+        for (const keys of [confirmed, unconfirmed]) {
+            expect((await getOrCreateUserKey(store, 'old', keys)).equals(oldUser)).toBe(true);
+            expect((await getOrCreateUserKey(store, 'moved', keys)).equals(movedUser)).toBe(true);
+        }
+    });
+
+    it('wraps a new key with the next master key only once its fingerprint is confirmed', async () => {
+        const { store, rows } = fakeStore();
+
+        const a = await getOrCreateUserKey(store, 'a', confirmed);
+        const b = await getOrCreateUserKey(store, 'b', unconfirmed);
+
+        expect(unwrapDataKey(rows.get('a')!.encrypted_key, next).equals(a)).toBe(true);
+        expect(unwrapDataKey(rows.get('b')!.encrypted_key, current).equals(b)).toBe(true);
+        expect(() => unwrapDataKey(rows.get('b')!.encrypted_key, next)).toThrow();
+    });
+
+    it('reports a key that opens with neither master key as an unwrap error', async () => {
+        const { store, rows } = fakeStore();
+        rows.set('user-1', { encrypted_key: wrapDataKey(generateDataKey(), randomBytes(32)), salt: ENVELOPE_VERSION });
+        await expect(getOrCreateUserKey(store, 'user-1', confirmed)).rejects.toBeInstanceOf(KeyUnwrapError);
+    });
+
+    it('ignores an invalid next key and keeps working with the current one', async () => {
+        const keys = getMasterKeys({ ...base, ENCRYPTION_MASTER_KEY_NEXT: 'not-a-key' });
+        expect(keys.wrap.equals(current)).toBe(true);
+        expect(keys.unwrap).toHaveLength(1);
     });
 });

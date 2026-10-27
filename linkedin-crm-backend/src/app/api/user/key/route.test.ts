@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { randomBytes } from 'crypto';
-import { ENVELOPE_VERSION, unwrapDataKey, wrapDataKey } from '@/lib/envelope';
+import { ENVELOPE_VERSION, masterKeyFingerprint, unwrapDataKey, wrapDataKey } from '@/lib/envelope';
 
 const { findUnique, create } = vi.hoisted(() => ({ findUnique: vi.fn(), create: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({ prisma: { userKey: { findUnique, create } } }));
@@ -121,5 +121,51 @@ describe('GET /api/user/key', () => {
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: 'Failed to decrypt key' });
     consoleError.mockRestore();
+  });
+
+  describe('during a master-key rotation', () => {
+    const NEXT_KEY = randomBytes(32);
+
+    afterAll(() => {
+      delete process.env.ENCRYPTION_MASTER_KEY_NEXT;
+      delete process.env.ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT;
+    });
+
+    it('reads a key the cron already moved to ENCRYPTION_MASTER_KEY_NEXT', async () => {
+      process.env.ENCRYPTION_MASTER_KEY_NEXT = NEXT_KEY.toString('base64');
+      const dataKey = randomBytes(32);
+      findUnique.mockResolvedValueOnce(storedKey(dataKey, NEXT_KEY));
+
+      const res = await GET(keyRequest('198.51.100.47'));
+
+      expect(res.status).toBe(200);
+      expect((await res.json()).data_key).toBe(dataKey.toString('base64'));
+    });
+
+    it('wraps a new key with the current master key while the fingerprint is not set', async () => {
+      process.env.ENCRYPTION_MASTER_KEY_NEXT = NEXT_KEY.toString('base64');
+      delete process.env.ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT;
+      findUnique.mockResolvedValueOnce(null);
+      create.mockImplementationOnce(async ({ data }) => data);
+
+      const res = await GET(keyRequest('198.51.100.48'));
+
+      expect(res.status).toBe(200);
+      const { data } = create.mock.calls[0][0];
+      expect(unwrapDataKey(data.encrypted_key, MASTER_KEY).toString('base64')).toBe((await res.json()).data_key);
+    });
+
+    it('wraps a new key with ENCRYPTION_MASTER_KEY_NEXT once its fingerprint matches', async () => {
+      process.env.ENCRYPTION_MASTER_KEY_NEXT = NEXT_KEY.toString('base64');
+      process.env.ENCRYPTION_MASTER_KEY_NEXT_FINGERPRINT = masterKeyFingerprint(NEXT_KEY);
+      findUnique.mockResolvedValueOnce(null);
+      create.mockImplementationOnce(async ({ data }) => data);
+
+      const res = await GET(keyRequest('198.51.100.49'));
+
+      expect(res.status).toBe(200);
+      const { data } = create.mock.calls[0][0];
+      expect(unwrapDataKey(data.encrypted_key, NEXT_KEY).toString('base64')).toBe((await res.json()).data_key);
+    });
   });
 });
