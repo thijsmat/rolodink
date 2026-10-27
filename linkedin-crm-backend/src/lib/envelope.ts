@@ -61,3 +61,76 @@ export function unwrapDataKey(wrapped: string, masterKey: Buffer): Buffer {
 export function generateDataKey(): Buffer {
     return randomBytes(32);
 }
+
+/** A stored key in another format than `envelope-v1`. */
+export class InvalidKeyFormatError extends Error {
+    constructor() {
+        super('Invalid key format');
+        this.name = 'InvalidKeyFormatError';
+    }
+}
+
+/** A stored key that does not unwrap: almost always a different master key. */
+export class KeyUnwrapError extends Error {
+    constructor(cause: unknown) {
+        super('Failed to unwrap data key', { cause });
+        this.name = 'KeyUnwrapError';
+    }
+}
+
+interface UserKeyRow {
+    encrypted_key: string;
+    salt: string;
+}
+
+/** The part of the Prisma client this needs, so tests and scripts can pass a fake. */
+export interface UserKeyStore {
+    userKey: {
+        findUnique(args: { where: { user_id: string } }): Promise<UserKeyRow | null>;
+        create(args: { data: { user_id: string; encrypted_key: string; salt: string } }): Promise<UserKeyRow>;
+    };
+}
+
+/**
+ * Returns the user's raw data key, creating and storing one on first use.
+ *
+ * Two callers can create at the same time (two tabs, or the legacy-field
+ * migration while the user signs in). The primary key on `user_keys.user_id`
+ * lets only one create win; the loser reads the winner's key back, so both end
+ * up with the same key.
+ *
+ * Throws `InvalidKeyFormatError` for a key in another format and
+ * `KeyUnwrapError` when the stored key does not unwrap with `masterKey`.
+ */
+export async function getOrCreateUserKey(
+    db: UserKeyStore,
+    userId: string,
+    masterKey: Buffer = getMasterKey()
+): Promise<Buffer> {
+    let userKey = await db.userKey.findUnique({ where: { user_id: userId } });
+
+    if (!userKey) {
+        try {
+            userKey = await db.userKey.create({
+                data: {
+                    user_id: userId,
+                    encrypted_key: wrapDataKey(generateDataKey(), masterKey),
+                    salt: ENVELOPE_VERSION,
+                },
+            });
+        } catch (error) {
+            userKey = await db.userKey.findUnique({ where: { user_id: userId } });
+            if (!userKey) throw error;
+        }
+    }
+
+    if (!userKey.encrypted_key || userKey.salt !== ENVELOPE_VERSION) {
+        throw new InvalidKeyFormatError();
+    }
+
+    try {
+        return unwrapDataKey(userKey.encrypted_key, masterKey);
+    } catch (error) {
+        throw new KeyUnwrapError(error);
+    }
+}
