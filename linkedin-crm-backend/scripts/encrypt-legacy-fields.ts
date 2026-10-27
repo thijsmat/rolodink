@@ -4,7 +4,11 @@
  * stored as plaintext. The rules it enforces are in scripts/lib/legacy-fields.ts.
  *
  * Usage (from linkedin-crm-backend/, with the production env loaded the same
- * way as for `npm run audit:notes`):
+ * way as for `npm run audit:notes`, or with `npx tsx --env-file=.env.local
+ * scripts/encrypt-legacy-fields.ts …` in place of `npm run encrypt:legacy --`,
+ * which also works in PowerShell). ENCRYPTION_MASTER_KEY is a sensitive
+ * variable in Vercel, so `vercel env pull` does not bring it along: it has to
+ * be added to .env.local by hand.
  *
  *   npm run encrypt:legacy -- --dry-run
  *       Checks the master key, audits the encrypted values and counts what it
@@ -22,9 +26,10 @@
  *       since. Only possible while the pre-image file still exists.
  *
  * --confirm must name the project ref of the database you mean to change
- * (Supabase dashboard, Project Settings). The script checks it against
- * DATABASE_URL, so a run against the wrong database cannot happen by
- * accident. It never prints anything taken from DATABASE_URL.
+ * (Supabase dashboard, Project Settings). The script checks it against the
+ * database URL (DATABASE_URL, else POSTGRES_PRISMA_URL, the same as the app),
+ * so a run against the wrong database cannot happen by accident. It never
+ * prints anything taken from that URL.
  *
  * Before the first write the script saves every original value (the
  * pre-images) to a file in the OS temp directory, readable only by you, and
@@ -37,8 +42,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { getMasterKey } from '../src/lib/envelope';
+import { databaseUrl, prisma } from '../src/lib/prisma';
 import {
   type LegacyDb,
   type MigrateReport,
@@ -49,8 +55,6 @@ import {
   projectRefFromDatabaseUrl,
   restore,
 } from './lib/legacy-fields';
-
-const prisma = new PrismaClient();
 
 const db: LegacyDb = {
   userKey: prisma.userKey,
@@ -132,7 +136,7 @@ function savePreImages(projectRef: string, plan: PlannedChange[]): string {
 function readPreImages(path: string, projectRef: string): PlannedChange[] {
   const file = JSON.parse(readFileSync(path, 'utf8')) as PreImageFile;
   if (file.projectRef !== projectRef) {
-    throw new MigrationAbortedError(`${path} was written for another database than DATABASE_URL points at.`);
+    throw new MigrationAbortedError(`${path} was written for another database than the database URL points at.`);
   }
   return file.entries;
 }
@@ -144,18 +148,20 @@ function countBy<T>(items: T[], key: (item: T) => string): string {
 }
 
 /**
- * Nothing derived from DATABASE_URL is ever printed, not even the project ref:
+ * Nothing derived from the database URL is ever printed, not even the project ref:
  * the operator states which database they mean, the script only compares.
  */
 function checkTarget(args: Args): string {
-  const projectRef = projectRefFromDatabaseUrl(process.env.DATABASE_URL);
+  // The same connection string the app uses: DATABASE_URL, else the
+  // POSTGRES_PRISMA_URL that the Supabase integration keeps in Vercel.
+  const projectRef = projectRefFromDatabaseUrl(databaseUrl());
   if (!projectRef) {
-    throw new MigrationAbortedError('Cannot read a Supabase project ref from DATABASE_URL.');
+    throw new MigrationAbortedError('Cannot read a Supabase project ref from DATABASE_URL or POSTGRES_PRISMA_URL.');
   }
   if (!args.dryRun && args.confirm !== projectRef) {
     throw new MigrationAbortedError(
       'This run writes. Add --confirm=<project ref> with the ref of the database you mean to change ' +
-        '(Supabase dashboard, Project Settings); it must match DATABASE_URL.'
+        '(Supabase dashboard, Project Settings); it must match the database URL.'
     );
   }
   return projectRef;
