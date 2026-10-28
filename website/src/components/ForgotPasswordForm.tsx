@@ -1,16 +1,11 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { FormEvent, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-
-// Shown whether or not the address has an account: a different answer per
-// address would tell anyone which addresses are registered.
-const SENT_MESSAGE =
-  'If an account exists for this address, we have sent a link to reset your password. Check your inbox and spam folder.'
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('')
@@ -18,6 +13,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const locale = useLocale()
+  const t = useTranslations('Auth')
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -35,10 +31,10 @@ export function ForgotPasswordForm() {
       redirectTo: callbackUrl.toString(),
     })
 
-    // Only a rate limit is worth showing; anything else would again reveal
-    // whether the address exists.
+    // Only a rate limit is worth showing; anything else would reveal whether
+    // the address exists.
     if (resetError && resetError.status === 429) {
-      setError('Too many requests. Please wait a few minutes and try again.')
+      setError(t('errors.tooManyRequests'))
     } else {
       setSent(true)
     }
@@ -46,13 +42,15 @@ export function ForgotPasswordForm() {
   }
 
   if (sent) {
-    return <p className="text-sm text-green-600">{SENT_MESSAGE}</p>
+    // Shown whether or not the address has an account: a different answer per
+    // address would tell anyone which addresses are registered.
+    return <p className="text-sm text-green-600">{t('forgot.sent')}</p>
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="space-y-2">
-        <Label htmlFor="forgot-email">Email</Label>
+        <Label htmlFor="forgot-email">{t('common.email')}</Label>
         <Input
           id="forgot-email"
           type="email"
@@ -60,14 +58,14 @@ export function ForgotPasswordForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          placeholder="you@example.com"
+          placeholder={t('common.emailPlaceholder')}
         />
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Please wait…' : 'Send reset link'}
+        {isSubmitting ? t('common.pleaseWait') : t('forgot.submit')}
       </Button>
     </form>
   )

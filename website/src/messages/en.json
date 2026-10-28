@@ -860,5 +860,71 @@
             "login": "I already have an account",
             "next": "Next — what you can do on LinkedIn"
         }
+    },
+    "Auth": {
+        "common": {
+            "orEmail": "Or continue with email",
+            "email": "Email",
+            "emailPlaceholder": "you@example.com",
+            "password": "Password",
+            "pleaseWait": "Please wait…",
+            "backToSignIn": "Back to sign in",
+            "continueWithLinkedIn": "Continue with LinkedIn"
+        },
+        "login": {
+            "metaTitle": "Log in",
+            "metaDescription": "Sign in to Rolodink with LinkedIn or email.",
+            "title": "Sign in to Rolodink",
+            "subtitle": "Manage your LinkedIn notes securely with Rolodink.",
+            "submit": "Log in",
+            "forgotPassword": "Forgot your password?",
+            "newHere": "New to Rolodink?",
+            "createAccount": "Create an account"
+        },
+        "signup": {
+            "metaTitle": "Create account",
+            "metaDescription": "Create your Rolodink account with LinkedIn or email.",
+            "title": "Join Rolodink",
+            "subtitle": "Sign up with LinkedIn or email to organise your LinkedIn relationships.",
+            "submit": "Sign up",
+            "haveAccount": "Already have an account?",
+            "signIn": "Sign in",
+            "receivesUpdates": "Yes, occasionally keep me informed about important Rolodink updates and new features.",
+            "checkEmail": "Account created! Check your email to confirm your signup."
+        },
+        "forgot": {
+            "metaTitle": "Forgot password",
+            "metaDescription": "Request a link to reset your Rolodink password.",
+            "title": "Forgot your password?",
+            "subtitle": "Enter your email address and we will send you a link to choose a new one.",
+            "submit": "Send reset link",
+            "sent": "If an account exists for this address, we have sent a link to reset your password. Check your inbox and spam folder."
+        },
+        "reset": {
+            "metaTitle": "Choose a new password",
+            "metaDescription": "Set a new password for your Rolodink account.",
+            "title": "Choose a new password",
+            "subtitle": "Use at least {min} characters. You will use it to sign in to the extension.",
+            "newPassword": "New password",
+            "repeatPassword": "Repeat new password",
+            "submit": "Save new password",
+            "checking": "Checking your link…",
+            "expired": "This reset link has expired or was already used. <link>Request a new link</link>.",
+            "done": "Your password has been changed. Sign in to the Rolodink extension with your new password."
+        },
+        "errors": {
+            "passwordTooShort": "Password must be at least {min} characters.",
+            "pwned": "This password has appeared in a data breach. Please choose a different password.",
+            "mismatch": "The passwords do not match.",
+            "invalidCredentials": "Incorrect email address or password.",
+            "emailNotConfirmed": "Confirm your email address first. Check your inbox for the confirmation email.",
+            "tooManyRequests": "Too many requests. Please wait a few minutes and try again.",
+            "generic": "Something went wrong. Please try again.",
+            "linkedin": "Signing in with LinkedIn failed. Please try again.",
+            "confirmFailed": "Confirmation failed. Please try again.",
+            "emailConfirmFailed": "Email confirmation failed. Please try again.",
+            "resetLinkExpired": "This reset link has expired or was already used. Request a new one.",
+            "signInFailed": "Signing in failed. Please try again."
+        }
     }
 }

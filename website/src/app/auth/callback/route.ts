@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSafeRedirect } from '@/lib/utils'
 import { routing } from '@/navigation'
-
-const DEFAULT_ERROR_MESSAGE = 'Bevestiging mislukt. Probeer het opnieuw.'
+import { authError, type AuthErrorKey } from '@/lib/auth-messages'
 const VERIFY_TYPES = ['email', 'recovery', 'invite', 'email_change'] as const
 type VerifyOtpType = (typeof VERIFY_TYPES)[number]
 const VERIFY_TYPE_SET = new Set<VerifyOtpType>(VERIFY_TYPES)
@@ -68,15 +67,13 @@ export async function GET(request: NextRequest) {
     cookieStore.get('NEXT_LOCALE')?.value
   )
 
-  const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
+  const redirectWithError = (key: AuthErrorKey = 'confirmFailed') => {
+    const message = authError(locale, key)
     if (isRecovery) {
       // Usually an expired or already-used link: send them where they can
       // request a new one.
       const destination = new URL(`/${locale}/forgot-password`, requestUrl.origin)
-      destination.searchParams.set(
-        'oauth_error',
-        'Deze resetlink is verlopen of al gebruikt. Vraag een nieuwe aan.'
-      )
+      destination.searchParams.set('oauth_error', authError(locale, 'resetLinkExpired'))
       return NextResponse.redirect(destination)
     }
     const destination = new URL(
@@ -128,7 +125,7 @@ export async function GET(request: NextRequest) {
 
     if (verifyError) {
       console.error('Supabase email confirmation failed:', verifyError)
-      return redirectWithError('E-mailbevestiging mislukt. Probeer het opnieuw.')
+      return redirectWithError('emailConfirmFailed')
     }
   } else if (code) {
     // Handle OAuth / email signup code exchange

@@ -2,10 +2,12 @@
 
 import { supabase } from '@/lib/supabase'
 import { Link } from '@/navigation'
+import { useTranslations } from 'next-intl'
 import { FormEvent, useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { authErrorKey } from '@/lib/auth-error-key'
 import { isPwnedPassword } from '@rolodink/core/pwned-password'
 import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
 
@@ -22,6 +24,7 @@ export function ResetPasswordForm() {
   const [confirmation, setConfirmation] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const t = useTranslations('Auth')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setStatus(data.user ? 'ready' : 'no-session'))
@@ -34,62 +37,64 @@ export function ResetPasswordForm() {
 
     try {
       if (password.length < MIN_PASSWORD_LENGTH) {
-        throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+        setError(t('errors.passwordTooShort', { min: MIN_PASSWORD_LENGTH }))
+        return
       }
       if (password !== confirmation) {
-        throw new Error('The passwords do not match.')
+        setError(t('errors.mismatch'))
+        return
       }
       // Same check as at signup (EmailPasswordForm): only a hash prefix leaves
       // the browser, and an unreachable API does not block the reset.
       if (await isPwnedPassword(password)) {
-        throw new Error(
-          'This password has appeared in a data breach. Please choose a different password.'
-        )
+        setError(t('errors.pwned'))
+        return
       }
 
       const { error: updateError } = await supabase.auth.updateUser({ password })
-      if (updateError) throw updateError
+      if (updateError) {
+        setError(t(`errors.${authErrorKey(updateError)}`, { min: MIN_PASSWORD_LENGTH }))
+        return
+      }
 
       // Whoever had the old password stays signed in elsewhere otherwise. This
       // signs out every other session, the extension included; the user signs
       // in there again with the new password.
       await supabase.auth.signOut({ scope: 'others' })
       setStatus('done')
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to change your password.')
+    } catch {
+      setError(t('errors.generic'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
   if (status === 'checking') {
-    return <p className="text-center text-sm text-muted-foreground">Checking your link…</p>
+    return <p className="text-center text-sm text-muted-foreground">{t('reset.checking')}</p>
   }
 
   if (status === 'no-session') {
     return (
       <p className="text-center text-sm text-muted-foreground">
-        This reset link has expired or was already used.{' '}
-        <Link href="/forgot-password" className="text-primary underline underline-offset-4">
-          Request a new link
-        </Link>
-        .
+        {t.rich('reset.expired', {
+          link: (chunks) => (
+            <Link href="/forgot-password" className="text-primary underline underline-offset-4">
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
     )
   }
 
   if (status === 'done') {
-    return (
-      <p className="text-sm text-green-600">
-        Your password has been changed. Sign in to the Rolodink extension with your new password.
-      </p>
-    )
+    return <p className="text-sm text-green-600">{t('reset.done')}</p>
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="space-y-2">
-        <Label htmlFor="reset-password">New password</Label>
+        <Label htmlFor="reset-password">{t('reset.newPassword')}</Label>
         <Input
           id="reset-password"
           type="password"
@@ -103,7 +108,7 @@ export function ResetPasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="reset-password-confirmation">Repeat new password</Label>
+        <Label htmlFor="reset-password-confirmation">{t('reset.repeatPassword')}</Label>
         <Input
           id="reset-password-confirmation"
           type="password"
@@ -119,7 +124,7 @@ export function ResetPasswordForm() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Please wait…' : 'Save new password'}
+        {isSubmitting ? t('common.pleaseWait') : t('reset.submit')}
       </Button>
     </form>
   )

@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './navigation';
+import { authError } from './lib/auth-messages';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -15,8 +16,6 @@ const CANCELLED = new Set([
     'user_cancelled_login',
     'user_cancelled_authorize',
 ]);
-
-const GENERIC_ERROR = 'Inloggen is niet gelukt. Probeer het opnieuw.';
 
 function localeFromPath(pathname: string): string {
     const first = pathname.split('/')[1];
@@ -35,7 +34,7 @@ export default function middleware(request: NextRequest) {
         if (!CANCELLED.has(error)) {
             // Bewust niet error_description: die tekst komt uit de URL en zou
             // door een aanvaller opgesteld kunnen zijn.
-            destination.searchParams.set('oauth_error', GENERIC_ERROR);
+            destination.searchParams.set('oauth_error', authError(locale, 'signInFailed'));
         }
 
         return NextResponse.redirect(destination);

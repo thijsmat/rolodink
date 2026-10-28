@@ -1,13 +1,14 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { FormEvent, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/navigation'
 import { getSafeRedirect } from '@/lib/utils'
+import { authErrorKey } from '@/lib/auth-error-key'
 import { isPwnedPassword } from '@rolodink/core/pwned-password'
 import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
 
@@ -36,6 +37,11 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [receivesUpdates, setReceivesUpdates] = useState(false)
   const locale = useLocale()
+  const t = useTranslations('Auth')
+
+  const showError = (text: string) => setMessage({ type: 'error', text })
+  const showAuthError = (error: Parameters<typeof authErrorKey>[0]) =>
+    showError(t(`errors.${authErrorKey(error)}`, { min: MIN_PASSWORD_LENGTH }))
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -46,23 +52,24 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
-          throw error
+          showAuthError(error)
+          return
         }
         window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.login}`)
         return
       }
 
       if (password.length < MIN_PASSWORD_LENGTH) {
-        throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+        showError(t('errors.passwordTooShort', { min: MIN_PASSWORD_LENGTH }))
+        return
       }
 
       // Supabase's eigen lekcontrole zit alleen in een betaald plan, dus de
       // check draait hier: alleen een hashprefix gaat naar Have I Been Pwned,
       // en als die API onbereikbaar is gaat de aanmelding gewoon door.
       if (await isPwnedPassword(password)) {
-        throw new Error(
-          'This password has appeared in a data breach. Please choose a different password.'
-        )
+        showError(t('errors.pwned'))
+        return
       }
 
       // Zelfde opbouw als LinkedInSignInButton: searchParams doet de encoding,
@@ -84,22 +91,17 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       })
 
       if (error) {
-        throw error
+        showAuthError(error)
+        return
       }
 
       if (data.session) {
         window.location.href = getSafeRedirect(next, `/${locale}${SUCCESS_PATHS.signup}`)
       } else {
-        setMessage({
-          type: 'success',
-          text: 'Account created! Check your email to confirm your signup.',
-        })
+        setMessage({ type: 'success', text: t('signup.checkEmail') })
       }
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Unable to process your request.',
-      })
+    } catch {
+      showError(t('errors.generic'))
     } finally {
       setIsSubmitting(false)
     }
@@ -108,7 +110,7 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="space-y-2">
-        <Label htmlFor={`${mode}-email`}>Email</Label>
+        <Label htmlFor={`${mode}-email`}>{t('common.email')}</Label>
         <Input
           id={`${mode}-email`}
           type="email"
@@ -116,19 +118,19 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          placeholder="you@example.com"
+          placeholder={t('common.emailPlaceholder')}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-baseline justify-between">
-          <Label htmlFor={`${mode}-password`}>Password</Label>
+          <Label htmlFor={`${mode}-password`}>{t('common.password')}</Label>
           {mode === 'login' && (
             <Link
               href="/forgot-password"
               className="text-xs text-primary underline underline-offset-4"
             >
-              Forgot your password?
+              {t('login.forgotPassword')}
             </Link>
           )}
         </div>
@@ -163,15 +165,14 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
             disabled={isSubmitting}
           />
           <label htmlFor="receives-updates" className="text-sm text-muted-foreground leading-snug cursor-pointer">
-            Yes, occasionally keep me informed about important Rolodink updates and new features.
+            {t('signup.receivesUpdates')}
           </label>
         </div>
       )}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Sign up'}
+        {isSubmitting ? t('common.pleaseWait') : t(`${mode}.submit`)}
       </Button>
     </form>
   )
 }
-
