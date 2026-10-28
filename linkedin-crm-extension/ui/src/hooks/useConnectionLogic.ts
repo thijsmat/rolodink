@@ -423,6 +423,10 @@ export function useConnectionLogic(user: User | null) {
         listGenRef.current += 1;
         profileGenRef.current += 1;
         clearDecryptMemo();
+        // Resetting during render instead would also mean bumping the refs
+        // during render. One extra render on an account switch is the cheaper
+        // price, and the updater bails out when the list is already empty.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAllConnections(prev => (prev.length > 0 ? [] : prev));
     }, [userId]);
 

@@ -48,6 +48,9 @@ export default [
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           ignoreRestSiblings: true,
+          // typescript-eslint 8 changed the default to 'all'. An unused
+          // `catch (e)` is not a bug, and the .js block below agrees.
+          caughtErrors: 'none',
         },
       ],
       'no-unused-vars': 'off', // Use TypeScript version instead
