@@ -8,7 +8,8 @@ Rolodink is a LinkedIn notes layer: a browser extension (Chrome, Edge, Firefox) 
 
 - `.claude/skills/rolodink-extension/SKILL.md`: required for **any** change in `linkedin-crm-extension/`. Every change must be checked against all three browsers in the same change. It holds the build and checksum commands and the known pitfalls.
 - `.claude/skills/rolodink-release/SKILL.md`: releases, store publishing, Vercel/Supabase operations, the encryption architecture, master-key rotation and the legacy-field migration.
-- `/release X.Y.Z` (`.claude/skills/release/`): runs the release itself. Only the user can start it.
+- `/release-prep X.Y.Z` (`.claude/skills/release-prep/`): opens the release PR with the version bump, release notes, CHANGELOG, website changelog and a manual test checklist for the three browsers.
+- `/release X.Y.Z` (`.claude/skills/release/`): runs the release itself once that PR is merged. Only the user can start it.
 - Subagent `crypto-reviewer` (`.claude/agents/`): run it on any change to encryption or key handling before pushing, and give it the diff.
 - Hooks (`.claude/settings.json`):
   - In cloud sessions, `session-start.sh` installs dependencies the way CI does.
