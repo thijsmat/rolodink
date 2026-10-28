@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
 
 type AuthCardProps = {
@@ -9,7 +10,8 @@ type AuthCardProps = {
 };
 
 /** The card around the password-reset pages; same look as AuthLayout. */
-export function AuthCard({ title, subtitle, notice, children }: AuthCardProps) {
+export async function AuthCard({ title, subtitle, notice, children }: AuthCardProps) {
+    const t = await getTranslations('Auth.common');
     return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
             <div className="w-full max-w-md space-y-6 rounded-2xl border border-azure/10 bg-white/95 p-8 shadow-xl backdrop-blur-sm">
@@ -28,7 +30,7 @@ export function AuthCard({ title, subtitle, notice, children }: AuthCardProps) {
 
                 <p className="text-center text-sm text-muted-foreground">
                     <Link href="/login" className="text-primary underline underline-offset-4">
-                        Back to sign in
+                        {t('backToSignIn')}
                     </Link>
                 </p>
             </div>

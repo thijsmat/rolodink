@@ -1,12 +1,17 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { AuthCard } from '@/components/auth-card'
 import { ForgotPasswordForm } from '@/components/ForgotPasswordForm'
 import { extractOAuthError } from '@/lib/utils'
 
-export const metadata: Metadata = {
-  title: 'Forgot password',
-  description: 'Request a link to reset your Rolodink password.',
-  robots: { index: false },
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Auth.forgot' })
+  return { title: t('metaTitle'), description: t('metaDescription'), robots: { index: false } }
 }
 
 export const dynamic = 'force-dynamic'
@@ -17,11 +22,12 @@ type ForgotPasswordPageProps = {
 
 export default async function ForgotPasswordPage(props: Readonly<ForgotPasswordPageProps>) {
   const searchParams = await props.searchParams
+  const t = await getTranslations('Auth.forgot')
 
   return (
     <AuthCard
-      title="Forgot your password?"
-      subtitle="Enter your email address and we will send you a link to choose a new one."
+      title={t('title')}
+      subtitle={t('subtitle')}
       notice={extractOAuthError(searchParams?.oauth_error)}
     >
       <ForgotPasswordForm />

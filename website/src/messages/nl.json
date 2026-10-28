@@ -860,5 +860,71 @@
             "login": "Ik heb al een account",
             "next": "Verder — wat je nu op LinkedIn kunt doen"
         }
+    },
+    "Auth": {
+        "common": {
+            "orEmail": "Of ga verder met e-mail",
+            "email": "E-mail",
+            "emailPlaceholder": "jij@voorbeeld.nl",
+            "password": "Wachtwoord",
+            "pleaseWait": "Even geduld…",
+            "backToSignIn": "Terug naar inloggen",
+            "continueWithLinkedIn": "Doorgaan met LinkedIn"
+        },
+        "login": {
+            "metaTitle": "Inloggen",
+            "metaDescription": "Log in bij Rolodink met LinkedIn of e-mail.",
+            "title": "Inloggen bij Rolodink",
+            "subtitle": "Beheer je LinkedIn-notities veilig met Rolodink.",
+            "submit": "Inloggen",
+            "forgotPassword": "Wachtwoord vergeten?",
+            "newHere": "Nieuw bij Rolodink?",
+            "createAccount": "Maak een account aan"
+        },
+        "signup": {
+            "metaTitle": "Account aanmaken",
+            "metaDescription": "Maak je Rolodink-account aan met LinkedIn of e-mail.",
+            "title": "Word lid van Rolodink",
+            "subtitle": "Meld je aan met LinkedIn of e-mail om je LinkedIn-contacten bij te houden.",
+            "submit": "Aanmelden",
+            "haveAccount": "Heb je al een account?",
+            "signIn": "Inloggen",
+            "receivesUpdates": "Ja, houd me af en toe op de hoogte van belangrijke updates en nieuwe functies van Rolodink.",
+            "checkEmail": "Account aangemaakt! Kijk in je mail om je aanmelding te bevestigen."
+        },
+        "forgot": {
+            "metaTitle": "Wachtwoord vergeten",
+            "metaDescription": "Vraag een link aan om je Rolodink-wachtwoord opnieuw in te stellen.",
+            "title": "Wachtwoord vergeten?",
+            "subtitle": "Vul je e-mailadres in, dan sturen we je een link om een nieuw wachtwoord te kiezen.",
+            "submit": "Stuur resetlink",
+            "sent": "Als er een account bij dit adres hoort, hebben we een link gestuurd om je wachtwoord opnieuw in te stellen. Kijk in je inbox en je spammap."
+        },
+        "reset": {
+            "metaTitle": "Kies een nieuw wachtwoord",
+            "metaDescription": "Stel een nieuw wachtwoord in voor je Rolodink-account.",
+            "title": "Kies een nieuw wachtwoord",
+            "subtitle": "Gebruik minstens {min} tekens. Hiermee log je in bij de extensie.",
+            "newPassword": "Nieuw wachtwoord",
+            "repeatPassword": "Herhaal nieuw wachtwoord",
+            "submit": "Nieuw wachtwoord opslaan",
+            "checking": "Je link wordt gecontroleerd…",
+            "expired": "Deze resetlink is verlopen of al gebruikt. <link>Vraag een nieuwe link aan</link>.",
+            "done": "Je wachtwoord is gewijzigd. Log in bij de Rolodink-extensie met je nieuwe wachtwoord."
+        },
+        "errors": {
+            "passwordTooShort": "Je wachtwoord moet minstens {min} tekens lang zijn.",
+            "pwned": "Dit wachtwoord komt voor in een datalek. Kies een ander wachtwoord.",
+            "mismatch": "De wachtwoorden zijn niet hetzelfde.",
+            "invalidCredentials": "Onjuist e-mailadres of wachtwoord.",
+            "emailNotConfirmed": "Bevestig eerst je e-mailadres. Kijk in je inbox voor de bevestigingsmail.",
+            "tooManyRequests": "Te veel verzoeken. Wacht een paar minuten en probeer het opnieuw.",
+            "generic": "Er ging iets mis. Probeer het opnieuw.",
+            "linkedin": "Inloggen met LinkedIn is niet gelukt. Probeer het opnieuw.",
+            "confirmFailed": "Bevestiging mislukt. Probeer het opnieuw.",
+            "emailConfirmFailed": "E-mailbevestiging mislukt. Probeer het opnieuw.",
+            "resetLinkExpired": "Deze resetlink is verlopen of al gebruikt. Vraag een nieuwe aan.",
+            "signInFailed": "Inloggen is niet gelukt. Probeer het opnieuw."
+        }
     }
 }

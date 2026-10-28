@@ -1,10 +1,16 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { AuthLayout } from '@/components/auth-layout'
 import { extractOAuthError } from '@/lib/utils'
 
-export const metadata: Metadata = {
-  title: 'Log in',
-  description: 'Sign in to Rolodink with LinkedIn or email credentials.',
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Auth.login' })
+  return { title: t('metaTitle'), description: t('metaDescription') }
 }
 
 export const dynamic = 'force-dynamic'
@@ -20,16 +26,17 @@ export default async function LoginPage(props: Readonly<LoginPageProps>) {
   const searchParams = await props.searchParams
   const oauthError = extractOAuthError(searchParams?.oauth_error)
   const next = searchParams?.next
+  const t = await getTranslations('Auth.login')
 
   return (
     <AuthLayout
       mode="login"
-      title="Sign in to Rolodink"
-      subtitle="Manage your LinkedIn notes securely with Rolodink."
+      title={t('title')}
+      subtitle={t('subtitle')}
       oauthError={oauthError}
       alternateLink={{
-        text: 'New to Rolodink?',
-        linkText: 'Create an account',
+        text: t('newHere'),
+        linkText: t('createAccount'),
         href: `/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`,
       }}
       next={next}

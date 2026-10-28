@@ -1,22 +1,26 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { AuthCard } from '@/components/auth-card'
 import { ResetPasswordForm } from '@/components/ResetPasswordForm'
 import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
 
-export const metadata: Metadata = {
-  title: 'Choose a new password',
-  description: 'Set a new password for your Rolodink account.',
-  robots: { index: false },
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Auth.reset' })
+  return { title: t('metaTitle'), description: t('metaDescription'), robots: { index: false } }
 }
 
 export const dynamic = 'force-dynamic'
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage() {
+  const t = await getTranslations('Auth.reset')
+
   return (
-    <AuthCard
-      title="Choose a new password"
-      subtitle={`Use at least ${MIN_PASSWORD_LENGTH} characters. You will use it to sign in to the extension.`}
-    >
+    <AuthCard title={t('title')} subtitle={t('subtitle', { min: MIN_PASSWORD_LENGTH })}>
       <ResetPasswordForm />
     </AuthCard>
   )

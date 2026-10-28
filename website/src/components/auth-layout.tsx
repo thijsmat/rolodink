@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Link } from '@/navigation';
 import LinkedInSignInButton from '@/components/LinkedInSignInButton';
 import { EmailPasswordForm } from '@/components/EmailPasswordForm';
@@ -25,6 +26,7 @@ export function AuthLayout({
     alternateLink,
     next,
 }: AuthLayoutProps) {
+    const t = useTranslations('Auth.common');
     return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
             <div className="w-full max-w-md space-y-6 rounded-2xl border border-azure/10 bg-white/95 p-8 shadow-xl backdrop-blur-sm">
@@ -46,7 +48,7 @@ export function AuthLayout({
                         <span className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase tracking-wide text-muted-foreground">
-                        <span className="bg-white px-2">Or continue with email</span>
+                        <span className="bg-white px-2">{t('orEmail')}</span>
                     </div>
                 </div>
 
