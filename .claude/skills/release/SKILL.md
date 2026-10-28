@@ -17,11 +17,12 @@ Is `$ARGUMENTS` leeg of geen `X.Y.Z`, vraag dan om de versie en stop.
 
 - `git fetch origin main --tags` en `git log ext-v<vorige>..origin/main -- linkedin-crm-extension packages/core`.
 - Open PR's die de extensie of `packages/core` raken.
-- Meld de gebruiker wat er in deze release zit en wat nog openstaat, en **wacht op een akkoord** voordat je verder gaat.
+- De **testchecklist** uit de release-PR (`chore(release): X.Y.Z`, sectie "🧪 How to Test"). Ontbreekt die, maak hem dan volgens stap 4 van `.claude/skills/release-prep/SKILL.md`.
+- Meld de gebruiker wat er in deze release zit, wat nog openstaat en de checklist. Vraag of die in Chrome, Edge en Firefox is doorlopen, en **wacht op een akkoord** voordat je verder gaat. Een punt dat niet getest is, is geen akkoord: noem het en laat de gebruiker kiezen.
 
 ## 1. Klaar om uit te brengen?
 
-- De release-PR (`./scripts/bump-version.sh X.Y.Z`, `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md`, website-changelog) is gemerged in `main`. Controleer dat `RELEASE_NOTES_vX.Y.Z.md` op `main` staat.
+- De release-PR is gemerged in `main` (`/release-prep X.Y.Z` maakt hem: `./scripts/bump-version.sh X.Y.Z`, `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md`, website-changelog). Controleer dat `RELEASE_NOTES_vX.Y.Z.md` op `main` staat.
 - Er staat geen vorige versie meer in review bij Chrome of Edge.
 
 ## 2. Store Credentials Check
