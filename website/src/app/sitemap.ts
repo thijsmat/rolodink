@@ -7,7 +7,7 @@ const BASE_URL = 'https://rolodink.app'
 // De sitemap wordt bij de build gegenereerd; hiermee verversen de artikel-URL's mee.
 export const revalidate = 600
 
-// Statische routes onder /[locale]. Elke URL draagt een taalprefix: de middleware
+// Statische routes onder /[locale]. Elke URL draagt een taalprefix: de proxy (src/proxy.ts)
 // (localePrefix 'always') stuurt prefixloze paden door, dus die horen niet in de sitemap.
 const STATIC_ROUTES = [
   '',
