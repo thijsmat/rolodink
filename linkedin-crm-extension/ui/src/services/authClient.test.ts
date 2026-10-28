@@ -1,4 +1,7 @@
 // @vitest-environment node
+/// <reference types="node" />
+// Node's types for Buffer. tsconfig.app.json lists its `types` explicitly, so
+// they have to be referenced here; vite 5 used to pull them in implicitly.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAuthClient } from './authClient';
 
