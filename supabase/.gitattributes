@@ -1,0 +1,4 @@
+# Supabase stores the templates with LF line endings. Without this, Git on
+# Windows (core.autocrlf=true) checks them out with CRLF and `config push`
+# sees every template as changed.
+templates/*.html text eol=lf

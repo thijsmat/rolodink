@@ -1,0 +1,8 @@
+<h2>Sign in to Rolodink</h2>
+<p>Click the button below to sign in to your Rolodink account:</p>
+<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email" style="background-color: #1B2951; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Sign In</a></p>
+<p>If the button does not work, copy this link into your browser:<br>
+<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&amp;type=email</a></p>
+<p>This link can be used once and expires after one hour.</p>
+<p>If you did not try to sign in, you can ignore this email. Nobody can sign in without this link.</p>
+<p>Best regards,<br>The Rolodink Team</p>

@@ -1,0 +1,24 @@
+<h2>Welcome to Rolodink!</h2>
+<p>Thank you for signing up for Rolodink, your personal notes for LinkedIn.</p>
+<p>Please confirm your email address to activate your account:</p>
+<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&intent=signup" style="background-color: #1B2951; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Email Address</a></p>
+
+<p>If the button does not work, copy this link into your browser:<br>
+<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&intent=signup">{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&amp;type=email&amp;intent=signup</a></p>
+
+<p>Once confirmed, you can:</p>
+<ul>
+  <li>Save LinkedIn profiles with one click</li>
+  <li>Keep private notes on where you met and what you talked about</li>
+  <li>Find your notes again right on the LinkedIn profile</li>
+</ul>
+
+<p>Your notes are encrypted before they are stored. That happens automatically; there is nothing to set up.</p>
+
+<p style="font-size: 12px; color: #666;">
+  <em>If you ticked the box to receive updates, we will occasionally email you about important changes to Rolodink. To stop, email <a href="mailto:hallo@rolodink.app">hallo@rolodink.app</a>.</em>
+</p>
+
+<p>If you did not create a Rolodink account, you can ignore this email.</p>
+
+<p>Best regards,<br>The Rolodink Team</p>
