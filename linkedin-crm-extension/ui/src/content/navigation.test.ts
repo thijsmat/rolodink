@@ -1,3 +1,6 @@
+/// <reference types="node" />
+// Node's types for node:fs/path/url. tsconfig.app.json lists its `types` explicitly, so
+// they have to be referenced here; vite 5 used to pull them in implicitly.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';

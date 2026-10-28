@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { act } from 'react';
 import { createDomHarness } from '../test/domHarness';
 import { SettingsView } from './SettingsView';
@@ -36,7 +36,9 @@ const dom = createDomHarness();
 const { render, button, click } = dom;
 
 let fetchMock: ReturnType<typeof vi.fn>;
-let sendMessage: ReturnType<typeof vi.fn>;
+type DecryptMessage = { type: string; ciphertext: string };
+type DecryptReply = { success: boolean; error?: string; plaintext?: string };
+let sendMessage: Mock<(message: DecryptMessage) => Promise<DecryptReply>>;
 let downloads: { filename: string; blob: Blob }[];
 let revoked: string[];
 
@@ -71,7 +73,7 @@ beforeEach(() => {
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     clearDecryptMemo();
     // Decrypts "rolodink-enc:<text>" to "<text>"; anything containing "locked" fails like a missing key.
-    sendMessage = vi.fn(async (message: { type: string; ciphertext: string }) => {
+    sendMessage = vi.fn(async (message: DecryptMessage): Promise<DecryptReply> => {
         const body = message.ciphertext.slice(ENC.length);
         return body.includes('locked') ? { success: false, error: 'No key' } : { success: true, plaintext: body };
     });
