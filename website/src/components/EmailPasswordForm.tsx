@@ -17,7 +17,7 @@ type EmailPasswordFormProps = {
 }
 
 // Zonder taalprefix bestaan deze paden niet: next-intl staat op localePrefix
-// 'always' en de middleware matcht alleen / en /(nl|en)/:path*, dus /download
+// 'always' en de proxy (src/proxy.ts) matcht alleen / en /(nl|en)/:path*, dus /download
 // haalt de [locale]-route nooit en geeft een 404.
 const SUCCESS_PATHS: Record<EmailPasswordFormProps['mode'], string> = {
   login: '/download',

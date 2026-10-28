@@ -4,6 +4,9 @@ import { routing } from './navigation';
 
 const intlMiddleware = createMiddleware(routing);
 
+// Next 16 renamed the `middleware` file convention to `proxy`. It runs on the
+// Node.js runtime now instead of Edge; nothing here depends on either.
+
 // Fouten van een OAuth-provider komen niet bij /auth/callback aan: Supabase
 // stuurt ze naar zijn eigen Site URL, dus ze landen op de homepage waar niets
 // ze leest. Dit is de enige plek waar élke landing langskomt.
@@ -25,7 +28,7 @@ function localeFromPath(pathname: string): string {
         : routing.defaultLocale;
 }
 
-export default function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const error = request.nextUrl.searchParams.get('error');
 
     if (error) {
