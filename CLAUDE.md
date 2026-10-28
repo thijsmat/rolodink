@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Rolodink is a LinkedIn notes layer: a browser extension (Chrome, Edge, Firefox) with a backend API and a marketing website. The README, `.cursorrules` and many top-level `*.md` files are partly outdated. They mention Next.js 15, SQLite and manual Edge uploads, none of which is true any more. Trust the code, CI (`.github/workflows/github-flow.yml`) and the two project skills over them.
+Rolodink is a LinkedIn notes layer: a browser extension (Chrome, Edge, Firefox) with a backend API and a marketing website. `.cursorrules` and the documents in `docs/archive/` are partly outdated. They mention Next.js 15, SQLite and manual Edge uploads, none of which is true any more. Release notes live in `docs/release-notes/`, store listing texts in `docs/store-listings/`. Trust the code, CI (`.github/workflows/github-flow.yml`) and the two project skills over them.
 
 ## Project skills (read these first)
 

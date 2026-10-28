@@ -123,11 +123,12 @@ jobs:
       # RELEASE_NOTES_v1.3.4.md sat unused in the repository.
       #
       # The template stays as the fallback for a release cut without notes, and
-      # says so rather than pretending to be a summary.
+      # says so rather than pretending to be a summary. The notes live in
+      # docs/release-notes/ since the repository root was tidied up.
       - name: Prepare Release Notes
         id: prepare_notes
         run: |
-          NOTES="RELEASE_NOTES_v${VERSION}.md"
+          NOTES="docs/release-notes/RELEASE_NOTES_v${VERSION}.md"
           if [ -f "$NOTES" ]; then
             cp "$NOTES" RELEASE_NOTES.md
             echo "Using $NOTES"

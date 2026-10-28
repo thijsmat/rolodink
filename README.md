@@ -1,130 +1,90 @@
-# Rolodink
+<p align="center">
+  <img src="store-assets/screenshots/promo/marquee-1400x560.png" alt="Rolodink" width="700">
+</p>
 
-Personal notes layer for LinkedIn profiles.
+<p align="center">
+  <strong>Your private notes, right on LinkedIn.</strong><br>
+  Remember where you met someone and what you talked about, without leaving their profile.
+</p>
 
-## 🚀 Quick Start
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/jfgnbkeagmpmappmekainclghhndlimc?label=Chrome&logo=googlechrome&logoColor=white&color=1B2951"></a>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/rolodink/ihcocnphebdemiipmoedinojihpbcmmf"><img alt="Edge Add-ons" src="https://img.shields.io/badge/Edge-Add--ons-1B2951?logo=microsoftedge&logoColor=white"></a>
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/rolodink/"><img alt="Firefox Add-ons" src="https://img.shields.io/amo/v/rolodink?label=Firefox&logo=firefoxbrowser&logoColor=white&color=1B2951"></a>
+  <a href="https://github.com/thijsmat/rolodink/actions/workflows/github-flow.yml"><img alt="CI" src="https://github.com/thijsmat/rolodink/actions/workflows/github-flow.yml/badge.svg?branch=main"></a>
+</p>
 
-### For Users
-1. **Download**: Get the latest release from [GitHub Releases](https://github.com/thijsmat/rolodink/releases)
-2. **Install**: Follow the [Installation Guide](INSTALL.md)
-3. **Use**: Add notes to LinkedIn profiles directly
-
-### For Developers
-1. **Clone**: `git clone https://github.com/thijsmat/rolodink.git`
-2. **Setup**: Follow the [Team Workflow Guide](TEAM_WORKFLOW.md)
-3. **Contribute**: Use [GitHub Flow](.github/GITHUB_FLOW.md)
-
-## 🏗️ Project Structure
-
-- **`/website/`** - Marketing website (Next.js + Tailwind)
-- **`/linkedin-crm-extension/`** - Browser extension (React + Vite)
-- **`/linkedin-crm-backend/`** - API backend (Next.js + Prisma)
-
-## 🌳 Development Workflow
-
-We use **GitHub Flow** for version control:
-
-- **`main`** - Production branch (always deployable)
-- **`feature/description`** - New features
-- **`fix/description`** - Bug fixes
-- **`hotfix/description`** - Urgent production fixes
-
-### Quick Development Setup
-```bash
-# Website development
-cd website && npm install && npm run dev
-
-# Extension development  
-cd linkedin-crm-extension/ui && npm install && npm run dev
-
-# Backend development
-cd linkedin-crm-backend && npm install && npm run dev
-```
-
-## 📚 Documentation
-
-- **[Team Workflow](TEAM_WORKFLOW.md)** - Complete development guide
-- **[GitHub Flow](.github/GITHUB_FLOW.md)** - Version control strategy
-- **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - CI/CD and automated publishing
-- **[Secret Scanning](docs/SECRET_SCANNING.md)** - Security and secret management
-- **[Installation Guide](INSTALL.md)** - User installation instructions
-- **[Styling Architecture](STYLING.md)** - CSS and styling guide
-- **[Cursor Rules](.cursorrules)** - Development guidelines
-
-## 🎨 Design System
-
-- **Colors**: Navy (`#1B2951`), Gold (`#B8860B`), LinkedIn Blue (`#0066CC`)
-- **Typography**: Playfair Display (headings), Inter (body)
-- **Components**: shadcn/ui + Tailwind CSS
-- **Framework**: Next.js 15.4.7 with App Router
-
-## 🚀 Deployment & CI/CD
-
-### Automated Publishing
-
-**Extension Releases** are automated via GitHub Actions:
-
-- **Firefox**: Fully automated - signs and uploads to AMO when you push `ext-v*` tag
-- **Chrome**: Fully automated - uploads to Chrome Web Store when you push `ext-v*` tag
-- **Edge**: Manual upload required (workflow provides instructions)
-
-**How to Release:**
-```bash
-# Create and push release tag
-git tag -a ext-v1.0.4 -m "Release Rolodink v1.0.4"
-git push origin ext-v1.0.4
-```
-
-**Setup Required:**
-- Configure GitHub secrets (see `docs/GITHUB_ACTIONS_SETUP.md`)
-- Firefox: `FIREFOX_JWT_ISSUER`, `FIREFOX_JWT_SECRET`
-- Chrome: `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`, `CHROME_EXTENSION_ID`
-
-📚 **Full Guide:** [GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)
-
-### Other Deployments
-
-- **Website**: Automatic deployment from `main` branch via Vercel
-- **Backend**: Automatic deployment from `main` branch via Vercel
-
-## 📦 Releases
-
-See [GitHub Releases](https://github.com/thijsmat/rolodink/releases) for:
-- Packaged extension ZIPs
-- Installation instructions
-- Changelog and version history
-
-## 🆘 Support
-
-- **Issues**: [GitHub Issues](https://github.com/thijsmat/rolodink/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/thijsmat/rolodink/discussions)
-- **Documentation**: Check the guides above
-
-## 🔒 Security
-
-**Secret scanning is automatically enabled** on every push and pull request:
-
-- **Tool**: TruffleHog scans for exposed secrets, API keys, and credentials
-- **Action**: Workflow fails if secrets are detected, blocking merges
-- **Coverage**: All commits and file changes are scanned
-- **Prevention**: Pre-commit hook available for local scanning (optional)
-
-📚 **Full Guide:** [Secret Scanning Documentation](docs/SECRET_SCANNING.md)
-
-**Best Practices:**
-- Never commit secrets to the repository
-- Use GitHub Secrets for CI/CD credentials
-- Store secrets in `.env` files (gitignored)
-- Rotate secrets immediately if accidentally exposed
-
-## 🤝 Contributing
-
-1. Read the [Team Workflow Guide](TEAM_WORKFLOW.md)
-2. Follow [GitHub Flow](.github/GITHUB_FLOW.md)
-3. Create feature branches from `main`
-4. Submit pull requests for review
-5. Follow our [code standards](.cursorrules)
+<p align="center">
+  <a href="https://rolodink.app">rolodink.app</a> ·
+  <a href="https://rolodink.app/en/download">Download</a> ·
+  <a href="https://rolodink.app/en/changelog">Changelog</a>
+</p>
 
 ---
 
-**Built with ❤️ for LinkedIn professionals**
+<p align="center">
+  <img src="store-assets/screenshots/chrome-edge/en/1-note-on-profile.png" alt="A Rolodink note on a LinkedIn profile" width="800">
+</p>
+
+## What it does
+
+- **Notes on the profile.** A note card sits on every LinkedIn profile you have saved. Type, and it saves.
+- **One click to save someone.** *Add to Rldnk* keeps their name and profile link. Add where you met, the company you were at then, and their email and phone.
+- **Find people again.** The popup lists everyone you saved. Search covers names, notes, meeting place, company, email and phone.
+- **Private by design.** Notes, meeting place, company, email and phone are encrypted in your browser before they are stored. The server never sees them in plain text.
+- **Chrome, Edge and Firefox**, with one account across all three.
+
+<p align="center">
+  <img src="store-assets/screenshots/chrome-edge/en/3-search.png" alt="Searching your connections" width="49%">
+  <img src="store-assets/screenshots/chrome-edge/en/5-private.png" alt="Encrypted, just for you" width="49%">
+</p>
+
+## Install
+
+| Browser | Store |
+|---|---|
+| Chrome | [Chrome Web Store](https://chromewebstore.google.com/detail/rolodink/jfgnbkeagmpmappmekainclghhndlimc) |
+| Edge | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/rolodink/ihcocnphebdemiipmoedinojihpbcmmf) |
+| Firefox (140 or later) | [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/rolodink/) |
+
+Each release also has the three packages as `.zip` under [Releases](https://github.com/thijsmat/rolodink/releases).
+
+## How your notes are protected
+
+Every account gets its own AES-256 data key. The backend stores it wrapped with a master key that never leaves the server, and hands it only to you, signed in. The extension uses that key to encrypt the private fields itself, so what reaches the database is ciphertext (`rolodink-enc:…`). If encryption fails, nothing is saved: there is no plaintext fallback.
+
+## Repository
+
+An npm-workspaces and Turbo monorepo on Node 22.
+
+| Path | What |
+|---|---|
+| [`linkedin-crm-extension/`](linkedin-crm-extension) | The browser extension: React + Vite popup, background worker, content script on linkedin.com. One build, packaged for three browsers. |
+| [`linkedin-crm-backend/`](linkedin-crm-backend) | API on Next.js 16 route handlers, Prisma on Supabase Postgres, deployed on Vercel (`fra1`). |
+| [`website/`](website) | rolodink.app: Next.js 16 App Router, Dutch and English. |
+| [`packages/core/`](packages/core) | Shared TypeScript: encryption, LinkedIn URL normalisation, conflict handling. |
+| [`supabase/`](supabase) | Supabase Auth configuration and email templates, as code. |
+| [`docs/`](docs) | Release process, release notes, store listings; older material in `docs/archive/`. |
+
+## Development
+
+```bash
+npm ci --ignore-scripts
+(cd linkedin-crm-extension/ui && npm ci --ignore-scripts)
+npm run prisma:generate --prefix linkedin-crm-backend
+```
+
+```bash
+npm test                                                          # backend + packages/core
+(cd linkedin-crm-extension/ui && npm run typecheck && npm run lint && npm test)
+(cd linkedin-crm-extension && node build.js chrome edge firefox)  # packages into dist/tmp/<browser>
+(cd website && npm run lint && npm run build)
+```
+
+To try the extension, build it and load `dist/tmp/<browser>` unpacked. Only the Chrome package carries the key that matches the store ID, so LinkedIn sign-in only works unpacked in Chrome.
+
+Changes go through a pull request to `main`; CI builds and checks all three browser packages. Releases are automated: see [`docs/RELEASE_PROCESS.md`](docs/RELEASE_PROCESS.md) and [`CHANGELOG.md`](CHANGELOG.md).
+
+## Contact
+
+Questions or feedback: [hello@rolodink.app](mailto:hello@rolodink.app) or the feedback button in the extension.

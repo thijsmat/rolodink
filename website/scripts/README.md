@@ -92,5 +92,5 @@ Na het genereren:
 ## 📚 Meer Informatie
 
 Zie de hoofdgids voor gedetailleerde instructies:
-- `/FIGMA_IMPORT_GUIDE.md`
+- `/docs/archive/FIGMA_IMPORT_GUIDE.md`
 
