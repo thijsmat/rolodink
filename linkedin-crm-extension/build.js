@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
-const archiver = require('archiver');
+// archiver 8 is ESM-only; Node 22.12+ loads it through require() (CI and
+// release run Node 22).
+const { ZipArchive } = require('archiver');
 const crypto = require('node:crypto');
 const { execSync } = require('child_process');
 
@@ -139,7 +141,7 @@ async function packageTarget(target) {
   await fs.ensureDir(distDir);
 
   const output = fs.createWriteStream(zipPath);
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  const archive = new ZipArchive({ zlib: { level: 9 } });
 
   archive.pipe(output);
   archive.directory(tmpDir, false);
