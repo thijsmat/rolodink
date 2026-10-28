@@ -1,3 +1,21 @@
+## v1.3.10 (2026-10-28) - Stronger Passwords
+
+A small release around your password: easier to reset and better protected.
+
+### Added
+- **"Forgot password?" on the sign-in screen.** Opens `rolodink.app/<nl|en>/forgot-password` in a new tab; other UI languages get the English page. Shown in sign-in mode only (#175, #183)
+- **Leaked-password check.** Sign-up (backend `/api/auth/signup`, `400` with `code: 'password_pwned'`) and the password change in Settings refuse passwords found by Have I Been Pwned. k-anonymity: only the first 5 hex characters of the SHA-1 hash leave the device. Fails open on timeout (3 s) or an unexpected answer. Shared code in `@rolodink/core/pwned-password` (#161)
+
+### Fixed
+- **Password change accepted 6 characters while sign-up required 8.** One minimum, `MIN_PASSWORD_LENGTH = 8` in `@rolodink/core/password`, for sign-up, the password change and the website form; sign-in keeps no minimum, so existing shorter passwords still work (#162)
+
+### Changed
+- `@supabase/auth-js` 2.117.2 → 2.118.0 (#148)
+- Extension UI tooling: Vitest 5, Vite 6.4 (#172), ESLint 10 with typescript-eslint 8 and react-hooks 7 (#185); backend and core on Vitest 4 (#159); `archiver` 8 for packaging (#171)
+- Backend: rate limits counted in Postgres across all instances instead of per instance (#160); errors to Sentry (EU) without user data (#149); master-key rotation via `ENCRYPTION_MASTER_KEY_NEXT` (#170); one-off encryption of plaintext fields left by clients before 1.3.0 (#168, #169)
+- Website: password reset at `/forgot-password` and `/reset-password` (#174) and invitations that let you choose a password (#176, #183); open redirect and clickjacking fixed, and the backend no longer returns database errors to the client (#157); Next.js 16.4.2 (#153), Tailwind CSS 4 in website and backend (#158), `middleware.ts` → `proxy.ts` (#186); PostHog without cookies instead of Google Analytics (#151)
+- Supabase Auth configuration and email templates kept as code in `supabase/` (#187)
+
 ## v1.3.9 (2026-10-12) - Small Repairs
 
 A maintenance release: nothing new, three things that work better.

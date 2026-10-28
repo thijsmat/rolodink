@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Version 1.3.9 • Free",
+        "version": "Version 1.3.10 • Free",
         "footer": "No credit card required • 30 second installation"
     },
     "HelpPage": {
@@ -237,6 +237,20 @@
         "description": "Stay up to date with the latest developments and updates.",
         "version": "Version",
         "releases": [
+            {
+                "version": "1.3.10",
+                "date": "October 28, 2026",
+                "sections": [
+                    {
+                        "title": "Password",
+                        "items": [
+                            "The sign-in screen now has a 'Forgot password?' link. It opens rolodink.app, where you request a link to choose a new password.",
+                            "Passwords that appear in a known data breach are refused when you create an account or change your password. Your password itself never leaves your computer.",
+                            "A new password needs at least 8 characters everywhere; changing it in the extension used to accept 6. Signing in with an existing password keeps working."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.9",
                 "date": "October 12, 2026",
