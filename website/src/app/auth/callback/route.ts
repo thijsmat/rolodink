@@ -51,6 +51,12 @@ export async function GET(request: NextRequest) {
 
   const next = requestUrl.searchParams.get('next')
 
+  // A password-reset link: either the token_hash form from the recovery email
+  // template, or the PKCE code form that resetPasswordForEmail produces with
+  // type=recovery in its redirectTo. Both must end on the reset page, never on
+  // onboarding or wherever `next` points.
+  const isRecovery = otpType === 'recovery'
+
   // Deze route zit buiten het [locale]-segment, dus next-intl kan de taal hier
   // niet afleiden. De client die de callback-URL bouwt weet hem wel en geeft
   // hem mee; de cookie vangt oudere e-mailkoppelingen op die nog zonder
@@ -63,6 +69,16 @@ export async function GET(request: NextRequest) {
   )
 
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
+    if (isRecovery) {
+      // Usually an expired or already-used link: send them where they can
+      // request a new one.
+      const destination = new URL(`/${locale}/forgot-password`, requestUrl.origin)
+      destination.searchParams.set(
+        'oauth_error',
+        'Deze resetlink is verlopen of al gebruikt. Vraag een nieuwe aan.'
+      )
+      return NextResponse.redirect(destination)
+    }
     const destination = new URL(
       `/${locale}/${intent === 'signup' ? 'signup' : 'login'}`,
       requestUrl.origin
@@ -124,6 +140,10 @@ export async function GET(request: NextRequest) {
     }
   } else {
     return redirectWithError()
+  }
+
+  if (isRecovery) {
+    return NextResponse.redirect(new URL(`/${locale}/reset-password`, requestUrl.origin))
   }
 
   // Redirect to success page after successful auth

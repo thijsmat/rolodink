@@ -6,6 +6,7 @@ import { FormEvent, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Link } from '@/navigation'
 import { getSafeRedirect } from '@/lib/utils'
 import { isPwnedPassword } from '@rolodink/core/pwned-password'
 import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
@@ -120,7 +121,17 @@ export function EmailPasswordForm({ mode, next }: EmailPasswordFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`${mode}-password`}>Password</Label>
+        <div className="flex items-baseline justify-between">
+          <Label htmlFor={`${mode}-password`}>Password</Label>
+          {mode === 'login' && (
+            <Link
+              href="/forgot-password"
+              className="text-xs text-primary underline underline-offset-4"
+            >
+              Forgot your password?
+            </Link>
+          )}
+        </div>
         <Input
           id={`${mode}-password`}
           type="password"
