@@ -64,6 +64,7 @@ Zonder `publish` (of bij een tag-push) blijft het oude pad bestaan: `release.yml
 - GitHub Actions-logs verlopen na ~90 dagen; job-metadata (stappen + timing) blijft wel opvraagbaar.
 - Trivy draait als `security`-job en voedt de code-scanning-alerts; die zijn vrijwel allemaal npm-dependency-CVE's en te reproduceren met `npm audit` per lockfile (root, `linkedin-crm-extension/ui` en `tools/firefox-sign`).
 - npm `overrides` in de root-package.json forceren gepatchte transitieve versies (sharp/postcss in next, e.d.) — bij dependency-updates checken of upstream ze inmiddels zelf bumpt.
+  - Een nieuwe override raakt een bestaande lock-entry niet altijd: `npm install --package-lock-only` laat de oude versie dan staan en `npm ls` meldt hem als `invalid`. Los dat op via npm, niet met de hand: de ouder-dependency uninstallen en opnieuw installeren (`-w <workspace> --package-lock-only --ignore-scripts`), en daarna de `package.json` van die workspace terugzetten als npm de volgorde heeft herschikt. Controleer altijd met `npm ls <pakket> --all` en `npm audit`.
 - web-ext zit niet meer in de root-workspace maar in `tools/firefox-sign/` (exact gepind, eigen lockfile; `publish-firefox.yml` installeert daaruit met `npm ci --ignore-scripts`). Die lockfile is een derde om met `npm audit` te controleren. Bijwerken: versie in `tools/firefox-sign/package.json` aanpassen en daar `npm install --package-lock-only --ignore-scripts` draaien.
 
 ## Vercel & Supabase

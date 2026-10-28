@@ -9,7 +9,7 @@
     "clean": "rm -rf dist .dist-firefox .dist-firefox-clean .dist-tmp .web-ext-src"
   },
   "devDependencies": {
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "fs-extra": "^11.4.1"
   }
 }
