@@ -39,5 +39,5 @@ Zonder die variabelen laat `push` beide secrets ongemoeid ("credential values we
 ## Valkuilen
 
 - **Paden.** `content_path` van de e-mailtemplates (`[auth.email.template.*]`) is relatief aan de root van de repo (`./supabase/templates/…`). Die van de meldingen (`[auth.email.notification.*]`) is relatief aan deze map (`./templates/…`). Dat is een eigenaardigheid van de CLI; maak ze niet gelijk.
-- **Geen newline aan het eind.** De templates eindigen zonder newline, precies zoals Supabase ze bewaart. Een editor die er een toevoegt, maakt een (onschuldige) wijziging die `push` wil uitrollen.
+- **Regeleinden.** De templates hebben LF-regeleinden en eindigen zonder newline, precies zoals Supabase ze bewaart. `supabase/.gitattributes` dwingt LF af, ook op Windows met `core.autocrlf=true`. Een editor die CRLF of een newline aan het eind toevoegt, maakt een (onschuldige) wijziging die `push` wil uitrollen. Meldt `push` dat *alle* templates verschillen, dan zijn het vrijwel zeker de regeleinden.
 - **Wijziging in het dashboard.** `config pull` haalt gewone instellingen terug in `config.toml`, maar geen inhoud van templates. Pas templates daarom alleen hier aan.
