@@ -11,7 +11,7 @@ Deze skill publiceert niets. Hij maakt één PR, en het uitbrengen zelf gebeurt 
 ## 0. Versie
 
 - Is `$ARGUMENTS` leeg of geen `X.Y.Z`, vraag dan om de versie en stop.
-- Haal de tags op met `git fetch origin main --tags`. De vorige versie is de hoogste `ext-v*` (`git tag -l 'ext-v*' --sort=-v:refname | head -1`). X.Y.Z moet daar boven liggen, en `RELEASE_NOTES_vX.Y.Z.md` mag nog niet bestaan.
+- Haal de tags op met `git fetch origin main --tags`. De vorige versie is de hoogste `ext-v*` (`git tag -l 'ext-v*' --sort=-v:refname | head -1`). X.Y.Z moet daar boven liggen, en `docs/release-notes/RELEASE_NOTES_vX.Y.Z.md` mag nog niet bestaan.
 
 ## 1. Wat gaat er mee?
 
@@ -37,7 +37,7 @@ Werk op de branch die de sessie voorschrijft, anders op `release/X.Y.Z`, vanaf `
 
 Gebruik de vorige release als voorbeeld van vorm en toon (`git show <commit van chore(release): vorige> --stat` en de bestanden zelf). Beschrijf alleen wat in de diff zit. Belooft een tekst iets wat de code niet doet, dan is de tekst fout.
 
-- **`RELEASE_NOTES_vX.Y.Z.md`**, in het Nederlands, voor gebruikers. Titel `# Rolodink vX.Y.Z — <kop>`, één regel inleiding, per thema een `##`, en techniek onder "Onder de motorkap". Geen PR-nummers, bestandsnamen of interne termen. `release.yml` zet deze tekst letterlijk in de GitHub-release.
+- **`docs/release-notes/RELEASE_NOTES_vX.Y.Z.md`**, in het Nederlands, voor gebruikers. Titel `# Rolodink vX.Y.Z — <kop>`, één regel inleiding, per thema een `##`, en techniek onder "Onder de motorkap". Geen PR-nummers, bestandsnamen of interne termen. `release.yml` zet deze tekst letterlijk in de GitHub-release.
 - **`CHANGELOG.md`**, in het Engels, voor ontwikkelaars, bovenaan: `## vX.Y.Z (YYYY-MM-DD) - <Title>`, een inleiding, en `### Added`, `### Fixed`, `### Changed`, met `(#NNN)` per regel.
 - **Website**, in `website/src/messages/nl.json` en `en.json`:
   - `DownloadPage.version`: `Versie X.Y.Z • Gratis` en `Version X.Y.Z • Free`.

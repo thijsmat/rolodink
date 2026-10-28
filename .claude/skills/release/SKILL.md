@@ -22,7 +22,7 @@ Is `$ARGUMENTS` leeg of geen `X.Y.Z`, vraag dan om de versie en stop.
 
 ## 1. Klaar om uit te brengen?
 
-- De release-PR is gemerged in `main` (`/release-prep X.Y.Z` maakt hem: `./scripts/bump-version.sh X.Y.Z`, `CHANGELOG.md`, `RELEASE_NOTES_vX.Y.Z.md`, website-changelog). Controleer dat `RELEASE_NOTES_vX.Y.Z.md` op `main` staat.
+- De release-PR is gemerged in `main` (`/release-prep X.Y.Z` maakt hem: `./scripts/bump-version.sh X.Y.Z`, `CHANGELOG.md`, `docs/release-notes/RELEASE_NOTES_vX.Y.Z.md`, website-changelog). Controleer dat `docs/release-notes/RELEASE_NOTES_vX.Y.Z.md` op `main` staat.
 - Er staat geen vorige versie meer in review bij Chrome of Edge.
 
 ## 2. Store Credentials Check
@@ -46,7 +46,7 @@ Een release die `GITHUB_TOKEN` publiceert, start zelf geen workflows. Start daar
 Een groene run zegt niets over de inhoud. Controleer:
 
 - Het "List Artifacts"-log van de release-run toont drie zips.
-- De release-body (`mcp__github__get_release_by_tag`) is de tekst uit `RELEASE_NOTES_vX.Y.Z.md`, niet de template.
+- De release-body (`mcp__github__get_release_by_tag`) is de tekst uit `docs/release-notes/RELEASE_NOTES_vX.Y.Z.md`, niet de template.
 - De publish-runs zijn groen. Bij Chrome: `uploadState: SUCCESS` én geen "Publish condition not met".
 
 Meld per store wat er gebeurd is en wat er nog moet (een handmatige "Submit for review", of Edge later).

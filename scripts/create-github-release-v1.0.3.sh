@@ -7,7 +7,7 @@ set -euo pipefail
 REPO="thijsmat/rolodink"
 TAG="v1.0.3"
 TITLE="Rolodink v1.0.3 — First Official Multi‑Browser Release"
-NOTES_FILE="RELEASE-NOTES-v1.0.3.md"
+NOTES_FILE="docs/release-notes/RELEASE-NOTES-v1.0.3.md"
 
 CHROME_ZIP="linkedin-crm-extension/rolodink-v1.0.3-chrome.zip"
 EDGE_ZIP="Rolodink-Edge-v1.0.3.zip"
