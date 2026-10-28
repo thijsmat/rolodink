@@ -11,12 +11,19 @@ import { MIN_PASSWORD_LENGTH } from '@rolodink/core/password'
 
 type Status = 'checking' | 'no-session' | 'ready' | 'done'
 
+type ResetPasswordFormProps = {
+  /** 'invite': the user was invited and has no password yet. */
+  mode?: 'reset' | 'invite'
+}
+
 /**
  * Sets a new password for the user that /auth/callback just signed in with
- * the recovery link. Without that session there is nothing to update, so the
- * form is not shown at all.
+ * the recovery or invite link. Without that session there is nothing to
+ * update, so the form is not shown at all.
  */
-export function ResetPasswordForm() {
+export function ResetPasswordForm({ mode = 'reset' }: Readonly<ResetPasswordFormProps>) {
+  const isInvite = mode === 'invite'
+  const submitLabel = isInvite ? 'Save password' : 'Save new password'
   const [status, setStatus] = useState<Status>('checking')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -69,7 +76,9 @@ export function ResetPasswordForm() {
   if (status === 'no-session') {
     return (
       <p className="text-center text-sm text-muted-foreground">
-        This reset link has expired or was already used.{' '}
+        {isInvite
+          ? 'This invitation has expired or was already used.'
+          : 'This reset link has expired or was already used.'}{' '}
         <Link href="/forgot-password" className="text-primary underline underline-offset-4">
           Request a new link
         </Link>
@@ -81,7 +90,9 @@ export function ResetPasswordForm() {
   if (status === 'done') {
     return (
       <p className="text-sm text-green-600">
-        Your password has been changed. Sign in to the Rolodink extension with your new password.
+        {isInvite
+          ? 'Your password has been set. Sign in to the Rolodink extension with your email address and this password.'
+          : 'Your password has been changed. Sign in to the Rolodink extension with your new password.'}
       </p>
     )
   }
@@ -89,7 +100,7 @@ export function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="space-y-2">
-        <Label htmlFor="reset-password">New password</Label>
+        <Label htmlFor="reset-password">{isInvite ? 'Password' : 'New password'}</Label>
         <Input
           id="reset-password"
           type="password"
@@ -103,7 +114,9 @@ export function ResetPasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="reset-password-confirmation">Repeat new password</Label>
+        <Label htmlFor="reset-password-confirmation">
+          {isInvite ? 'Repeat password' : 'Repeat new password'}
+        </Label>
         <Input
           id="reset-password-confirmation"
           type="password"
@@ -119,7 +132,7 @@ export function ResetPasswordForm() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Please wait…' : 'Save new password'}
+        {isSubmitting ? 'Please wait…' : submitLabel}
       </Button>
     </form>
   )

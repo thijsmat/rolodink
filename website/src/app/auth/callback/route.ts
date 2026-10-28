@@ -56,6 +56,9 @@ export async function GET(request: NextRequest) {
   // type=recovery in its redirectTo. Both must end on the reset page, never on
   // onboarding or wherever `next` points.
   const isRecovery = otpType === 'recovery'
+  // An invited user has no password yet. They choose one on the same page
+  // before they can sign in to the extension.
+  const isInvite = otpType === 'invite'
 
   // Deze route zit buiten het [locale]-segment, dus next-intl kan de taal hier
   // niet afleiden. De client die de callback-URL bouwt weet hem wel en geeft
@@ -69,13 +72,16 @@ export async function GET(request: NextRequest) {
   )
 
   const redirectWithError = (message: string = DEFAULT_ERROR_MESSAGE) => {
-    if (isRecovery) {
+    if (isRecovery || isInvite) {
       // Usually an expired or already-used link: send them where they can
-      // request a new one.
+      // request a new one. The account of an invite already exists, so a
+      // reset link lets them choose a password too.
       const destination = new URL(`/${locale}/forgot-password`, requestUrl.origin)
       destination.searchParams.set(
         'oauth_error',
-        'Deze resetlink is verlopen of al gebruikt. Vraag een nieuwe aan.'
+        isInvite
+          ? 'Deze uitnodiging is verlopen of al gebruikt. Vraag hier een link aan om een wachtwoord te kiezen.'
+          : 'Deze resetlink is verlopen of al gebruikt. Vraag een nieuwe aan.'
       )
       return NextResponse.redirect(destination)
     }
@@ -144,6 +150,12 @@ export async function GET(request: NextRequest) {
 
   if (isRecovery) {
     return NextResponse.redirect(new URL(`/${locale}/reset-password`, requestUrl.origin))
+  }
+
+  if (isInvite) {
+    const destination = new URL(`/${locale}/reset-password`, requestUrl.origin)
+    destination.searchParams.set('mode', 'invite')
+    return NextResponse.redirect(destination)
   }
 
   // Redirect to success page after successful auth
