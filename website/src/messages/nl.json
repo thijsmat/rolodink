@@ -158,7 +158,7 @@
         "firefox": "Firefox Add-ons",
         "github": "GitHub Release",
         "githubSub": "Download .zip & source",
-        "version": "Versie 1.3.9 • Gratis",
+        "version": "Versie 1.3.10 • Gratis",
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
@@ -237,6 +237,20 @@
         "description": "Blijf op de hoogte van de laatste ontwikkelingen en updates.",
         "version": "Versie",
         "releases": [
+            {
+                "version": "1.3.10",
+                "date": "28 oktober 2026",
+                "sections": [
+                    {
+                        "title": "Wachtwoord",
+                        "items": [
+                            "Op het inlogscherm staat nu de link 'Wachtwoord vergeten?'. Die opent rolodink.app, waar je een link aanvraagt om een nieuw wachtwoord te kiezen.",
+                            "Wachtwoorden die in een bekend datalek voorkomen, worden geweigerd bij het aanmaken van een account en bij het wijzigen van je wachtwoord. Je wachtwoord zelf verlaat je computer daarbij niet.",
+                            "Een nieuw wachtwoord moet overal minimaal 8 tekens hebben; bij wijzigen in de extensie was 6 nog genoeg. Inloggen met een bestaand wachtwoord blijft werken."
+                        ]
+                    }
+                ]
+            },
             {
                 "version": "1.3.9",
                 "date": "12 oktober 2026",
