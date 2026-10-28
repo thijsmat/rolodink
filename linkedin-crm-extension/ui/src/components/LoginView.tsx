@@ -14,6 +14,7 @@ import styles from './LoginView.module.css';
 import { useConnection } from '../context/ConnectionContext';
 import { API_BASE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
 import { getBrowserAPI } from '../utils/browser';
+import { forgotPasswordUrl } from '../utils/websiteLinks';
 
 import { supabase } from '../services/supabase';
 import { useExtensionTranslation } from '../hooks/useExtensionTranslation';
@@ -29,6 +30,11 @@ export function LoginView() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [receivesUpdates, setReceivesUpdates] = useState(false);
   const edgePointerHandledRef = useRef(false);
+
+  const forgotPasswordHref = useMemo(
+    () => forgotPasswordUrl(getBrowserAPI()?.i18n?.getUILanguage?.() ?? 'nl'),
+    []
+  );
 
   const isEdgeBrowser = useMemo(() => {
     if (typeof navigator === 'undefined') return false;
@@ -251,6 +257,16 @@ export function LoginView() {
             required
             autoComplete="current-password"
           />
+          {authMode === 'signin' && (
+            <a
+              href={forgotPasswordHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.forgotPasswordLink}
+            >
+              {t('forgot_password_link')}
+            </a>
+          )}
         </div>
 
         {authMode === 'signup' && (

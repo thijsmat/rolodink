@@ -11,13 +11,22 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default function ResetPasswordPage() {
+type ResetPasswordPageProps = {
+  searchParams: Promise<{ mode?: string | string[] }>
+}
+
+export default async function ResetPasswordPage(props: Readonly<ResetPasswordPageProps>) {
+  const searchParams = await props.searchParams
+  // /auth/callback sets mode=invite for an invited user, who has no password
+  // yet. The value only changes wording; the session decides what is allowed.
+  const mode = searchParams?.mode === 'invite' ? 'invite' : 'reset'
+
   return (
     <AuthCard
-      title="Choose a new password"
+      title={mode === 'invite' ? 'Choose a password' : 'Choose a new password'}
       subtitle={`Use at least ${MIN_PASSWORD_LENGTH} characters. You will use it to sign in to the extension.`}
     >
-      <ResetPasswordForm />
+      <ResetPasswordForm mode={mode} />
     </AuthCard>
   )
 }
