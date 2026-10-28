@@ -41,6 +41,18 @@
   color: var(--text-primary);
 }
 
+.forgotPasswordLink {
+  align-self: flex-end;
+  font-size: var(--font-size-sm);
+  color: var(--linkedin-blue);
+  text-decoration: none;
+}
+
+.forgotPasswordLink:hover {
+  color: var(--linkedin-blue-hover);
+  text-decoration: underline;
+}
+
 .input {
   width: 100%;
   padding: var(--space-4);

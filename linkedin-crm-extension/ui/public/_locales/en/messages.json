@@ -23,6 +23,9 @@
     "password_placeholder": {
         "message": "••••••••"
     },
+    "forgot_password_link": {
+        "message": "Forgot password?"
+    },
     "processing": {
         "message": "Processing..."
     },
