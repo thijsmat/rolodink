@@ -52,6 +52,12 @@ export function localeAlternates(
   return { canonical, languages }
 }
 
+// One share image per locale (1200×630), rendered from marketing/og/og-image.html with
+// marketing/og/render.mjs. Fictional example note; no real people and no LinkedIn branding.
+export function ogImage(locale: AppLocale): string {
+  return `/og-image-${locale}.png`
+}
+
 export function openGraphFor(
   locale: AppLocale,
   href: Href,
@@ -66,7 +72,7 @@ export function openGraphFor(
     locale: locale === 'nl' ? 'nl_NL' : 'en_US',
     title,
     description,
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: imageAlt }],
+    images: [{ url: ogImage(locale), width: 1200, height: 630, alt: imageAlt }],
   }
 }
 
@@ -80,8 +86,13 @@ export function withBrand(title: string): string {
 // A page that sets `twitter` replaces the whole object from the layout, so without this every
 // page would share the homepage's twitter:title and twitter:description in X and in apps that
 // read twitter:* before og:*. Keep it in step with openGraphFor.
-export function twitterFor(title: string, description: string): NonNullable<Metadata['twitter']> {
-  return { card: 'summary_large_image', title, description, images: ['/og-image.png'] }
+export function twitterFor(
+  locale: AppLocale,
+  title: string,
+  description: string,
+  imageAlt: string,
+): NonNullable<Metadata['twitter']> {
+  return { card: 'summary_large_image', title, description, images: [{ url: ogImage(locale), alt: imageAlt }] }
 }
 
 // Page-level metadata for the routes in PAGE_PATHS: unique title/description, a canonical
@@ -99,7 +110,7 @@ export async function pageMetadata(params: Promise<{ locale: string }>, page: Pa
     description,
     alternates: localeAlternates(locale, path),
     openGraph: openGraphFor(locale, path, withBrand(title), description, imageAlt),
-    twitter: twitterFor(withBrand(title), description),
+    twitter: twitterFor(locale, withBrand(title), description, imageAlt),
   }
 }
 
@@ -117,6 +128,6 @@ export async function homeMetadata(params: Promise<{ locale: string }>): Promise
     description,
     alternates: localeAlternates(locale, '/'),
     openGraph: openGraphFor(locale, '/', title, description, imageAlt),
-    twitter: twitterFor(title, description),
+    twitter: twitterFor(locale, title, description, imageAlt),
   }
 }

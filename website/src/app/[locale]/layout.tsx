@@ -1,6 +1,7 @@
 import type { Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { routing } from '@/navigation'
+import { ogImage, type AppLocale } from '@/lib/seo'
 import localFont from 'next/font/local'
 import '../globals.css'
 import { Analytics } from "@vercel/analytics/next"
@@ -57,7 +58,7 @@ export async function generateMetadata({
       siteName: "Rolodink",
       images: [
         {
-          url: "/og-image.png",
+          url: ogImage(locale as AppLocale),
           width: 1200,
           height: 630,
           alt: t('imageAlt'),
@@ -68,7 +69,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t('title'),
       description: t('description'),
-      images: ["/og-image.png"],
+      images: [{ url: ogImage(locale as AppLocale), alt: t('imageAlt') }],
     },
     robots: {
       index: true,
