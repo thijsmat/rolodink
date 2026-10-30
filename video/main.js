@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * Rolodink — uitlegvideo (19 s, 1920×1080, 60 fps)
+ * Rolodink — uitlegvideo (19 s, 1920×1080, 60 fps; staand 1080×1920 met ?format=portrait)
  *
  * Alles hangt aan één functie: render(t). Er lopen geen CSS-animaties of
  * transities; elke eigenschap wordt uit de tijd t berekend. Daardoor levert
@@ -23,6 +23,11 @@
   const params = new URLSearchParams(location.search);
   const RENDER = params.has('render');
   if (RENDER) document.body.classList.add('render');
+  // staand formaat (1080×1920) voor de feed op een telefoon: ?format=portrait
+  const PORTRAIT = params.get('format') === 'portrait';
+  if (PORTRAIT) document.body.classList.add('portrait');
+  const SW = PORTRAIT ? 1080 : 1920; // breedte en hoogte van het beeld
+  const SH = PORTRAIT ? 1920 : 1080;
   // taal van de teksten: ?lang=en, standaard Nederlands; init() laadt copy/<taal>.json
   const requested = params.get('lang') ?? 'nl';
   // een variant als en-event laadt copy/en-event.json
@@ -175,6 +180,12 @@
     ['Iris Vos', 'blue', 1244, 968, 4],
     ['Sem Bos', 'electric', 1636, 956, -4],
   ];
+  // staand: dezelfde kaartjes boven en onder de vraag
+  const CHIPS_PORTRAIT = [
+    [250, 230], [790, 200], [520, 410], [860, 600], [210, 620], [830, 1330],
+    [240, 1320], [540, 1520], [230, 1730], [800, 1720], [870, 1530], [520, 1845],
+  ];
+  if (PORTRAIT) CHIPS.forEach((c, i) => ([c[2], c[3]] = CHIPS_PORTRAIT[i]));
   const APPEAR = [3, 9, 0, 6, 11, 4, 1, 8, 5, 10, 2, 7];
   const FORGET = [5, 0, 8, 2, 10, 4, 7, 1, 11, 3, 9, 6];
   const chipIn = c => 0.04 + c.appear * 0.05; // het kaartje verschijnt
@@ -363,7 +374,8 @@
   // Scène 2 — het merk
   // =====================================================================
   const s2 = $('#s2');
-  const LOCK_HOME = { cx: 960, cy: 452 };
+  const LOCK_HOME = { cx: SW / 2, cy: PORTRAIT ? 860 : 452 };
+  const LOCK_BASE = PORTRAIT ? 0.8 : 1; // staand past het woordmerk anders niet in de breedte
   const LOCK_HUD = { x: 76, y: 48, s: 0.215 };
   const ROLL_STEP = 1.25; // afstand tussen de letters in de rolstrook (em)
   const letterRoll = i => ({ start: 3.0 + i * 0.055, dur: 0.7 + i * 0.035 });
@@ -414,7 +426,7 @@
 
   function lockupTransform(t) {
     const intro = E.outCubic(prog(t, 2.85, 1.0));
-    let s = lerp(1.18, 1, intro); // de zoom loopt nog even door
+    let s = lerp(1.18, 1, intro) * LOCK_BASE; // de zoom loopt nog even door
     let x = LOCK_HOME.cx - (lockSize.w * s) / 2;
     let y = LOCK_HOME.cy - (lockSize.h * s) / 2;
     const mp = E.inOutQuart(prog(t, 5.2, 0.76));
@@ -477,8 +489,8 @@
       // het doek valt schuin naar beneden weg
       setMask(false);
       const cp = E.inOutCubic(prog(t, ...CANVAS_FALL));
-      const e = lerp(-180, 1080 + 190, cp);
-      s2.style.clipPath = `polygon(0px ${e.toFixed(2)}px, 1920px ${(e - 180).toFixed(2)}px, 1920px 1100px, 0px 1100px)`;
+      const e = lerp(-180, SH + 190, cp);
+      s2.style.clipPath = `polygon(0px ${e.toFixed(2)}px, ${SW}px ${(e - 180).toFixed(2)}px, ${SW}px ${SH + 20}px, 0px ${SH + 20}px)`;
     }
 
     wordsIn(tagWords, t, 3.86, { stagger: 0.06, dur: 0.9, tout: 5.0, sink: true });
@@ -824,8 +836,8 @@
     const ex = E.inOutQuart(prog(t, ...EXPAND));
     const x = lerp(flipFrom.x, 0, ex);
     const y = lerp(flipFrom.y, 0, ex);
-    const w = lerp(flipFrom.w, 1920, ex);
-    const h = lerp(flipFrom.h, 1080, ex);
+    const w = lerp(flipFrom.w, SW, ex);
+    const h = lerp(flipFrom.h, SH, ex);
     flip.style.left = `${x.toFixed(2)}px`;
     flip.style.top = `${y.toFixed(2)}px`;
     flip.style.width = `${w.toFixed(2)}px`;
@@ -862,8 +874,8 @@
     const wordW = oWord.offsetWidth;
     const iconW = 92;
     const gap = 24;
-    const left = 960 - (iconW + gap + wordW) / 2;
-    const cy = 196;
+    const left = SW / 2 - (iconW + gap + wordW) / 2;
+    const cy = PORTRAIT ? 470 : 196;
     lockIconPos = { x: left + iconW / 2, y: cy };
     oLock.style.left = `${left + iconW + gap}px`;
     oLock.style.top = `${cy - 45}px`;
@@ -879,8 +891,8 @@
     if (t >= FLIP_SWAP && flipFrom) {
       const ex = E.inOutQuart(prog(t, ...EXPAND));
       const mp = E.inOutCubic(prog(t, 16.28, 0.58));
-      const cx = lerp(lerp(flipFrom.cx, 960, ex), lockIconPos.x, mp);
-      const cy = lerp(lerp(flipFrom.cy, 540, ex), lockIconPos.y, mp);
+      const cx = lerp(lerp(flipFrom.cx, SW / 2, ex), lockIconPos.x, mp);
+      const cy = lerp(lerp(flipFrom.cy, SH / 2, ex), lockIconPos.y, mp);
       const size = lerp(lerp(74, 128, ex), 92, mp);
       oIcon.style.transform = `translate(${(cx - ICON_BASE / 2).toFixed(2)}px, ${(cy - 49).toFixed(2)}px) scale(${(size / ICON_BASE).toFixed(5)})`;
     }
@@ -918,7 +930,7 @@
   }
 
   const target = {
-    start: () => ({ x: 1990, y: 1170 }),
+    start: () => ({ x: SW + 70, y: SH + 90 }),
     button: () => { const b = box(btn); return { x: b.x + b.w * 0.42, y: b.y + b.h * 0.58 }; },
     note: () => { const b = box(ta); return { x: b.x + b.w * 0.64, y: b.y + b.h * 0.6 }; },
     rest: () => { const b = box(ta); return { x: b.x + b.w * 0.3, y: b.y + b.h + 160 }; },
@@ -996,7 +1008,7 @@
   // daarom pas op nadat de frames zijn opgenomen.
   function soundCues() {
     return {
-      chips: chips.map(c => ({ in: chipIn(c), forget: chipForget(c), x: c.x / 1920 })),
+      chips: chips.map(c => ({ in: chipIn(c), forget: chipForget(c), x: c.x / SW })),
       inkDrop: INK_DROP,
       zoom: [Z0, ZD],
       letters: lockups[0].slots.map((s, i) => ({ ...letterRoll(i), steps: s.n - 1 })),
@@ -1008,7 +1020,7 @@
       buttonAdded: BTN_ADDED,
       clicks: CLICKS.map(at => {
         render(at);
-        return { at, x: cursorAt(at).x / 1920 };
+        return { at, x: cursorAt(at).x / SW };
       }),
       note: T.note,
       noteKeys: noteTimes,
@@ -1043,10 +1055,10 @@
     if (RENDER) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight - 48;
-    stageScale = Math.min(vw / 1920, vh / 1080);
+    stageScale = Math.min(vw / SW, vh / SH);
     stage.style.transform = `scale(${stageScale})`;
-    stage.style.left = `${(vw - 1920 * stageScale) / 2}px`;
-    stage.style.top = `${(vh - 1080 * stageScale) / 2}px`;
+    stage.style.left = `${(vw - SW * stageScale) / 2}px`;
+    stage.style.top = `${(vh - SH * stageScale) / 2}px`;
   }
 
   // Laadt de teksten van de gekozen taal. Bestaat die taal niet, dan Nederlands;

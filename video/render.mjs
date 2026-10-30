@@ -7,6 +7,8 @@
 //   node render.mjs --still 3.4,7.5      → losse frames als PNG in ./stills
 //   node render.mjs --from 5 --to 9      → alleen een stuk van de tijdlijn
 //   node render.mjs --preview            → lokale server; open de URL in je browser
+//   node render.mjs --lang en --portrait → staand (1080×1920) voor de feed op een telefoon:
+//                                          rolodink-explainer-vertical.mp4 en -poster.jpg
 //
 // Opties: --out <bestand> --fps <n> --crf <n> --outdir <map> --port <n>
 //         --no-audio (zonder geluid) --wav <bestand> (de soundtrack ook als WAV bewaren)
@@ -124,25 +126,29 @@ const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/video/index.html`;
 
 const lang = opt('lang', 'nl');
+const portrait = flag('portrait');
+const size = portrait ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
 
 if (flag('preview')) {
   console.log(`Preview: ${url}  (spatie = afspelen/pauzeren, pijltjes = frame voor frame)`);
   console.log(`Engels:  ${url}?lang=en`);
+  console.log(`Staand:  ${url}?format=portrait`);
 } else {
   const browser = await chromium.launch({
     executablePath: process.env.CHROME_PATH || undefined,
     args: ['--font-render-hinting=none', '--disable-lcd-text'],
   });
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: size, deviceScaleFactor: 1 });
   page.on('pageerror', e => console.error('Fout in de compositie:', e.message));
   page.on('console', m => m.type() === 'error' && console.error('Console:', m.text()));
-  await page.goto(`${url}?render&lang=${encodeURIComponent(lang)}`);
+  await page.goto(`${url}?render&lang=${encodeURIComponent(lang)}${portrait ? '&format=portrait' : ''}`);
   await page.evaluate(() => window.__ready);
   const timeline = await page.evaluate(() => window.__timeline);
   if (timeline.lang !== lang) throw new Error(`Onbekende taal "${lang}"; de talen staan in copy/`);
   const fps = Number(opt('fps', timeline.fps));
   const frame = t => page.evaluate(x => window.renderFrame(x), t);
-  const out = opt('out') ? path.resolve(here, opt('out')) : path.join(published, `${timeline.file}.mp4`);
+  const name = portrait ? `${timeline.file}-vertical` : timeline.file;
+  const out = opt('out') ? path.resolve(here, opt('out')) : path.join(published, `${name}.mp4`);
 
   if (opt('still')) {
     const outdir = path.resolve(here, opt('outdir', 'stills'));
@@ -187,7 +193,7 @@ if (flag('preview')) {
     console.log('');
     // de poster is het slotbeeld, alleen bij een volledige render
     if (from === 0 && to === timeline.duration && !opt('out')) {
-      const poster = path.join(published, `${timeline.file}-poster.jpg`);
+      const poster = path.join(published, `${name}-poster.jpg`);
       await frame(timeline.duration);
       await page.screenshot({ path: poster, type: 'jpeg', quality: 90 });
       console.log(poster);

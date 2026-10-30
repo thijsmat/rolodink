@@ -70,6 +70,26 @@ letterlijk in `note`. Pas ook `cards[2]` (rol en notitie van de hoofdpersoon) en
 de eerste scène) aan. De varianten `event`, `recruiter`, `sales` en `coffee` horen bij LinkedIn-campagne 2
 (`marketing/linkedin-campaign-2.md`).
 
+## Staand formaat
+
+Voor de LinkedIn-feed op een telefoon bestaat een staande versie van 1080×1920 (9:16). Staande video krijgt in de
+feed meer ruimte en volgens het onderzoek in `marketing/linkedin-research-campaign-3.md` ook meer aandacht. Het is
+dezelfde compositie met dezelfde timing en hetzelfde geluid; alleen de layout verschilt:
+
+- de kaartjes in de eerste scène staan boven en onder de vraag in plaats van eromheen;
+- het woordmerk is iets kleiner, zodat het in de breedte past;
+- bij de stappen staan nummer, titel en onderregel boven het browservenster in plaats van ernaast;
+- in het slot breekt de eerste regel waar nodig af, en staan de twee regels onderaan onder elkaar.
+
+```bash
+node render.mjs --portrait              # → website/public/video/rolodink-uitleg-vertical.mp4 en -poster.jpg
+node render.mjs --lang en --portrait    # → rolodink-explainer-vertical.mp4 en -poster.jpg
+```
+
+`--portrait` werkt samen met elke andere optie, ook met `--still` en met de varianten (`--lang en-event`). In de
+preview zet je het aan met `?format=portrait`. De posities staan in `main.js` (`CHIPS_PORTRAIT`, `LOCK_HOME`,
+`LOCK_BASE`) en onderaan `style.css` (`body.portrait`).
+
 ## Typografie en kleur
 
 - **Inter Tight** (700/800, strak gespatieerd) voor de koppen en het woordmerk.
