@@ -29,6 +29,23 @@ function localeFromPath(pathname: string): string {
 }
 
 export function proxy(request: NextRequest) {
+    // next.config.js heeft skipTrailingSlashRedirect aan (PostHog-endpoints eindigen op een
+    // slash), dus Next stuurt /nl/download/ niet zelf naar /nl/download. Zonder deze
+    // redirect bestaan beide URL's naast elkaar, terwijl canonical, sitemap en hreflang de
+    // versie zonder slash gebruiken. De matcher hieronder laat /ingest buiten schot.
+    const { pathname } = request.nextUrl;
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+        // Zonder regex: /\/+$/ geeft SonarCloud een backtracking-melding (S8786).
+        let trimmed = pathname;
+        while (trimmed.length > 1 && trimmed.endsWith('/')) {
+            trimmed = trimmed.slice(0, -1);
+        }
+        // Een gewone URL: NextURL zet de slash bij het serialiseren weer terug.
+        const url = new URL(request.url);
+        url.pathname = trimmed;
+        return NextResponse.redirect(url, 308);
+    }
+
     const error = request.nextUrl.searchParams.get('error');
 
     if (error) {

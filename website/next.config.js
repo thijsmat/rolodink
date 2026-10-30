@@ -86,8 +86,15 @@ const nextConfig = {
       // taalprefix kwam nooit bij next-intl en toonde de homepage onder de verkeerde
       // URL (duplicate content). Bekende paden gaan hier naar de standaardtaal (nl);
       // overige paden geven een 404 (zie de locale-check in [locale]/layout.tsx).
+      // Twee regels in plaats van één met een optionele `:rest*`: Vercel maakt van een lege
+      // `:rest*` een slash aan het eind (/nl/download/), en dat is een tweede URL.
       {
-        source: `/:path(${UNPREFIXED_ROUTES.join('|')})/:rest*`,
+        source: `/:path(${UNPREFIXED_ROUTES.join('|')})`,
+        destination: '/nl/:path',
+        permanent: true,
+      },
+      {
+        source: `/:path(${UNPREFIXED_ROUTES.join('|')})/:rest+`,
         destination: '/nl/:path/:rest*',
         permanent: true,
       },
