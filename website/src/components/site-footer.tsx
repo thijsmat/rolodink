@@ -67,6 +67,9 @@ export function SiteFooter() {
               <Link href="/features" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.features')}
               </Link>
+              <Link href="/linkedin-notes-extension" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
+                {t('links.notesExtension')}
+              </Link>
               <Link href="/download" className="block text-sm text-grey hover:text-azure transition-colors duration-200 ease-out">
                 {t('links.download')}
               </Link>
