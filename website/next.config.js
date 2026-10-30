@@ -11,6 +11,8 @@ const cmsUrl = new URL(process.env.CMS_BASE_URL || 'https://cms.rolodink.app');
 const UNPREFIXED_ROUTES = [
   'features',
   'how-it-works',
+  'linkedin-notes-extension',
+  'use-cases',
   'download',
   'help',
   'over',
@@ -81,6 +83,8 @@ const nextConfig = {
         permanent: true,
       },
       { source: '/:locale(nl|en)/testimonials', destination: '/:locale', permanent: true },
+      // /use-cases zelf heeft geen pagina; de losse use-case pagina's hangen onder /use-cases/<slug>.
+      { source: '/:locale(nl|en)/use-cases', destination: '/:locale/linkedin-notes-extension', permanent: true },
       { source: '/testimonials', destination: '/', permanent: true },
       // De proxy (src/proxy.ts) matcht alleen '/' en '/(nl|en)/...', dus een pad zonder
       // taalprefix kwam nooit bij next-intl en toonde de homepage onder de verkeerde

@@ -186,7 +186,7 @@
             },
             {
                 "question": "Can I export my data?",
-                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
+                "answer": "Yes. In the extension settings you can download a readable export (CSV for Excel, or JSON) with your connections decrypted, and an encrypted backup (JSON) exactly as it is stored. The readable export is decrypted in the extension itself, so we never see your notes in readable form. That file does contain your notes, email addresses and phone numbers unencrypted, so keep it somewhere safe."
             }
         ],
         "cta": {
@@ -781,7 +781,7 @@
             },
             "export": {
                 "question": "Can I export my notes?",
-                "answer": "Yes. In the extension settings you can download all your data as a JSON file. Encrypted fields (notes, meeting place, company, email and phone) are included exactly as they are stored, so they stay encrypted in that file. A readable export is on our roadmap."
+                "answer": "Yes. In the extension settings you can download a readable export (CSV for Excel, or JSON) with your connections decrypted, and an encrypted backup (JSON) exactly as it is stored. The readable export is decrypted in the extension itself, so we never see your notes in readable form. That file does contain your notes, email addresses and phone numbers unencrypted, so keep it somewhere safe."
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",
@@ -838,9 +838,271 @@
             "terms": "Terms of Service",
             "disclaimer": "Disclaimer",
             "about": "About",
-            "linkedin": "LinkedIn"
+            "linkedin": "LinkedIn",
+            "notesExtension": "LinkedIn notes"
         },
         "copyright": "All rights reserved."
+    },
+    "Landing": {
+        "common": {
+            "stepsTitle": "How it works",
+            "exampleTitle": "What a note can look like",
+            "exampleLabel": "Fictional example",
+            "benefitsTitle": "What you get",
+            "limitsTitle": "Good to know",
+            "privacyTitle": "Private by design",
+            "privacyLink": "Read how your notes are protected",
+            "faqTitle": "Frequently asked questions",
+            "relatedTitle": "More ways to use Rolodink",
+            "breadcrumbHome": "Home",
+            "primaryCta": "Add to Chrome - Free",
+            "secondaryCta": "See how it works",
+            "otherBrowsers": "Also available for Edge and Firefox",
+            "ctaTitle": "Ready to remember more about your network?",
+            "ctaDescription": "Install Rolodink for free and add your first note in a minute.",
+            "related": {
+                "notes": {
+                    "title": "LinkedIn notes extension",
+                    "description": "Private notes on every LinkedIn profile."
+                },
+                "recruiters": {
+                    "title": "For recruiters",
+                    "description": "Remember every candidate you speak to."
+                },
+                "sales": {
+                    "title": "For sales",
+                    "description": "Remember every prospect, not just the deal."
+                },
+                "events": {
+                    "title": "For networking events",
+                    "description": "Remember who you met, and why."
+                }
+            }
+        },
+        "notes": {
+            "eyebrow": "LinkedIn notes extension",
+            "title": "Add private notes to every LinkedIn profile",
+            "intro": "Rolodink is a free browser extension that puts a notes field on LinkedIn profiles. Write down where you met, what you talked about and what you want to do next, then find the person again by name, company or a detail from your note.",
+            "steps": [
+                {
+                    "title": "Install the extension",
+                    "description": "Add Rolodink from the Chrome Web Store, Edge Add-ons or Firefox Add-ons. It takes about 30 seconds."
+                },
+                {
+                    "title": "Open a profile and write a note",
+                    "description": "On a LinkedIn profile, the Add to Rldnk button sits next to Message. One click and the connection is in Rolodink, ready for your note."
+                },
+                {
+                    "title": "Find them again",
+                    "description": "Search by name, company or any detail in your notes. A search for “sail” finds Sanne, the person who restores sailboats."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Notes where you need them",
+                    "description": "Your note sits right on the LinkedIn profile, so you see it before you send a message or join a call."
+                },
+                {
+                    "title": "More than a name",
+                    "description": "Keep where you met, the company they were at, and their email address and phone number next to your note."
+                },
+                {
+                    "title": "Search that remembers for you",
+                    "description": "Search across names, companies and the text of your notes, and filter on recent contacts or contacts with notes."
+                },
+                {
+                    "title": "Saved as you type",
+                    "description": "There is no save button to forget. Your note is stored while you write it."
+                }
+            ],
+            "limits": [
+                "Rolodink is a notes layer for LinkedIn, not a full CRM: it has no pipelines and no automated outreach.",
+                "It runs in desktop browsers: Chrome, Edge and Firefox, plus other Chromium-based browsers such as Brave and Opera. A mobile version is on the roadmap.",
+                "Follow-up reminders are on the roadmap. They are not available yet.",
+                "You can export your connections as CSV or JSON, and download an encrypted backup."
+            ],
+            "privacy": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. We manage the keys so your notes work on every device, which means this is not end-to-end encryption. The people you write about cannot see your notes, and we never sell your data.",
+            "faq": [
+                {
+                    "question": "Can I add private notes to LinkedIn profiles?",
+                    "answer": "Yes. With the Rolodink browser extension you add a note to any LinkedIn profile. Only you can see it. The person you write about does not."
+                },
+                {
+                    "question": "Is the notes extension free?",
+                    "answer": "Yes. Rolodink is free to use as a browser extension for Chrome, Edge and Firefox. No credit card is required."
+                },
+                {
+                    "question": "Which browsers does it work in?",
+                    "answer": "Chrome, Edge and Firefox on desktop, plus other Chromium-based browsers such as Brave and Opera. There is no mobile version yet."
+                },
+                {
+                    "question": "Can I search my notes?",
+                    "answer": "Yes. Search by name, company or any detail in your notes, and filter on recent contacts or contacts with notes."
+                },
+                {
+                    "question": "How are my notes stored?",
+                    "answer": "Notes are encrypted with AES-256 in your browser before they are stored. We manage the keys, so your notes work on every device, which means this is not end-to-end encryption. The security page explains where the limits are."
+                }
+            ]
+        },
+        "recruiters": {
+            "eyebrow": "For recruiters",
+            "title": "Remember every candidate you speak to",
+            "intro": "Recruiters talk to a lot of people. With Rolodink you keep a private note on each candidate's LinkedIn profile: when you spoke, what they are looking for next and the detail that makes the next call personal.",
+            "steps": [
+                {
+                    "title": "Add the candidate",
+                    "description": "Open their LinkedIn profile and click Add to Rldnk, next to Message. The candidate is now in your Rolodink."
+                },
+                {
+                    "title": "Write down what matters",
+                    "description": "Note when you spoke, their availability, what they want next, such as remote work, and one personal detail. Your note is saved as you type."
+                },
+                {
+                    "title": "Find them when a role opens",
+                    "description": "Search your notes for a keyword such as “remote” or “backend” and see who you spoke to about it."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Context for the next call",
+                    "description": "Open the profile and your note is right there, so you can pick up the conversation where you left it."
+                },
+                {
+                    "title": "Search by what you wrote",
+                    "description": "Search by name, company or anything in your notes, and filter on recent contacts or contacts with notes."
+                },
+                {
+                    "title": "Where they worked, where you met",
+                    "description": "Keep the company a candidate was at when you spoke, and where you met, next to your note."
+                }
+            ],
+            "limits": [
+                "Rolodink is not an applicant tracking system. It has no vacancies or pipelines and does not message candidates.",
+                "Notes about people are personal data. Keep them factual and relevant to why you are in touch.",
+                "Follow-up reminders are on the roadmap. They are not available yet."
+            ],
+            "privacy": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. Candidates cannot see what you wrote. We manage the keys so your notes work on every device, which means this is not end-to-end encryption.",
+            "faq": [
+                {
+                    "question": "What can I save about a candidate?",
+                    "answer": "A private note, where you met, the company they were at, and an email address and phone number. These fields are encrypted in your browser before they are stored."
+                },
+                {
+                    "question": "Do candidates see my notes?",
+                    "answer": "No. Your notes are only visible to you in Rolodink, not on LinkedIn and not to the person you write about."
+                },
+                {
+                    "question": "Does Rolodink replace my ATS?",
+                    "answer": "No. It is a notes layer on top of LinkedIn. Use it for the personal context that does not fit in a pipeline, and keep your ATS for vacancies and process."
+                }
+            ]
+        },
+        "sales": {
+            "eyebrow": "For sales",
+            "title": "Remember every prospect, not just the deal",
+            "intro": "A deal is more than a proposal. With Rolodink you keep a private note on each prospect's LinkedIn profile: what you sent, when they owe you an answer and the personal detail that makes your follow-up sound human.",
+            "steps": [
+                {
+                    "title": "Add the prospect",
+                    "description": "Open their LinkedIn profile and click Add to Rldnk, next to Message. The prospect is now in your Rolodink."
+                },
+                {
+                    "title": "Note what was said",
+                    "description": "Write down what you sent, when they promised an answer and one personal detail, such as the new office in Amsterdam."
+                },
+                {
+                    "title": "Follow up naturally",
+                    "description": "Open the profile before you write. Your note is right there, so you can start with “How is the new office in Amsterdam?” instead of “Just checking in”."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Personal follow-ups",
+                    "description": "Your note sits on the profile, so every message can start with something that is about them."
+                },
+                {
+                    "title": "One searchable list",
+                    "description": "Find a prospect again by name, company or a detail from your note."
+                },
+                {
+                    "title": "Quick add",
+                    "description": "Add a prospect with one click from any LinkedIn profile, and write the note while the call is fresh."
+                }
+            ],
+            "limits": [
+                "Rolodink is not a CRM. It has no deal stages or forecasts and does not send messages.",
+                "Follow-up reminders are on the roadmap. They are not available yet.",
+                "It runs in desktop browsers. A mobile version is on the roadmap."
+            ],
+            "privacy": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. We manage the keys so your notes work on every device, which means this is not end-to-end encryption.",
+            "faq": [
+                {
+                    "question": "Does Rolodink replace my CRM?",
+                    "answer": "No. Your CRM keeps deals and forecasts. Rolodink keeps the personal context on LinkedIn profiles that is easy to forget to log."
+                },
+                {
+                    "question": "Can I get a reminder to follow up?",
+                    "answer": "Not yet. Follow-up reminders are on the roadmap. For now, write the next step in your note, for example “→ Follow up early June”, and search for it later."
+                },
+                {
+                    "question": "Can my colleagues see my notes?",
+                    "answer": "No. Your notes are private to your account and only visible to you."
+                }
+            ]
+        },
+        "events": {
+            "eyebrow": "For networking events",
+            "title": "Remember who you met at the event",
+            "intro": "You meet fifty people at an event and remember five. With Rolodink you add a note to someone's LinkedIn profile while it is fresh: where you met, what you talked about and what you promised.",
+            "steps": [
+                {
+                    "title": "Open their LinkedIn profile",
+                    "description": "After the event, open the profile of someone you met, whether you are connected yet or not."
+                },
+                {
+                    "title": "Add a note while it is fresh",
+                    "description": "Click Add to Rldnk, next to Message, and write where you met, what you talked about and one detail, such as “keeps bees”."
+                },
+                {
+                    "title": "Follow up when you are ready",
+                    "description": "A week or a month later, search for the event or a detail and you remember who they were."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "A note per person",
+                    "description": "Keep where you met and what you promised on the profile, instead of in a pile of business cards."
+                },
+                {
+                    "title": "Find them by any detail",
+                    "description": "A search for “bees” finds the Head of Sales who keeps bees. Search by name, company or anything you wrote."
+                },
+                {
+                    "title": "Quick add",
+                    "description": "One click from the profile, and the note is saved as you type."
+                }
+            ],
+            "limits": [
+                "Rolodink is a desktop browser extension. A mobile version is on the roadmap; until then, add your notes when you are back at your computer.",
+                "Follow-up reminders are on the roadmap. They are not available yet."
+            ],
+            "privacy": "Your notes are encrypted with AES-256 in your browser before they are stored, and only you can see them in Rolodink. The people you met cannot see what you wrote.",
+            "faq": [
+                {
+                    "question": "How do I add someone I just met?",
+                    "answer": "Open their LinkedIn profile in your browser, click Add to Rldnk next to Message and write your note."
+                },
+                {
+                    "question": "Can I use Rolodink on my phone at the event?",
+                    "answer": "Not yet. Rolodink is a desktop browser extension and a mobile version is on the roadmap. Add your notes when you are back at your computer."
+                },
+                {
+                    "question": "Will the person see what I wrote?",
+                    "answer": "No. Your notes are only visible to you in Rolodink, not on LinkedIn and not to the person you write about."
+                }
+            ]
+        }
     },
     "Metadata": {
         "title": "Rolodink – Private Notes for Your LinkedIn Connections",
@@ -883,6 +1145,22 @@
         "disclaimer": {
             "title": "Disclaimer",
             "description": "Rolodink is an independent product and is not affiliated with LinkedIn Corporation. Read the full disclaimer about our name and trademarks."
+        },
+        "linkedinNotes": {
+            "title": "LinkedIn Notes Extension: Add Private Notes",
+            "description": "Rolodink is a free browser extension for private notes on LinkedIn profiles. Write where you met and what you discussed, then find people by any detail."
+        },
+        "useCaseRecruiters": {
+            "title": "Candidate Notes on LinkedIn for Recruiters",
+            "description": "Keep a private note on every candidate's LinkedIn profile: when you spoke, what they want next and a personal detail. Free for Chrome, Edge and Firefox."
+        },
+        "useCaseSales": {
+            "title": "LinkedIn Notes for Sales: Remember Every Prospect",
+            "description": "Keep a private note on each prospect's LinkedIn profile: what you sent, when an answer is due and a personal detail for a follow-up that sounds human. Free."
+        },
+        "useCaseEvents": {
+            "title": "Remember People You Meet at Networking Events",
+            "description": "Add a note to someone's LinkedIn profile while it is fresh: where you met, what you discussed and what you promised. Free for Chrome, Edge and Firefox."
         }
     },
     "OnboardingPage": {

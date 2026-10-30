@@ -186,7 +186,7 @@
             },
             {
                 "question": "Kan ik mijn data exporteren?",
-                "answer": "Ja. In de instellingen van de extensie kun je al je data downloaden als JSON-bestand. Versleutelde velden (notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer) staan daarin precies zoals ze zijn opgeslagen, dus versleuteld. Een leesbare export staat op onze roadmap."
+                "answer": "Ja. In de instellingen van de extensie download je een leesbare export (CSV voor Excel, of JSON) met je connecties ontsleuteld, en een versleutelde back-up (JSON) precies zoals die is opgeslagen. De leesbare export wordt in de extensie zelf ontsleuteld, dus wij zien je notities nooit leesbaar. Dat bestand bevat je notities, e-mailadressen en telefoonnummers wel onversleuteld, dus bewaar het op een veilige plek."
             }
         ],
         "cta": {
@@ -781,7 +781,7 @@
             },
             "export": {
                 "question": "Kan ik mijn notities exporteren?",
-                "answer": "Ja. In de instellingen van de extensie kun je al je data downloaden als JSON-bestand. Versleutelde velden (notities, ontmoetingsplek, bedrijf, e-mailadres en telefoonnummer) staan daarin precies zoals ze zijn opgeslagen, dus versleuteld. Een leesbare export staat op onze roadmap."
+                "answer": "Ja. In de instellingen van de extensie download je een leesbare export (CSV voor Excel, of JSON) met je connecties ontsleuteld, en een versleutelde back-up (JSON) precies zoals die is opgeslagen. De leesbare export wordt in de extensie zelf ontsleuteld, dus wij zien je notities nooit leesbaar. Dat bestand bevat je notities, e-mailadressen en telefoonnummers wel onversleuteld, dus bewaar het op een veilige plek."
             },
             "visibility": {
                 "question": "Zien anderen mijn notities op LinkedIn?",
@@ -838,9 +838,271 @@
             "terms": "Algemene Voorwaarden",
             "disclaimer": "Disclaimer",
             "about": "Over",
-            "linkedin": "LinkedIn"
+            "linkedin": "LinkedIn",
+            "notesExtension": "LinkedIn-notities"
         },
         "copyright": "Alle rechten voorbehouden."
+    },
+    "Landing": {
+        "common": {
+            "stepsTitle": "Zo werkt het",
+            "exampleTitle": "Zo kan een notitie eruitzien",
+            "exampleLabel": "Fictief voorbeeld",
+            "benefitsTitle": "Wat je krijgt",
+            "limitsTitle": "Goed om te weten",
+            "privacyTitle": "Privé door ontwerp",
+            "privacyLink": "Lees hoe je notities worden beschermd",
+            "faqTitle": "Veelgestelde vragen",
+            "relatedTitle": "Meer manieren om Rolodink te gebruiken",
+            "breadcrumbHome": "Home",
+            "primaryCta": "Toevoegen aan Chrome - Gratis",
+            "secondaryCta": "Bekijk hoe het werkt",
+            "otherBrowsers": "Ook beschikbaar voor Edge en Firefox",
+            "ctaTitle": "Klaar om meer te onthouden over je netwerk?",
+            "ctaDescription": "Installeer Rolodink gratis en schrijf binnen een minuut je eerste notitie.",
+            "related": {
+                "notes": {
+                    "title": "LinkedIn-notities",
+                    "description": "Privénotities bij elk LinkedIn-profiel."
+                },
+                "recruiters": {
+                    "title": "Voor recruiters",
+                    "description": "Onthoud elke kandidaat met wie je spreekt."
+                },
+                "sales": {
+                    "title": "Voor sales",
+                    "description": "Onthoud elke lead, niet alleen de deal."
+                },
+                "events": {
+                    "title": "Voor netwerkevents",
+                    "description": "Onthoud wie je ontmoette en waarom."
+                }
+            }
+        },
+        "notes": {
+            "eyebrow": "LinkedIn-notities",
+            "title": "Schrijf privénotities bij elk LinkedIn-profiel",
+            "intro": "Rolodink is een gratis browserextensie die een notitieveld toevoegt aan LinkedIn-profielen. Noteer waar je elkaar ontmoette, waar jullie het over hadden en wat je nog wilt doen, en vind de persoon terug op naam, bedrijf of een detail uit je notitie.",
+            "steps": [
+                {
+                    "title": "Installeer de extensie",
+                    "description": "Voeg Rolodink toe via de Chrome Web Store, Edge Add-ons of Firefox Add-ons. Dat kost ongeveer 30 seconden."
+                },
+                {
+                    "title": "Open een profiel en schrijf een notitie",
+                    "description": "Op een LinkedIn-profiel staat de knop Add to Rldnk naast Bericht. Eén klik en de connectie staat in Rolodink, klaar voor je notitie."
+                },
+                {
+                    "title": "Vind ze terug",
+                    "description": "Zoek op naam, bedrijf of een detail uit je notities. Met ‘zeil’ vind je Sanne, die zeilboten restaureert."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Notities waar je ze nodig hebt",
+                    "description": "Je notitie staat op het LinkedIn-profiel zelf, dus je ziet hem voordat je een bericht stuurt of een gesprek begint."
+                },
+                {
+                    "title": "Meer dan een naam",
+                    "description": "Bewaar waar je elkaar ontmoette, bij welk bedrijf iemand werkte en het e-mailadres en telefoonnummer naast je notitie."
+                },
+                {
+                    "title": "Zoeken dat voor je onthoudt",
+                    "description": "Zoek in namen, bedrijven en de tekst van je notities, en filter op recente contacten of contacten met notities."
+                },
+                {
+                    "title": "Opgeslagen terwijl je typt",
+                    "description": "Er is geen opslaan-knop die je kunt vergeten. Je notitie wordt bewaard terwijl je schrijft."
+                }
+            ],
+            "limits": [
+                "Rolodink is een notitielaag voor LinkedIn, geen volledig CRM: er zijn geen pipelines en geen geautomatiseerde berichten.",
+                "Het werkt in desktopbrowsers: Chrome, Edge en Firefox, plus andere Chromium-browsers zoals Brave en Opera. Een mobiele versie staat op de roadmap.",
+                "Follow-up herinneringen staan op de roadmap. Ze zijn nog niet beschikbaar.",
+                "Je kunt je connecties exporteren als CSV of JSON en een versleutelde back-up downloaden."
+            ],
+            "privacy": "Je notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen, en alleen jij ziet ze in Rolodink. Wij beheren de sleutels zodat je notities op elk apparaat werken, waardoor dit geen end-to-end-versleuteling is. De mensen over wie je schrijft zien je notities niet, en we verkopen je data nooit.",
+            "faq": [
+                {
+                    "question": "Kan ik privénotities bij LinkedIn-profielen zetten?",
+                    "answer": "Ja. Met de Rolodink-browserextensie voeg je een notitie toe aan elk LinkedIn-profiel. Alleen jij ziet hem. De persoon over wie je schrijft niet."
+                },
+                {
+                    "question": "Is de notitie-extensie gratis?",
+                    "answer": "Ja. Rolodink is gratis te gebruiken als browserextensie voor Chrome, Edge en Firefox. Geen creditcard nodig."
+                },
+                {
+                    "question": "In welke browsers werkt het?",
+                    "answer": "In Chrome, Edge en Firefox op de desktop, plus andere Chromium-browsers zoals Brave en Opera. Een mobiele versie is er nog niet."
+                },
+                {
+                    "question": "Kan ik in mijn notities zoeken?",
+                    "answer": "Ja. Zoek op naam, bedrijf of een detail uit je notities, en filter op recente contacten of contacten met notities."
+                },
+                {
+                    "question": "Hoe worden mijn notities opgeslagen?",
+                    "answer": "Notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen. Wij beheren de sleutels, zodat je notities op elk apparaat werken, waardoor dit geen end-to-end-versleuteling is. Op de beveiligingspagina lees je waar de grenzen liggen."
+                }
+            ]
+        },
+        "recruiters": {
+            "eyebrow": "Voor recruiters",
+            "title": "Onthoud elke kandidaat met wie je spreekt",
+            "intro": "Recruiters spreken veel mensen. Met Rolodink bewaar je bij het LinkedIn-profiel van elke kandidaat een privénotitie: wanneer je sprak, wat iemand daarna zoekt en het detail dat het volgende gesprek persoonlijk maakt.",
+            "steps": [
+                {
+                    "title": "Voeg de kandidaat toe",
+                    "description": "Open het LinkedIn-profiel en klik op Add to Rldnk, naast Bericht. De kandidaat staat nu in je Rolodink."
+                },
+                {
+                    "title": "Schrijf op wat telt",
+                    "description": "Noteer wanneer je sprak, de beschikbaarheid, wat iemand daarna wil, bijvoorbeeld thuiswerken, en één persoonlijk detail. Je notitie wordt opgeslagen terwijl je typt."
+                },
+                {
+                    "title": "Vind ze terug als er een rol open komt",
+                    "description": "Zoek in je notities op een woord als ‘remote’ of ‘backend’ en zie met wie je daarover sprak."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Context voor het volgende gesprek",
+                    "description": "Open het profiel en je notitie staat er al, zodat je het gesprek oppakt waar je bleef."
+                },
+                {
+                    "title": "Zoeken op wat je schreef",
+                    "description": "Zoek op naam, bedrijf of iets uit je notities, en filter op recente contacten of contacten met notities."
+                },
+                {
+                    "title": "Waar ze werkten, waar je elkaar ontmoette",
+                    "description": "Bewaar bij welk bedrijf een kandidaat werkte toen je sprak, en waar je elkaar ontmoette, naast je notitie."
+                }
+            ],
+            "limits": [
+                "Rolodink is geen applicant tracking system. Er zijn geen vacatures of pipelines en het stuurt geen berichten naar kandidaten.",
+                "Notities over mensen zijn persoonsgegevens. Houd ze feitelijk en relevant voor waarom je in contact bent.",
+                "Follow-up herinneringen staan op de roadmap. Ze zijn nog niet beschikbaar."
+            ],
+            "privacy": "Je notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen, en alleen jij ziet ze in Rolodink. Kandidaten zien niet wat je schreef. Wij beheren de sleutels zodat je notities op elk apparaat werken, waardoor dit geen end-to-end-versleuteling is.",
+            "faq": [
+                {
+                    "question": "Wat kan ik over een kandidaat bewaren?",
+                    "answer": "Een privénotitie, waar je elkaar ontmoette, bij welk bedrijf iemand werkte, en een e-mailadres en telefoonnummer. Die velden worden in je browser versleuteld voordat ze worden opgeslagen."
+                },
+                {
+                    "question": "Zien kandidaten mijn notities?",
+                    "answer": "Nee. Je notities zijn alleen voor jou zichtbaar in Rolodink, niet op LinkedIn en niet voor de persoon over wie je schrijft."
+                },
+                {
+                    "question": "Vervangt Rolodink mijn ATS?",
+                    "answer": "Nee. Het is een notitielaag bovenop LinkedIn. Gebruik het voor de persoonlijke context die niet in een pipeline past, en houd je ATS voor vacatures en proces."
+                }
+            ]
+        },
+        "sales": {
+            "eyebrow": "Voor sales",
+            "title": "Onthoud elke lead, niet alleen de deal",
+            "intro": "Een deal is meer dan een offerte. Met Rolodink bewaar je bij het LinkedIn-profiel van elke lead een privénotitie: wat je stuurde, wanneer je een antwoord verwacht en het persoonlijke detail waardoor je follow-up menselijk klinkt.",
+            "steps": [
+                {
+                    "title": "Voeg de lead toe",
+                    "description": "Open het LinkedIn-profiel en klik op Add to Rldnk, naast Bericht. De lead staat nu in je Rolodink."
+                },
+                {
+                    "title": "Noteer wat er gezegd is",
+                    "description": "Schrijf op wat je stuurde, wanneer iemand een antwoord beloofde en één persoonlijk detail, zoals het nieuwe kantoor in Amsterdam."
+                },
+                {
+                    "title": "Volg natuurlijk op",
+                    "description": "Open het profiel voordat je schrijft. Je notitie staat er al, dus je kunt beginnen met “Hoe bevalt het nieuwe kantoor in Amsterdam?” in plaats van “Even checken of je mijn mail hebt gezien”."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Persoonlijke follow-ups",
+                    "description": "Je notitie staat op het profiel, dus elk bericht kan beginnen met iets dat over de ander gaat."
+                },
+                {
+                    "title": "Eén doorzoekbare lijst",
+                    "description": "Vind een lead terug op naam, bedrijf of een detail uit je notitie."
+                },
+                {
+                    "title": "Snel toevoegen",
+                    "description": "Voeg een lead met één klik toe vanaf elk LinkedIn-profiel en schrijf de notitie terwijl het gesprek vers is."
+                }
+            ],
+            "limits": [
+                "Rolodink is geen CRM. Er zijn geen dealfases of forecasts en het stuurt geen berichten.",
+                "Follow-up herinneringen staan op de roadmap. Ze zijn nog niet beschikbaar.",
+                "Het werkt in desktopbrowsers. Een mobiele versie staat op de roadmap."
+            ],
+            "privacy": "Je notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen, en alleen jij ziet ze in Rolodink. Wij beheren de sleutels zodat je notities op elk apparaat werken, waardoor dit geen end-to-end-versleuteling is.",
+            "faq": [
+                {
+                    "question": "Vervangt Rolodink mijn CRM?",
+                    "answer": "Nee. Je CRM houdt deals en forecasts bij. Rolodink bewaart de persoonlijke context bij LinkedIn-profielen die je makkelijk vergeet te loggen."
+                },
+                {
+                    "question": "Kan ik een herinnering krijgen om op te volgen?",
+                    "answer": "Nog niet. Follow-up herinneringen staan op de roadmap. Schrijf voorlopig de volgende stap in je notitie, bijvoorbeeld “→ Begin juni nabellen”, en zoek er later op."
+                },
+                {
+                    "question": "Kunnen mijn collega’s mijn notities zien?",
+                    "answer": "Nee. Je notities zijn privé voor je account en alleen voor jou zichtbaar."
+                }
+            ]
+        },
+        "events": {
+            "eyebrow": "Voor netwerkevents",
+            "title": "Onthoud wie je ontmoette op het event",
+            "intro": "Je spreekt vijftig mensen op een event en onthoudt er vijf. Met Rolodink zet je een notitie bij iemands LinkedIn-profiel zolang het vers is: waar je elkaar ontmoette, waar jullie het over hadden en wat je beloofde.",
+            "steps": [
+                {
+                    "title": "Open het LinkedIn-profiel",
+                    "description": "Open na het event het profiel van iemand die je sprak, of je nu al verbonden bent of niet."
+                },
+                {
+                    "title": "Schrijf een notitie zolang het vers is",
+                    "description": "Klik op Add to Rldnk, naast Bericht, en noteer waar je elkaar ontmoette, waar jullie het over hadden en één detail, zoals ‘houdt bijen’."
+                },
+                {
+                    "title": "Volg op als je er klaar voor bent",
+                    "description": "Een week of een maand later zoek je op het event of een detail en weet je weer wie het was."
+                }
+            ],
+            "benefits": [
+                {
+                    "title": "Een notitie per persoon",
+                    "description": "Bewaar waar je elkaar ontmoette en wat je beloofde bij het profiel, in plaats van in een stapel visitekaartjes."
+                },
+                {
+                    "title": "Vind ze op elk detail",
+                    "description": "Met “bijen” vind je de Head of Sales die bijen houdt. Zoek op naam, bedrijf of iets wat je schreef."
+                },
+                {
+                    "title": "Snel toevoegen",
+                    "description": "Eén klik vanaf het profiel, en de notitie wordt opgeslagen terwijl je typt."
+                }
+            ],
+            "limits": [
+                "Rolodink is een browserextensie voor de desktop. Een mobiele versie staat op de roadmap; schrijf je notities voorlopig als je weer achter je computer zit.",
+                "Follow-up herinneringen staan op de roadmap. Ze zijn nog niet beschikbaar."
+            ],
+            "privacy": "Je notities worden in je browser met AES-256 versleuteld voordat ze worden opgeslagen, en alleen jij ziet ze in Rolodink. De mensen die je ontmoette zien niet wat je schreef.",
+            "faq": [
+                {
+                    "question": "Hoe voeg ik iemand toe die ik net heb ontmoet?",
+                    "answer": "Open het LinkedIn-profiel in je browser, klik op Add to Rldnk naast Bericht en schrijf je notitie."
+                },
+                {
+                    "question": "Kan ik Rolodink op mijn telefoon gebruiken tijdens het event?",
+                    "answer": "Nog niet. Rolodink is een browserextensie voor de desktop en een mobiele versie staat op de roadmap. Schrijf je notities als je weer achter je computer zit."
+                },
+                {
+                    "question": "Ziet de persoon wat ik schreef?",
+                    "answer": "Nee. Je notities zijn alleen voor jou zichtbaar in Rolodink, niet op LinkedIn en niet voor de persoon over wie je schrijft."
+                }
+            ]
+        }
     },
     "Metadata": {
         "title": "Rolodink – Privénotities bij je LinkedIn-connecties",
@@ -883,6 +1145,22 @@
         "disclaimer": {
             "title": "Disclaimer",
             "description": "Rolodink is een onafhankelijk product en niet gelieerd aan LinkedIn Corporation. Lees de volledige disclaimer over onze naam en handelsmerken."
+        },
+        "linkedinNotes": {
+            "title": "LinkedIn-notities: privénotities bij elk profiel",
+            "description": "Rolodink is een gratis browserextensie voor privénotities bij LinkedIn-profielen. Noteer waar je elkaar ontmoette en vind mensen terug op elk detail."
+        },
+        "useCaseRecruiters": {
+            "title": "Kandidaatnotities op LinkedIn voor recruiters",
+            "description": "Bewaar bij elk LinkedIn-profiel een privénotitie: wanneer je sprak, wat de kandidaat zoekt en een persoonlijk detail. Gratis voor Chrome, Edge en Firefox."
+        },
+        "useCaseSales": {
+            "title": "LinkedIn-notities voor sales: onthoud elke lead",
+            "description": "Bewaar bij elke lead een privénotitie op LinkedIn: wat je stuurde, wanneer een antwoord volgt en een persoonlijk detail voor een menselijke follow-up. Gratis."
+        },
+        "useCaseEvents": {
+            "title": "Onthoud wie je ontmoet op netwerkevents",
+            "description": "Zet een notitie bij iemands LinkedIn-profiel zolang het vers is: waar je elkaar ontmoette, waar het over ging en wat je beloofde. Gratis extensie."
         }
     },
     "OnboardingPage": {

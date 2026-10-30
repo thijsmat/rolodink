@@ -15,6 +15,10 @@ const STATIC_ROUTES = [
   '/download',
   '/help',
   '/how-it-works',
+  '/linkedin-notes-extension',
+  '/use-cases/recruiters',
+  '/use-cases/sales',
+  '/use-cases/networking-events',
   '/over',
   '/privacy',
   '/terms',
@@ -28,9 +32,10 @@ type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]['changeFrequenc
 function staticEntry(route: string): { priority: number; changeFrequency: ChangeFrequency } {
   if (route === '') return { priority: 1.0, changeFrequency: 'weekly' }
   if (route === '/download') return { priority: 0.9, changeFrequency: 'weekly' }
-  if (['/features', '/how-it-works', '/over'].includes(route)) {
+  if (['/features', '/how-it-works', '/over', '/linkedin-notes-extension'].includes(route)) {
     return { priority: 0.8, changeFrequency: 'monthly' }
   }
+  if (route.startsWith('/use-cases/')) return { priority: 0.7, changeFrequency: 'monthly' }
   return { priority: 0.5, changeFrequency: 'monthly' }
 }
 

@@ -15,6 +15,10 @@ export const PAGE_PATHS = {
   terms: '/terms',
   security: '/security',
   disclaimer: '/disclaimer',
+  linkedinNotes: '/linkedin-notes-extension',
+  useCaseRecruiters: '/use-cases/recruiters',
+  useCaseSales: '/use-cases/sales',
+  useCaseEvents: '/use-cases/networking-events',
 } as const
 
 export type PageKey = keyof typeof PAGE_PATHS
