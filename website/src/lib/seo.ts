@@ -70,6 +70,13 @@ export function openGraphFor(
   }
 }
 
+// The layout adds " | Rolodink" to every title. A title that already ends in the brand name
+// (the about page, the changelog, an article called "Why I built Rolodink") would end in
+// "Rolodink | Rolodink", so those are used as they are.
+export function withBrand(title: string): string {
+  return title.endsWith('Rolodink') ? title : `${title} | Rolodink`
+}
+
 // A page that sets `twitter` replaces the whole object from the layout, so without this every
 // page would share the homepage's twitter:title and twitter:description in X and in apps that
 // read twitter:* before og:*. Keep it in step with openGraphFor.
@@ -88,11 +95,11 @@ export async function pageMetadata(params: Promise<{ locale: string }>, page: Pa
   const description = t(`${page}.description`)
 
   return {
-    title,
+    title: { absolute: withBrand(title) },
     description,
     alternates: localeAlternates(locale, path),
-    openGraph: openGraphFor(locale, path, `${title} | Rolodink`, description, imageAlt),
-    twitter: twitterFor(`${title} | Rolodink`, description),
+    openGraph: openGraphFor(locale, path, withBrand(title), description, imageAlt),
+    twitter: twitterFor(withBrand(title), description),
   }
 }
 

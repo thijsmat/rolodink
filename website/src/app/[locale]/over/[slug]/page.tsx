@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCta } from "@/components/article-cta";
 import { Prose } from "@/components/prose";
 import { getArticle, isValidSlug, type Locale } from "@/lib/cms";
-import { BASE_URL, localeAlternates, type AppLocale } from "@/lib/seo";
+import { BASE_URL, localeAlternates, withBrand, type AppLocale } from "@/lib/seo";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     : { url: "/og-image.png", width: 1200, height: 630, alt: "Rolodink" };
 
   return {
-    title: article.title,
+    title: { absolute: withBrand(article.title) },
     description,
     alternates,
     openGraph: {

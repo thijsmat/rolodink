@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleList } from "@/components/article-list";
 import { ArticleCta } from "@/components/article-cta";
 import { getArticles, type Locale } from "@/lib/cms";
-import { localeAlternates, openGraphFor, twitterFor, type AppLocale } from "@/lib/seo";
+import { localeAlternates, openGraphFor, twitterFor, withBrand, type AppLocale } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
 
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const t = await getTranslations({ locale, namespace: "AboutPage" });
 
   return {
-    title: t("title"),
+    title: { absolute: withBrand(t("title")) },
     description: t("description"),
     alternates: localeAlternates(locale, "/over"),
     openGraph: openGraphFor(locale, "/over", t("title"), t("description"), "Rolodink"),
