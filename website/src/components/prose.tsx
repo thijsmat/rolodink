@@ -17,11 +17,14 @@ interface ProseProps {
   /** Reeds gesanitizede HTML (zie src/lib/cms.ts). Nooit ruwe gebruikersinvoer. */
   readonly html: string;
   readonly className?: string;
+  /** Alleen nodig als de tekst een andere taal heeft dan de pagina eromheen. */
+  readonly lang?: string;
 }
 
-export function Prose({ html, className }: ProseProps) {
+export function Prose({ html, className, lang }: ProseProps) {
   return (
     <div
+      lang={lang}
       className={cn(proseClassName, className)}
       dangerouslySetInnerHTML={{ __html: html }}
     />

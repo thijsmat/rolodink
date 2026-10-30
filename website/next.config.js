@@ -86,6 +86,11 @@ const nextConfig = {
       // /use-cases zelf heeft geen pagina; de losse use-case pagina's hangen onder /use-cases/<slug>.
       { source: '/:locale(nl|en)/use-cases', destination: '/:locale/linkedin-notes-extension', permanent: true },
       { source: '/testimonials', destination: '/', permanent: true },
+      // /over heet in het Engels /about (zie pathnames in src/navigation.ts). Oude links en
+      // de al geïndexeerde /en/over-URL's gaan er permanent naartoe; de interne rewrite
+      // van /en/about naar de map `over` doet de proxy.
+      { source: '/en/over', destination: '/en/about', permanent: true },
+      { source: '/en/over/:slug', destination: '/en/about/:slug', permanent: true },
       // De proxy (src/proxy.ts) matcht alleen '/' en '/(nl|en)/...', dus een pad zonder
       // taalprefix kwam nooit bij next-intl en toonde de homepage onder de verkeerde
       // URL (duplicate content). Bekende paden gaan hier naar de standaardtaal (nl);

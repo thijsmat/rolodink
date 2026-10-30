@@ -37,7 +37,7 @@ export async function ArticleList({ articles, locale }: ArticleListProps) {
       {articles.map((article) => (
         <li key={article.id}>
           <Link
-            href={`/over/${article.slug}`}
+            href={{ pathname: "/over/[slug]", params: { slug: article.slug } }}
             className="group grid gap-6 py-10 md:grid-cols-[1fr_200px] md:items-start"
           >
             <div className="flex flex-col gap-3">

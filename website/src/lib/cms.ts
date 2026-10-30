@@ -291,8 +291,14 @@ export async function getArticle(slug: string, locale: Locale): Promise<Article 
   return articles.find((article) => article.slug === slug) ?? null
 }
 
-/** Voor de sitemap: slugs met laatste wijziging, taalonafhankelijk. */
-export async function getArticleSummaries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
-  const articles = await getArticles('nl')
-  return articles.map(({ slug, updatedAt }) => ({ slug, updatedAt }))
+/**
+ * Voor de sitemap: slugs met laatste wijziging, en of er een echte Engelse tekst is. Zonder
+ * Engelse tekst toont /en/about/<slug> de Nederlandse versie; die hoort niet in de sitemap.
+ */
+export async function getArticleSummaries(): Promise<
+  Array<{ slug: string; updatedAt: Date; hasEnglish: boolean }>
+> {
+  const [dutch, english] = await Promise.all([getArticles('nl'), getArticles('en')])
+  const translated = new Set(english.filter((a) => !a.isFallback).map((a) => a.slug))
+  return dutch.map(({ slug, updatedAt }) => ({ slug, updatedAt, hasEnglish: translated.has(slug) }))
 }
