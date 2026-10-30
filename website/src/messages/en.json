@@ -2,7 +2,7 @@
     "Hero": {
         "badge": "Browser extension for LinkedIn: Chrome, Edge, Brave and Firefox",
         "title": "Remember every connection on LinkedIn",
-        "subtitle": "Rolodink is a note-taking layer for LinkedIn. Write a note on a profile, remember the details and find the person later, directly from your browser.",
+        "subtitle": "Rolodink is a note-taking layer for LinkedIn. Write down what you know about someone on their profile and find them again later, directly from your browser.",
         "watch": "See how it works",
         "imageAlt": "Business cards on a networking table",
         "demoCard": {
@@ -56,7 +56,7 @@
             },
             "details": {
                 "title": "Keep the details",
-                "description": "Keep what was said in a conversation, what someone is working on and what you agreed. Handy for follow-ups."
+                "description": "Keep what was said in a conversation, what they're interested in and what you agreed. Handy for follow-ups."
             },
             "relationships": {
                 "title": "Build personal relationships",
@@ -68,7 +68,7 @@
             },
             "quickAdd": {
                 "title": "Quick add with one click",
-                "description": "Add a connection with one click from any LinkedIn profile. Their contact details are at hand when you need them."
+                "description": "Add a connection with one click from any LinkedIn profile. Everything you save about them is then in one place."
             },
             "search": {
                 "title": "Search and filter",
@@ -78,7 +78,7 @@
     },
     "FeaturesPage": {
         "hero": {
-            "title": "All tools for a better network",
+            "title": "What Rolodink does",
             "description": "With Rolodink you write notes on LinkedIn profiles, keep contact details and search it all."
         },
         "features": [
@@ -92,7 +92,7 @@
                 ]
             },
             {
-                "title": "The details that make the difference",
+                "title": "Details worth remembering",
                 "description": "Their dog is named Max, they're moving to Berlin, their startup is still looking for a CTO.",
                 "benefits": [
                     "Contextual notes",
@@ -165,8 +165,12 @@
         "description": "Find answers to the most common questions here. Don't see your question? Feel free to reach out.",
         "faq": [
             {
+                "question": "How do I install Rolodink?",
+                "answer": "Add Rolodink with one click from the Chrome Web Store, Edge Add-ons or Firefox Add-ons. It works on LinkedIn right after installation. Refresh the page if you don't see the sidebar right away."
+            },
+            {
                 "question": "How do my notes get secured?",
-                "answer": "Your notes are stored encrypted and are only visible to you. We never sell your data. More details are in the Privacy Policy."
+                "answer": "Your notes are stored encrypted and are only visible to you in Rolodink. We never sell your data. More details are in the Privacy Policy."
             },
             {
                 "question": "Is Rolodink really free?",
@@ -174,7 +178,7 @@
             },
             {
                 "question": "Where are my notes stored?",
-                "answer": "Your notes are stored encrypted in the cloud, linked to your account. Only you can see them. We never sell your data. More details are in the Privacy Policy."
+                "answer": "Your notes are stored encrypted in the cloud, linked to your account. Only you can see them in Rolodink. We never sell your data. More details are in the Privacy Policy."
             },
             {
                 "question": "Does Rolodink also work on the mobile LinkedIn app?",
@@ -198,7 +202,7 @@
     "HowItWorksPage": {
         "hero": {
             "title": "From chaos to connection in 4 steps",
-            "description": "Rolodink works inside LinkedIn itself. You do not have to learn new software: you open a profile and write a note."
+            "description": "Rolodink works inside LinkedIn itself. You don't have to learn new software: you open a profile and write a note."
         },
         "stepLabel": "Step",
         "steps": [
@@ -212,7 +216,7 @@
             },
             {
                 "title": "Add your notes",
-                "description": "Note where you met someone, what you talked about, or whatever you want to remember. Only you can see your notes."
+                "description": "Note where you met someone, what you talked about, or whatever you want to remember. Only you can see your notes in Rolodink."
             },
             {
                 "title": "Find everything instantly",
@@ -617,7 +621,7 @@
     "OnboardingSuccessPage": {
         "hero": {
             "title": "Your account is confirmed",
-            "subtitle": "Welcome to Rolodink. These steps add your first connection in 5 minutes."
+            "subtitle": "Welcome to Rolodink. Follow these steps to add your first connection in 5 minutes."
         },
         "steps": {
             "step1": {
@@ -631,7 +635,7 @@
             },
             "step3": {
                 "title": "Write a note",
-                "description": "Add a personal note, such as: \"Met at Tech Meetup Amsterdam. Interested in AI and open-source. Follow up about collaboration.\" Only you can see your notes."
+                "description": "Add a personal note, such as: \"Met at Tech Meetup Amsterdam. Interested in AI and open-source. Follow up about collaboration.\" Only you can see your notes in Rolodink."
             },
             "step4": {
                 "title": "Your data is secured automatically",
@@ -785,7 +789,7 @@
             },
             "visibility": {
                 "question": "Do others see my notes on LinkedIn?",
-                "answer": "No. Only you can see your notes."
+                "answer": "No. Your notes are only visible in Rolodink, and only to you."
             },
             "browser": {
                 "question": "Does this work in my browser?",
@@ -820,7 +824,7 @@
         "cta": "Install free in 30 seconds"
     },
     "Footer": {
-        "description": "Rolodink brings the personal touch of business cards to LinkedIn. Keep why a connection matters.",
+        "description": "Rolodink brings the personal touch of business cards to LinkedIn. Note down why each connection matters.",
         "sections": {
             "product": "Product",
             "support": "Support",
@@ -903,7 +907,7 @@
                     "description": "Your note sits right on the LinkedIn profile, so you see it before you send a message or join a call."
                 },
                 {
-                    "title": "More than a name",
+                    "title": "Context next to your note",
                     "description": "Keep where you met, the company they were at, and their email address and phone number next to your note."
                 },
                 {
@@ -1115,8 +1119,8 @@
             "description": "Rolodink adds private notes, search and context to LinkedIn profiles in one click. Encrypted and free in Chrome, Edge and Firefox. Install it today."
         },
         "howItWorks": {
-            "title": "How It Works: Add Notes to LinkedIn in 3 Steps",
-            "description": "Open a profile, write a note and find the person again by name, company or any detail. See how Rolodink works in three steps, then install it for free."
+            "title": "How It Works: Add Notes to LinkedIn in 4 Steps",
+            "description": "Install the free extension, open a profile, write a note and find the person again by name, company or any detail. That is how Rolodink works."
         },
         "download": {
             "title": "Download Rolodink for Chrome, Edge & Firefox",
@@ -1165,7 +1169,7 @@
     },
     "OnboardingPage": {
         "title": "Welcome to Rolodink",
-        "intro": "Your LinkedIn, but organized.",
+        "intro": "Three steps and you're ready for your first note.",
         "steps": {
             "pin": {
                 "title": "Pin the extension",
@@ -1176,7 +1180,7 @@
                 "description": "Signing in happens inside the Rolodink window itself. You can create your account there too.",
                 "instructions": {
                     "open": "Click the Rolodink icon in your toolbar to open the window.",
-                    "choose": "Pick \"Sign Up\" for a new account or \"Log In\" if you already have one, with LinkedIn or with email.",
+                    "choose": "Pick \"Sign Up\" for a new account or \"Log In\" if you already have one. Both work with LinkedIn or with email.",
                     "note": "Signing in on this website does not sign in the extension: they are two separate sessions. Only signing in from the extension window counts."
                 }
             },
