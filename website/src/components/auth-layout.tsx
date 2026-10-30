@@ -1,5 +1,6 @@
 'use client';
 
+import type { ComponentProps } from 'react';
 import { Link } from '@/navigation';
 import LinkedInSignInButton from '@/components/LinkedInSignInButton';
 import { EmailPasswordForm } from '@/components/EmailPasswordForm';
@@ -12,7 +13,7 @@ type AuthLayoutProps = {
     alternateLink: {
         text: string;
         linkText: string;
-        href: string;
+        href: ComponentProps<typeof Link>['href'];
     };
     next?: string;
 };

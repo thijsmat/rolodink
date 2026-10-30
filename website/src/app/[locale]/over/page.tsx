@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleList } from "@/components/article-list";
 import { ArticleCta } from "@/components/article-cta";
 import { getArticles, type Locale } from "@/lib/cms";
+import { localeAlternates, openGraphFor, type AppLocale } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
 
@@ -12,24 +13,14 @@ function asLocale(locale: string): Locale {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { locale } = await params;
+  const locale = (await params).locale as AppLocale;
   const t = await getTranslations({ locale, namespace: "AboutPage" });
 
   return {
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `/${locale}/over`,
-      languages: { nl: "/nl/over", en: "/en/over" },
-    },
-    openGraph: {
-      type: "website",
-      siteName: "Rolodink",
-      url: `https://rolodink.app/${locale}/over`,
-      title: t("title"),
-      description: t("description"),
-      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Rolodink" }],
-    },
+    alternates: localeAlternates(locale, "/over"),
+    openGraph: openGraphFor(locale, "/over", t("title"), t("description"), "Rolodink"),
   };
 }
 

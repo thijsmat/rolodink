@@ -18,6 +18,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/navigation';
 
@@ -29,11 +30,12 @@ export function SiteHeader() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const { slug } = useParams<{ slug?: string }>();
 
   const navLinks = [
     { href: "/features", label: t('nav.features') },
     { href: "/help", label: t('nav.faq') },
-  ];
+  ] as const;
 
   useEffect(() => {
     setIsMounted(true);
@@ -52,7 +54,13 @@ export function SiteHeader() {
 
   const toggleLanguage = () => {
     const nextLocale = locale === 'nl' ? 'en' : 'nl';
-    router.replace(pathname, { locale: nextLocale });
+    // /over/[slug] is the one route that is both translated (en: /about) and dynamic,
+    // so it needs its slug passed along to land on the same article in the other language.
+    if (pathname === '/over/[slug]') {
+      router.replace({ pathname, params: { slug: String(slug) } }, { locale: nextLocale });
+    } else {
+      router.replace(pathname, { locale: nextLocale });
+    }
   };
 
   if (!isMounted) return null;

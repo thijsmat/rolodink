@@ -31,7 +31,7 @@ export default async function LoginPage(props: Readonly<LoginPageProps>) {
       alternateLink={{
         text: 'New to Rolodink?',
         linkText: 'Create an account',
-        href: `/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+        href: { pathname: '/signup', query: next ? { next } : undefined },
       }}
       next={next}
     />

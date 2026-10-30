@@ -141,7 +141,7 @@ if (!$app->module('content')->exists('over')) {
         ],
         'preview'   => [
             ['name' => 'Website (NL)', 'uri' => "{$siteUrl}/nl/over/{slug}"],
-            ['name' => 'Website (EN)', 'uri' => "{$siteUrl}/en/over/{slug}"],
+            ['name' => 'Website (EN)', 'uri' => "{$siteUrl}/en/about/{slug}"],
         ],
         'meta'      => null,
     ]);

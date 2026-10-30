@@ -68,11 +68,12 @@ Content → Add model → **Collection**, naam **`over`** (label "Over Rolodink"
 | `image`    | asset     | optioneel; filter op afbeeldingen                                |
 | `imageAlt` | text      | **i18n** aan; alt-tekst van de afbeelding                        |
 
-Content-preview-URL's: `https://rolodink.app/nl/over/{slug}` en `https://rolodink.app/en/over/{slug}`.
+Content-preview-URL's: `https://rolodink.app/nl/over/{slug}` en `https://rolodink.app/en/about/{slug}`.
 Een artikel is pas zichtbaar op rolodink.app als de status **Published** is.
 
-Engels is optioneel: laat je de EN-velden leeg, dan toont `/en/over/...` de Nederlandse
-tekst met een klein label "alleen in het Nederlands".
+Engels is optioneel: laat je de EN-velden leeg, dan toont `/en/about/...` de Nederlandse
+tekst met een klein label "alleen in het Nederlands". Die Engelse URL verwijst met een
+canonical naar de Nederlandse pagina en staat niet in de sitemap, zodat Google geen kopie indexeert.
 
 ### Rol en API-key
 1. System → Roles: rol **`website`** met alleen `content/over/read`.

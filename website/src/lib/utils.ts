@@ -20,6 +20,7 @@ export type StorePlacement =
   | "features"
   | "help"
   | "how-it-works"
+  | "landing"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

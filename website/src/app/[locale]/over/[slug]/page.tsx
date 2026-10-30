@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCta } from "@/components/article-cta";
 import { Prose } from "@/components/prose";
 import { getArticle, isValidSlug, type Locale } from "@/lib/cms";
+import { BASE_URL, localeAlternates, type AppLocale } from "@/lib/seo";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -15,11 +16,20 @@ function asLocale(locale: string): Locale {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { locale, slug } = await params;
+  const { slug, ...rest } = await params;
+  const locale = rest.locale as AppLocale;
   if (!isValidSlug(slug)) return {};
 
   const article = await getArticle(slug, asLocale(locale));
   if (!article) return {};
+
+  // An article without an English text is shown in Dutch under /en/about too. That page
+  // repeats the Dutch one, so it canonicals to the Dutch URL and has no hreflang pair.
+  const english = locale === "en" ? article : await getArticle(slug, "en");
+  const available: AppLocale[] = english && !english.isFallback ? ["nl", "en"] : ["nl"];
+  const href = { pathname: "/over/[slug]", params: { slug } } as const;
+  const alternates = localeAlternates(locale, href, available);
+  const canonicalUrl = `${BASE_URL}${alternates.canonical}`;
 
   const description = article.excerpt || article.title;
   const image = article.image
@@ -29,14 +39,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: article.title,
     description,
-    alternates: {
-      canonical: `/${locale}/over/${slug}`,
-      languages: { nl: `/nl/over/${slug}`, en: `/en/over/${slug}` },
-    },
+    alternates,
     openGraph: {
       type: "article",
       siteName: "Rolodink",
-      url: `https://rolodink.app/${locale}/over/${slug}`,
+      url: canonicalUrl,
       title: article.title,
       description,
       publishedTime: article.date.toISOString(),
@@ -75,7 +82,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Params 
               <span aria-hidden="true">←</span> {t("back")}
             </Link>
 
-            <header className="mt-8">
+            <header className="mt-8" lang={article.isFallback ? "nl" : undefined}>
               <p className="text-xs font-semibold uppercase tracking-wider text-gold">
                 <time dateTime={article.date.toISOString().slice(0, 10)}>{dateLabel}</time>
                 <span aria-hidden="true"> · </span>
@@ -110,7 +117,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Params 
               </p>
             )}
 
-            <Prose html={article.body} className="mt-10" />
+            <Prose html={article.body} lang={article.isFallback ? "nl" : undefined} className="mt-10" />
 
             <div className="mt-16 border-t border-azure/10 pt-8">
               <Link
