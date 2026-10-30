@@ -261,6 +261,24 @@ mark.hl { padding: 0 1px; border-radius: 2px; background: linear-gradient(#fdeeb
 #sparks i:nth-child(3n) { background: var(--gold-hi); }
 #sparks i:nth-child(4n) { background: var(--electric); }
 
+/* ---------- staand formaat (?format=portrait, 1080×1920) ----------
+ * Zelfde scènes en timing; de tekst staat boven het browservenster in plaats van
+ * ernaast, en de koppen zijn kleiner zodat ze in de breedte passen. */
+body.portrait #stage { width: 1080px; height: 1920px; }
+body.portrait #hook .l1 { font-size: 150px; }
+body.portrait #hook .l2 { font-size: 220px; }
+body.portrait #tagline { top: 990px; }
+body.portrait #tagline .t1 { font-size: 54px; }
+body.portrait #tagline .t2 { font-size: 70px; }
+body.portrait #stepNum { left: 84px; top: 190px; }
+body.portrait #stepTitles { left: 88px; top: 450px; }
+body.portrait #stepSubs { left: 92px; top: 752px; }
+body.portrait #winWrap { left: 70px; top: 880px; }
+body.portrait #outro { top: 610px; padding: 0 60px; }
+body.portrait #outro .o1 { font-size: 150px; white-space: normal; }
+body.portrait #outro .o2 { font-size: 168px; }
+body.portrait #cta { top: 1340px; flex-direction: column; gap: 24px; }
+
 /* ---------- bediening (alleen in de preview) ---------- */
 #controls { position: fixed; left: 0; right: 0; bottom: 0; height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: #0b0e17; color: #cbd5e1; font: 500 14px/1 'Inter', sans-serif; }
 #controls input { flex: 1; }
