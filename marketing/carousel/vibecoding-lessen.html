@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>5 dingen die ik leerde van vibecoden</title>
+<!--
+  LinkedIn-carrousel (documentpost), 1080×1350 per slide (4:5).
+  Render naar PDF: node marketing/carousel/render.mjs vibecoding-lessen
+  Lettertypen en kleuren zijn die van de uitlegvideo (video/style.css).
+-->
+<style>
+@font-face { font-family: 'Inter Tight'; font-weight: 600; src: url('../../video/node_modules/@fontsource/inter-tight/files/inter-tight-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter Tight'; font-weight: 800; src: url('../../video/node_modules/@fontsource/inter-tight/files/inter-tight-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; src: url('../../video/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../video/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 100 800; src: url('../../video/node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations'); }
+
+:root {
+  --paper: #F7F5F0;
+  --ink: #1B2951;
+  --gold: #B8860B;
+  --gold-hi: #E3B341;
+  --electric: #1263FE;
+  --mint: #3BFDCB;
+  --grey: #525252;
+  --line: #E4DFD3;
+}
+@page { size: 1080px 1350px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #888; -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+
+.slide {
+  position: relative; width: 1080px; height: 1350px; overflow: hidden;
+  background: var(--paper); color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  padding: 120px 96px 150px;
+  display: flex; flex-direction: column;
+  break-after: page;
+}
+.slide:last-child { break-after: auto; }
+
+.top {
+  position: absolute; left: 96px; right: 96px; top: 56px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Inter Tight', sans-serif; font-weight: 600; font-size: 24px; letter-spacing: .02em;
+  color: var(--grey);
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.foot {
+  position: absolute; left: 96px; right: 96px; bottom: 64px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Inter Tight', sans-serif; font-weight: 600; font-size: 24px; color: var(--grey);
+}
+.swipe { display: flex; align-items: center; gap: 12px; color: var(--ink); }
+.arrow { font-size: 34px; line-height: 1; }
+
+h1, h2 { font-family: 'Inter Tight', sans-serif; font-weight: 800; letter-spacing: -.035em; line-height: .98; }
+h1 { font-size: 132px; }
+h2 { font-size: 88px; }
+em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; }
+p { font-size: 36px; line-height: 1.38; color: #2a3557; }
+
+/* cover */
+.cover { background: var(--ink); color: var(--paper); justify-content: center; }
+.cover .top, .cover .foot { color: rgba(247,245,240,.6); }
+.cover .swipe { color: var(--paper); }
+.cover h1 em { color: var(--gold-hi); }
+.cover .kicker { font-family: 'Inter Tight', sans-serif; font-weight: 600; font-size: 30px; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); margin-bottom: 48px; }
+.cover p { color: rgba(247,245,240,.82); font-size: 40px; margin-top: 64px; max-width: 820px; }
+
+/* lessen */
+.num { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 260px; line-height: .8; color: var(--gold); margin-bottom: 40px; }
+.lesson h2 { margin-bottom: 56px; max-width: 900px; }
+.card {
+  background: #fff; border: 2px solid var(--line); border-radius: 28px;
+  padding: 40px 44px; margin-top: auto;
+}
+.card + .card { margin-top: 24px; }
+.label { font-family: 'Inter Tight', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+.card p { font-size: 32px; }
+.card.now { background: var(--ink); border-color: var(--ink); }
+.card.now .label { color: var(--mint); }
+.card.now p { color: var(--paper); }
+.card.now code { background: rgba(255,255,255,.14); color: var(--mint); }
+code { font-family: 'JetBrains Mono', monospace; font-size: .88em; background: #EFEBE1; padding: 2px 10px; border-radius: 8px; }
+
+/* intro */
+.intro h2 { margin-bottom: 64px; }
+.roles { display: flex; flex-direction: column; gap: 28px; margin-top: auto; }
+.role { display: flex; gap: 32px; align-items: baseline; border-top: 2px solid var(--line); padding-top: 28px; }
+.role b { font-family: 'Inter Tight', sans-serif; font-weight: 800; font-size: 40px; min-width: 250px; }
+.role span { font-size: 34px; color: #2a3557; line-height: 1.35; }
+
+/* samenvatting */
+.recap h2 { margin-bottom: 56px; }
+.list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+.list li { display: flex; gap: 28px; align-items: baseline; padding: 30px 0; border-top: 2px solid var(--line); font-size: 38px; line-height: 1.3; font-weight: 500; }
+.list li:last-child { border-bottom: 2px solid var(--line); }
+.list i { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--gold); font-size: 64px; line-height: .7; min-width: 48px; }
+
+/* slot */
+.end { background: var(--ink); color: var(--paper); justify-content: center; }
+.end .top, .end .foot { color: rgba(247,245,240,.6); }
+.end h2 em { color: var(--gold-hi); }
+.end p { color: rgba(247,245,240,.82); margin-top: 48px; font-size: 40px; max-width: 860px; }
+.end .url { margin-top: 96px; font-family: 'Inter Tight', sans-serif; font-weight: 800; font-size: 44px; color: var(--mint); }
+.end .small { font-size: 28px; margin-top: 16px; color: rgba(247,245,240,.6); }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide cover">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="kicker">Ik ben geen developer</div>
+  <h1>5 dingen die ik leerde van <em>vibecoden</em></h1>
+  <p>Ik bouw een echte browserextensie met AI. Dit ging goed, dit ging mis, en dit doe ik nu anders.</p>
+  <div class="foot"><span>1 / 9</span><span class="swipe">Swipe <span class="arrow">→</span></span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide intro">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <h2>Eerst: wat is het, en wie doet <em>wat?</em></h2>
+  <p>Rolodink zet privénotities op LinkedIn-profielen. Een extensie voor Chrome, Edge en Firefox, met een server en een website erachter.</p>
+  <div class="roles">
+    <div class="role"><b>AI</b><span>schrijft de code, de tests en de eerste versie van elke tekst.</span></div>
+    <div class="role"><b>Ik</b><span>beschrijf wat ik wil, controleer het resultaat en beslis wat er live gaat.</span></div>
+  </div>
+  <div class="foot"><span>2 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide lesson">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="num">1</div>
+  <h2>AI schrijft <em>zelfverzekerd.</em> Niet altijd juist.</h2>
+  <div class="card"><div class="label">Wat er gebeurde</div><p>Op onze website stond "end-to-end encryptie". Klonk goed, klopte niet: wij beheren de sleutels, dus het is versleuteling in opslag.</p></div>
+  <div class="card now"><div class="label">Wat ik nu doe</div><p>Elke claim over beveiliging of privacy check ik tegen de code voordat hij live gaat.</p></div>
+  <div class="foot"><span>3 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide lesson">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="num">2</div>
+  <h2>De feature bouwen is makkelijk. <em>Wat kan er misgaan?</em></h2>
+  <div class="card"><div class="label">Wat er gebeurde</div><p>AI bouwt zonder morren wat je vraagt. Maar niemand vraagt vanzelf: wat als iemand dit misbruikt?</p></div>
+  <div class="card now"><div class="label">Wat ik nu doe</div><p>Bij elke wijziging draaien automatische checks. Alles rond encryptie krijgt een aparte review.</p></div>
+  <div class="foot"><span>4 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide lesson">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="num">3</div>
+  <h2>AI onthoudt niets. <em>Schrijf het op.</em></h2>
+  <div class="card"><div class="label">Wat er gebeurde</div><p>Elke nieuwe sessie begint blanco. Een fout die je gisteren oploste, kan morgen gewoon terugkomen.</p></div>
+  <div class="card now"><div class="label">Wat ik nu doe</div><p>De vaste regels staan in één bestand in het project, <code>CLAUDE.md</code>. Bijvoorbeeld: elke wijziging werkt in alle drie de browsers.</p></div>
+  <div class="foot"><span>5 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide lesson">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="num">4</div>
+  <h2>Bouw ook je <em>gereedschap.</em></h2>
+  <div class="card"><div class="label">Wat er gebeurde</div><p>Onze uitlegvideo is nooit in een videoprogramma gemaakt. Het is een webpagina die beeldje voor beeldje een MP4 wordt.</p></div>
+  <div class="card now"><div class="label">Wat ik nu doe</div><p>Vier versies voor vier situaties, door alleen een tekstbestand aan te passen: naam, notitie, zoekwoord.</p></div>
+  <div class="foot"><span>6 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide lesson">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <div class="num">5</div>
+  <h2>Klein en vaak <em>uitbrengen.</em></h2>
+  <div class="card"><div class="label">Wat er gebeurde</div><p>Drie versies in vier weken. Eén opdracht zet een release in drie stores; Chrome en Firefox stonden dezelfde dag live, Edge deed er dagen over.</p></div>
+  <div class="card now"><div class="label">Wat ik nu doe</div><p>Liever tien kleine stappen dan één grote. Gaat er iets mis, dan weet ik precies waar.</p></div>
+  <div class="foot"><span>7 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide recap">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <h2>In het <em>kort</em></h2>
+  <ul class="list">
+    <li><i>1</i>Check wat AI beweert, vooral over beveiliging.</li>
+    <li><i>2</i>Vraag zelf: wat kan er misgaan?</li>
+    <li><i>3</i>Schrijf je regels op, AI onthoudt niets.</li>
+    <li><i>4</i>Bouw ook je gereedschap.</li>
+    <li><i>5</i>Klein en vaak uitbrengen.</li>
+  </ul>
+  <div class="foot"><span>8 / 9</span><span class="swipe"><span class="arrow">→</span></span></div>
+</section>
+
+<!-- 9 -->
+<section class="slide end">
+  <div class="top"><span class="brand">Rolodink</span><span>Vibecoding</span></div>
+  <h2>Vibecode jij <em>ook?</em></h2>
+  <p>Wat is jouw belangrijkste les? Ik lees alles in de reacties.</p>
+  <div class="url">rolodink.app</div>
+  <div class="small">Privénotities op LinkedIn. Gratis voor Chrome, Edge en Firefox.</div>
+  <div class="foot"><span>9 / 9</span><span></span></div>
+</section>
+
+</body>
+</html>
