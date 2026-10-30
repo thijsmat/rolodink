@@ -5,6 +5,7 @@ import { extractOAuthError } from '@/lib/utils'
 export const metadata: Metadata = {
   title: 'Create account',
   description: 'Create your Rolodink account with LinkedIn or email.',
+  robots: { index: false, follow: false },
 }
 
 export const dynamic = 'force-dynamic'

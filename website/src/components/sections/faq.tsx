@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslations } from 'next-intl';
-
-const faqKeys = [
-  'why',
-  'free',
-  'security',
-  'mobile',
-  'export',
-  'visibility',
-  'legal',
-  'support'
-];
+import { faqKeys } from '@/lib/faq-keys';
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -43,6 +33,9 @@ export default function FAQ() {
               className="bg-white border border-azure/10 rounded-lg sm:rounded-2xl shadow-sm overflow-hidden"
             >
               <button
+                type="button"
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-left hover:bg-azure/5 transition-colors gap-3"
               >
@@ -54,13 +47,16 @@ export default function FAQ() {
                     }`}
                 />
               </button>
-              {openIndex === index && (
-                <div className="px-4 sm:px-6 pb-4 sm:pb-5 border-t border-azure/10">
-                  <p className="text-grey text-xs sm:text-sm/5 leading-relaxed pt-4">
-                    {faq.answer}
-                  </p>
-                </div>
-              )}
+              {/* Always rendered so the answer is part of the server HTML that crawlers read. */}
+              <div
+                id={`faq-answer-${index}`}
+                hidden={openIndex !== index}
+                className="px-4 sm:px-6 pb-4 sm:pb-5 border-t border-azure/10"
+              >
+                <p className="text-grey text-xs sm:text-sm/5 leading-relaxed pt-4">
+                  {faq.answer}
+                </p>
+              </div>
             </div>
           ))}
         </div>
