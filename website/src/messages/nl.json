@@ -1,8 +1,8 @@
 {
     "Hero": {
-        "badge": "Browserextensie voor LinkedIn – Chrome, Edge, Brave & Firefox",
-        "title": "Maak van elke LinkedIn connectie een waardevolle relatie",
-        "subtitle": "Rolodink is de slimme notitielaag voor LinkedIn. Voeg persoonlijke notities toe, onthoud details en bouw een sterker netwerk, direct vanuit je browser.",
+        "badge": "Browserextensie voor LinkedIn: Chrome, Edge, Brave en Firefox",
+        "title": "Onthoud elke connectie op LinkedIn",
+        "subtitle": "Rolodink is een notitielaag voor LinkedIn. Schrijf bij een profiel op wat je over iemand weet, onthoud de details en vind de persoon later terug, direct vanuit je browser.",
         "watch": "Bekijk hoe het werkt",
         "imageAlt": "Visitekaartjes op een netwerktafel",
         "demoCard": {
@@ -47,44 +47,44 @@
         "more": "Meer over hoe het werkt"
     },
     "Features": {
-        "title": "De kracht van persoonlijke notities",
-        "description": "Alles wat je nodig hebt om je professionele netwerk effectief te beheren en betekenisvolle relaties op te bouwen.",
+        "title": "Persoonlijke notities bij elk profiel",
+        "description": "Schrijf bij elk LinkedIn-profiel op wat je over iemand weet en zoek het later terug.",
         "items": {
             "organize": {
-                "title": "Connecties organiseren & onthouden",
-                "description": "Organiseer al je LinkedIn connecties met persoonlijke notities en context. Nooit meer vergeten wie iemand is of waarom de connectie belangrijk is."
+                "title": "Connecties onthouden",
+                "description": "Leg bij je LinkedIn-connecties vast wie iemand is en waarom de connectie ertoe doet."
             },
             "details": {
-                "title": "Belangrijke details onthouden",
-                "description": "Onthoud belangrijke details over gesprekken, interesses en afspraken. Perfect voor het bijhouden van follow-ups en networking."
+                "title": "Details bewaren",
+                "description": "Bewaar wat er in een gesprek is gezegd, waar iemand mee bezig is en wat je hebt afgesproken. Handig voor follow-ups."
             },
             "relationships": {
                 "title": "Persoonlijke relaties opbouwen",
-                "description": "Maak elke interactie persoonlijk door relevante details bij de hand te hebben. Bouw sterkere, authentiekere professionele relaties op."
+                "description": "Met de details bij de hand begint elk bericht met iets dat over de ander gaat."
             },
             "privacy": {
                 "title": "Je notities blijven privé",
-                "description": "Al je notities worden veilig opgeslagen met encryptie en zijn alleen voor jou zichtbaar. Gebouwd volgens de AVG/GDPR-principes; we verkopen je data nooit en delen die niet voor andermans doeleinden."
+                "description": "Je notities worden versleuteld opgeslagen en zijn alleen voor jou zichtbaar. Rolodink is gebouwd volgens de AVG/GDPR-principes. We verkopen je data nooit en delen die niet voor andermans doeleinden."
             },
             "quickAdd": {
                 "title": "Snel toevoegen met één klik",
-                "description": "Voeg notities toe met één klik vanuit elk LinkedIn profiel. Snelle toegang tot al je contactinformatie wanneer je het nodig hebt."
+                "description": "Voeg met één klik een connectie toe vanaf elk LinkedIn-profiel. Je contactgegevens staan dan bij de hand wanneer je ze nodig hebt."
             },
             "search": {
-                "title": "Slimme zoeken & filteren",
-                "description": "Filter en zoek door je notities om snel te vinden wat belangrijk is. Slimme organisatie voor effectief netwerkbeheer."
+                "title": "Zoeken en filteren",
+                "description": "Zoek in je notities en filter je lijst om iemand snel terug te vinden."
             }
         }
     },
     "FeaturesPage": {
         "hero": {
-            "title": "Alle Tools voor een Beter Netwerk",
-            "description": "Rolodink is meer dan alleen een notitie-app. Het is een complete toolkit om je professionele relaties te verdiepen en je netwerkdoelen te bereiken."
+            "title": "Alle tools voor een beter netwerk",
+            "description": "Met Rolodink schrijf je notities bij LinkedIn-profielen, bewaar je contactgegevens en zoek je alles terug."
         },
         "features": [
             {
                 "title": "Onthoud wat telt",
-                "description": "Dat moment waarop jullie connecteerden, het project waar ze mee bezig waren, hun passie voor zeilboot restauratie.",
+                "description": "Dat moment waarop jullie connecteerden, het project waar ze mee bezig waren, hun passie voor zeilbootrestauratie.",
                 "benefits": [
                     "Automatische profielherkenning",
                     "Persoonlijke notities per contact",
@@ -120,7 +120,7 @@
             },
             {
                 "title": "Privacy-first",
-                "description": "Jouw data blijft van jou. Geen advertenties, geen doorverkoop — gewoon veilig en transparant.",
+                "description": "Jouw data blijft van jou. Geen advertenties en geen doorverkoop.",
                 "benefits": [
                     "Beveiligde opslag",
                     "Geen tracking in de extensie",
@@ -129,7 +129,7 @@
             },
             {
                 "title": "Snelle integratie",
-                "description": "Werkt direct in LinkedIn. Geen extra apps, geen gedoe — je kunt meteen aan de slag.",
+                "description": "Werkt direct in LinkedIn, zonder extra apps. Je kunt meteen aan de slag.",
                 "benefits": [
                     "One-click installatie",
                     "Direct beschikbaar",
@@ -138,20 +138,20 @@
             }
         ],
         "stats": {
-            "title": "Waarom professionals kiezen voor Rolodink",
+            "title": "Rolodink in het kort",
             "focus": "Focus op LinkedIn",
             "installTime": "Installatietijd"
         },
         "cta": {
             "title": "Klaar om te beginnen?",
-            "description": "Installeer Rolodink vandaag nog en transformeer je LinkedIn netwerk.",
-            "button": "Toevoegen aan Chrome - Gratis",
+            "description": "Installeer Rolodink en schrijf je eerste notitie bij een LinkedIn-profiel.",
+            "button": "Gratis toevoegen aan Chrome",
             "demo": "Bekijk demo"
         }
     },
     "DownloadPage": {
-        "title": "Begin Vandaag Nog",
-        "description": "Installeer de gratis Chrome Extensie en transformeer hoe je je LinkedIn netwerk beheert. Breng de persoonlijke touch van visitekaartjes terug naar je digitale netwerk.",
+        "title": "Begin vandaag nog",
+        "description": "Installeer de gratis extensie voor Chrome, Edge of Firefox en bewaar notities bij je LinkedIn-connecties. Zo krijgt je digitale netwerk de persoonlijke touch van visitekaartjes terug.",
         "chrome": "Chrome Web Store",
         "edge": "Microsoft Edge Add-ons",
         "firefox": "Firefox Add-ons",
@@ -161,20 +161,20 @@
         "footer": "Geen creditcard vereist • 30 seconden installatie"
     },
     "HelpPage": {
-        "title": "Hulp & Veelgestelde Vragen",
+        "title": "Hulp en veelgestelde vragen",
         "description": "Vind hier de antwoorden op de meest voorkomende vragen. Staat je vraag er niet bij? Neem gerust contact op.",
         "faq": [
             {
                 "question": "Hoe installeer ik Rolodink?",
-                "answer": "Rolodink is een Chrome Extensie. Je kunt het met één klik toevoegen vanuit de Chrome Web Store. Na de installatie is het direct actief op de LinkedIn website. Zorg ervoor dat je de pagina ververst als je de zijbalk niet direct ziet."
+                "answer": "Voeg Rolodink met één klik toe vanuit de Chrome Web Store, Edge Add-ons of Firefox Add-ons. Na de installatie werkt het direct op LinkedIn. Ververs de pagina als je de zijbalk niet meteen ziet."
             },
             {
                 "question": "Is Rolodink echt gratis?",
-                "answer": "Ja, de kernfunctionaliteit van Rolodink is volledig gratis. We willen dat iedereen de mogelijkheid heeft om zijn netwerk beter te beheren. In de toekomst kunnen er premium features komen voor power-users, maar de basis blijft gratis."
+                "answer": "Ja, de kernfunctionaliteit van Rolodink is volledig gratis. Later kunnen er premiumfuncties voor intensieve gebruikers komen, maar de basis blijft gratis."
             },
             {
                 "question": "Waar worden mijn notities opgeslagen?",
-                "answer": "Je notities worden veilig opgeslagen in de cloud, gekoppeld aan jouw account. Ze zijn privé en alleen voor jou zichtbaar. We nemen privacy zeer serieus en verkopen je data nooit. Lees onze Privacy Policy voor meer details."
+                "answer": "Je notities staan versleuteld in de cloud, gekoppeld aan je account. Alleen jij ziet ze. We verkopen je data nooit. Meer details staan in het privacybeleid."
             },
             {
                 "question": "Werkt Rolodink ook op de mobiele LinkedIn app?",
@@ -191,38 +191,38 @@
         ],
         "cta": {
             "title": "Nog steeds vragen?",
-            "description": "De beste manier om Rolodink te begrijpen is door het zelf te proberen.",
-            "button": "Probeer het Gratis"
+            "description": "Probeer Rolodink zelf uit.",
+            "button": "Probeer het gratis"
         }
     },
     "HowItWorksPage": {
         "hero": {
-            "title": "Van Chaos naar Connectie in 4 Stappen",
-            "description": "Rolodink is ontworpen om naadloos in je workflow te passen. Geen ingewikkelde software, gewoon een simpele tool die doet wat het moet doen."
+            "title": "Van chaos naar connectie in 4 stappen",
+            "description": "Rolodink werkt binnen LinkedIn zelf. Je hoeft geen software te leren: je opent een profiel en schrijft een notitie."
         },
         "stepLabel": "Stap",
         "steps": [
             {
-                "title": "Installeer de Extensie",
-                "description": "Voeg Rolodink met één klik toe aan je Chrome browser vanuit de Web Store. De installatie duurt minder dan 30 seconden."
+                "title": "Installeer de extensie",
+                "description": "Voeg Rolodink met één klik toe vanuit de Chrome Web Store. De installatie duurt minder dan 30 seconden."
             },
             {
-                "title": "Open een LinkedIn Profiel",
-                "description": "Navigeer naar het profiel van een van je connecties. Rolodink verschijnt automatisch aan de zijkant van de pagina."
+                "title": "Open een LinkedIn-profiel",
+                "description": "Ga naar het profiel van een van je connecties. Rolodink verschijnt automatisch aan de zijkant van de pagina."
             },
             {
-                "title": "Voeg je Notities Toe",
-                "description": "Noteer waar je iemand hebt ontmoet, waarover jullie spraken, of wat je ook maar wilt onthouden. Jouw notities zijn 100% privé."
+                "title": "Voeg je notities toe",
+                "description": "Noteer waar je iemand hebt ontmoet, waarover jullie spraken of wat je maar wilt onthouden. Alleen jij ziet je notities."
             },
             {
-                "title": "Vind Alles Direct Terug",
+                "title": "Vind alles direct terug",
                 "description": "Gebruik de zoekbalk in de extensie om je netwerk te doorzoeken op naam, bedrijf, ontmoetingsplek of iets uit je notities."
             }
         ],
         "cta": {
             "title": "Klaar om je netwerk te organiseren?",
             "description": "Het kost minder dan een minuut om te beginnen.",
-            "button": "Toevoegen aan Chrome - Gratis"
+            "button": "Gratis toevoegen aan Chrome"
         }
     },
     "DisclaimerPage": {
@@ -603,7 +603,7 @@
         "description": "Waarom we Rolodink bouwen, hoe we over netwerken denken en wat er achter de schermen gebeurt.",
         "readMore": "Lees verder",
         "readingTime": "{minutes, plural, =1 {1 minuut lezen} other {# minuten lezen}}",
-        "empty": "Er zijn nog geen artikelen. Binnenkort meer.",
+        "empty": "Er zijn nog geen artikelen.",
         "emptyLink": "Volg Rolodink op LinkedIn",
         "back": "Over Rolodink",
         "backToAll": "Alle artikelen",
@@ -616,8 +616,8 @@
     },
     "OnboardingSuccessPage": {
         "hero": {
-            "title": "Je account is bevestigd! 🎉",
-            "subtitle": "Welkom bij Rolodink. Volg de stappen hieronder om in 5 minuten je eerste connectie toe te voegen."
+            "title": "Je account is bevestigd",
+            "subtitle": "Welkom bij Rolodink. Met deze stappen voeg je in 5 minuten je eerste connectie toe."
         },
         "steps": {
             "step1": {
@@ -631,11 +631,11 @@
             },
             "step3": {
                 "title": "Schrijf een notitie",
-                "description": "Voeg een persoonlijke notitie toe, zoals: \"Ontmoet op Tech Meetup Amsterdam. Interesse in AI en open-source. Opvolgen over samenwerking.\" Jouw notities zijn 100% privé."
+                "description": "Voeg een persoonlijke notitie toe, zoals: \"Ontmoet op Tech Meetup Amsterdam. Interesse in AI en open-source. Opvolgen over samenwerking.\" Alleen jij ziet je notities."
             },
             "step4": {
                 "title": "Je gegevens zijn automatisch beveiligd",
-                "description": "Je notities en contactgegevens worden automatisch versleuteld zodra je bent ingelogd — je hoeft hier niets voor in te stellen."
+                "description": "Je notities en contactgegevens worden automatisch versleuteld zodra je bent ingelogd. Je hoeft hier niets voor in te stellen."
             },
             "step5": {
                 "title": "Zoek en vind",
@@ -643,10 +643,10 @@
             }
         },
         "tips": {
-            "title": "💡 Handige tips",
+            "title": "Handige tips",
             "tip1": "Zie je Rolodink niet? Klik op het puzzelstukje in je werkbalk en pin de extensie.",
             "tip2": "Ververs de LinkedIn pagina na installatie als de zijbalk niet verschijnt.",
-            "tip3": "Rolodink werkt op elk LinkedIn profiel — ook bij zoekopdrachten en netwerk-overzichten."
+            "tip3": "Rolodink werkt op elk LinkedIn-profiel, ook bij zoekopdrachten en netwerkoverzichten."
         },
         "cta": {
             "questions": "Vragen? Bekijk onze <helpLink>Help pagina</helpLink> of neem contact op.",
@@ -785,11 +785,11 @@
             },
             "visibility": {
                 "question": "Zien anderen mijn notities op LinkedIn?",
-                "answer": "Nee, je notities zijn volledig privé en alleen zichtbaar voor jou."
+                "answer": "Nee. Alleen jij ziet je notities."
             },
             "browser": {
                 "question": "Werkt dit in mijn browser?",
-                "answer": "Rolodink werkt in alle Chromium-gebaseerde browsers, waaronder Google Chrome, Microsoft Edge, Brave en Opera. Ook is er een Firefox versie beschikbaar."
+                "answer": "Rolodink werkt in alle Chromium-gebaseerde browsers, waaronder Google Chrome, Microsoft Edge, Brave en Opera. Voor Firefox is een aparte versie beschikbaar."
             },
             "legal": {
                 "question": "Voldoet Rolodink aan privacy- en veiligheidswetten?",
@@ -797,18 +797,18 @@
             },
             "support": {
                 "question": "Hoe zit het met updates en ondersteuning?",
-                "answer": "Rolodink wordt regelmatig geupdate met nieuwe features en security patches. Ondersteuning is beschikbaar via ons Help Center."
+                "answer": "Rolodink wordt regelmatig bijgewerkt met nieuwe functies en beveiligingsupdates. Voor ondersteuning kun je terecht in ons Help Center."
             }
         }
     },
     "CTA": {
         "title": "Klaar om je netwerk te versterken?",
-        "description": "Voeg Rolodink vandaag gratis toe en onthoud morgen waarom elke connectie werkt. Geen creditcard nodig, geen limits, alleen persoonlijke netwerk-management.",
-        "addToChrome": "Add to Chrome - Gratis",
+        "description": "Voeg Rolodink gratis toe en onthoud morgen waarom een connectie ertoe doet. Geen creditcard nodig en geen limieten.",
+        "addToChrome": "Gratis toevoegen aan Chrome",
         "viewDemo": "Bekijk demo",
         "badges": {
             "free": "Gratis te gebruiken",
-            "privacy": "Privacy gegarandeerd",
+            "privacy": "Versleutelde notities",
             "install": "Installatie in 30 seconden"
         }
     },
@@ -817,10 +817,10 @@
             "features": "Functies",
             "faq": "FAQ"
         },
-        "cta": "Gratis Installeren - 30 seconden"
+        "cta": "Gratis installeren in 30 seconden"
     },
     "Footer": {
-        "description": "Breng de persoonlijke touch van business cards naar de digitale wereld. Onthoud waarom elke connectie waardevol is met Rolodink voor LinkedIn.",
+        "description": "Rolodink brengt de persoonlijke touch van visitekaartjes naar LinkedIn. Bewaar waarom een connectie ertoe doet.",
         "sections": {
             "product": "Product",
             "support": "Support",
@@ -835,7 +835,7 @@
             "contact": "Contact",
             "privacy": "Privacybeleid",
             "security": "Beveiliging",
-            "terms": "Algemene Voorwaarden",
+            "terms": "Algemene voorwaarden",
             "disclaimer": "Disclaimer",
             "about": "Over",
             "linkedin": "LinkedIn",
@@ -850,12 +850,12 @@
             "exampleLabel": "Fictief voorbeeld",
             "benefitsTitle": "Wat je krijgt",
             "limitsTitle": "Goed om te weten",
-            "privacyTitle": "Privé door ontwerp",
+            "privacyTitle": "Privacy en versleuteling",
             "privacyLink": "Lees hoe je notities worden beschermd",
             "faqTitle": "Veelgestelde vragen",
             "relatedTitle": "Meer manieren om Rolodink te gebruiken",
             "breadcrumbHome": "Home",
-            "primaryCta": "Toevoegen aan Chrome - Gratis",
+            "primaryCta": "Gratis toevoegen aan Chrome",
             "secondaryCta": "Bekijk hoe het werkt",
             "otherBrowsers": "Ook beschikbaar voor Edge en Firefox",
             "ctaTitle": "Klaar om meer te onthouden over je netwerk?",
@@ -871,7 +871,7 @@
                 },
                 "sales": {
                     "title": "Voor sales",
-                    "description": "Onthoud elke lead, niet alleen de deal."
+                    "description": "Onthoud wat je over elke lead weet."
                 },
                 "events": {
                     "title": "Voor netwerkevents",
@@ -925,7 +925,7 @@
             "faq": [
                 {
                     "question": "Kan ik privénotities bij LinkedIn-profielen zetten?",
-                    "answer": "Ja. Met de Rolodink-browserextensie voeg je een notitie toe aan elk LinkedIn-profiel. Alleen jij ziet hem. De persoon over wie je schrijft niet."
+                    "answer": "Ja. Met de Rolodink-browserextensie voeg je een notitie toe aan elk LinkedIn-profiel. Alleen jij ziet hem, de persoon over wie je schrijft niet."
                 },
                 {
                     "question": "Is de notitie-extensie gratis?",
@@ -1000,8 +1000,8 @@
         },
         "sales": {
             "eyebrow": "Voor sales",
-            "title": "Onthoud elke lead, niet alleen de deal",
-            "intro": "Een deal is meer dan een offerte. Met Rolodink bewaar je bij het LinkedIn-profiel van elke lead een privénotitie: wat je stuurde, wanneer je een antwoord verwacht en het persoonlijke detail waardoor je follow-up menselijk klinkt.",
+            "title": "Onthoud wat je over elke lead weet",
+            "intro": "Met Rolodink bewaar je bij het LinkedIn-profiel van elke lead een privénotitie: wat je stuurde, wanneer je een antwoord verwacht en het persoonlijke detail waardoor je follow-up menselijk klinkt.",
             "steps": [
                 {
                     "title": "Voeg de lead toe",
@@ -1054,7 +1054,7 @@
         "events": {
             "eyebrow": "Voor netwerkevents",
             "title": "Onthoud wie je ontmoette op het event",
-            "intro": "Je spreekt vijftig mensen op een event en onthoudt er vijf. Met Rolodink zet je een notitie bij iemands LinkedIn-profiel zolang het vers is: waar je elkaar ontmoette, waar jullie het over hadden en wat je beloofde.",
+            "intro": "Op een event spreek je veel mensen en onthoud je er weinig. Met Rolodink zet je een notitie bij iemands LinkedIn-profiel zolang het vers is: waar je elkaar ontmoette, waar jullie het over hadden en wat je beloofde.",
             "steps": [
                 {
                     "title": "Open het LinkedIn-profiel",
@@ -1105,14 +1105,14 @@
         }
     },
     "Metadata": {
-        "title": "Rolodink – Privénotities bij je LinkedIn-connecties",
+        "title": "Rolodink: privénotities bij je LinkedIn-connecties",
         "description": "Voeg privé, versleutelde notities toe aan elk LinkedIn-profiel en vind mensen terug op naam, bedrijf of detail. Gratis extensie voor Chrome, Edge en Firefox.",
         "imageAlt": "Rolodink: privénotities bij je LinkedIn-connecties"
     },
     "PageMeta": {
         "features": {
             "title": "Functies: privénotities en zoeken op LinkedIn",
-            "description": "Ontdek hoe Rolodink met één klik privénotities, zoekfunctie en context toevoegt aan LinkedIn-profielen. Versleuteld en gratis in Chrome, Edge en Firefox."
+            "description": "Rolodink voegt met één klik privénotities, een zoekfunctie en context toe aan LinkedIn-profielen. Versleuteld en gratis in Chrome, Edge en Firefox."
         },
         "howItWorks": {
             "title": "Hoe werkt het? Notities bij LinkedIn in 3 stappen",
@@ -1168,7 +1168,7 @@
         "intro": "Jouw LinkedIn, maar dan georganiseerd.",
         "steps": {
             "pin": {
-                "title": "Pin de Extensie",
+                "title": "Pin de extensie",
                 "description": "Klik op het puzzelstukje in je werkbalk en pin Rolodink voor snelle toegang."
             },
             "login": {
@@ -1176,19 +1176,19 @@
                 "description": "Inloggen doe je in het Rolodink-venster zelf. Een account aanmaken kan daar ook.",
                 "instructions": {
                     "open": "Klik op het Rolodink-icoon in je werkbalk om het venster te openen.",
-                    "choose": "Kies \"Registreren\" voor een nieuw account, of \"Inloggen\" als je er al een hebt — met LinkedIn of met e-mail.",
+                    "choose": "Kies \"Registreren\" voor een nieuw account of \"Inloggen\" als je er al een hebt, met LinkedIn of met e-mail.",
                     "note": "Inloggen op deze website logt de extensie niet in: dat zijn twee losse sessies. Alleen inloggen in het extensievenster telt."
                 }
             },
             "vault": {
                 "title": "Automatische encryptie",
-                "description": "Jouw data is van jou. Rolodink versleutelt je privégegevens automatisch zodra je bent ingelogd — zonder aparte wachtwoordzin."
+                "description": "Rolodink versleutelt je privégegevens automatisch zodra je bent ingelogd. Je hebt geen aparte wachtwoordzin nodig."
             }
         },
         "cta": {
-            "signup": "Maak Gratis Account",
+            "signup": "Maak een gratis account",
             "login": "Ik heb al een account",
-            "next": "Verder — wat je nu op LinkedIn kunt doen"
+            "next": "Verder: wat je nu op LinkedIn kunt doen"
         }
     }
 }
