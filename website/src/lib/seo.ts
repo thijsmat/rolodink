@@ -70,6 +70,13 @@ export function openGraphFor(
   }
 }
 
+// A page that sets `twitter` replaces the whole object from the layout, so without this every
+// page would share the homepage's twitter:title and twitter:description in X and in apps that
+// read twitter:* before og:*. Keep it in step with openGraphFor.
+export function twitterFor(title: string, description: string): NonNullable<Metadata['twitter']> {
+  return { card: 'summary_large_image', title, description, images: ['/og-image.png'] }
+}
+
 // Page-level metadata for the routes in PAGE_PATHS: unique title/description, a canonical
 // that points at the page itself and hreflang pairs for both locales.
 export async function pageMetadata(params: Promise<{ locale: string }>, page: PageKey): Promise<Metadata> {
@@ -85,6 +92,7 @@ export async function pageMetadata(params: Promise<{ locale: string }>, page: Pa
     description,
     alternates: localeAlternates(locale, path),
     openGraph: openGraphFor(locale, path, `${title} | Rolodink`, description, imageAlt),
+    twitter: twitterFor(`${title} | Rolodink`, description),
   }
 }
 
@@ -102,5 +110,6 @@ export async function homeMetadata(params: Promise<{ locale: string }>): Promise
     description,
     alternates: localeAlternates(locale, '/'),
     openGraph: openGraphFor(locale, '/', title, description, imageAlt),
+    twitter: twitterFor(title, description),
   }
 }
