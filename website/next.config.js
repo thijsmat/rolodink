@@ -86,6 +86,9 @@ const nextConfig = {
       // /use-cases zelf heeft geen pagina; de losse use-case pagina's hangen onder /use-cases/<slug>.
       { source: '/:locale(nl|en)/use-cases', destination: '/:locale/linkedin-notes-extension', permanent: true },
       { source: '/testimonials', destination: '/', permanent: true },
+      // De deelafbeelding bestaat nu per taal (zie marketing/og). Oude gedeelde links en
+      // caches die /og-image.png nog opvragen, krijgen de Nederlandse versie.
+      { source: '/og-image.png', destination: '/og-image-nl.png', permanent: true },
       // /over heet in het Engels /about (zie pathnames in src/navigation.ts). Oude links en
       // de al geïndexeerde /en/over-URL's gaan er permanent naartoe; de interne rewrite
       // van /en/about naar de map `over` doet de proxy.

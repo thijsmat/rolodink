@@ -15,13 +15,14 @@ function asLocale(locale: string): Locale {
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const locale = (await params).locale as AppLocale;
   const t = await getTranslations({ locale, namespace: "AboutPage" });
+  const imageAlt = (await getTranslations({ locale, namespace: "Metadata" }))("imageAlt");
 
   return {
     title: { absolute: withBrand(t("title")) },
     description: t("description"),
     alternates: localeAlternates(locale, "/over"),
-    openGraph: openGraphFor(locale, "/over", t("title"), t("description"), "Rolodink"),
-    twitter: twitterFor(t("title"), t("description")),
+    openGraph: openGraphFor(locale, "/over", t("title"), t("description"), imageAlt),
+    twitter: twitterFor(locale, t("title"), t("description"), imageAlt),
   };
 }
 

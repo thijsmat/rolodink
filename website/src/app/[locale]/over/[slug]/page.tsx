@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCta } from "@/components/article-cta";
 import { Prose } from "@/components/prose";
 import { getArticle, isValidSlug, type Locale } from "@/lib/cms";
-import { BASE_URL, localeAlternates, withBrand, type AppLocale } from "@/lib/seo";
+import { BASE_URL, localeAlternates, ogImage, withBrand, type AppLocale } from "@/lib/seo";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -34,7 +34,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const description = article.excerpt || article.title;
   const image = article.image
     ? { url: article.image.url, alt: article.image.alt || article.title }
-    : { url: "/og-image.png", width: 1200, height: 630, alt: "Rolodink" };
+    : {
+        url: ogImage(locale),
+        width: 1200,
+        height: 630,
+        alt: (await getTranslations({ locale, namespace: "Metadata" }))("imageAlt"),
+      };
 
   return {
     title: { absolute: withBrand(article.title) },

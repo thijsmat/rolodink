@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Rolodink OG-afbeelding</title>
+<style>
+  /* Same self-hosted fonts as the website (website/src/fonts). */
+  @font-face { font-family: 'Inter'; src: url('../../website/src/fonts/inter-latin-wght.woff2') format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Playfair Display'; src: url('../../website/src/fonts/playfair-display-latin-wght.woff2') format('woff2'); font-weight: 400 900; }
+
+  /* Website colours (globals.css, light theme). */
+  :root {
+    --azure: hsl(221 50% 21%);
+    --gold: hsl(43 91% 38%);
+    --background: hsl(43 30% 96%);
+    --grey: hsl(0 0% 32%);
+    --link-blue: hsl(211 100% 40%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #ddd; font-family: 'Inter', sans-serif; }
+
+  .og {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 92% 8%, hsl(43 91% 38% / 0.14), transparent 40%),
+      var(--background);
+    color: var(--azure);
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    gap: 44px;
+    padding: 64px 72px;
+    margin-bottom: 20px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .mark {
+    width: 52px; height: 52px; border-radius: 14px; background: var(--azure); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 30px;
+  }
+  .brand .name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 32px; }
+
+  .copy { display: flex; flex-direction: column; justify-content: space-between; }
+  .eyebrow { margin-top: 56px; font-size: 18px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+  h1 { margin-top: 18px; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 56px; line-height: 1.08; letter-spacing: -0.01em; }
+  .sub { margin-top: 22px; font-size: 25px; line-height: 1.4; color: var(--grey); }
+  .url { font-size: 22px; font-weight: 600; color: var(--azure); }
+  .url span { color: var(--grey); font-weight: 400; }
+
+  .card {
+    align-self: center;
+    background: #fff;
+    border: 1px solid hsl(221 50% 21% / 0.1);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 24px 60px -24px hsl(221 50% 21% / 0.35);
+    transform: rotate(-1.5deg);
+  }
+  .card .situation { font-size: 22px; font-weight: 600; }
+  .card .role { margin-top: 4px; font-size: 18px; color: var(--grey); }
+  .note {
+    margin-top: 24px; background: var(--background); border: 1px solid hsl(43 91% 38% / 0.25);
+    border-radius: 16px; padding: 20px; display: grid; gap: 14px;
+  }
+  .line { display: flex; gap: 12px; align-items: baseline; font-size: 18px; line-height: 1.35; color: var(--grey); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-2px); }
+  .line.where { font-style: italic; } .line.where .dot { background: var(--gold); }
+  .line.detail .dot { background: var(--link-blue); }
+  .line.todo { color: var(--azure); font-weight: 500; } .line.todo .dot { background: var(--azure); }
+  .find {
+    margin-top: 22px; display: flex; align-items: center; gap: 10px;
+    font-size: 17px; color: var(--grey);
+  }
+  .find svg { width: 18px; height: 18px; flex: none; }
+  .find .query { background: hsl(221 50% 21% / 0.06); color: var(--azure); font-weight: 600; padding: 4px 12px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<!-- Fictional example: the same note as Examples.items.event on the website. No real people,
+     no LinkedIn logo or interface. Rendered by render.mjs to website/public/og-image-<locale>.png. -->
+
+<section class="og" data-locale="nl" lang="nl">
+  <div class="copy">
+    <div>
+      <div class="brand"><div class="mark">R</div><div class="name">Rolodink</div></div>
+      <p class="eyebrow">Gratis voor Chrome, Edge en Firefox</p>
+      <h1>Privénotities bij je LinkedIn‑connecties</h1>
+      <p class="sub">Schrijf op wat je over iemand weet en vind de persoon later terug.</p>
+    </div>
+    <p class="url">rolodink.app</p>
+  </div>
+  <div class="card">
+    <p class="situation">Na een event</p>
+    <p class="role">Head of Sales, softwarebedrijf</p>
+    <div class="note">
+      <p class="line where"><span class="dot"></span>Ontmoet op de Web Summit</p>
+      <p class="line detail"><span class="dot"></span>Wil een demo in Q1. Houdt bijen.</p>
+      <p class="line todo"><span class="dot"></span>→ Demo inplannen vóór vrijdag</p>
+    </div>
+    <p class="find">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      Terugvinden met <span class="query">bijen</span>
+    </p>
+  </div>
+</section>
+
+<section class="og" data-locale="en" lang="en">
+  <div class="copy">
+    <div>
+      <div class="brand"><div class="mark">R</div><div class="name">Rolodink</div></div>
+      <p class="eyebrow">Free for Chrome, Edge and Firefox</p>
+      <h1>Private notes for your LinkedIn connections</h1>
+      <p class="sub">Write down what you know about someone and find them again later.</p>
+    </div>
+    <p class="url">rolodink.app</p>
+  </div>
+  <div class="card">
+    <p class="situation">After an event</p>
+    <p class="role">Head of Sales, software company</p>
+    <div class="note">
+      <p class="line where"><span class="dot"></span>Met at the Web Summit</p>
+      <p class="line detail"><span class="dot"></span>Wants a demo in Q1. Keeps bees.</p>
+      <p class="line todo"><span class="dot"></span>→ Schedule the demo before Friday</p>
+    </div>
+    <p class="find">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      Find them with <span class="query">bees</span>
+    </p>
+  </div>
+</section>
+
+</body>
+</html>
