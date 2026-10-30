@@ -7,6 +7,25 @@ const withNextIntl = createNextIntlPlugin();
 // Bron van de artikelafbeeldingen onder /over (zie /cms/README.md).
 const cmsUrl = new URL(process.env.CMS_BASE_URL || 'https://cms.rolodink.app');
 
+// Routes onder /[locale] (src/app/[locale]); houd deze lijst gelijk met die mappen.
+const UNPREFIXED_ROUTES = [
+  'features',
+  'how-it-works',
+  'download',
+  'help',
+  'over',
+  'changelog',
+  'privacy',
+  'terms',
+  'security',
+  'disclaimer',
+  'login',
+  'signup',
+  'forgot-password',
+  'reset-password',
+  'onboarding',
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // @rolodink/core (packages/core) ships TypeScript source, not a build.
@@ -51,8 +70,27 @@ const nextConfig = {
   // zoekresultaten komen op de homepage uit in plaats van op een 404.
   async redirects() {
     return [
+      // www is een tweede kopie van de site (Vercel stuurt het niet door). Eén host
+      // voorkomt dat Google elke pagina twee keer crawlt; de canonical wijst al naar
+      // de apex. De OAuth-callbacks gebruiken window.location.origin, dus ook
+      // bezoekers die via www komen eindigen na de redirect op de apex.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.rolodink.app' }],
+        destination: 'https://rolodink.app/:path*',
+        permanent: true,
+      },
       { source: '/:locale(nl|en)/testimonials', destination: '/:locale', permanent: true },
       { source: '/testimonials', destination: '/', permanent: true },
+      // De proxy (src/proxy.ts) matcht alleen '/' en '/(nl|en)/...', dus een pad zonder
+      // taalprefix kwam nooit bij next-intl en toonde de homepage onder de verkeerde
+      // URL (duplicate content). Bekende paden gaan hier naar de standaardtaal (nl);
+      // overige paden geven een 404 (zie de locale-check in [locale]/layout.tsx).
+      {
+        source: `/:path(${UNPREFIXED_ROUTES.join('|')})/:rest*`,
+        destination: '/nl/:path/:rest*',
+        permanent: true,
+      },
     ];
   },
   // Geen enkele pagina hoort in een frame van een andere site. Zonder deze

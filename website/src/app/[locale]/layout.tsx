@@ -1,4 +1,6 @@
 import type { Viewport } from 'next'
+import { notFound } from 'next/navigation'
+import { routing } from '@/navigation'
 import { Inter, Playfair_Display } from 'next/font/google'
 import '../globals.css'
 import { Analytics } from "@vercel/analytics/next"
@@ -74,6 +76,13 @@ export default async function RootLayout({
   readonly params: Promise<{ locale: string }>
 }) {
   const { locale } = await params;
+
+  // Zonder deze check pakt [locale] elk eerste padsegment ("/features", "/foo") als taal en
+  // rendert de homepage onder die URL. Onbekende talen horen een 404 te geven.
+  if (!routing.locales.includes(locale as (typeof routing.locales)[number])) {
+    notFound();
+  }
+
   const messages = await getMessages();
 
   return (
