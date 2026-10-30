@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <title>Rolodink OG-afbeelding</title>
 <style>
-  /* Same self-hosted fonts as the website (website/src/fonts). font-display: block, because
-     render.mjs waits for document.fonts.ready and the image must never use a fallback font. */
-  @font-face { font-family: 'Inter'; src: url('../../website/src/fonts/inter-latin-wght.woff2') format('woff2'); font-weight: 100 900; font-display: block; }
-  @font-face { font-family: 'Playfair Display'; src: url('../../website/src/fonts/playfair-display-latin-wght.woff2') format('woff2'); font-weight: 400 900; font-display: block; }
+  /* Same self-hosted fonts as the website (website/src/fonts), with the same font-display as
+     the site. render.mjs waits for document.fonts.ready, so the image never shows a fallback font. */
+  @font-face { font-family: 'Inter'; src: url('../../website/src/fonts/inter-latin-wght.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: 'Playfair Display'; src: url('../../website/src/fonts/playfair-display-latin-wght.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
 
   /* Website colours (globals.css, light theme). */
   :root {
