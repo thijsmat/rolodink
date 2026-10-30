@@ -31,7 +31,7 @@ export default async function SignupPage(props: Readonly<SignupPageProps>) {
       alternateLink={{
         text: 'Already have an account?',
         linkText: 'Sign in',
-        href: `/login${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+        href: { pathname: '/login', query: next ? { next } : undefined },
       }}
       next={next}
     />
