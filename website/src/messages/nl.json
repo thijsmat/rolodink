@@ -1,10 +1,10 @@
 {
     "Hero": {
-        "badge": "Browserextensie voor LinkedIn – Werkt in Chrome, Edge & Brave",
+        "badge": "Browserextensie voor LinkedIn – Chrome, Edge, Brave & Firefox",
         "title": "Maak van elke LinkedIn connectie een waardevolle relatie",
         "subtitle": "Rolodink is de slimme notitielaag voor LinkedIn. Voeg persoonlijke notities toe, onthoud details en bouw een sterker netwerk, direct vanuit je browser.",
-        "trustedBy": "4.9/5 - Vertrouwd door professionals",
         "watch": "Bekijk hoe het werkt",
+        "imageAlt": "Visitekaartjes op een netwerktafel",
         "demoCard": {
             "name": "Jan de Vries",
             "role": "Product Manager @ TechCorp",
@@ -140,7 +140,6 @@
         "stats": {
             "title": "Waarom professionals kiezen voor Rolodink",
             "focus": "Focus op LinkedIn",
-            "followUp": "Betere Follow-up",
             "installTime": "Installatietijd"
         },
         "cta": {
@@ -844,8 +843,47 @@
         "copyright": "Alle rechten voorbehouden."
     },
     "Metadata": {
-        "title": "Rolodink - Browserextensie voor LinkedIn connecties",
-        "description": "Vergeet nooit meer wie je kent. Rolodink helpt je persoonlijke notities en context toe te voegen aan elke LinkedIn connectie. Veilig en gratis."
+        "title": "Rolodink – Privénotities bij je LinkedIn-connecties",
+        "description": "Voeg privé, versleutelde notities toe aan elk LinkedIn-profiel en vind mensen terug op naam, bedrijf of detail. Gratis extensie voor Chrome, Edge en Firefox.",
+        "imageAlt": "Rolodink: privénotities bij je LinkedIn-connecties"
+    },
+    "PageMeta": {
+        "features": {
+            "title": "Functies: privénotities en zoeken op LinkedIn",
+            "description": "Ontdek hoe Rolodink met één klik privénotities, zoekfunctie en context toevoegt aan LinkedIn-profielen. Versleuteld en gratis in Chrome, Edge en Firefox."
+        },
+        "howItWorks": {
+            "title": "Hoe werkt het? Notities bij LinkedIn in 3 stappen",
+            "description": "Open een profiel, schrijf een notitie en vind iemand terug op naam, bedrijf of een detail. Zie in drie stappen hoe Rolodink werkt en installeer het gratis."
+        },
+        "download": {
+            "title": "Download Rolodink voor Chrome, Edge en Firefox",
+            "description": "Installeer de gratis Rolodink-extensie voor LinkedIn via de Chrome Web Store, Edge Add-ons of Firefox Add-ons. Klaar in 30 seconden, geen creditcard nodig."
+        },
+        "help": {
+            "title": "Help en veelgestelde vragen",
+            "description": "Antwoorden over Rolodink: privacy, beveiliging, notities exporteren, ondersteunde browsers en support. Staat je vraag er niet bij? Neem contact met ons op."
+        },
+        "changelog": {
+            "title": "Changelog: wat is er nieuw in Rolodink",
+            "description": "Bekijk wat er nieuw is in Rolodink. Elke versie van de LinkedIn-notitie-extensie met nieuwe functies, fixes en verbeteringen, van de nieuwste terug in de tijd."
+        },
+        "privacy": {
+            "title": "Privacybeleid",
+            "description": "Hoe Rolodink met je gegevens omgaat: wat we opslaan, hoe je notities worden beschermd en welke rechten je hebt onder de AVG. Lees het privacybeleid."
+        },
+        "terms": {
+            "title": "Gebruiksvoorwaarden",
+            "description": "De voorwaarden voor het gebruik van de Rolodink-browserextensie en website. Lees wat je van ons kunt verwachten en wat wij van jou verwachten."
+        },
+        "security": {
+            "title": "Beveiliging",
+            "description": "Hoe Rolodink je LinkedIn-notities privé en veilig houdt. Lees hoe je notities worden opgeslagen en beschermd voordat je de extensie installeert."
+        },
+        "disclaimer": {
+            "title": "Disclaimer",
+            "description": "Rolodink is een onafhankelijk product en niet gelieerd aan LinkedIn Corporation. Lees de volledige disclaimer over onze naam en handelsmerken."
+        }
     },
     "OnboardingPage": {
         "title": "Welkom bij Rolodink",

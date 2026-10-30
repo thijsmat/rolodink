@@ -12,7 +12,6 @@ import {
   Shield,
   Zap,
   Target,
-  BarChart3,
   CheckCircle
 } from 'lucide-react'
 import { storeUrl } from '@/lib/utils'
@@ -86,16 +85,11 @@ export default function FeaturesPage() {
                 {t('stats.title')}
               </h2>
             </div>
-            <div className="mt-12 grid grid-cols-1 gap-8 text-center sm:grid-cols-3">
+            <div className="mx-auto mt-12 grid max-w-2xl grid-cols-1 gap-8 text-center sm:grid-cols-2">
               <div className="flex flex-col items-center space-y-2">
                 <Target className="h-8 w-8 text-azure" />
                 <p className="text-4xl font-bold text-azure">100%</p>
                 <p className="text-muted-foreground">{t('stats.focus')}</p>
-              </div>
-              <div className="flex flex-col items-center space-y-2">
-                <BarChart3 className="h-8 w-8 text-azure" />
-                <p className="text-4xl font-bold text-azure">3x</p>
-                <p className="text-muted-foreground">{t('stats.followUp')}</p>
               </div>
               <div className="flex flex-col items-center space-y-2">
                 <Zap className="h-8 w-8 text-azure" />

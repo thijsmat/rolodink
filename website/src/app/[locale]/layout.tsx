@@ -33,17 +33,10 @@ export async function generateMetadata({
     },
     description: t('description'),
     metadataBase: new URL('https://rolodink.app'),
-    // Elke URL draagt een taalprefix (localePrefix 'always'); '/' is alleen een redirect.
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        'nl': '/nl',
-        'en': '/en',
-      },
-    },
+    // Geen canonical of hreflang hier: die zijn per pagina (src/lib/seo.ts), anders
+    // erven pagina's zonder eigen metadata de canonical van de homepage.
     openGraph: {
       type: "website",
-      url: "https://rolodink.app",
       title: t('title'),
       description: t('description'),
       siteName: "Rolodink",
@@ -52,7 +45,7 @@ export async function generateMetadata({
           url: "/og-image.png",
           width: 1200,
           height: 630,
-          alt: "Rolodink - LinkedIn notitielaag",
+          alt: t('imageAlt'),
         },
       ],
     },

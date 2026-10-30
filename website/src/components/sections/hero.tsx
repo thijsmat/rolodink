@@ -1,5 +1,5 @@
 import NextImage from "next/image";
-import { Chrome, CirclePlay, Star } from "lucide-react";
+import { Chrome, CirclePlay } from "lucide-react";
 import { Edge, Firefox } from "@/components/icons";
 import { storeUrl } from "@/lib/utils";
 import { useTranslations } from 'next-intl';
@@ -64,30 +64,6 @@ export default function Hero() {
               <CirclePlay className="h-5 w-5" />
               {t('watch')}
             </a>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 pt-2 sm:pt-4">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-background bg-gold shrink-0"
-                    ></div>
-                  ))}
-                </div>
-                <span className="text-xs sm:text-sm text-grey">
-                  {t('trustedBy')}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="h-4 w-4 text-gold fill-current" />
-                  ))}
-                </div>
-                <span className="text-xs sm:text-sm text-grey ml-1">4.9/5</span>
-              </div>
-            </div>
           </div>
 
           <div className="flex-1 max-w-[536px] flex items-center justify-center w-full lg:w-auto">
@@ -96,7 +72,7 @@ export default function Hero() {
                 <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-gold/5 to-gold/0"></div>
                 <NextImage
                   src="/images/business-card-networking.jpg"
-                  alt="Business Card Networking"
+                  alt={t('imageAlt')}
                   width={536}
                   height={256}
                   className="w-full h-40 sm:h-48 lg:h-64 object-cover rounded-lg sm:rounded-2xl relative z-10"
