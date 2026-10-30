@@ -68,8 +68,12 @@ Geen autoprefixer nodig: Tailwind v4 doet vendor-prefixing zelf.
   dark mode via de variabelen meeloopt.
 - De prose-kleuren (lange teksten) zijn overrides van de `--tw-prose-*`-variabelen in een
   `@layer utilities`-blok in hetzelfde bestand.
-- De fonts komen van `next/font` in `src/app/[locale]/layout.tsx` als `--font-next-inter` en
-  `--font-next-playfair`; `font-inter`/`font-playfair` verwijzen daarnaar.
+- De fonts komen van `next/font/local` in `src/app/[locale]/layout.tsx` als `--font-next-inter` en
+  `--font-next-playfair`; `font-inter`/`font-playfair` verwijzen daarnaar. De bestanden staan in
+  `src/fonts` (variabele woff2, latin, van Fontsource; SIL OFL 1.1, licenties ernaast). Niet
+  terug naar `next/font/google`: die haalt de fonts bij elke build op en liet CI- en
+  Vercel-builds falen als Google afwijkend antwoordde. Een ander gewicht of een extra
+  tekenset (bijvoorbeeld `latin-ext`) vraagt een ander bestand uit `@fontsource-variable/*`.
 
 ### Tailwind v4-gedrag om op te letten
 

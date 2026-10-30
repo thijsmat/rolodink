@@ -1,7 +1,7 @@
 import type { Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { routing } from '@/navigation'
-import { Inter, Playfair_Display } from 'next/font/google'
+import localFont from 'next/font/local'
 import '../globals.css'
 import { Analytics } from "@vercel/analytics/next"
 import { SiteHeader } from "@/components/site-header"
@@ -9,8 +9,21 @@ import { Analytics as PostHogAnalytics } from "@/components/analytics"
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, getMessages } from 'next-intl/server';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-next-inter', weight: ['400', '500', '600', '700'] })
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-next-playfair', weight: ['600', '700'] })
+// Self-hosted (src/fonts, SIL OFL 1.1, latin subset from Fontsource) instead of next/font/google:
+// the Google loader fetches the CSS at build time and failed CI and Vercel builds whenever
+// fonts.googleapis.com answered oddly. One variable file per family covers every weight we use.
+const inter = localFont({
+  src: '../../fonts/inter-latin-wght.woff2',
+  weight: '100 900',
+  display: 'swap',
+  variable: '--font-next-inter',
+})
+const playfair = localFont({
+  src: '../../fonts/playfair-display-latin-wght.woff2',
+  weight: '400 900',
+  display: 'swap',
+  variable: '--font-next-playfair',
+})
 
 export const viewport: Viewport = {
   width: 'device-width',
